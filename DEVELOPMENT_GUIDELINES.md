@@ -75,6 +75,32 @@ interface User {
 - [ ] 테스트 통과함
 - [ ] 보안 스캔 통과함
 
+## 시스템 설정값 관리 (DB 방식)
+
+### 하드코딩 대신 DB 테이블 사용
+```typescript
+// ❌ 잘못된 예 - 하드코딩
+const DEFAULT_TIMEOUT = 5000;
+const API_BASE_URL = "https://api.example.com";
+
+// ✅ 올바른 예 - DB에서 관리
+const timeout = await getSystemSetting('api', 'default_timeout');
+const baseUrl = await getSystemSetting('api', 'base_url');
+```
+
+### system_settings 테이블 구조
+- **category**: 설정 분류 (oauth, api, ui, business 등)
+- **key**: 설정 키 이름
+- **value**: 설정값
+- **description**: 설정 설명
+- **isActive**: 활성화 여부
+
+### 기본 시스템 설정 카테고리
+- `oauth`: OAuth 관련 설정 (콜백 URL, 스코프 등)
+- `api`: API 관련 설정 (타임아웃, 기본 URL 등)
+- `ui`: UI 관련 설정 (기본 테마, 언어 등)
+- `business`: 비즈니스 로직 설정 (기본값, 제한값 등)
+
 ## 자동 검사 규칙
 
 ### 금지된 패턴들

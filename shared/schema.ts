@@ -303,3 +303,23 @@ export type Timeline = typeof timelines.$inferSelect;
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
+
+// 시스템 설정값 관리 테이블 - 하드코딩 대신 DB로 관리
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id").primaryKey(),
+  category: varchar("category").notNull(), // 예: 'oauth', 'api', 'ui', 'business'
+  key: varchar("key").notNull(),
+  value: varchar("value").notNull(),
+  description: varchar("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;

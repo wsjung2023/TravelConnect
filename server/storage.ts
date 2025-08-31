@@ -9,6 +9,7 @@ import {
   likes,
   trips,
   timelines,
+  systemSettings,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -25,6 +26,8 @@ import {
   type InsertTimeline,
   type Timeline,
   type Review,
+  type SystemSetting,
+  type InsertSystemSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql, like } from "drizzle-orm";
@@ -78,6 +81,12 @@ export interface IStorage {
   // Review operations
   createReview(review: { experienceId: number; guestId: string; hostId: string; rating: number; comment?: string }): Promise<Review>;
   getReviewsByExperience(experienceId: number): Promise<Review[]>;
+  
+  // System Settings operations
+  getSystemSetting(category: string, key: string): Promise<string | undefined>;
+  setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting>;
+  getAllSystemSettings(category?: string): Promise<SystemSetting[]>;
+  updateSystemSetting(id: string, updates: Partial<InsertSystemSetting>): Promise<SystemSetting | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -453,6 +462,53 @@ export class DatabaseStorage implements IStorage {
       .from(reviews)
       .where(eq(reviews.experienceId, experienceId))
       .orderBy(desc(reviews.createdAt));
+  }
+
+  // System Settings operations
+  async getSystemSetting(category: string, key: string): Promise<string | undefined> {
+    const [setting] = await db
+      .select()
+      .from(systemSettings)
+      .where(and(
+        eq(systemSettings.category, category),
+        eq(systemSettings.key, key),
+        eq(systemSettings.isActive, true)
+      ));
+    return setting?.value;
+  }
+
+  async setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting> {
+    const [newSetting] = await db
+      .insert(systemSettings)
+      .values(setting)
+      .onConflictDoUpdate({
+        target: [systemSettings.category, systemSettings.key],
+        set: {
+          value: setting.value,
+          description: setting.description,
+          isActive: setting.isActive,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return newSetting;
+  }
+
+  async getAllSystemSettings(category?: string): Promise<SystemSetting[]> {
+    const query = db.select().from(systemSettings);
+    if (category) {
+      return await query.where(eq(systemSettings.category, category));
+    }
+    return await query;
+  }
+
+  async updateSystemSetting(id: string, updates: Partial<InsertSystemSetting>): Promise<SystemSetting | undefined> {
+    const [setting] = await db
+      .update(systemSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(systemSettings.id, id))
+      .returning();
+    return setting;
   }
 
   // SQL 실행 함수 (DB Admin용)
