@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourgether 소스코드 다운로드</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .download-btn {
+            display: block;
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Tourgether 소스코드 다운로드</h1>
+        
+        <div class="info">
+            <h3>다운로드 가능한 파일들:</h3>
+            <p><strong>최신 소스코드:</strong> 파일 업로드 시스템 완료 버전</p>
+        </div>
+
+        <a href="/tourgether_complete_source_20250727_112121.tar.gz" class="download-btn">
+            📥 소스코드 다운로드 (99.6MB)
+        </a>
+        
+        <a href="/tourgether_backup_20250727_111914_file_upload_complete.tar.gz" class="download-btn">
+            📥 전체 백업 다운로드 (604MB) - 업로드된 파일 포함
+        </a>
+
+        <div class="info">
+            <h3>🔧 설치 방법:</h3>
+            <ol>
+                <li>위 파일 중 하나를 다운로드</li>
+                <li>압축 해제: <code>tar -xzf 파일명.tar.gz</code></li>
+                <li><code>npm install</code> 실행</li>
+                <li><code>.env</code> 파일 생성하여 환경변수 설정</li>
+                <li><code>npm run dev</code>로 서버 시작</li>
+            </ol>
+            
+            <p><strong>주요 환경변수:</strong></p>
+            <pre>DATABASE_URL=postgresql://...
+VITE_GOOGLE_MAPS_API_KEY=your_api_key</pre>
+        </div>
+    </div>
+</body>
+</html>

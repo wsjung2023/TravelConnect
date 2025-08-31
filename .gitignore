@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Environment variables - 절대 Git에 올리면 안됨!
+.env
+.env.local
+.env.development
+.env.production
+
+# API Keys and Secrets - 보안상 절대 커밋하지 말 것
+**/googleAuth.ts
+**/*secret*
+**/*key*

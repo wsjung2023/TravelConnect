@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourgether DB Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .query-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .button-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background: #4ECDC4;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45b8b0;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .quick-queries {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-query {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+        
+        .quick-query:hover {
+            background: #e9ecef;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ECDC4;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ Tourgether Database Admin</h1>
+            <p>PostgreSQL 데이터베이스 관리 도구 - TOAD/SQLDeveloper 스타일</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <!-- 통계가 여기에 표시됩니다 -->
+        </div>
+        
+        <div class="query-section">
+            <h3>🗂️ 데이터베이스 스키마</h3>
+            <div class="schema-section" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-family: monospace; font-size: 12px;">
+                <strong>📋 테이블 목록:</strong><br>
+                • posts (id, userId, title, content, images[], videos[], location, latitude, longitude, theme, tags[], likesCount)<br>
+                • users (id, email, name, avatarUrl, createdAt, updatedAt)<br>
+                • timelines (id, userId, title, description, startDate, endDate, isPublic)<br>
+                • experiences (id, hostId, title, description, category, location, price, rating)<br>
+                • bookings (id, experienceId, guestId, date, participants, status)<br>
+                • reviews (id, experienceId, guestId, hostId, rating, comment)<br>
+                • trips (id, userId, title, description, startDate, endDate)
+            </div>
+            
+            <h3>SQL 쿼리 실행</h3>
+            
+            <div class="quick-queries">
+                <div class="quick-query" onclick="setQuery('SELECT * FROM posts ORDER BY id DESC LIMIT 20;')">
+                    최근 피드 20개
+                </div>
+                <div class="quick-query" onclick="setQuery('SELECT * FROM users;')">
+                    모든 사용자
+                </div>
+                <div class="quick-query" onclick="setQuery('SELECT * FROM timelines;')">
+                    모든 타임라인
+                </div>
+                <div class="quick-query" onclick="setQuery('SELECT theme, COUNT(*) as count FROM posts GROUP BY theme ORDER BY count DESC;')">
+                    테마별 통계
+                </div>
+                <div class="quick-query" onclick="setQuery('DESCRIBE posts;')">
+                    posts 테이블 구조
+                </div>
+                <div class="quick-query" onclick="setQuery('SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema();')">
+                    모든 테이블 조회
+                </div>
+            </div>
+            
+            <textarea id="sqlQuery" placeholder="SQL 쿼리를 입력하세요...
+예시:
+SELECT * FROM posts WHERE theme = 'landmark';
+UPDATE posts SET theme = 'restaurant' WHERE theme = 'food';
+DELETE FROM posts WHERE id = 123;"></textarea>
+            
+            <div class="button-group">
+                <button class="btn-primary" onclick="executeQuery()">🚀 쿼리 실행</button>
+                <button class="btn-secondary" onclick="clearQuery()">🗑️ 클리어</button>
+                <button class="btn-secondary" onclick="loadStats()">📊 통계 새로고침</button>
+                <button class="btn-danger" onclick="confirmDangerousQuery()">⚠️ 위험한 쿼리 실행</button>
+            </div>
+            
+            <div id="message"></div>
+        </div>
+        
+        <div class="results-section">
+            <div class="table-container" id="results">
+                <div class="loading">쿼리를 실행하면 결과가 여기에 표시됩니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // 페이지 로드 시 통계 로드
+        window.onload = function() {
+            loadStats();
+        };
+        
+        function setQuery(query) {
+            document.getElementById('sqlQuery').value = query;
+        }
+        
+        function clearQuery() {
+            document.getElementById('sqlQuery').value = '';
+            document.getElementById('results').innerHTML = '<div class="loading">쿼리를 실행하면 결과가 여기에 표시됩니다.</div>';
+            document.getElementById('message').innerHTML = '';
+        }
+        
+        async function loadStats() {
+            try {
+                const queries = [
+                    'SELECT COUNT(*) as count FROM posts',
+                    'SELECT COUNT(*) as count FROM users', 
+                    'SELECT COUNT(*) as count FROM timelines',
+                    'SELECT COUNT(DISTINCT theme) as count FROM posts'
+                ];
+                
+                const results = await Promise.all(
+                    queries.map(query => 
+                        fetch(`${API_BASE}/api/sql`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query })
+                        }).then(r => r.json())
+                    )
+                );
+                
+                const statsHtml = `
+                    <div class="stat-card">
+                        <div class="stat-number">${results[0].rows[0].count}</div>
+                        <div class="stat-label">총 피드 수</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${results[1].rows[0].count}</div>
+                        <div class="stat-label">총 사용자 수</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${results[2].rows[0].count}</div>
+                        <div class="stat-label">총 타임라인 수</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${results[3].rows[0].count}</div>
+                        <div class="stat-label">테마 종류</div>
+                    </div>
+                `;
+                
+                document.getElementById('stats').innerHTML = statsHtml;
+            } catch (error) {
+                console.error('통계 로드 실패:', error);
+            }
+        }
+        
+        async function executeQuery() {
+            const query = document.getElementById('sqlQuery').value.trim();
+            if (!query) {
+                showMessage('쿼리를 입력해주세요.', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/sql`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || '쿼리 실행 실패');
+                }
+                
+                displayResults(result);
+                showMessage(`쿼리 성공 (${result.rowCount || 0}행 영향받음)`, 'success');
+                
+                // 통계 업데이트
+                if (query.toLowerCase().includes('insert') || 
+                    query.toLowerCase().includes('update') || 
+                    query.toLowerCase().includes('delete')) {
+                    loadStats();
+                }
+                
+            } catch (error) {
+                showMessage(`오류: ${error.message}`, 'error');
+                document.getElementById('results').innerHTML = '<div class="loading">오류가 발생했습니다.</div>';
+            }
+        }
+        
+        function confirmDangerousQuery() {
+            const query = document.getElementById('sqlQuery').value.trim();
+            if (!query) {
+                showMessage('쿼리를 입력해주세요.', 'error');
+                return;
+            }
+            
+            if (confirm('정말로 이 쿼리를 실행하시겠습니까? 데이터가 변경될 수 있습니다.')) {
+                executeQuery();
+            }
+        }
+        
+        function showLoading() {
+            document.getElementById('results').innerHTML = '<div class="loading">쿼리 실행 중...</div>';
+        }
+        
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                messageEl.innerHTML = '';
+            }, 5000);
+        }
+        
+        function displayResults(result) {
+            const resultsEl = document.getElementById('results');
+            
+            if (!result.rows || result.rows.length === 0) {
+                resultsEl.innerHTML = '<div class="loading">결과가 없습니다.</div>';
+                return;
+            }
+            
+            const columns = Object.keys(result.rows[0]);
+            
+            let html = '<table><thead><tr>';
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            result.rows.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (value === null) value = '<em>NULL</em>';
+                    else if (typeof value === 'object') value = JSON.stringify(value);
+                    else if (typeof value === 'string' && value.length > 100) {
+                        value = value.substring(0, 100) + '...';
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            resultsEl.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
