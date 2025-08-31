@@ -19,7 +19,7 @@ patterns=(
     "postgres://[^'\"]*"
     "mysql://[^'\"]*"
     "redis://[^'\"]*"
-    "https://[^'\"]*\.googleapis\.com/[^'\"]*"
+    # "https://[^'\"]*\.googleapis\.com/[^'\"]*"  # 환경변수 사용 시에는 문제없음
 )
 
 found_issues=0

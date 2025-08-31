@@ -8,6 +8,21 @@ Tourgether is a modern full-stack web application that connects travelers with l
 
 Preferred communication style: Simple, everyday language.
 
+## Development Guidelines
+
+### Security Requirements (ABSOLUTE)
+- ❌ NEVER hardcode API keys, passwords, or secrets in source code
+- ✅ ALWAYS use environment variables: `process.env.API_KEY`
+- ✅ Use Replit Secrets for sensitive data
+- ✅ Check code with `./check_hardcoding.sh` before any commits
+- ✅ Follow guidelines in `DEVELOPMENT_GUIDELINES.md`
+
+### Code Quality Standards
+- Must validate all environment variables with proper error handling
+- Must use TypeScript types for all data structures
+- Must implement proper error handling for all external API calls
+- Must follow the patterns established in existing codebase
+
 ## Known Issues
 
 ### CRITICAL SECURITY ISSUE - API Keys Exposed (2025-01-31)
