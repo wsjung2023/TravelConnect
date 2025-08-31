@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import MapComponent from "@/components/MapComponent";
 
 import SearchHeader from "@/components/SearchHeader";
@@ -10,9 +11,12 @@ import Chat from "@/pages/chat";
 import Profile from "@/pages/profile";
 import BottomNavigation from "@/components/BottomNavigation";
 import { JourneyCreateModal } from "@/components/JourneyCreateModal";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 
 export default function Home() {
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<'map' | 'feed' | 'chat' | 'profile' | 'timeline'>('map');
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [prefilledLocation, setPrefilledLocation] = useState<{ name: string; latitude: number; longitude: number } | null>(null);
@@ -113,13 +117,31 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell />
-          <button 
-            onClick={() => window.open('/db-admin', '_blank')}
-            className="p-2 hover:bg-gray-100 rounded-full"
-            title="DB Admin 도구"
-          >
-            <i className="fas fa-database text-gray-600"></i>
-          </button>
+          
+          {/* Admin 전용 버튼들 */}
+          {user?.role === 'admin' && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/config')}
+                className="p-2 hover:bg-gray-100 rounded-full"
+                title="Configuration Panel"
+                data-testid="button-config-panel"
+              >
+                <Settings className="h-4 w-4 text-gray-600" />
+              </Button>
+              <button 
+                onClick={() => window.open('/db-admin', '_blank')}
+                className="p-2 hover:bg-gray-100 rounded-full"
+                title="DB Admin 도구"
+                data-testid="button-db-admin"
+              >
+                <i className="fas fa-database text-gray-600"></i>
+              </button>
+            </>
+          )}
+          
           <button 
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={() => {
@@ -128,6 +150,7 @@ export default function Home() {
               window.location.reload();
             }}
             title="로그아웃"
+            data-testid="button-logout"
           >
             <i className="fas fa-sign-out-alt text-gray-600"></i>
           </button>
