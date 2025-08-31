@@ -13,6 +13,7 @@ import TimelinePage from "@/pages/timeline";
 import Chat from "@/pages/chat";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
+import Config from "@/pages/config";
 import { useAuth } from "@/hooks/useAuth";
 
 function Router() {
@@ -33,6 +34,7 @@ function Router() {
             <Route path="/chat" component={Chat} />
             <Route path="/profile" component={Profile} />
             <Route path="/admin" component={Admin} />
+            <Route path="/config" component={Config} />
           </>
         )}
         <Route component={NotFound} />
