@@ -468,8 +468,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // System Settings API
-  app.get('/api/system-settings', isAuthenticated, async (req: any, res) => {
+  // System Settings API - 인증 미들웨어 수정
+  app.get('/api/system-settings', authenticateToken, async (req: any, res) => {
     try {
       const settings = await storage.getAllSystemSettings();
       res.json(settings);
@@ -479,7 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/system-settings/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/system-settings/:id', authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
