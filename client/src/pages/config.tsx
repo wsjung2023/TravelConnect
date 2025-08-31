@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
-import { Settings, Save, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { Settings, Save, RefreshCw, AlertCircle, CheckCircle, ShieldAlert } from 'lucide-react';
 
 interface SystemSetting {
   id: string;
@@ -40,8 +41,56 @@ const categoryDescriptions = {
 
 export default function ConfigPage() {
   const { toast } = useToast();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [editingSettings, setEditingSettings] = useState<Record<string, Partial<SystemSetting>>>({});
+
+  // 관리자 권한 확인
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || user?.role !== 'admin')) {
+      toast({
+        title: "접근 권한 없음",
+        description: "관리자만 Configuration Panel에 접근할 수 있습니다.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }
+  }, [authLoading, isAuthenticated, user, toast]);
+
+  // 관리자가 아닌 경우 접근 차단 UI
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <ShieldAlert className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                접근 권한 없음
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                관리자만 Configuration Panel에 접근할 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const { data: settings = [], isLoading, error } = useQuery<SystemSetting[]>({
     queryKey: ['/api/system-settings'],
@@ -51,7 +100,6 @@ export default function ConfigPage() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<SystemSetting> }) => {
       return await apiRequest(`/api/system-settings/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
     },

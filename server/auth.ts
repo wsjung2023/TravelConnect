@@ -67,6 +67,23 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
   next();
 }
 
+// 관리자 권한 확인 미들웨어
+export async function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+  // 먼저 인증 확인
+  await authenticateToken(req, res, () => {});
+  
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  
+  // 관리자 권한 확인
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  
+  next();
+}
+
 // 이메일 유효성 검증
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
