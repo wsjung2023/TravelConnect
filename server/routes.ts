@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.executeSQL(query);
       res.json(result);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('SQL execution error:', error);
       res.status(500).json({ error: error.message });
     }
@@ -241,8 +241,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // JWT 기반 사용자 정보 조회
-  app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res) => {
+  // JWT 기반 사용자 정보 조회  
+  app.get('/api/auth/me', authenticateToken as any, async (req: AuthRequest, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user) {
@@ -503,7 +503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // System Settings API - 관리자 전용
-  app.get('/api/system-settings', requireAdmin, async (req: any, res) => {
+  app.get('/api/system-settings', requireAdmin as any, async (req: any, res) => {
     try {
       const settings = await storage.getAllSystemSettings();
       res.json(settings);
@@ -513,7 +513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/system-settings/:id', requireAdmin, async (req: any, res) => {
+  app.put('/api/system-settings/:id', requireAdmin as any, async (req: any, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
@@ -626,13 +626,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { bio, location, isHost } = req.body;
       
-      const user = await storage.upsertUser({
-        id: userId,
-        bio,
-        location,
-        isHost,
-      });
-      res.json(user);
+      const existingUser = await storage.getUser(userId);
+      if (existingUser) {
+        const user = await storage.upsertUser({
+          id: userId,
+          email: existingUser.email || 'unknown@example.com',
+          bio,
+          location,
+          isHost,
+        });
+        res.json(user);
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "Failed to update profile" });

@@ -1,7 +1,7 @@
+import React, { useState } from "react";
 import { MapPin, Users, MessageCircle, Star, PlayCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "../components/ui/button";
+import { useToast } from "../hooks/use-toast";
 
 export default function Landing() {
   const { toast } = useToast();
