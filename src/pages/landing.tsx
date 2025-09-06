@@ -1,7 +1,47 @@
-import { MapPin, Users, MessageCircle, Star } from "lucide-react";
+import { MapPin, Users, MessageCircle, Star, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Landing() {
+  const { toast } = useToast();
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true);
+    try {
+      const response = await fetch('/api/auth/demo-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+      
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      toast({ 
+        title: "데모 로그인 성공", 
+        description: "TEST 계정으로 로그인되었습니다. 플랫폼을 자유롭게 둘러보세요!" 
+      });
+      
+      // 홈으로 리다이렉트
+      window.location.href = '/';
+    } catch (error: any) {
+      toast({ 
+        title: "데모 로그인 실패", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setIsDemoLoading(false);
+    }
+  };
+
   const features = [
     {
       icon: MapPin,
@@ -125,9 +165,22 @@ export default function Landing() {
           <p className="text-gray-600 text-sm mb-6">
             무료 회원가입으로 특별한 여행을 계획해보세요
           </p>
+          
+          {/* 데모 체험하기 버튼 */}
+          <Button 
+            onClick={handleDemoLogin}
+            disabled={isDemoLoading}
+            className="w-full h-12 text-lg mb-3 bg-orange-500 hover:bg-orange-600 text-white"
+            data-testid="button-demo-login"
+          >
+            <PlayCircle className="w-5 h-5 mr-2" />
+            {isDemoLoading ? '로그인 중...' : '데모로 체험해보기'}
+          </Button>
+          
           <Button 
             onClick={() => window.location.href = '/api/login'}
             className="travel-button w-full h-12 text-lg"
+            data-testid="button-login"
           >
             로그인하고 시작하기
           </Button>

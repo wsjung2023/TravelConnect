@@ -208,6 +208,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 데모 로그인 - TEST 계정으로 비밀번호 없이 로그인
+  app.post('/api/auth/demo-login', async (req, res) => {
+    try {
+      // TEST 사용자 조회
+      const user = await storage.getUser('TEST');
+      if (!user) {
+        return res.status(404).json({ message: '데모 계정을 찾을 수 없습니다' });
+      }
+
+      // JWT 토큰 생성
+      const token = generateToken({ 
+        id: user.id, 
+        email: user.email || 'test@demo.com', 
+        role: user.role || 'user' 
+      });
+
+      res.json({
+        message: '데모 로그인 성공',
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role
+        }
+      });
+    } catch (error) {
+      console.error('데모 로그인 오류:', error);
+      res.status(500).json({ message: '데모 로그인 중 오류가 발생했습니다' });
+    }
+  });
+
   // JWT 기반 사용자 정보 조회
   app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res) => {
     try {
