@@ -1,58 +1,17 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 
 const app = express();
 
 // Security headers with helmet
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https:', '*.googleapis.com', '*.gstatic.com'],
-        scriptSrc: [
-          "'self'", 
-          "'unsafe-inline'", 
-          "'unsafe-eval'", 
-          '*.googleapis.com', 
-          '*.gstatic.com',
-          'cdnjs.cloudflare.com',
-          'replit.com'
-        ],
-        styleSrc: [
-          "'self'", 
-          "'unsafe-inline'", 
-          'fonts.googleapis.com', 
-          'fonts.gstatic.com',
-          'cdnjs.cloudflare.com'
-        ],
-        connectSrc: [
-          "'self'", 
-          'https:', 
-          '*.googleapis.com', 
-          'wss:'
-        ],
-        fontSrc: [
-          "'self'", 
-          'fonts.googleapis.com', 
-          'fonts.gstatic.com',
-          'cdnjs.cloudflare.com'
-        ],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'", 'data:', 'https:'],
-        frameSrc: ["'self'", '*.google.com'],
-        // Google Maps and external services
-        childSrc: ["'self'", '*.google.com'],
-        workerSrc: ["'self'", 'blob:'],
-      },
-    },
-    frameguard: { action: 'deny' }, // X-Frame-Options: DENY
-    noSniff: true, // X-Content-Type-Options: nosniff
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }, // Referrer-Policy
-  })
-);
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Rate limiting
+app.use('/api/', rateLimit({ windowMs: 60_000, max: 120 })); // 1분 120회
+app.use('/api/auth', rateLimit({ windowMs: 60_000, max: 20 })); // 로그인/회원가입엔 더 촘촘히
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
