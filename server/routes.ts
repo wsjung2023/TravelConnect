@@ -676,7 +676,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId,
       });
-      const post = await storage.createPost(postData);
+      
+      // Day 자동 계산 로직
+      let calculatedDay = 1;
+      
+      if (postData.takenAt) {
+        // 사용자의 모든 기존 게시글에서 takenAt이 있는 것들을 조회
+        const userPostsWithTakenAt = await storage.getPostsByUserWithTakenAt(userId);
+        
+        if (userPostsWithTakenAt && userPostsWithTakenAt.length > 0) {
+          // 날짜별로 그룹화하여 Day 생성
+          const dateMap = new Map<string, number>();
+          
+          // 기존 포스트들의 날짜들을 수집
+          const allDates = userPostsWithTakenAt
+            .map(p => p.takenAt ? new Date(p.takenAt).toDateString() : null)
+            .filter(Boolean) as string[];
+            
+          // 새 게시글의 날짜도 추가
+          const newPostDate = new Date(postData.takenAt).toDateString();
+          allDates.push(newPostDate);
+          
+          // 날짜를 올림차순으로 정렬하고 Day 번호 부여
+          const uniqueDates = [...new Set(allDates)].sort((a, b) => 
+            new Date(a).getTime() - new Date(b).getTime()
+          );
+          
+          uniqueDates.forEach((date, index) => {
+            dateMap.set(date, index + 1);
+          });
+          
+          // 새 게시글의 Day 계산
+          calculatedDay = dateMap.get(newPostDate) || 1;
+        }
+      }
+      
+      // Day 값을 포함하여 게시글 생성
+      const finalPostData = {
+        ...postData,
+        day: calculatedDay
+      };
+      
+      console.log('게시글 생성 - Day 자동 계산 완료:', {
+        userId,
+        takenAt: postData.takenAt,
+        calculatedDay,
+        latitude: postData.latitude,
+        longitude: postData.longitude
+      });
+      
+      const post = await storage.createPost(finalPostData);
       res.status(201).json(post);
     } catch (error) {
       console.error('Error creating post:', error);

@@ -55,6 +55,7 @@ export interface IStorage {
   createPost(post: InsertPost): Promise<Post>;
   getPosts(limit?: number, offset?: number): Promise<Post[]>;
   getPostsByUser(userId: string): Promise<Post[]>;
+  getPostsByUserWithTakenAt(userId: string): Promise<Post[]>;
   toggleLike(userId: string, postId: number): Promise<boolean>;
 
   // Booking operations
@@ -233,6 +234,14 @@ export class DatabaseStorage implements IStorage {
       .from(posts)
       .where(eq(posts.userId, userId))
       .orderBy(desc(posts.createdAt));
+  }
+
+  async getPostsByUserWithTakenAt(userId: string): Promise<Post[]> {
+    return await db
+      .select()
+      .from(posts)
+      .where(and(eq(posts.userId, userId), sql`${posts.takenAt} IS NOT NULL`))
+      .orderBy(posts.takenAt);
   }
 
   async deletePost(postId: number): Promise<boolean> {
