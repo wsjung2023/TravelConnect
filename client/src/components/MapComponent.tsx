@@ -1,6 +1,31 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+
+// Custom debounce hook for performance optimization
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
+// Viewport bounds interface
+interface ViewportBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
 
 interface MapComponentProps {
   className?: string;
@@ -47,9 +72,17 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [markers, setMarkers] = useState<any[]>([]);
   const [currentZoom, setCurrentZoom] = useState(13);
   const [poiMarkers, setPOIMarkers] = useState<any[]>([]);
+  const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
+  const [mapBounds, setMapBounds] = useState<ViewportBounds | null>(null);
+
+  // 150ms debounce for optimal performance
+  const debouncedZoom = useDebounce(currentZoom, 150);
+  const debouncedCenter = useDebounce(mapCenter, 150);
+  const debouncedBounds = useDebounce(mapBounds, 150);
   const [enabledPOITypes, setEnabledPOITypes] = useState<string[]>([
     'tourist_attraction',
   ]);
+
 
   // POI 업데이트 함수
   const updatePOIs = async () => {
@@ -209,6 +242,33 @@ const MapComponent: React.FC<MapComponentProps> = ({
     queryKey: ['/api/posts'],
     enabled: true,
   }) as { data: any[]; isLoading: boolean; error: any };
+
+  // Viewport filtering for performance - only render visible posts
+  const visiblePosts = useMemo(() => {
+    if (!posts || !debouncedBounds) return posts || [];
+    
+    return posts.filter((post: any) => {
+      if (!post.latitude || !post.longitude) return false;
+      
+      const lat = parseFloat(post.latitude);
+      const lng = parseFloat(post.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      // Check if post is within current viewport bounds
+      return (
+        lat <= debouncedBounds.north &&
+        lat >= debouncedBounds.south &&
+        lng <= debouncedBounds.east &&
+        lng >= debouncedBounds.west
+      );
+    });
+  }, [posts, debouncedBounds]);
+
+  // Determine clustering strategy based on marker count
+  const shouldShowClusters = useMemo(() => {
+    return visiblePosts.length > 200 || debouncedZoom < 11;
+  }, [visiblePosts.length, debouncedZoom]);
 
   // 포스트 데이터 상태 로깅
   useEffect(() => {
