@@ -46,6 +46,7 @@ export interface IStorage {
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User>;
+  getOpenUsers(): Promise<User[]>;
 
   // Experience operations
   createExperience(experience: InsertExperience): Promise<Experience>;
@@ -166,6 +167,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async getOpenUsers(): Promise<User[]> {
+    const openUsers = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.openToMeet, true),
+          sql`${users.openUntil} > NOW()`
+        )
+      );
+    return openUsers;
   }
 
   // Experience operations

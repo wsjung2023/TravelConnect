@@ -870,6 +870,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 현재 만남 열려있는 사용자들 조회 (지도용)
+  app.get('/api/users/open', async (req, res) => {
+    try {
+      const openUsers = await storage.getOpenUsers();
+      res.json(openUsers.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        location: user.location,
+        regionCode: user.regionCode,
+        openUntil: user.openUntil,
+        profileImageUrl: user.profileImageUrl
+      })));
+    } catch (error) {
+      console.error('Error fetching open users:', error);
+      res.status(500).json({ message: 'Failed to fetch open users' });
+    }
+  });
+
   app.patch('/api/profile/open', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

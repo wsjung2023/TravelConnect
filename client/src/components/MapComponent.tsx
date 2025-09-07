@@ -75,6 +75,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
   const [mapBounds, setMapBounds] = useState<ViewportBounds | null>(null);
 
+  // 만남 열려있는 사용자들 조회
+  const { data: openUsers = [] } = useQuery({
+    queryKey: ['/api/users/open'],
+    refetchInterval: 60000, // 1분마다 자동 갱신
+  });
+
   // 150ms debounce for optimal performance
   const debouncedZoom = useDebounce(currentZoom, 150);
   const debouncedCenter = useDebounce(mapCenter, 150);
@@ -331,28 +337,34 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   // 피드 마커 (핀 모양) - 사용자 포스트용
-  const createFeedMarker = (theme: string, count: number = 1) => {
+  const createFeedMarker = (theme: string, count: number = 1, isOpenToMeet: boolean = false) => {
     const themeData = getThemeIcon(theme);
     const intensity = Math.min(count / 5, 1);
     const opacity = 0.7 + intensity * 0.3;
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="24" height="32" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+        <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pin-shadow">
               <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
             </filter>
           </defs>
-          <path d="M12 0C6 0 1 5 1 11c0 12 11 21 11 21s11-9 11-21c0-6-5-11-11-11z" 
+          ${isOpenToMeet ? `
+            <circle cx="16" cy="16" r="14" fill="#10B981" fill-opacity="0.3" stroke="#10B981" stroke-width="1"/>
+            <circle cx="16" cy="16" r="12" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="2,2">
+              <animate attributeName="stroke-dasharray" values="2,2;4,1;2,2" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          ` : ''}
+          <path d="M16 4C10 4 5 9 5 15c0 12 11 21 11 21s11-9 11-21c0-6-5-11-11-11z" 
                 fill="${themeData.color}" fill-opacity="${opacity}" stroke="white" 
                 stroke-width="2" filter="url(#pin-shadow)"/>
-          <circle cx="12" cy="11" r="7" fill="white"/>
-          <text x="12" y="16" text-anchor="middle" font-size="10" font-family="Arial">${themeData.icon}</text>
+          <circle cx="16" cy="15" r="7" fill="white"/>
+          <text x="16" y="20" text-anchor="middle" font-size="10" font-family="Arial">${themeData.icon}</text>
         </svg>
       `)}`,
-      scaledSize: new window.google.maps.Size(36, 48),
-      anchor: new window.google.maps.Point(18, 48),
+      scaledSize: new window.google.maps.Size(40, 50),
+      anchor: new window.google.maps.Point(20, 50),
     };
   };
 
@@ -902,6 +914,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
           `마커 생성: ${post.title} (${count}개 포스트) - 테마: ${post.theme}`
         );
 
+        // 사용자가 만남 열려있는지 확인
+        const isUserOpen = openUsers.some((openUser: any) => openUser.id === post.userId);
+        
         const marker = new window.google.maps.Marker({
           position: {
             lat: parseFloat(post.latitude),
@@ -911,7 +926,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
           icon:
             count > 1
               ? createFeedClusterMarker(count)
-              : createFeedMarker(post.theme || 'emotional'),
+              : createFeedMarker(post.theme || 'emotional', 1, isUserOpen),
           title: count > 1 ? `${count}개의 포스트` : post.title,
         });
 
