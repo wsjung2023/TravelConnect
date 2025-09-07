@@ -41,17 +41,10 @@ export default function CreatePostModal({
 
   const createPostMutation = useMutation({
     mutationFn: async (post: InsertPost) => {
-      const response = await fetch('/api/posts', {
+      return apiRequest('/api/posts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(post),
+        body: post,
       });
-      if (!response.ok) {
-        throw new Error('Failed to create post');
-      }
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -159,7 +152,6 @@ export default function CreatePostModal({
     }
 
     const post: InsertPost = {
-      userId: 'current-user', // This should come from auth
       content,
       location: location || undefined,
       images: images.length > 0 ? images : undefined,
