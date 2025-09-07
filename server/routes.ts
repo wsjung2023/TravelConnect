@@ -3,6 +3,7 @@ import { createServer, type Server } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import rateLimit from 'express-rate-limit';
@@ -877,11 +878,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trips 라우터 추가
   app.use('/api/trips', tripsRouter);
   
-  // 업로드된 파일 정적 서빙 (개발 환경에서만 직접 접근 허용)
-  if (process.env.NODE_ENV !== 'production') {
+  // 업로드된 파일 접근 - 환경별 처리
+  if (process.env.NODE_ENV === 'production') {
+    // 프로덕션: 인증된 사용자만 파일 접근 가능
+    app.get('/uploads/:fileName', authenticateToken, async (req: any, res) => {
+      try {
+        const { fileName } = req.params;
+        
+        // 파일명 보안 검증 (directory traversal 공격 방지)
+        if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+          return res.status(400).json({ error: '잘못된 파일명입니다.' });
+        }
+        
+        const filePath = path.join(process.cwd(), 'uploads', fileName);
+        
+        // 파일 존재 확인
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({ error: '파일을 찾을 수 없습니다.' });
+        }
+        
+        // 파일 전송
+        res.sendFile(filePath);
+      } catch (error) {
+        console.error('파일 접근 오류:', error);
+        res.status(500).json({ error: '파일 접근 중 오류가 발생했습니다.' });
+      }
+    });
+  } else {
+    // 개발 환경: 기존 정적 서빙 유지
     app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   }
-  // 프로덕션에서는 향후 토큰 검증 미들웨어 구현 예정
 
   const httpServer = createServer(app);
 

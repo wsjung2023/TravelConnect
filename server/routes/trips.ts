@@ -16,7 +16,7 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-// Multer 설정 - 메모리에 저장
+// Multer 설정 - 보안 강화된 MIME 타입 및 크기 제한
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { 
@@ -24,12 +24,31 @@ const upload = multer({
     files: 100 // 최대 100개 파일
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('허용되지 않는 파일 형식입니다.'), false);
+    // MIME 타입 화이트리스트 - 이미지와 비디오만 허용
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png', 
+      'image/webp',
+      'image/heic',
+      'video/mp4',
+      'video/quicktime'
+    ];
+    
+    if (!allowedTypes.includes(file.mimetype)) {
+      const error = new Error(`허용되지 않는 파일 형식입니다. 허용 형식: ${allowedTypes.join(', ')}`);
+      return cb(error as any);
     }
+    
+    // 파일 확장자 추가 검증
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.mp4', '.mov'];
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+      const error = new Error(`허용되지 않는 파일 확장자입니다. 허용 확장자: ${allowedExtensions.join(', ')}`);
+      return cb(error as any);
+    }
+    
+    cb(null, true);
   }
 });
 
