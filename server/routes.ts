@@ -3,6 +3,8 @@ import { createServer, type Server } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import multer from 'multer';
 import path from 'path';
+import { randomUUID } from 'crypto';
+import fs from 'fs';
 import { storage } from './storage';
 import { setupAuth, isAuthenticated } from './replitAuth';
 import { setupGoogleAuth } from './googleAuth';
@@ -26,15 +28,30 @@ import {
   insertTimelineSchema,
 } from '@shared/schema';
 
-// Multer 설정 - 파일 업로드 처리
+// 허용된 MIME 타입 화이트리스트
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png', 
+  'image/webp',
+  'image/heic',
+  'video/mp4',
+  'video/quicktime'
+];
+
+// Multer 설정 - 보안 강화된 파일 업로드 처리
 const uploadStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // uploads 디렉터리가 없으면 생성
+    const uploadDir = 'uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // UUID와 원본 확장자를 사용해 파일명 생성
-    const ext = path.extname(file.originalname);
-    const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`;
+    // UUID + 원본 확장자로 파일명 생성
+    const ext = path.extname(file.originalname).toLowerCase();
+    const filename = `${randomUUID()}${ext}`;
     cb(null, filename);
   },
 });
@@ -42,17 +59,14 @@ const uploadStorage = multer.diskStorage({
 const upload = multer({
   storage: uploadStorage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB 제한
+    fileSize: 15 * 1024 * 1024, // 15MB 제한
   },
   fileFilter: (req, file, cb) => {
-    // 이미지와 동영상만 허용
-    if (
-      file.mimetype.startsWith('image/') ||
-      file.mimetype.startsWith('video/')
-    ) {
+    // 화이트리스트 기반 MIME 타입 검증
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('이미지와 동영상 파일만 업로드 가능합니다.'));
+      cb(new Error(`허용되지 않는 파일 형식입니다. 지원 형식: ${ALLOWED_MIME_TYPES.join(', ')}`));
     }
   },
 });
