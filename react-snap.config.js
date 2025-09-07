@@ -1,0 +1,24 @@
+module.exports = {
+  inlineCss: true,
+  puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
+  include: [
+    "/",
+    "/map",
+    "/feed", 
+    "/timeline",
+    "/profile",
+    "/chat",
+    "/config"
+  ],
+  skipThirdPartyRequests: true,
+  cacheAjaxRequests: false,
+  preloadImages: false,
+  minifyHtml: {
+    collapseBooleanAttributes: true,
+    collapseWhitespace: true,
+    decodeEntities: true,
+    keepClosingSlash: true,
+    sortAttributes: true,
+    sortClassName: true
+  }
+};

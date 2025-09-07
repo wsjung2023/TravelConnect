@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
 import { Upload, X, Calendar, Camera, MapPin } from 'lucide-react';
 import { TimelineCard } from '@/components/TimelineCard';
@@ -44,7 +44,7 @@ export default function TimelineCreate() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   // 파일 선택 핸들러
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,7 +178,7 @@ export default function TimelineCreate() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/timeline')}
+            onClick={() => setLocation('/timeline')}
             data-testid="back-button"
           >
             ← 뒤로
@@ -320,7 +320,7 @@ export default function TimelineCreate() {
             ))}
             
             <Button
-              onClick={() => navigate('/timeline')}
+              onClick={() => setLocation('/timeline')}
               className="w-full travel-button"
               data-testid="complete-button"
             >
