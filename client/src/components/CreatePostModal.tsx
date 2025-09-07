@@ -7,11 +7,18 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { InsertPost } from '@shared/schema';
+import exifr from 'exifr';
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   location?: { lat: number; lng: number; name?: string } | null;
+}
+
+interface ExifData {
+  takenAt: Date | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export default function CreatePostModal({
@@ -27,6 +34,8 @@ export default function CreatePostModal({
         : '')
   );
   const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [exifData, setExifData] = useState<ExifData[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -64,6 +73,62 @@ export default function CreatePostModal({
     },
   });
 
+  // EXIF 데이터 추출 함수
+  const extractExifData = async (file: File): Promise<ExifData> => {
+    try {
+      const exif = await exifr.parse(file, {
+        gps: true,
+        pick: ['DateTimeOriginal', 'CreateDate', 'DateTime', 'GPS']
+      });
+
+      let takenAt: Date | null = null;
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      // 촬영 시간 추출 (우선순위: DateTimeOriginal > CreateDate > DateTime)
+      if (exif?.DateTimeOriginal) {
+        takenAt = new Date(exif.DateTimeOriginal);
+      } else if (exif?.CreateDate) {
+        takenAt = new Date(exif.CreateDate);
+      } else if (exif?.DateTime) {
+        takenAt = new Date(exif.DateTime);
+      }
+
+      // GPS 좌표 추출
+      if (exif?.latitude && exif?.longitude) {
+        latitude = exif.latitude;
+        longitude = exif.longitude;
+      }
+
+      console.log('EXIF 추출 결과:', { takenAt, latitude, longitude });
+      return { takenAt, latitude, longitude };
+    } catch (error) {
+      console.log('EXIF 추출 실패:', error);
+      return { takenAt: null, latitude: null, longitude: null };
+    }
+  };
+
+  // 파일 선택 처리
+  const handleFileSelect = async (files: FileList) => {
+    const fileArray = Array.from(files);
+    const newImages: string[] = [];
+    const newExifData: ExifData[] = [];
+
+    for (const file of fileArray) {
+      // 이미지 미리보기 URL 생성
+      const imageUrl = URL.createObjectURL(file);
+      newImages.push(imageUrl);
+
+      // EXIF 데이터 추출
+      const exif = await extractExifData(file);
+      newExifData.push(exif);
+    }
+
+    setImages([...images, ...newImages]);
+    setImageFiles([...imageFiles, ...fileArray]);
+    setExifData([...exifData, ...newExifData]);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -76,13 +141,34 @@ export default function CreatePostModal({
       return;
     }
 
+    // EXIF 데이터에서 가장 빠른 takenAt 시간과 GPS 좌표 추출
+    let earliestTakenAt: Date | null = null;
+    let bestLatitude: number | null = null;
+    let bestLongitude: number | null = null;
+
+    for (const exif of exifData) {
+      if (exif.takenAt) {
+        if (!earliestTakenAt || exif.takenAt < earliestTakenAt) {
+          earliestTakenAt = exif.takenAt;
+        }
+      }
+      if (exif.latitude && exif.longitude && !bestLatitude) {
+        bestLatitude = exif.latitude;
+        bestLongitude = exif.longitude;
+      }
+    }
+
     const post: InsertPost = {
       userId: 'current-user', // This should come from auth
       content,
       location: location || undefined,
       images: images.length > 0 ? images : undefined,
+      takenAt: earliestTakenAt || undefined,
+      latitude: bestLatitude?.toString(),
+      longitude: bestLongitude?.toString(),
     };
 
+    console.log('게시글 생성 데이터:', post);
     createPostMutation.mutate(post);
   };
 
@@ -135,12 +221,16 @@ export default function CreatePostModal({
               <span>사진 추가</span>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              <button
-                type="button"
-                className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
-              >
+              <label className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
                 <Camera size={24} className="text-gray-400" />
-              </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
+                  className="hidden"
+                />
+              </label>
               {images.map((image, index) => (
                 <div key={index} className="relative w-20 h-20 flex-shrink-0">
                   <img

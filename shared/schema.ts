@@ -84,6 +84,7 @@ export const posts = pgTable('posts', {
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
   day: integer('day'),
+  takenAt: timestamp('taken_at'), // EXIF에서 추출된 촬영 시간
   shape: varchar('shape').default('none'),
   theme: varchar('theme'),
   postDate: varchar('post_date'),
