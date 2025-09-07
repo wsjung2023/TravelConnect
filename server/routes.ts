@@ -38,6 +38,7 @@ import {
   SendMessageSchema,
   FollowUserSchema,
   UpdateBookingStatusSchema,
+  CreateConversationSchema,
 } from '@shared/api/schema';
 
 // Rate Limit 설정
@@ -372,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // JWT 기반 사용자 정보 조회
-  app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res) => {
+  app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user) {
