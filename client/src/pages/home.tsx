@@ -1,18 +1,19 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
-import MapComponent from '@/components/MapComponent';
-
 import SearchHeader from '@/components/SearchHeader';
 import NotificationBell from '@/components/NotificationBell';
-import Feed from '@/pages/feed';
-import TimelinePage from '@/pages/timeline';
-import Chat from '@/pages/chat';
-import Profile from '@/pages/profile';
 import BottomNavigation from '@/components/BottomNavigation';
 import { JourneyCreateModal } from '@/components/JourneyCreateModal';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
+
+// Lazy load heavy components
+const MapComponent = lazy(() => import('@/components/MapComponent'));
+const Feed = lazy(() => import('@/pages/feed'));
+const TimelinePage = lazy(() => import('@/pages/timeline'));
+const Chat = lazy(() => import('@/pages/chat'));
+const Profile = lazy(() => import('@/pages/profile'));
 
 export default function Home() {
   const { user } = useAuth();
@@ -83,28 +84,57 @@ export default function Home() {
     }
   };
 
+  // Simple loading component for home tabs
+  const TabLoadingSpinner = () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'map':
         return (
-          <MapComponent
-            className="w-full h-full"
-            onCreatePost={(location) => {
-              setPrefilledLocation(location || null);
-              setShowCreatePost(true);
-            }}
-          />
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <MapComponent
+              className="w-full h-full"
+              onCreatePost={(location) => {
+                setPrefilledLocation(location || null);
+                setShowCreatePost(true);
+              }}
+            />
+          </Suspense>
         );
       case 'feed':
-        return <Feed />;
+        return (
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <Feed />
+          </Suspense>
+        );
       case 'timeline':
-        return <TimelinePage />;
+        return (
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <TimelinePage />
+          </Suspense>
+        );
       case 'chat':
-        return <Chat />;
+        return (
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <Chat />
+          </Suspense>
+        );
       case 'profile':
-        return <Profile />;
+        return (
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <Profile />
+          </Suspense>
+        );
       default:
-        return <MapComponent />;
+        return (
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <MapComponent />
+          </Suspense>
+        );
     }
   };
 

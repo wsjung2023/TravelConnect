@@ -7,15 +7,15 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
 import Home from '@/pages/home';
-import Feed from '@/pages/feed';
-import Chat from '@/pages/chat';
-import Profile from '@/pages/profile';
 import Config from '@/pages/config';
 import { useAuth } from '@/hooks/useAuth';
 
 // Lazy load heavy components
 const Map = lazy(() => import('@/pages/map'));
 const MapTest = lazy(() => import('@/pages/map-test'));
+const Feed = lazy(() => import('@/pages/feed'));
+const Chat = lazy(() => import('@/pages/chat'));
+const Profile = lazy(() => import('@/pages/profile'));
 const TimelinePage = lazy(() => import('@/pages/timeline'));
 const Admin = lazy(() => import('@/pages/admin'));
 
@@ -53,7 +53,14 @@ function Router() {
                 </Suspense>
               )}
             />
-            <Route path="/feed" component={Feed} />
+            <Route
+              path="/feed"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Feed />
+                </Suspense>
+              )}
+            />
             <Route
               path="/timeline"
               component={() => (
@@ -62,8 +69,22 @@ function Router() {
                 </Suspense>
               )}
             />
-            <Route path="/chat" component={Chat} />
-            <Route path="/profile" component={Profile} />
+            <Route
+              path="/chat"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Chat />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/profile"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Profile />
+                </Suspense>
+              )}
+            />
             <Route
               path="/admin"
               component={() => (
