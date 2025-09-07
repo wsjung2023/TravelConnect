@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
   }
 }
 
-export const jwtOptions = { algorithm: 'HS256' as const, expiresIn: '7d' };
+export const jwtOptions: jwt.SignOptions = { algorithm: 'HS256' as const, expiresIn: '7d' };
 
 export interface AuthRequest extends Request {
   user?: {
