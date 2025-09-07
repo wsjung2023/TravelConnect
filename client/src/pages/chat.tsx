@@ -12,11 +12,11 @@ export default function Chat() {
     useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: conversations = [] } = useQuery({
+  const { data: conversations = [] } = useQuery<Conversation[]>({
     queryKey: ['/api/conversations'],
   });
 
-  const { data: messages = [] } = useQuery({
+  const { data: messages = [] } = useQuery<Message[]>({
     queryKey: ['/api/conversations', selectedConversation?.id, 'messages'],
     enabled: !!selectedConversation,
   });
