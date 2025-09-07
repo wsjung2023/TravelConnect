@@ -124,6 +124,12 @@ export const AdminActionSchema = z.object({
   reason: z.string().max(500, '사유는 500자 이하여야 합니다').optional(),
 });
 
+// 프로필 업데이트 스키마
+export const UpdateProfileOpenSchema = z.object({
+  open: z.boolean(),
+  region: z.string().min(1, '지역 코드를 입력해주세요').optional(),
+});
+
 // Type inference
 export type LoginData = z.infer<typeof LoginSchema>;
 export type RegisterData = z.infer<typeof RegisterSchema>;

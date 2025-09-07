@@ -40,6 +40,8 @@ export const users = pgTable('users', {
   role: varchar('role').default('user'), // admin, user
   authProvider: varchar('auth_provider').default('email'), // email, google, replit
   isEmailVerified: boolean('is_email_verified').default(false),
+  openToMeet: boolean('open_to_meet').default(false),
+  regionCode: varchar('region_code'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
