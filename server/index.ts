@@ -87,6 +87,25 @@ app.use((req, res, next) => {
   next();
 });
 
+// Production security middleware - block admin routes
+if (process.env.NODE_ENV === 'production') {
+  const blockedRoutes = ['/db-admin', '/api/sql', '/download_backup', '/simple_download'];
+  app.use((req, res, next) => {
+    // Check if request path starts with any blocked route
+    const isBlocked = blockedRoutes.some(route => req.path.startsWith(route));
+    
+    if (isBlocked) {
+      return res.status(403).json({
+        error: 'Access forbidden',
+        code: 'ADMIN_ACCESS_DENIED',
+        message: 'Admin interface is not available in production mode'
+      });
+    }
+    
+    next();
+  });
+}
+
 (async () => {
   const server = await registerRoutes(app);
 

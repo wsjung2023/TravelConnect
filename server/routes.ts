@@ -877,11 +877,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trips 라우터 추가
   app.use('/api/trips', tripsRouter);
   
-  // 업로드된 파일 정적 서빙
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-  
-  // 업로드된 파일 정적 서빙
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // 업로드된 파일 정적 서빙 (개발 환경에서만 직접 접근 허용)
+  if (process.env.NODE_ENV !== 'production') {
+    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  }
+  // 프로덕션에서는 향후 토큰 검증 미들웨어 구현 예정
 
   const httpServer = createServer(app);
 
