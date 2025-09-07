@@ -469,3 +469,74 @@ export const followsRelations = relations(follows, ({ one }) => ({
     relationName: 'userFollowing',
   }),
 }));
+
+// MiniMeet 테이블 - 경량 모임
+export const miniMeets = pgTable('mini_meets', {
+  id: serial('id').primaryKey(),
+  hostId: varchar('host_id')
+    .notNull()
+    .references(() => users.id),
+  title: varchar('title').notNull(),
+  placeName: varchar('place_name').notNull(),
+  latitude: decimal('latitude', { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }).notNull(),
+  startAt: timestamp('start_at').notNull(),
+  maxPeople: integer('max_people').default(6),
+  visibility: varchar('visibility').default('public'), // 'public', 'friends'
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// MiniMeet 참석자 테이블
+export const miniMeetAttendees = pgTable('mini_meet_attendees', {
+  id: serial('id').primaryKey(),
+  meetId: integer('meet_id')
+    .notNull()
+    .references(() => miniMeets.id),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  joinedAt: timestamp('joined_at').defaultNow(),
+  status: varchar('status').default('going'), // 'going', 'wait'
+}, (table) => [
+  index('IDX_mini_meet_attendees_meet_id').on(table.meetId),
+  index('IDX_mini_meet_attendees_user_id').on(table.userId),
+]);
+
+// Zod 스키마
+export const insertMiniMeetSchema = createInsertSchema(miniMeets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMiniMeetAttendeeSchema = createInsertSchema(miniMeetAttendees).omit({
+  id: true,
+  joinedAt: true,
+});
+
+// 타입 정의
+export type MiniMeet = typeof miniMeets.$inferSelect;
+export type InsertMiniMeet = z.infer<typeof insertMiniMeetSchema>;
+export type MiniMeetAttendee = typeof miniMeetAttendees.$inferSelect;
+export type InsertMiniMeetAttendee = z.infer<typeof insertMiniMeetAttendeeSchema>;
+
+// MiniMeet 관계 설정
+export const miniMeetsRelations = relations(miniMeets, ({ one, many }) => ({
+  host: one(users, {
+    fields: [miniMeets.hostId],
+    references: [users.id],
+  }),
+  attendees: many(miniMeetAttendees),
+}));
+
+export const miniMeetAttendeesRelations = relations(miniMeetAttendees, ({ one }) => ({
+  meet: one(miniMeets, {
+    fields: [miniMeetAttendees.meetId],
+    references: [miniMeets.id],
+  }),
+  user: one(users, {
+    fields: [miniMeetAttendees.userId],
+    references: [users.id],
+  }),
+}));
