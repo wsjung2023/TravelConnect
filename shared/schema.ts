@@ -424,3 +424,47 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// 팔로우/팔로잉 시스템
+export const follows = pgTable('follows', {
+  id: serial('id').primaryKey(),
+  followerId: varchar('follower_id')
+    .notNull()
+    .references(() => users.id), // 팔로우하는 사용자
+  followingId: varchar('following_id')
+    .notNull()
+    .references(() => users.id), // 팔로우당하는 사용자
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const insertFollowSchema = createInsertSchema(follows).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Follow = typeof follows.$inferSelect;
+export type InsertFollow = z.infer<typeof insertFollowSchema>;
+
+// 관계 정의
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+  experiences: many(experiences),
+  bookings: many(bookings),
+  reviews: many(reviews),
+  notifications: many(notifications),
+  followers: many(follows, { relationName: 'userFollowers' }),
+  following: many(follows, { relationName: 'userFollowing' }),
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(users, {
+    fields: [follows.followerId],
+    references: [users.id],
+    relationName: 'userFollowers',
+  }),
+  following: one(users, {
+    fields: [follows.followingId],
+    references: [users.id], 
+    relationName: 'userFollowing',
+  }),
+}));

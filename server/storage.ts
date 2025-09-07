@@ -11,6 +11,7 @@ import {
   timelines,
   systemSettings,
   notifications,
+  follows,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -31,6 +32,8 @@ import {
   type InsertSystemSetting,
   type Notification,
   type InsertNotification,
+  type Follow,
+  type InsertFollow,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -694,6 +697,114 @@ export class DatabaseStorage implements IStorage {
       .delete(notifications)
       .where(eq(notifications.id, id));
     return result.rowCount > 0;
+  }
+
+  // Follow operations
+  async followUser(followerId: string, followingId: string): Promise<Follow> {
+    const [follow] = await db
+      .insert(follows)
+      .values({ followerId, followingId })
+      .returning();
+    
+    // 팔로우 알림 생성
+    const [follower] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, followerId))
+      .limit(1);
+
+    await this.createNotification({
+      userId: followingId,
+      type: 'follow',
+      title: '새로운 팔로워',
+      message: `${follower?.firstName || '익명의 사용자'}님이 회원님을 팔로우하기 시작했습니다`,
+      relatedUserId: followerId,
+    });
+
+    return follow!;
+  }
+
+  async unfollowUser(followerId: string, followingId: string): Promise<boolean> {
+    const result = await db
+      .delete(follows)
+      .where(
+        and(
+          eq(follows.followerId, followerId),
+          eq(follows.followingId, followingId)
+        )
+      );
+    return result.rowCount! > 0;
+  }
+
+  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    const [follow] = await db
+      .select()
+      .from(follows)
+      .where(
+        and(
+          eq(follows.followerId, followerId),
+          eq(follows.followingId, followingId)
+        )
+      )
+      .limit(1);
+    return !!follow;
+  }
+
+  async getFollowers(userId: string): Promise<User[]> {
+    const result = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        bio: users.bio,
+        location: users.location,
+        createdAt: users.createdAt,
+      })
+      .from(follows)
+      .innerJoin(users, eq(follows.followerId, users.id))
+      .where(eq(follows.followingId, userId))
+      .orderBy(desc(follows.createdAt));
+
+    return result as User[];
+  }
+
+  async getFollowing(userId: string): Promise<User[]> {
+    const result = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        bio: users.bio,
+        location: users.location,
+        createdAt: users.createdAt,
+      })
+      .from(follows)
+      .innerJoin(users, eq(follows.followingId, users.id))
+      .where(eq(follows.followerId, userId))
+      .orderBy(desc(follows.createdAt));
+
+    return result as User[];
+  }
+
+  async getFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
+    const [followersCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(follows)
+      .where(eq(follows.followingId, userId));
+
+    const [followingCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(follows)
+      .where(eq(follows.followerId, userId));
+
+    return {
+      followers: followersCount?.count || 0,
+      following: followingCount?.count || 0,
+    };
   }
 }
 

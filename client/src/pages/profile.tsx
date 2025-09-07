@@ -58,11 +58,17 @@ export default function Profile() {
     queryKey: ['/api/bookings'],
   });
 
+  // 실제 팔로우 데이터 가져오기
+  const { data: followCounts = { followers: 0, following: 0 } } = useQuery({
+    queryKey: ['/api/users', user?.id, 'follow-counts'],
+    enabled: !!user?.id,
+  });
+
   const stats = {
     posts: posts.length,
     trips: trips.length,
-    followers: 245,
-    following: 180,
+    followers: followCounts.followers,
+    following: followCounts.following,
     experiences: experiences.length,
   };
 

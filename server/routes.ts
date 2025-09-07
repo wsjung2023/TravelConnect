@@ -1089,5 +1089,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Follow/Following API
+  app.post('/api/users/:id/follow', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const followingId = req.params.id;
+      const followerId = req.user!.id;
+
+      if (followerId === followingId) {
+        return res.status(400).json({ message: '자기 자신을 팔로우할 수 없습니다' });
+      }
+
+      // 이미 팔로우 중인지 확인
+      const isAlreadyFollowing = await storage.isFollowing(followerId, followingId);
+      if (isAlreadyFollowing) {
+        return res.status(400).json({ message: '이미 팔로우 중입니다' });
+      }
+
+      await storage.followUser(followerId, followingId);
+      res.status(200).json({ message: '팔로우 완료' });
+    } catch (error) {
+      console.error('Follow error:', error);
+      res.status(500).json({ message: '팔로우 중 오류가 발생했습니다' });
+    }
+  });
+
+  app.delete('/api/users/:id/follow', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const followingId = req.params.id;
+      const followerId = req.user!.id;
+
+      await storage.unfollowUser(followerId, followingId);
+      res.status(200).json({ message: '언팔로우 완료' });
+    } catch (error) {
+      console.error('Unfollow error:', error);
+      res.status(500).json({ message: '언팔로우 중 오류가 발생했습니다' });
+    }
+  });
+
+  app.get('/api/users/:id/following-status', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const targetUserId = req.params.id;
+      const currentUserId = req.user!.id;
+
+      const isFollowing = await storage.isFollowing(currentUserId, targetUserId);
+      res.json({ isFollowing });
+    } catch (error) {
+      console.error('Following status error:', error);
+      res.status(500).json({ message: '팔로우 상태 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  app.get('/api/users/:id/followers', async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const followers = await storage.getFollowers(userId);
+      res.json(followers);
+    } catch (error) {
+      console.error('Get followers error:', error);
+      res.status(500).json({ message: '팔로워 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  app.get('/api/users/:id/following', async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const following = await storage.getFollowing(userId);
+      res.json(following);
+    } catch (error) {
+      console.error('Get following error:', error);
+      res.status(500).json({ message: '팔로잉 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  app.get('/api/users/:id/follow-counts', async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const counts = await storage.getFollowCounts(userId);
+      res.json(counts);
+    } catch (error) {
+      console.error('Get follow counts error:', error);
+      res.status(500).json({ message: '팔로우 개수 조회 중 오류가 발생했습니다' });
+    }
+  });
+
   return httpServer;
 }
