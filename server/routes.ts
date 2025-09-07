@@ -876,6 +876,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Trips 라우터 추가
   app.use('/api/trips', tripsRouter);
+  
+  // 업로드된 파일 정적 서빙
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  
+  // 업로드된 파일 정적 서빙
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   const httpServer = createServer(app);
 

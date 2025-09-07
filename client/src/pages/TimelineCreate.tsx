@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
 import { Upload, X, Calendar, Camera, MapPin } from 'lucide-react';
+import { TimelineCard } from '@/components/TimelineCard';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
@@ -170,93 +171,93 @@ export default function TimelineCreate() {
   };
 
   return (
-    <div className=\"mobile-content bg-white custom-scrollbar\">
+    <div className="mobile-content bg-white custom-scrollbar">
       {/* 헤더 */}
-      <div className=\"sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between z-10\">
-        <div className=\"flex items-center gap-3\">
+      <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between z-10">
+        <div className="flex items-center gap-3">
           <Button
-            variant=\"ghost\"
-            size=\"sm\"
+            variant="ghost"
+            size="sm"
             onClick={() => navigate('/timeline')}
-            data-testid=\"back-button\"
+            data-testid="back-button"
           >
             ← 뒤로
           </Button>
           <div>
-            <h1 className=\"font-bold text-lg\">타임라인 만들기</h1>
-            <p className=\"text-sm text-gray-500\">사진으로 여행 기록 생성</p>
+            <h1 className="font-bold text-lg">타임라인 만들기</h1>
+            <p className="text-sm text-gray-500">사진으로 여행 기록 생성</p>
           </div>
         </div>
       </div>
 
-      <div className=\"p-4 space-y-6\">
+      <div className="p-4 space-y-6">
         {/* 파일 선택 영역 */}
         {dayGroups.length === 0 && (
-          <div className=\"space-y-4\">
+          <div className="space-y-4">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className=\"border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors\"
-              data-testid=\"file-drop-zone\"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+              data-testid="file-drop-zone"
             >
-              <Upload size={48} className=\"mx-auto text-gray-400 mb-4\" />
-              <p className=\"text-lg font-medium mb-2\">사진을 선택하세요</p>
-              <p className=\"text-sm text-gray-500 mb-4\">
+              <Upload size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-lg font-medium mb-2">사진을 선택하세요</p>
+              <p className="text-sm text-gray-500 mb-4">
                 JPEG, PNG, WebP 파일 (최대 15MB, 100개까지)
               </p>
-              <Button data-testid=\"select-files-button\">
-                <Camera size={16} className=\"mr-2\" />
+              <Button data-testid="select-files-button">
+                <Camera size={16} className="mr-2" />
                 사진 선택
               </Button>
             </div>
             
             <input
               ref={fileInputRef}
-              type=\"file\"
+              type="file"
               multiple
-              accept=\"image/jpeg,image/png,image/webp\"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handleFileSelect}
-              className=\"hidden\"
-              data-testid=\"file-input\"
+              className="hidden"
+              data-testid="file-input"
             />
 
             {/* 선택된 파일 목록 */}
             {selectedFiles.length > 0 && (
-              <div className=\"space-y-3\">
-                <div className=\"flex items-center justify-between\">
-                  <h3 className=\"font-medium\">선택된 파일 ({selectedFiles.length}개)</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">선택된 파일 ({selectedFiles.length}개)</h3>
                   <Button
                     onClick={() => setSelectedFiles([])}
-                    variant=\"ghost\"
-                    size=\"sm\"
+                    variant="ghost"
+                    size="sm"
                   >
                     모두 제거
                   </Button>
                 </div>
                 
-                <div className=\"max-h-48 overflow-y-auto space-y-2\">
+                <div className="max-h-48 overflow-y-auto space-y-2">
                   {selectedFiles.map((file, index) => (
                     <div
                       key={index}
-                      className=\"flex items-center gap-3 p-2 bg-gray-50 rounded-lg\"
+                      className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg"
                     >
-                      <div className=\"w-12 h-12 bg-gray-200 rounded flex items-center justify-center overflow-hidden\">
+                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center overflow-hidden">
                         {file.type.startsWith('image/') && (
                           <img
                             src={URL.createObjectURL(file)}
                             alt={file.name}
-                            className=\"w-full h-full object-cover\"
+                            className="w-full h-full object-cover"
                           />
                         )}
                       </div>
-                      <div className=\"flex-1 min-w-0\">
-                        <p className=\"text-sm font-medium truncate\">{file.name}</p>
-                        <p className=\"text-xs text-gray-500\">{formatFileSize(file.size)}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                       </div>
                       <Button
                         onClick={() => removeFile(index)}
-                        variant=\"ghost\"
-                        size=\"sm\"
-                        className=\"p-1\"
+                        variant="ghost"
+                        size="sm"
+                        className="p-1"
                       >
                         <X size={16} />
                       </Button>
@@ -267,8 +268,8 @@ export default function TimelineCreate() {
                 <Button
                   onClick={startUpload}
                   disabled={isUploading}
-                  className=\"w-full travel-button\"
-                  data-testid=\"upload-button\"
+                  className="w-full travel-button"
+                  data-testid="upload-button"
                 >
                   {isUploading ? '업로드 중...' : '업로드 시작'}
                 </Button>
@@ -279,79 +280,49 @@ export default function TimelineCreate() {
 
         {/* 업로드 진행률 */}
         {isUploading && (
-          <div className=\"space-y-2\">
-            <div className=\"flex items-center justify-between text-sm\">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
               <span>업로드 진행률</span>
               <span>{uploadProgress}%</span>
             </div>
-            <Progress value={uploadProgress} className=\"w-full\" />
+            <Progress value={uploadProgress} className="w-full" />
           </div>
         )}
 
         {/* Day 그룹 결과 */}
         {dayGroups.length > 0 && (
-          <div className=\"space-y-4\">
-            <div className=\"flex items-center justify-between\">
-              <h2 className=\"text-xl font-bold\">생성된 여행 일정</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">생성된 여행 일정</h2>
               <Button
                 onClick={() => {
                   setDayGroups([]);
                   setSelectedFiles([]);
                 }}
-                variant=\"outline\"
-                size=\"sm\"
+                variant="outline"
+                size="sm"
               >
                 다시 선택
               </Button>
             </div>
             
             {dayGroups.map((day) => (
-              <div
+              <TimelineCard
                 key={day.dayId}
-                className=\"travel-card p-4 space-y-3\"
-                data-testid={`day-group-${day.dayId}`}
-              >
-                <div className=\"flex items-center gap-3\">
-                  <div className=\"w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold\">
-                    {day.dayId}
-                  </div>
-                  <div>
-                    <h3 className=\"font-semibold\">Day {day.dayId}</h3>
-                    <div className=\"flex items-center gap-1 text-sm text-gray-600\">
-                      <Calendar size={14} />
-                      <span>{formatDate(day.date)}</span>
-                    </div>
-                  </div>
-                  <div className=\"ml-auto text-sm text-gray-500\">
-                    {day.files.length}개 사진
-                  </div>
-                </div>
-                
-                {/* 파일 미리보기 */}
-                <div className=\"grid grid-cols-4 gap-2\">
-                  {day.files.slice(0, 4).map((file, index) => (
-                    <div
-                      key={index}
-                      className=\"aspect-square bg-gray-100 rounded-lg overflow-hidden\"
-                    >
-                      <div className=\"w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center\">
-                        <Camera size={20} className=\"text-gray-400\" />
-                      </div>
-                    </div>
-                  ))}
-                  {day.files.length > 4 && (
-                    <div className=\"aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500\">
-                      +{day.files.length - 4}
-                    </div>
-                  )}
-                </div>
-              </div>
+                dayId={day.dayId}
+                date={day.date}
+                filesCount={day.files.length}
+                onUpdateCard={(dayId, updates) => {
+                  // Day 카드 업데이트 로직 (향후 구현)
+                  console.log('Day', dayId, '업데이트:', updates);
+                }}
+              />
             ))}
             
             <Button
               onClick={() => navigate('/timeline')}
-              className=\"w-full travel-button\"
-              data-testid=\"complete-button\"
+              className="w-full travel-button"
+              data-testid="complete-button"
             >
               타임라인 완성하기
             </Button>

@@ -71,9 +71,33 @@ export default function TimelinePage() {
             <span>홈</span>
           </button>
           <h1 className="text-xl font-bold text-gray-900">여행 타임라인</h1>
-          <div className="w-8"></div>
+          <Button
+            onClick={() => setLocation('/timeline/create')}
+            variant="outline"
+            size="sm"
+            className="travel-button-outline"
+            data-testid="add-timeline-button"
+          >
+            <Plus size={16} className="mr-1" />
+            만들기
+          </Button>
         </div>
         <div className="p-4">
+          <div className="text-center py-8">
+            <div className="mb-4">
+              <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
+              <h2 className="text-xl font-semibold mb-2">아직 타임라인이 없습니다</h2>
+              <p className="text-gray-500 mb-6">사진으로 여행 기록을 만들어보세요</p>
+            </div>
+            <Button 
+              onClick={() => setLocation('/timeline/create')}
+              className="travel-button"
+              data-testid="create-timeline-button"
+            >
+              <Plus size={16} className="mr-2" />
+              사진으로 타임라인 만들기
+            </Button>
+          </div>
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded mb-4"></div>
             <div className="space-y-4">
