@@ -28,9 +28,9 @@ import {
   type Review,
   type SystemSetting,
   type InsertSystemSetting,
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, or, sql, like } from "drizzle-orm";
+} from '@shared/schema';
+import { db } from './db';
+import { eq, desc, and, or, sql, like } from 'drizzle-orm';
 
 // Interface for storage operations
 export interface IStorage {
@@ -39,54 +39,77 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Experience operations
   createExperience(experience: InsertExperience): Promise<Experience>;
   getExperiences(location?: string, category?: string): Promise<Experience[]>;
   getExperienceById(id: number): Promise<Experience | undefined>;
   getExperiencesByHost(hostId: string): Promise<Experience[]>;
-  updateExperience(id: number, updates: Partial<InsertExperience>): Promise<Experience | undefined>;
-  
+  updateExperience(
+    id: number,
+    updates: Partial<InsertExperience>
+  ): Promise<Experience | undefined>;
+
   // Post operations
   createPost(post: InsertPost): Promise<Post>;
   getPosts(limit?: number, offset?: number): Promise<Post[]>;
   getPostsByUser(userId: string): Promise<Post[]>;
   toggleLike(userId: string, postId: number): Promise<boolean>;
-  
+
   // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;
   getBookingsByGuest(guestId: string): Promise<Booking[]>;
   getBookingsByHost(hostId: string): Promise<Booking[]>;
   updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
-  
+
   // Chat operations
-  getOrCreateConversation(participant1Id: string, participant2Id: string): Promise<Conversation>;
+  getOrCreateConversation(
+    participant1Id: string,
+    participant2Id: string
+  ): Promise<Conversation>;
   getConversationsByUser(userId: string): Promise<Conversation[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   getMessagesByConversation(conversationId: number): Promise<Message[]>;
-  
+
   // Timeline operations
   createTimeline(timeline: InsertTimeline): Promise<Timeline>;
   getTimelinesByUser(userId: string): Promise<Timeline[]>;
   getTimelineById(id: number): Promise<Timeline | undefined>;
-  updateTimeline(id: number, updates: Partial<InsertTimeline>): Promise<Timeline | undefined>;
+  updateTimeline(
+    id: number,
+    updates: Partial<InsertTimeline>
+  ): Promise<Timeline | undefined>;
   deleteTimeline(id: number): Promise<boolean>;
-  getTimelineWithPosts(id: number): Promise<Timeline & { posts: Post[] } | undefined>;
-  
+  getTimelineWithPosts(
+    id: number
+  ): Promise<(Timeline & { posts: Post[] }) | undefined>;
+
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
   getTripsByUser(userId: string): Promise<Trip[]>;
-  updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip | undefined>;
-  
+  updateTrip(
+    id: number,
+    updates: Partial<InsertTrip>
+  ): Promise<Trip | undefined>;
+
   // Review operations
-  createReview(review: { experienceId: number; guestId: string; hostId: string; rating: number; comment?: string }): Promise<Review>;
+  createReview(review: {
+    experienceId: number;
+    guestId: string;
+    hostId: string;
+    rating: number;
+    comment?: string;
+  }): Promise<Review>;
   getReviewsByExperience(experienceId: number): Promise<Review[]>;
-  
+
   // System Settings operations
   getSystemSetting(category: string, key: string): Promise<string | undefined>;
   setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting>;
   getAllSystemSettings(category?: string): Promise<SystemSetting[]>;
-  updateSystemSetting(id: string, updates: Partial<InsertSystemSetting>): Promise<SystemSetting | undefined>;
+  updateSystemSetting(
+    id: string,
+    updates: Partial<InsertSystemSetting>
+  ): Promise<SystemSetting | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -102,10 +125,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
@@ -133,13 +153,16 @@ export class DatabaseStorage implements IStorage {
     return newExperience;
   }
 
-  async getExperiences(location?: string, category?: string): Promise<Experience[]> {
+  async getExperiences(
+    location?: string,
+    category?: string
+  ): Promise<Experience[]> {
     let conditions = [eq(experiences.isActive, true)];
-    
+
     if (location) {
       conditions.push(like(experiences.location, `%${location}%`));
     }
-    
+
     if (category) {
       conditions.push(eq(experiences.category, category));
     }
@@ -167,7 +190,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(experiences.createdAt));
   }
 
-  async updateExperience(id: number, updates: Partial<InsertExperience>): Promise<Experience | undefined> {
+  async updateExperience(
+    id: number,
+    updates: Partial<InsertExperience>
+  ): Promise<Experience | undefined> {
     const [experience] = await db
       .update(experiences)
       .set({ ...updates, updatedAt: new Date() })
@@ -178,10 +204,7 @@ export class DatabaseStorage implements IStorage {
 
   // Post operations
   async createPost(post: InsertPost): Promise<Post> {
-    const [newPost] = await db
-      .insert(posts)
-      .values(post)
-      .returning();
+    const [newPost] = await db.insert(posts).values(post).returning();
     return newPost;
   }
 
@@ -208,7 +231,7 @@ export class DatabaseStorage implements IStorage {
         .delete(posts)
         .where(eq(posts.id, postId))
         .returning();
-      
+
       return result.length > 0;
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -228,34 +251,29 @@ export class DatabaseStorage implements IStorage {
       await db
         .delete(likes)
         .where(and(eq(likes.userId, userId), eq(likes.postId, postId)));
-      
+
       await db
         .update(posts)
         .set({ likesCount: sql`${posts.likesCount} - 1` })
         .where(eq(posts.id, postId));
-      
+
       return false;
     } else {
       // Like
-      await db
-        .insert(likes)
-        .values({ userId, postId });
-      
+      await db.insert(likes).values({ userId, postId });
+
       await db
         .update(posts)
         .set({ likesCount: sql`${posts.likesCount} + 1` })
         .where(eq(posts.id, postId));
-      
+
       return true;
     }
   }
 
   // Booking operations
   async createBooking(booking: InsertBooking): Promise<Booking> {
-    const [newBooking] = await db
-      .insert(bookings)
-      .values(booking)
-      .returning();
+    const [newBooking] = await db.insert(bookings).values(booking).returning();
     return newBooking;
   }
 
@@ -275,7 +293,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bookings.createdAt));
   }
 
-  async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
+  async updateBookingStatus(
+    id: number,
+    status: string
+  ): Promise<Booking | undefined> {
     const [booking] = await db
       .update(bookings)
       .set({ status, updatedAt: new Date() })
@@ -285,15 +306,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Chat operations
-  async getOrCreateConversation(participant1Id: string, participant2Id: string): Promise<Conversation> {
+  async getOrCreateConversation(
+    participant1Id: string,
+    participant2Id: string
+  ): Promise<Conversation> {
     // Look for existing conversation
     const [existing] = await db
       .select()
       .from(conversations)
       .where(
         or(
-          and(eq(conversations.participant1Id, participant1Id), eq(conversations.participant2Id, participant2Id)),
-          and(eq(conversations.participant1Id, participant2Id), eq(conversations.participant2Id, participant1Id))
+          and(
+            eq(conversations.participant1Id, participant1Id),
+            eq(conversations.participant2Id, participant2Id)
+          ),
+          and(
+            eq(conversations.participant1Id, participant2Id),
+            eq(conversations.participant2Id, participant1Id)
+          )
         )
       );
 
@@ -306,7 +336,7 @@ export class DatabaseStorage implements IStorage {
       .insert(conversations)
       .values({ participant1Id, participant2Id })
       .returning();
-    
+
     return newConversation;
   }
 
@@ -314,22 +344,24 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(conversations)
-      .where(or(eq(conversations.participant1Id, userId), eq(conversations.participant2Id, userId)))
+      .where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      )
       .orderBy(desc(conversations.lastMessageAt));
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const [newMessage] = await db
-      .insert(messages)
-      .values(message)
-      .returning();
+    const [newMessage] = await db.insert(messages).values(message).returning();
 
     // Update conversation last message
     await db
       .update(conversations)
-      .set({ 
+      .set({
         lastMessageId: newMessage.id,
-        lastMessageAt: new Date()
+        lastMessageAt: new Date(),
       })
       .where(eq(conversations.id, message.conversationId));
 
@@ -369,7 +401,10 @@ export class DatabaseStorage implements IStorage {
     return timeline;
   }
 
-  async updateTimeline(id: number, updates: Partial<InsertTimeline>): Promise<Timeline | undefined> {
+  async updateTimeline(
+    id: number,
+    updates: Partial<InsertTimeline>
+  ): Promise<Timeline | undefined> {
     const [timeline] = await db
       .update(timelines)
       .set({ ...updates, updatedAt: new Date() })
@@ -391,7 +426,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getTimelineWithPosts(id: number): Promise<Timeline & { posts: Post[] } | undefined> {
+  async getTimelineWithPosts(
+    id: number
+  ): Promise<(Timeline & { posts: Post[] }) | undefined> {
     const timeline = await this.getTimelineById(id);
     if (!timeline) return undefined;
 
@@ -406,10 +443,7 @@ export class DatabaseStorage implements IStorage {
 
   // Trip operations
   async createTrip(trip: InsertTrip): Promise<Trip> {
-    const [newTrip] = await db
-      .insert(trips)
-      .values(trip)
-      .returning();
+    const [newTrip] = await db.insert(trips).values(trip).returning();
     return newTrip;
   }
 
@@ -421,7 +455,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(trips.startDate));
   }
 
-  async updateTrip(id: number, updates: Partial<InsertTrip>): Promise<Trip | undefined> {
+  async updateTrip(
+    id: number,
+    updates: Partial<InsertTrip>
+  ): Promise<Trip | undefined> {
     const [trip] = await db
       .update(trips)
       .set({ ...updates, updatedAt: new Date() })
@@ -431,24 +468,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Review operations
-  async createReview(review: { experienceId: number; guestId: string; hostId: string; rating: number; comment?: string }): Promise<Review> {
-    const [newReview] = await db
-      .insert(reviews)
-      .values(review)
-      .returning();
+  async createReview(review: {
+    experienceId: number;
+    guestId: string;
+    hostId: string;
+    rating: number;
+    comment?: string;
+  }): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review).returning();
 
     // Update experience rating
     const avgRating = await db
-      .select({ avg: sql<number>`avg(${reviews.rating})`, count: sql<number>`count(*)` })
+      .select({
+        avg: sql<number>`avg(${reviews.rating})`,
+        count: sql<number>`count(*)`,
+      })
       .from(reviews)
       .where(eq(reviews.experienceId, review.experienceId));
 
     if (avgRating[0]) {
       await db
         .update(experiences)
-        .set({ 
+        .set({
           rating: avgRating[0].avg.toFixed(2),
-          reviewCount: avgRating[0].count
+          reviewCount: avgRating[0].count,
         })
         .where(eq(experiences.id, review.experienceId));
     }
@@ -465,15 +508,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   // System Settings operations
-  async getSystemSetting(category: string, key: string): Promise<string | undefined> {
+  async getSystemSetting(
+    category: string,
+    key: string
+  ): Promise<string | undefined> {
     const [setting] = await db
       .select()
       .from(systemSettings)
-      .where(and(
-        eq(systemSettings.category, category),
-        eq(systemSettings.key, key),
-        eq(systemSettings.isActive, true)
-      ));
+      .where(
+        and(
+          eq(systemSettings.category, category),
+          eq(systemSettings.key, key),
+          eq(systemSettings.isActive, true)
+        )
+      );
     return setting?.value;
   }
 
@@ -502,7 +550,10 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
 
-  async updateSystemSetting(id: string, updates: Partial<InsertSystemSetting>): Promise<SystemSetting | undefined> {
+  async updateSystemSetting(
+    id: string,
+    updates: Partial<InsertSystemSetting>
+  ): Promise<SystemSetting | undefined> {
     const [setting] = await db
       .update(systemSettings)
       .set({ ...updates, updatedAt: new Date() })
@@ -517,7 +568,7 @@ export class DatabaseStorage implements IStorage {
       const result = await db.execute(sql.raw(query));
       return {
         rows: result.rows || [],
-        rowCount: result.rowCount || 0
+        rowCount: result.rowCount || 0,
       };
     } catch (error) {
       throw new Error(`SQL 실행 오류: ${error.message}`);

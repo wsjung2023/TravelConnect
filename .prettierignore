@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Cache and temporary files
+.cache/
+.local/
+.upm/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Git
+.git/
+
+# Replit specific
+.replit*

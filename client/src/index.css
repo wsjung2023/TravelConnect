@@ -122,7 +122,12 @@
 
 .story-ring {
   @apply w-16 h-16 rounded-full p-0.5;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--secondary) 50%,
+    var(--accent) 100%
+  );
 }
 
 /* Mobile SNS App Container - Responsive */
@@ -242,7 +247,7 @@
   .text-responsive {
     @apply text-sm;
   }
-  
+
   .button-responsive {
     @apply py-2 px-4 text-sm;
   }
@@ -253,7 +258,7 @@
   .safe-top {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
-  
+
   .safe-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }

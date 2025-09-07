@@ -1,12 +1,18 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, MessageCircle, MapPin, MoreHorizontal, Calendar } from "lucide-react";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import type { Post } from "@shared/schema";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Heart,
+  MessageCircle,
+  MapPin,
+  MoreHorizontal,
+  Calendar,
+} from 'lucide-react';
+import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import type { Post } from '@shared/schema';
 
 export default function Feed() {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -14,18 +20,18 @@ export default function Feed() {
   const queryClient = useQueryClient();
 
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["/api/posts"],
+    queryKey: ['/api/posts'],
   });
 
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
       return apiRequest(`/api/posts/${postId}/like`, {
-        method: "POST",
+        method: 'POST',
       });
     },
     onSuccess: (_, postId) => {
-      setLikedPosts(prev => new Set([...prev, postId]));
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      setLikedPosts((prev) => new Set([...prev, postId]));
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
     },
   });
 
@@ -106,8 +112,12 @@ export default function Feed() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium text-sm">사용자{post.userId.slice(-4)}</div>
-                    <div className="text-xs text-gray-500">{formatTime(post.createdAt)}</div>
+                    <div className="font-medium text-sm">
+                      사용자{post.userId.slice(-4)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {formatTime(post.createdAt)}
+                    </div>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm">
@@ -133,26 +143,25 @@ export default function Feed() {
               {(post.images?.length > 0 || post.videos?.length > 0) && (
                 <div className="aspect-square bg-gray-100 overflow-hidden">
                   {post.images?.length > 0 ? (
-                    <img 
+                    <img
                       src={`/uploads/${post.images[0]}`}
-                      alt={post.title || ""}
+                      alt={post.title || ''}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=500&fit=crop";
+                        target.src =
+                          'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=500&fit=crop';
                       }}
                     />
                   ) : post.videos?.length > 0 ? (
-                    <video 
+                    <video
                       src={`/uploads/${post.videos[0]}`}
                       className="w-full h-full object-cover"
                       controls
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center">
-                      <span className="text-white text-2xl">
-                        📷
-                      </span>
+                      <span className="text-white text-2xl">📷</span>
                     </div>
                   )}
                 </div>
@@ -165,10 +174,17 @@ export default function Feed() {
                     <button
                       onClick={() => handleLike(post.id)}
                       className={`flex items-center gap-2 transition-colors ${
-                        likedPosts.has(post.id) ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
+                        likedPosts.has(post.id)
+                          ? 'text-red-500'
+                          : 'text-gray-600 hover:text-red-500'
                       }`}
                     >
-                      <Heart size={20} className={likedPosts.has(post.id) ? 'fill-current' : ''} />
+                      <Heart
+                        size={20}
+                        className={
+                          likedPosts.has(post.id) ? 'fill-current' : ''
+                        }
+                      />
                       <span className="text-sm">{post.likesCount || 0}</span>
                     </button>
                     <button className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors">

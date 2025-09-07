@@ -1,30 +1,30 @@
-import express, { type Express } from "express";
-import { createServer, type Server } from "http";
-import WebSocket, { WebSocketServer } from "ws";
-import multer from "multer";
-import path from "path";
-import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { setupGoogleAuth } from "./googleAuth";
-import passport from "passport";
-import { 
-  authenticateToken, 
+import express, { type Express } from 'express';
+import { createServer, type Server } from 'http';
+import WebSocket, { WebSocketServer } from 'ws';
+import multer from 'multer';
+import path from 'path';
+import { storage } from './storage';
+import { setupAuth, isAuthenticated } from './replitAuth';
+import { setupGoogleAuth } from './googleAuth';
+import passport from 'passport';
+import {
+  authenticateToken,
   requireAdmin,
-  generateToken, 
-  hashPassword, 
-  comparePassword, 
-  isValidEmail, 
-  isValidPassword, 
+  generateToken,
+  hashPassword,
+  comparePassword,
+  isValidEmail,
+  isValidPassword,
   generateUserId,
-  AuthRequest 
-} from "./auth";
-import { 
-  insertExperienceSchema, 
-  insertPostSchema, 
+  AuthRequest,
+} from './auth';
+import {
+  insertExperienceSchema,
+  insertPostSchema,
   insertBookingSchema,
   insertTripSchema,
-  insertTimelineSchema
-} from "@shared/schema";
+  insertTimelineSchema,
+} from '@shared/schema';
 
 // Multer 설정 - 파일 업로드 처리
 const uploadStorage = multer.diskStorage({
@@ -36,22 +36,25 @@ const uploadStorage = multer.diskStorage({
     const ext = path.extname(file.originalname);
     const filename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`;
     cb(null, filename);
-  }
+  },
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: uploadStorage,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB 제한
   },
   fileFilter: (req, file, cb) => {
     // 이미지와 동영상만 허용
-    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+    if (
+      file.mimetype.startsWith('image/') ||
+      file.mimetype.startsWith('video/')
+    ) {
       cb(null, true);
     } else {
       cb(new Error('이미지와 동영상 파일만 업로드 가능합니다.'));
     }
-  }
+  },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -67,36 +70,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sql', async (req, res) => {
     try {
       const { query } = req.body;
-      
+
       if (!query) {
         return res.status(400).json({ error: 'Query is required' });
       }
-      
+
       // 기본적인 보안 검사
       const dangerousPatterns = [
         /drop\s+database/i,
         /drop\s+schema/i,
         /truncate\s+table/i,
-        /alter\s+table.*drop/i
+        /alter\s+table.*drop/i,
       ];
-      
-      const isDangerous = dangerousPatterns.some(pattern => pattern.test(query));
+
+      const isDangerous = dangerousPatterns.some((pattern) =>
+        pattern.test(query)
+      );
       if (isDangerous) {
         return res.status(403).json({ error: 'Dangerous query detected' });
       }
-      
+
       const result = await storage.executeSQL(query);
       res.json(result);
-      
     } catch (error: any) {
       console.error('SQL execution error:', error);
       res.status(500).json({ error: error.message });
     }
   });
-  
+
   // Passport 초기화
   app.use(passport.initialize());
-  
+
   // Google OAuth 설정
   setupGoogleAuth(app);
 
@@ -107,11 +111,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 입력 검증
       if (!email || !password) {
-        return res.status(400).json({ message: '이메일과 비밀번호는 필수입니다' });
+        return res
+          .status(400)
+          .json({ message: '이메일과 비밀번호는 필수입니다' });
       }
 
       if (!isValidEmail(email)) {
-        return res.status(400).json({ message: '유효하지 않은 이메일 형식입니다' });
+        return res
+          .status(400)
+          .json({ message: '유효하지 않은 이메일 형식입니다' });
       }
 
       const passwordValidation = isValidPassword(password);
@@ -140,10 +148,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // JWT 토큰 생성
-      const token = generateToken({ 
-        id: user.id, 
-        email: user.email, 
-        role: user.role || 'user' 
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role || 'user',
       });
 
       res.status(201).json({
@@ -154,8 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error('회원가입 오류:', error);
@@ -169,26 +177,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요' });
+        return res
+          .status(400)
+          .json({ message: '이메일과 비밀번호를 입력해주세요' });
       }
 
       // 사용자 조회
       const user = await storage.getUserByEmail(email);
       if (!user || !user.password) {
-        return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다' });
+        return res
+          .status(401)
+          .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다' });
       }
 
       // 비밀번호 확인
       const isPasswordValid = await comparePassword(password, user.password);
       if (!isPasswordValid) {
-        return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다' });
+        return res
+          .status(401)
+          .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다' });
       }
 
       // JWT 토큰 생성
-      const token = generateToken({ 
-        id: user.id, 
-        email: user.email, 
-        role: user.role || 'user' 
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role || 'user',
       });
 
       res.json({
@@ -199,8 +213,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error('로그인 오류:', error);
@@ -214,14 +228,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // TEST 사용자 조회
       const user = await storage.getUser('TEST');
       if (!user) {
-        return res.status(404).json({ message: '데모 계정을 찾을 수 없습니다' });
+        return res
+          .status(404)
+          .json({ message: '데모 계정을 찾을 수 없습니다' });
       }
 
       // JWT 토큰 생성
-      const token = generateToken({ 
-        id: user.id, 
-        email: user.email || 'test@demo.com', 
-        role: user.role || 'user' 
+      const token = generateToken({
+        id: user.id,
+        email: user.email || 'test@demo.com',
+        role: user.role || 'user',
       });
 
       res.json({
@@ -232,8 +248,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error('데모 로그인 오류:', error);
@@ -241,7 +257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // JWT 기반 사용자 정보 조회  
+  // JWT 기반 사용자 정보 조회
   app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
@@ -251,7 +267,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       console.error('사용자 정보 조회 오류:', error);
-      res.status(500).json({ message: '사용자 정보 조회 중 오류가 발생했습니다' });
+      res
+        .status(500)
+        .json({ message: '사용자 정보 조회 중 오류가 발생했습니다' });
     }
   });
 
@@ -262,8 +280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      console.error('Error fetching user:', error);
+      res.status(500).json({ message: 'Failed to fetch user' });
     }
   });
 
@@ -272,13 +290,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { location, category } = req.query;
       const experiences = await storage.getExperiences(
-        location as string, 
+        location as string,
         category as string
       );
       res.json(experiences);
     } catch (error) {
-      console.error("Error fetching experiences:", error);
-      res.status(500).json({ message: "Failed to fetch experiences" });
+      console.error('Error fetching experiences:', error);
+      res.status(500).json({ message: 'Failed to fetch experiences' });
     }
   });
 
@@ -287,12 +305,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const experience = await storage.getExperienceById(id);
       if (!experience) {
-        return res.status(404).json({ message: "Experience not found" });
+        return res.status(404).json({ message: 'Experience not found' });
       }
       res.json(experience);
     } catch (error) {
-      console.error("Error fetching experience:", error);
-      res.status(500).json({ message: "Failed to fetch experience" });
+      console.error('Error fetching experience:', error);
+      res.status(500).json({ message: 'Failed to fetch experience' });
     }
   });
 
@@ -306,8 +324,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const experience = await storage.createExperience(experienceData);
       res.status(201).json(experience);
     } catch (error) {
-      console.error("Error creating experience:", error);
-      res.status(500).json({ message: "Failed to create experience" });
+      console.error('Error creating experience:', error);
+      res.status(500).json({ message: 'Failed to create experience' });
     }
   });
 
@@ -317,8 +335,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reviews = await storage.getReviewsByExperience(experienceId);
       res.json(reviews);
     } catch (error) {
-      console.error("Error fetching reviews:", error);
-      res.status(500).json({ message: "Failed to fetch reviews" });
+      console.error('Error fetching reviews:', error);
+      res.status(500).json({ message: 'Failed to fetch reviews' });
     }
   });
 
@@ -326,29 +344,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/timelines', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      console.log("타임라인 생성 요청:", req.body);
-      console.log("사용자 ID:", userId);
-      
+      console.log('타임라인 생성 요청:', req.body);
+      console.log('사용자 ID:', userId);
+
       // startDate를 Date 객체로 변환
       const timelineData = {
         ...req.body,
         userId,
         startDate: new Date(req.body.startDate),
-        endDate: req.body.endDate ? new Date(req.body.endDate) : null
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null,
       };
-      
-      console.log("처리된 타임라인 데이터:", timelineData);
-      
+
+      console.log('처리된 타임라인 데이터:', timelineData);
+
       const validatedData = insertTimelineSchema.parse(timelineData);
-      console.log("검증된 데이터:", validatedData);
-      
+      console.log('검증된 데이터:', validatedData);
+
       const timeline = await storage.createTimeline(validatedData);
-      console.log("생성된 타임라인:", timeline);
-      
+      console.log('생성된 타임라인:', timeline);
+
       res.status(201).json(timeline);
     } catch (error) {
-      console.error("타임라인 생성 오류:", error);
-      res.status(400).json({ message: "타임라인 생성에 실패했습니다", error: (error as Error).message });
+      console.error('타임라인 생성 오류:', error);
+      res
+        .status(400)
+        .json({
+          message: '타임라인 생성에 실패했습니다',
+          error: (error as Error).message,
+        });
     }
   });
 
@@ -358,8 +381,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timelines = await storage.getTimelinesByUser(userId);
       res.json(timelines);
     } catch (error) {
-      console.error("Error fetching timelines:", error);
-      res.status(500).json({ message: "Failed to fetch timelines" });
+      console.error('Error fetching timelines:', error);
+      res.status(500).json({ message: 'Failed to fetch timelines' });
     }
   });
 
@@ -368,12 +391,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timelineId = parseInt(req.params.id);
       const timeline = await storage.getTimelineWithPosts(timelineId);
       if (!timeline) {
-        return res.status(404).json({ message: "Timeline not found" });
+        return res.status(404).json({ message: 'Timeline not found' });
       }
       res.json(timeline);
     } catch (error) {
-      console.error("Error fetching timeline:", error);
-      res.status(500).json({ message: "Failed to fetch timeline" });
+      console.error('Error fetching timeline:', error);
+      res.status(500).json({ message: 'Failed to fetch timeline' });
     }
   });
 
@@ -385,8 +408,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const posts = await storage.getPosts(limit, offset);
       res.json(posts);
     } catch (error) {
-      console.error("Error fetching posts:", error);
-      res.status(500).json({ message: "Failed to fetch posts" });
+      console.error('Error fetching posts:', error);
+      res.status(500).json({ message: 'Failed to fetch posts' });
     }
   });
 
@@ -395,14 +418,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (user?.role !== 'admin') {
         return res.status(403).json({ message: 'Admin access required' });
       }
-      
+
       const postId = parseInt(req.params.id);
       const success = await storage.deletePost(postId);
-      
+
       if (success) {
         res.json({ message: 'Post deleted successfully' });
       } else {
@@ -415,40 +438,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 파일 업로드 엔드포인트
-  app.post('/api/upload', isAuthenticated, upload.array('files', 10), async (req: any, res) => {
-    try {
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ message: '업로드된 파일이 없습니다.' });
+  app.post(
+    '/api/upload',
+    isAuthenticated,
+    upload.array('files', 10),
+    async (req: any, res) => {
+      try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).json({ message: '업로드된 파일이 없습니다.' });
+        }
+
+        const uploadedFiles = req.files.map((file: any) => ({
+          filename: file.filename,
+          originalName: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          url: `/uploads/${file.filename}`,
+        }));
+
+        console.log('파일 업로드 성공:', uploadedFiles);
+        res.json({ files: uploadedFiles });
+      } catch (error) {
+        console.error('파일 업로드 오류:', error);
+        res.status(500).json({ message: '파일 업로드에 실패했습니다.' });
       }
-
-      const uploadedFiles = req.files.map((file: any) => ({
-        filename: file.filename,
-        originalName: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        url: `/uploads/${file.filename}`
-      }));
-
-      console.log('파일 업로드 성공:', uploadedFiles);
-      res.json({ files: uploadedFiles });
-    } catch (error) {
-      console.error('파일 업로드 오류:', error);
-      res.status(500).json({ message: '파일 업로드에 실패했습니다.' });
     }
-  });
+  );
 
   // Like/Unlike post
   app.post('/api/posts/:id/like', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const postId = parseInt(req.params.id);
-      
+
       console.log('좋아요 요청:', { userId, postId });
-      
+
       const isLiked = await storage.toggleLike(userId, postId);
-      
+
       console.log('좋아요 결과:', isLiked);
-      
+
       res.json({ isLiked, message: isLiked ? '좋아요!' : '좋아요 취소' });
     } catch (error) {
       console.error('좋아요 오류:', error);
@@ -466,8 +494,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const post = await storage.createPost(postData);
       res.status(201).json(post);
     } catch (error) {
-      console.error("Error creating post:", error);
-      res.status(500).json({ message: "Failed to create post" });
+      console.error('Error creating post:', error);
+      res.status(500).json({ message: 'Failed to create post' });
     }
   });
 
@@ -478,8 +506,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isLiked = await storage.toggleLike(userId, postId);
       res.json({ isLiked });
     } catch (error) {
-      console.error("Error toggling like:", error);
-      res.status(500).json({ message: "Failed to toggle like" });
+      console.error('Error toggling like:', error);
+      res.status(500).json({ message: 'Failed to toggle like' });
     }
   });
 
@@ -488,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { type } = req.query;
-      
+
       let bookings;
       if (type === 'host') {
         bookings = await storage.getBookingsByHost(userId);
@@ -497,36 +525,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(bookings);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
-      res.status(500).json({ message: "Failed to fetch bookings" });
+      console.error('Error fetching bookings:', error);
+      res.status(500).json({ message: 'Failed to fetch bookings' });
     }
   });
 
   // System Settings API - 관리자 전용
-  app.get('/api/system-settings', requireAdmin as any, async (req: any, res) => {
-    try {
-      const settings = await storage.getAllSystemSettings();
-      res.json(settings);
-    } catch (error) {
-      console.error("Error fetching system settings:", error);
-      res.status(500).json({ message: "Failed to fetch system settings" });
-    }
-  });
-
-  app.put('/api/system-settings/:id', requireAdmin as any, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const updates = req.body;
-      const setting = await storage.updateSystemSetting(id, updates);
-      if (!setting) {
-        return res.status(404).json({ message: "Setting not found" });
+  app.get(
+    '/api/system-settings',
+    requireAdmin as any,
+    async (req: any, res) => {
+      try {
+        const settings = await storage.getAllSystemSettings();
+        res.json(settings);
+      } catch (error) {
+        console.error('Error fetching system settings:', error);
+        res.status(500).json({ message: 'Failed to fetch system settings' });
       }
-      res.json(setting);
-    } catch (error) {
-      console.error("Error updating system setting:", error);
-      res.status(500).json({ message: "Failed to update system setting" });
     }
-  });
+  );
+
+  app.put(
+    '/api/system-settings/:id',
+    requireAdmin as any,
+    async (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const updates = req.body;
+        const setting = await storage.updateSystemSetting(id, updates);
+        if (!setting) {
+          return res.status(404).json({ message: 'Setting not found' });
+        }
+        res.json(setting);
+      } catch (error) {
+        console.error('Error updating system setting:', error);
+        res.status(500).json({ message: 'Failed to update system setting' });
+      }
+    }
+  );
 
   app.post('/api/bookings', isAuthenticated, async (req: any, res) => {
     try {
@@ -538,8 +574,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const booking = await storage.createBooking(bookingData);
       res.status(201).json(booking);
     } catch (error) {
-      console.error("Error creating booking:", error);
-      res.status(500).json({ message: "Failed to create booking" });
+      console.error('Error creating booking:', error);
+      res.status(500).json({ message: 'Failed to create booking' });
     }
   });
 
@@ -549,12 +585,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { status } = req.body;
       const booking = await storage.updateBookingStatus(id, status);
       if (!booking) {
-        return res.status(404).json({ message: "Booking not found" });
+        return res.status(404).json({ message: 'Booking not found' });
       }
       res.json(booking);
     } catch (error) {
-      console.error("Error updating booking:", error);
-      res.status(500).json({ message: "Failed to update booking" });
+      console.error('Error updating booking:', error);
+      res.status(500).json({ message: 'Failed to update booking' });
     }
   });
 
@@ -565,31 +601,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversations = await storage.getConversationsByUser(userId);
       res.json(conversations);
     } catch (error) {
-      console.error("Error fetching conversations:", error);
-      res.status(500).json({ message: "Failed to fetch conversations" });
+      console.error('Error fetching conversations:', error);
+      res.status(500).json({ message: 'Failed to fetch conversations' });
     }
   });
 
-  app.get('/api/conversations/:id/messages', isAuthenticated, async (req, res) => {
-    try {
-      const conversationId = parseInt(req.params.id);
-      const messages = await storage.getMessagesByConversation(conversationId);
-      res.json(messages);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      res.status(500).json({ message: "Failed to fetch messages" });
+  app.get(
+    '/api/conversations/:id/messages',
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        const conversationId = parseInt(req.params.id);
+        const messages =
+          await storage.getMessagesByConversation(conversationId);
+        res.json(messages);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ message: 'Failed to fetch messages' });
+      }
     }
-  });
+  );
 
   app.post('/api/conversations', isAuthenticated, async (req: any, res) => {
     try {
       const participant1Id = req.user.claims.sub;
       const { participant2Id } = req.body;
-      const conversation = await storage.getOrCreateConversation(participant1Id, participant2Id);
+      const conversation = await storage.getOrCreateConversation(
+        participant1Id,
+        participant2Id
+      );
       res.json(conversation);
     } catch (error) {
-      console.error("Error creating conversation:", error);
-      res.status(500).json({ message: "Failed to create conversation" });
+      console.error('Error creating conversation:', error);
+      res.status(500).json({ message: 'Failed to create conversation' });
     }
   });
 
@@ -600,8 +644,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trips = await storage.getTripsByUser(userId);
       res.json(trips);
     } catch (error) {
-      console.error("Error fetching trips:", error);
-      res.status(500).json({ message: "Failed to fetch trips" });
+      console.error('Error fetching trips:', error);
+      res.status(500).json({ message: 'Failed to fetch trips' });
     }
   });
 
@@ -615,8 +659,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const trip = await storage.createTrip(tripData);
       res.status(201).json(trip);
     } catch (error) {
-      console.error("Error creating trip:", error);
-      res.status(500).json({ message: "Failed to create trip" });
+      console.error('Error creating trip:', error);
+      res.status(500).json({ message: 'Failed to create trip' });
     }
   });
 
@@ -625,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { bio, location, isHost } = req.body;
-      
+
       const existingUser = await storage.getUser(userId);
       if (existingUser) {
         const user = await storage.upsertUser({
@@ -637,11 +681,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         res.json(user);
       } else {
-        res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      res.status(500).json({ message: "Failed to update profile" });
+      console.error('Error updating profile:', error);
+      res.status(500).json({ message: 'Failed to update profile' });
     }
   });
 
@@ -657,7 +701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
-        
+
         if (message.type === 'auth') {
           userId = message.userId;
           if (userId) {
@@ -669,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (message.type === 'chat_message' && userId) {
           const { conversationId, content, recipientId } = message;
-          
+
           // Save message to database
           const newMessage = await storage.createMessage({
             conversationId,
@@ -680,17 +724,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send to recipient if online
           const recipientWs = clients.get(recipientId);
           if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
-            recipientWs.send(JSON.stringify({
-              type: 'chat_message',
-              message: newMessage,
-            }));
+            recipientWs.send(
+              JSON.stringify({
+                type: 'chat_message',
+                message: newMessage,
+              })
+            );
           }
 
           // Confirm to sender
-          ws.send(JSON.stringify({
-            type: 'message_sent',
-            message: newMessage,
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'message_sent',
+              message: newMessage,
+            })
+          );
         }
       } catch (error) {
         console.error('WebSocket error:', error);

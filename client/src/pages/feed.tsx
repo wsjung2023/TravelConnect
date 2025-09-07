@@ -1,13 +1,20 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, MessageCircle, MapPin, MoreHorizontal, Calendar, ArrowLeft } from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import PostDetailModal from "@/components/PostDetailModal";
-import type { Post } from "@shared/schema";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Heart,
+  MessageCircle,
+  MapPin,
+  MoreHorizontal,
+  Calendar,
+  ArrowLeft,
+} from 'lucide-react';
+import { Link, useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import PostDetailModal from '@/components/PostDetailModal';
+import type { Post } from '@shared/schema';
 
 export default function Feed() {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -17,17 +24,17 @@ export default function Feed() {
   const [, setLocation] = useLocation();
 
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["/api/posts"],
+    queryKey: ['/api/posts'],
   });
 
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
       console.log('좋아요 API 호출:', postId);
-      return apiRequest(`/api/posts/${postId}/like`, "POST");
+      return apiRequest(`/api/posts/${postId}/like`, 'POST');
     },
     onSuccess: (data, postId) => {
       console.log('좋아요 성공:', data);
-      setLikedPosts(prev => {
+      setLikedPosts((prev) => {
         const newSet = new Set(prev);
         if (data.isLiked) {
           newSet.add(postId);
@@ -36,11 +43,11 @@ export default function Feed() {
         }
         return newSet;
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
     },
     onError: (error) => {
       console.error('좋아요 실패:', error);
-    }
+    },
   });
 
   const formatTime = (date: Date) => {
@@ -87,7 +94,7 @@ export default function Feed() {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => {
               window.postMessage({ type: 'navigate-home' }, '*');
             }}
@@ -117,15 +124,21 @@ export default function Feed() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.userId}`} />
-                    <AvatarFallback>{post.userId.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.userId}`}
+                    />
+                    <AvatarFallback>
+                      {post.userId.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium text-sm">{post.userId}</p>
-                    <p className="text-xs text-gray-500">{formatTime(post.createdAt)}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatTime(post.createdAt)}
+                    </p>
                   </div>
                 </div>
-                <button 
+                <button
                   className="p-2 hover:bg-gray-100 rounded-full"
                   onClick={() => {
                     // 피드 메뉴 열기
@@ -138,9 +151,13 @@ export default function Feed() {
 
               {/* Post Content */}
               <div className="mb-3">
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">{post.title}</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">{post.content}</p>
-                
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">
+                  {post.title}
+                </h3>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {post.content}
+                </p>
+
                 {/* Location */}
                 {post.location && (
                   <div className="flex items-center gap-1 mt-2 text-gray-500">
@@ -153,7 +170,10 @@ export default function Feed() {
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {post.tags.map((tag, index) => (
-                      <span key={index} className="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs">
+                      <span
+                        key={index}
+                        className="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs"
+                      >
                         {tag}
                       </span>
                     ))}
@@ -163,31 +183,48 @@ export default function Feed() {
 
               {/* Post Image with Shape */}
               {post.images && post.images.length > 0 && (
-                <div className={`mb-3 overflow-hidden ${
-                  post.shape === 'heart' ? 'rounded-full' :
-                  post.shape === 'cloud' ? 'rounded-3xl' :
-                  post.shape === 'wave' ? 'rounded-2xl transform rotate-2' :
-                  post.shape === 'polaroid' ? 'rounded border-8 border-white shadow-lg' :
-                  'rounded-lg'
-                }`}>
+                <div
+                  className={`mb-3 overflow-hidden ${
+                    post.shape === 'heart'
+                      ? 'rounded-full'
+                      : post.shape === 'cloud'
+                        ? 'rounded-3xl'
+                        : post.shape === 'wave'
+                          ? 'rounded-2xl transform rotate-2'
+                          : post.shape === 'polaroid'
+                            ? 'rounded border-8 border-white shadow-lg'
+                            : 'rounded-lg'
+                  }`}
+                >
                   {post.images[0].startsWith('dummy_') ? (
-                    <div className={`w-full h-64 flex items-center justify-center ${
-                      post.shape === 'heart' ? 'bg-gradient-to-br from-pink-300 to-red-300' :
-                      post.shape === 'cloud' ? 'bg-gradient-to-br from-blue-200 to-white' :
-                      post.shape === 'wave' ? 'bg-gradient-to-br from-teal-200 to-blue-200' :
-                      post.shape === 'polaroid' ? 'bg-white' :
-                      'bg-gradient-to-br from-teal-200 to-pink-200'
-                    }`}>
+                    <div
+                      className={`w-full h-64 flex items-center justify-center ${
+                        post.shape === 'heart'
+                          ? 'bg-gradient-to-br from-pink-300 to-red-300'
+                          : post.shape === 'cloud'
+                            ? 'bg-gradient-to-br from-blue-200 to-white'
+                            : post.shape === 'wave'
+                              ? 'bg-gradient-to-br from-teal-200 to-blue-200'
+                              : post.shape === 'polaroid'
+                                ? 'bg-white'
+                                : 'bg-gradient-to-br from-teal-200 to-pink-200'
+                      }`}
+                    >
                       <span className="text-white text-2xl">
-                        {post.shape === 'heart' ? '💖' :
-                         post.shape === 'cloud' ? '☁️' :
-                         post.shape === 'wave' ? '🌊' :
-                         post.shape === 'polaroid' ? '📸' : '📷'}
+                        {post.shape === 'heart'
+                          ? '💖'
+                          : post.shape === 'cloud'
+                            ? '☁️'
+                            : post.shape === 'wave'
+                              ? '🌊'
+                              : post.shape === 'polaroid'
+                                ? '📸'
+                                : '📷'}
                       </span>
                     </div>
                   ) : (
-                    <img 
-                      src={`/uploads/${post.images[0]}`} 
+                    <img
+                      src={`/uploads/${post.images[0]}`}
                       alt={post.title}
                       className={`w-full h-64 object-cover ${
                         post.shape === 'heart' ? 'clip-path-heart' : ''
@@ -197,10 +234,16 @@ export default function Feed() {
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent) {
-                          const shapeIcon = post.shape === 'heart' ? '💖' :
-                                          post.shape === 'cloud' ? '☁️' :
-                                          post.shape === 'wave' ? '🌊' :
-                                          post.shape === 'polaroid' ? '📸' : '📷';
+                          const shapeIcon =
+                            post.shape === 'heart'
+                              ? '💖'
+                              : post.shape === 'cloud'
+                                ? '☁️'
+                                : post.shape === 'wave'
+                                  ? '🌊'
+                                  : post.shape === 'polaroid'
+                                    ? '📸'
+                                    : '📷';
                           parent.innerHTML = `<div class="w-full h-64 bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center"><span class="text-white text-2xl">${shapeIcon}</span></div>`;
                         }
                       }}
@@ -217,13 +260,20 @@ export default function Feed() {
                       onClick={() => handleLike(post.id)}
                       disabled={likeMutation.isPending}
                       className={`flex items-center gap-2 transition-colors ${
-                        likedPosts.has(post.id) ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
+                        likedPosts.has(post.id)
+                          ? 'text-red-500'
+                          : 'text-gray-600 hover:text-red-500'
                       } ${likeMutation.isPending ? 'opacity-50' : ''}`}
                     >
-                      <Heart size={20} className={likedPosts.has(post.id) ? 'fill-current' : ''} />
+                      <Heart
+                        size={20}
+                        className={
+                          likedPosts.has(post.id) ? 'fill-current' : ''
+                        }
+                      />
                       <span className="text-sm">{post.likesCount || 0}</span>
                     </button>
-                    <button 
+                    <button
                       className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
                       onClick={() => setSelectedPost(post)}
                     >
@@ -231,7 +281,7 @@ export default function Feed() {
                       <span className="text-sm">{post.commentsCount || 0}</span>
                     </button>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setSelectedPost(post)}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
                   >

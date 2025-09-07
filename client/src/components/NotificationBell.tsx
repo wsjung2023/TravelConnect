@@ -1,9 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Bell, MapPin, MessageCircle, Heart, UserPlus, HelpCircle, Gift } from 'lucide-react';
+import {
+  Bell,
+  MapPin,
+  MessageCircle,
+  Heart,
+  UserPlus,
+  HelpCircle,
+  Gift,
+} from 'lucide-react';
 import { useNotifications, type Notification } from '@/hooks/useNotifications';
 
 export default function NotificationBell() {
-  const { notifications, counts, hasNewNotifications, markAllAsRead, clearNotifications } = useNotifications();
+  const {
+    notifications,
+    counts,
+    hasNewNotifications,
+    markAllAsRead,
+    clearNotifications,
+  } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -18,25 +32,39 @@ export default function NotificationBell() {
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
-      case 'feed': return <MapPin size={16} className="text-blue-500" />;
-      case 'help': return <HelpCircle size={16} className="text-red-500" />;
-      case 'chat': return <MessageCircle size={16} className="text-green-500" />;
-      case 'follow': return <UserPlus size={16} className="text-purple-500" />;
-      case 'reaction': return <Heart size={16} className="text-pink-500" />;
-      case 'promotion': return <Gift size={16} className="text-orange-500" />;
-      default: return <Bell size={16} className="text-gray-500" />;
+      case 'feed':
+        return <MapPin size={16} className="text-blue-500" />;
+      case 'help':
+        return <HelpCircle size={16} className="text-red-500" />;
+      case 'chat':
+        return <MessageCircle size={16} className="text-green-500" />;
+      case 'follow':
+        return <UserPlus size={16} className="text-purple-500" />;
+      case 'reaction':
+        return <Heart size={16} className="text-pink-500" />;
+      case 'promotion':
+        return <Gift size={16} className="text-orange-500" />;
+      default:
+        return <Bell size={16} className="text-gray-500" />;
     }
   };
 
   const getTypeLabel = (type: Notification['type']) => {
     switch (type) {
-      case 'feed': return '인근 피드';
-      case 'help': return '도움 요청';
-      case 'chat': return '새 메시지';
-      case 'follow': return '팔로우';
-      case 'reaction': return '반응';
-      case 'promotion': return '프로모션';
-      default: return '알림';
+      case 'feed':
+        return '인근 피드';
+      case 'help':
+        return '도움 요청';
+      case 'chat':
+        return '새 메시지';
+      case 'follow':
+        return '팔로우';
+      case 'reaction':
+        return '반응';
+      case 'promotion':
+        return '프로모션';
+      default:
+        return '알림';
     }
   };
 
@@ -44,7 +72,7 @@ export default function NotificationBell() {
     const now = new Date();
     const diff = now.getTime() - timestamp.getTime();
     const minutes = Math.floor(diff / 60000);
-    
+
     if (minutes < 1) return '방금 전';
     if (minutes < 60) return `${minutes}분 전`;
     const hours = Math.floor(minutes / 60);
@@ -63,14 +91,16 @@ export default function NotificationBell() {
           ${hasNewNotifications ? 'text-red-500' : 'text-gray-600'}
         `}
         style={{
-          animation: isAnimating ? 'pulse 0.5s ease-in-out infinite alternate' : undefined
+          animation: isAnimating
+            ? 'pulse 0.5s ease-in-out infinite alternate'
+            : undefined,
         }}
       >
         <Bell size={20} />
-        
+
         {/* 알림 카운트 배지 */}
         {counts.total > 0 && (
-          <span 
+          <span
             className={`
               absolute -top-1 -right-1 min-w-[18px] h-[18px] 
               text-xs font-bold text-white rounded-full 
@@ -78,7 +108,9 @@ export default function NotificationBell() {
               ${isAnimating ? 'bg-red-500 animate-pulse' : 'bg-red-500'}
             `}
             style={{
-              animation: isAnimating ? 'bounce 0.6s ease-in-out infinite' : undefined
+              animation: isAnimating
+                ? 'bounce 0.6s ease-in-out infinite'
+                : undefined,
             }}
           >
             {counts.total > 99 ? '99+' : counts.total}
@@ -94,7 +126,7 @@ export default function NotificationBell() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* 알림 패널 */}
           <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border z-50 max-h-96 overflow-hidden">
             {/* 헤더 */}
@@ -120,7 +152,7 @@ export default function NotificationBell() {
                   )}
                 </div>
               </div>
-              
+
               {/* 알림 종류별 카운트 */}
               {counts.total > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -178,7 +210,7 @@ export default function NotificationBell() {
                       <div className="flex-shrink-0 mt-1">
                         {getNotificationIcon(notification.type)}
                       </div>
-                      
+
                       {/* 내용 */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
@@ -189,15 +221,15 @@ export default function NotificationBell() {
                             {formatTimeAgo(notification.timestamp)}
                           </span>
                         </div>
-                        
+
                         <h4 className="font-medium text-sm text-gray-800 mt-1">
                           {notification.title}
                         </h4>
-                        
+
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        
+
                         {notification.location && (
                           <div className="flex items-center gap-1 mt-2">
                             <MapPin size={12} className="text-gray-400" />
@@ -206,7 +238,7 @@ export default function NotificationBell() {
                             </span>
                           </div>
                         )}
-                        
+
                         {notification.userName && (
                           <div className="flex items-center gap-2 mt-2">
                             <div className="w-4 h-4 bg-gray-300 rounded-full"></div>

@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { Send, Phone, Video, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { Message, Conversation } from "@shared/schema";
+import { useState, useEffect, useRef } from 'react';
+import { Send, Phone, Video, MoreVertical } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { Message, Conversation } from '@shared/schema';
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -12,12 +12,17 @@ interface ChatWindowProps {
   currentUserId: string;
 }
 
-export default function ChatWindow({ conversation, messages, onSendMessage, currentUserId }: ChatWindowProps) {
-  const [newMessage, setNewMessage] = useState("");
+export default function ChatWindow({
+  conversation,
+  messages,
+  onSendMessage,
+  currentUserId,
+}: ChatWindowProps) {
+  const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -28,21 +33,22 @@ export default function ChatWindow({ conversation, messages, onSendMessage, curr
     e.preventDefault();
     if (newMessage.trim()) {
       onSendMessage(newMessage.trim());
-      setNewMessage("");
+      setNewMessage('');
     }
   };
 
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('ko-KR', { 
-      hour: '2-digit', 
+    return new Date(date).toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     });
   };
 
-  const otherParticipant = conversation.participant1Id === currentUserId 
-    ? conversation.participant2Id 
-    : conversation.participant1Id;
+  const otherParticipant =
+    conversation.participant1Id === currentUserId
+      ? conversation.participant2Id
+      : conversation.participant1Id;
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -51,7 +57,9 @@ export default function ChatWindow({ conversation, messages, onSendMessage, curr
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10">
             <AvatarImage src="" />
-            <AvatarFallback>{otherParticipant.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {otherParticipant.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div>
             <h3 className="font-medium">{otherParticipant}</h3>
@@ -81,7 +89,10 @@ export default function ChatWindow({ conversation, messages, onSendMessage, curr
           messages.map((message) => {
             const isOwn = message.senderId === currentUserId;
             return (
-              <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={message.id}
+                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+              >
                 <div className="max-w-xs">
                   {!isOwn && (
                     <div className="flex items-center gap-2 mb-1">
@@ -90,7 +101,9 @@ export default function ChatWindow({ conversation, messages, onSendMessage, curr
                           {message.senderId.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs text-gray-500">{message.senderId}</span>
+                      <span className="text-xs text-gray-500">
+                        {message.senderId}
+                      </span>
                     </div>
                   )}
                   <div className={`chat-bubble ${isOwn ? 'sent' : 'received'}`}>
@@ -116,8 +129,8 @@ export default function ChatWindow({ conversation, messages, onSendMessage, curr
             placeholder="메시지를 입력하세요..."
             className="flex-1 rounded-full border-gray-200"
           />
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={!newMessage.trim()}
             className="rounded-full w-10 h-10 p-0"
           >

@@ -1,31 +1,31 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Settings, Edit3, Calendar, MapPin, Star, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/useAuth";
-import type { Post, Trip, Experience } from "@shared/schema";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/useAuth';
+import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("posts");
+  const [activeTab, setActiveTab] = useState('posts');
 
   const { data: posts = [] } = useQuery({
-    queryKey: ["/api/posts", "user"],
+    queryKey: ['/api/posts', 'user'],
   });
 
   const { data: trips = [] } = useQuery({
-    queryKey: ["/api/trips"],
+    queryKey: ['/api/trips'],
   });
 
   const { data: experiences = [] } = useQuery({
-    queryKey: ["/api/experiences", "user"],
+    queryKey: ['/api/experiences', 'user'],
   });
 
   const { data: bookings = [] } = useQuery({
-    queryKey: ["/api/bookings"],
+    queryKey: ['/api/bookings'],
   });
 
   const stats = {
@@ -45,7 +45,7 @@ export default function Profile() {
             <Settings size={20} />
           </Button>
         </div>
-        
+
         <div className="flex flex-col items-center text-center">
           <Avatar className="w-24 h-24 mb-4 border-4 border-white shadow-lg">
             <AvatarImage src={user?.profileImageUrl} />
@@ -53,28 +53,28 @@ export default function Profile() {
               {user?.firstName?.charAt(0) || user?.email?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
-          
+
           <h2 className="text-xl font-bold text-gray-900 mb-1">
-            {user?.firstName && user?.lastName 
+            {user?.firstName && user?.lastName
               ? `${user.firstName} ${user.lastName}`
               : user?.email?.split('@')[0] || '사용자'}
           </h2>
-          
+
           {user?.bio && (
             <p className="text-gray-600 text-sm mb-3 max-w-xs">{user.bio}</p>
           )}
-          
+
           <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
             <MapPin size={14} />
             <span>{user?.location || '위치 미설정'}</span>
           </div>
-          
+
           {user?.isHost && (
             <Badge className="bg-gradient-to-r from-primary to-secondary text-white mb-4">
               ✨ 인증된 호스트
             </Badge>
           )}
-          
+
           <Button className="travel-button-outline">
             <Edit3 size={16} className="mr-2" />
             프로필 편집
@@ -94,15 +94,21 @@ export default function Profile() {
             <div className="text-xs text-gray-500">여행</div>
           </div>
           <div>
-            <div className="text-lg font-bold text-gray-900">{stats.followers}</div>
+            <div className="text-lg font-bold text-gray-900">
+              {stats.followers}
+            </div>
             <div className="text-xs text-gray-500">팔로워</div>
           </div>
           <div>
-            <div className="text-lg font-bold text-gray-900">{stats.following}</div>
+            <div className="text-lg font-bold text-gray-900">
+              {stats.following}
+            </div>
             <div className="text-xs text-gray-500">팔로잉</div>
           </div>
           <div>
-            <div className="text-lg font-bold text-gray-900">{stats.experiences}</div>
+            <div className="text-lg font-bold text-gray-900">
+              {stats.experiences}
+            </div>
             <div className="text-xs text-gray-500">체험</div>
           </div>
         </div>
@@ -111,10 +117,18 @@ export default function Profile() {
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
-          <TabsTrigger value="posts" className="text-xs">게시글</TabsTrigger>
-          <TabsTrigger value="trips" className="text-xs">여행</TabsTrigger>
-          <TabsTrigger value="experiences" className="text-xs">체험</TabsTrigger>
-          <TabsTrigger value="bookings" className="text-xs">예약</TabsTrigger>
+          <TabsTrigger value="posts" className="text-xs">
+            게시글
+          </TabsTrigger>
+          <TabsTrigger value="trips" className="text-xs">
+            여행
+          </TabsTrigger>
+          <TabsTrigger value="experiences" className="text-xs">
+            체험
+          </TabsTrigger>
+          <TabsTrigger value="bookings" className="text-xs">
+            예약
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts" className="mt-4 px-4">
@@ -126,7 +140,10 @@ export default function Profile() {
           ) : (
             <div className="grid grid-cols-3 gap-1">
               {posts.map((post: Post) => (
-                <div key={post.id} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                <div
+                  key={post.id}
+                  className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center"
+                >
                   <span className="text-2xl">📷</span>
                 </div>
               ))}
@@ -154,7 +171,7 @@ export default function Profile() {
                     <span>{trip.destination}</span>
                   </div>
                   <div className="text-xs text-gray-400">
-                    {new Date(trip.startDate).toLocaleDateString('ko-KR')} - 
+                    {new Date(trip.startDate).toLocaleDateString('ko-KR')} -
                     {new Date(trip.endDate).toLocaleDateString('ko-KR')}
                   </div>
                 </div>
@@ -168,9 +185,7 @@ export default function Profile() {
             <div className="text-center py-8">
               <div className="text-4xl mb-3">🗺️</div>
               <p className="text-gray-500 text-sm">등록한 체험이 없어요</p>
-              <Button className="travel-button mt-3">
-                체험 등록하기
-              </Button>
+              <Button className="travel-button mt-3">체험 등록하기</Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -179,13 +194,22 @@ export default function Profile() {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium">{experience.title}</h3>
                     <div className="flex items-center gap-1">
-                      <Star size={12} className="text-yellow-400 fill-current" />
-                      <span className="text-xs">{experience.rating || '0'}</span>
+                      <Star
+                        size={12}
+                        className="text-yellow-400 fill-current"
+                      />
+                      <span className="text-xs">
+                        {experience.rating || '0'}
+                      </span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">{experience.description}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                    {experience.description}
+                  </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-primary">₩{Number(experience.price).toLocaleString()}</span>
+                    <span className="text-sm font-medium text-primary">
+                      ₩{Number(experience.price).toLocaleString()}
+                    </span>
                     <Badge variant="outline" className="text-xs">
                       {experience.category}
                     </Badge>
@@ -208,17 +232,25 @@ export default function Profile() {
                 <div key={booking.id} className="travel-card p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium">체험 제목</h3>
-                    <Badge className={
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }>
-                      {booking.status === 'confirmed' ? '확정' :
-                       booking.status === 'pending' ? '대기' : '취소'}
+                    <Badge
+                      className={
+                        booking.status === 'confirmed'
+                          ? 'bg-green-100 text-green-800'
+                          : booking.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                      }
+                    >
+                      {booking.status === 'confirmed'
+                        ? '확정'
+                        : booking.status === 'pending'
+                          ? '대기'
+                          : '취소'}
                     </Badge>
                   </div>
                   <div className="text-sm text-gray-600 mb-2">
-                    {new Date(booking.date).toLocaleDateString('ko-KR')} · {booking.participants}명
+                    {new Date(booking.date).toLocaleDateString('ko-KR')} ·{' '}
+                    {booking.participants}명
                   </div>
                   <div className="text-sm font-medium text-primary">
                     ₩{Number(booking.totalPrice).toLocaleString()}

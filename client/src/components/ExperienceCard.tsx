@@ -1,7 +1,7 @@
-import { Star, MapPin, Clock, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import type { Experience } from "@shared/schema";
+import { Star, MapPin, Clock, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import type { Experience } from '@shared/schema';
 
 interface ExperienceCardProps {
   experience: Experience;
@@ -9,25 +9,29 @@ interface ExperienceCardProps {
   compact?: boolean;
 }
 
-export default function ExperienceCard({ experience, onBook, compact = false }: ExperienceCardProps) {
+export default function ExperienceCard({
+  experience,
+  onBook,
+  compact = false,
+}: ExperienceCardProps) {
   const getCategoryColor = (category: string) => {
     const colors = {
-      tour: "bg-primary/10 text-primary",
-      food: "bg-secondary/10 text-secondary", 
-      activity: "bg-accent/10 text-accent",
-      tip: "bg-mint/10 text-mint-foreground",
+      tour: 'bg-primary/10 text-primary',
+      food: 'bg-secondary/10 text-secondary',
+      activity: 'bg-accent/10 text-accent',
+      tip: 'bg-mint/10 text-mint-foreground',
     };
     return colors[category as keyof typeof colors] || colors.tour;
   };
 
   const getCategoryIcon = (category: string) => {
     const icons = {
-      tour: "🗺️",
-      food: "🍜", 
-      activity: "🎯",
-      tip: "💡",
+      tour: '🗺️',
+      food: '🍜',
+      activity: '🎯',
+      tip: '💡',
     };
-    return icons[category as keyof typeof icons] || "🗺️";
+    return icons[category as keyof typeof icons] || '🗺️';
   };
 
   if (compact) {
@@ -40,22 +44,37 @@ export default function ExperienceCard({ experience, onBook, compact = false }: 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
-                <h3 className="font-medium text-sm text-gray-900 truncate">{experience.title}</h3>
+                <h3 className="font-medium text-sm text-gray-900 truncate">
+                  {experience.title}
+                </h3>
                 <div className="flex items-center gap-1 mt-1">
                   <MapPin size={12} className="text-gray-400" />
-                  <span className="text-xs text-gray-500 truncate">{experience.location}</span>
+                  <span className="text-xs text-gray-500 truncate">
+                    {experience.location}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   {experience.rating && (
                     <div className="flex items-center gap-1">
-                      <Star size={12} className="text-yellow-400 fill-current" />
-                      <span className="text-xs text-gray-600">{experience.rating}</span>
+                      <Star
+                        size={12}
+                        className="text-yellow-400 fill-current"
+                      />
+                      <span className="text-xs text-gray-600">
+                        {experience.rating}
+                      </span>
                     </div>
                   )}
-                  <span className="text-sm font-semibold text-primary">₩{Number(experience.price).toLocaleString()}</span>
+                  <span className="text-sm font-semibold text-primary">
+                    ₩{Number(experience.price).toLocaleString()}
+                  </span>
                 </div>
               </div>
-              <Button size="sm" onClick={onBook} className="text-xs px-2 py-1 h-auto">
+              <Button
+                size="sm"
+                onClick={onBook}
+                className="text-xs px-2 py-1 h-auto"
+              >
                 예약
               </Button>
             </div>
@@ -71,7 +90,7 @@ export default function ExperienceCard({ experience, onBook, compact = false }: 
       <div className="h-48 bg-gray-200 flex items-center justify-center text-4xl">
         {getCategoryIcon(experience.category)}
       </div>
-      
+
       {/* Content */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -82,14 +101,18 @@ export default function ExperienceCard({ experience, onBook, compact = false }: 
             <div className="flex items-center gap-1">
               <Star size={14} className="text-yellow-400 fill-current" />
               <span className="text-sm text-gray-600">{experience.rating}</span>
-              <span className="text-xs text-gray-400">({experience.reviewCount})</span>
+              <span className="text-xs text-gray-400">
+                ({experience.reviewCount})
+              </span>
             </div>
           )}
         </div>
-        
+
         <h3 className="font-semibold text-gray-900 mb-2">{experience.title}</h3>
-        <p className="text-sm text-gray-600 line-clamp-2 mb-3">{experience.description}</p>
-        
+        <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+          {experience.description}
+        </p>
+
         <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
           <div className="flex items-center gap-1">
             <MapPin size={12} />
@@ -108,10 +131,12 @@ export default function ExperienceCard({ experience, onBook, compact = false }: 
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-lg font-bold text-gray-900">₩{Number(experience.price).toLocaleString()}</span>
+            <span className="text-lg font-bold text-gray-900">
+              ₩{Number(experience.price).toLocaleString()}
+            </span>
             <span className="text-sm text-gray-500 ml-1">/ 인</span>
           </div>
           <Button onClick={onBook} className="travel-button">

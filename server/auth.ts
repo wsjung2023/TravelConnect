@@ -15,7 +15,11 @@ export interface AuthRequest extends Request {
 }
 
 // JWT 토큰 생성
-export function generateToken(user: { id: string; email: string; role: string }) {
+export function generateToken(user: {
+  id: string;
+  email: string;
+  role: string;
+}) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     JWT_SECRET,
@@ -26,7 +30,11 @@ export function generateToken(user: { id: string; email: string; role: string })
 // JWT 토큰 검증
 export function verifyToken(token: string) {
   try {
-    return jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: string };
+    return jwt.verify(token, JWT_SECRET) as {
+      id: string;
+      email: string;
+      role: string;
+    };
   } catch (error) {
     return null;
   }
@@ -39,12 +47,19 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 // 비밀번호 검증
-export async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
+export async function comparePassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
   return bcrypt.compare(password, hashedPassword);
 }
 
 // 인증 미들웨어
-export async function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authenticateToken(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -68,19 +83,23 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
 }
 
 // 관리자 권한 확인 미들웨어
-export async function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+export async function requireAdmin(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
   // 먼저 인증 확인
   await authenticateToken(req, res, () => {});
-  
+
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
-  
+
   // 관리자 권한 확인
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required' });
   }
-  
+
   next();
 }
 
@@ -91,7 +110,10 @@ export function isValidEmail(email: string): boolean {
 }
 
 // 비밀번호 강도 검증
-export function isValidPassword(password: string): { valid: boolean; message?: string } {
+export function isValidPassword(password: string): {
+  valid: boolean;
+  message?: string;
+} {
   if (password.length < 6) {
     return { valid: false, message: '비밀번호는 최소 6자 이상이어야 합니다' };
   }

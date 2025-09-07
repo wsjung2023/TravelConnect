@@ -1,25 +1,31 @@
-import { useState, useRef, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
-import MapComponent from "@/components/MapComponent";
+import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'wouter';
+import MapComponent from '@/components/MapComponent';
 
-import SearchHeader from "@/components/SearchHeader";
-import NotificationBell from "@/components/NotificationBell";
-import Feed from "@/pages/feed";
-import TimelinePage from "@/pages/timeline";
-import Chat from "@/pages/chat";
-import Profile from "@/pages/profile";
-import BottomNavigation from "@/components/BottomNavigation";
-import { JourneyCreateModal } from "@/components/JourneyCreateModal";
-import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import SearchHeader from '@/components/SearchHeader';
+import NotificationBell from '@/components/NotificationBell';
+import Feed from '@/pages/feed';
+import TimelinePage from '@/pages/timeline';
+import Chat from '@/pages/chat';
+import Profile from '@/pages/profile';
+import BottomNavigation from '@/components/BottomNavigation';
+import { JourneyCreateModal } from '@/components/JourneyCreateModal';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 export default function Home() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<'map' | 'feed' | 'chat' | 'profile' | 'timeline'>('map');
+  const [activeTab, setActiveTab] = useState<
+    'map' | 'feed' | 'chat' | 'profile' | 'timeline'
+  >('map');
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [prefilledLocation, setPrefilledLocation] = useState<{ name: string; latitude: number; longitude: number } | null>(null);
+  const [prefilledLocation, setPrefilledLocation] = useState<{
+    name: string;
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const mapRef = useRef<any>(null);
 
   // 전역 함수로 모달 열기 (지도 클릭 시 사용) 및 홈 네비게이션 처리
@@ -28,7 +34,7 @@ export default function Home() {
       setPrefilledLocation(location);
       setShowCreatePost(true);
     };
-    
+
     // 홈 네비게이션 메시지 리스너
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'navigate-home') {
@@ -54,9 +60,9 @@ export default function Home() {
         }, 100);
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
-    
+
     return () => {
       delete (window as any).openJourneyModal;
       window.removeEventListener('message', handleMessage);
@@ -81,8 +87,8 @@ export default function Home() {
     switch (activeTab) {
       case 'map':
         return (
-          <MapComponent 
-            className="w-full h-full" 
+          <MapComponent
+            className="w-full h-full"
             onCreatePost={(location) => {
               setPrefilledLocation(location || null);
               setShowCreatePost(true);
@@ -105,7 +111,10 @@ export default function Home() {
   return (
     <div className="mobile-container" style={{ position: 'relative' }}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30" style={{ width: '100%' }}>
+      <header
+        className="bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30"
+        style={{ width: '100%' }}
+      >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 travel-gradient rounded-full flex items-center justify-center">
             <i className="fas fa-globe text-white text-sm"></i>
@@ -117,7 +126,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell />
-          
+
           {/* Admin 전용 버튼들 */}
           {user?.role === 'admin' && (
             <>
@@ -131,7 +140,7 @@ export default function Home() {
               >
                 <Settings className="h-4 w-4 text-gray-600" />
               </Button>
-              <button 
+              <button
                 onClick={() => window.open('/db-admin', '_blank')}
                 className="p-2 hover:bg-gray-100 rounded-full"
                 title="DB Admin 도구"
@@ -141,8 +150,8 @@ export default function Home() {
               </button>
             </>
           )}
-          
-          <button 
+
+          <button
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={() => {
               localStorage.removeItem('token');
@@ -159,28 +168,31 @@ export default function Home() {
 
       {/* Search Header - 지도 탭에서만 표시 */}
       {activeTab === 'map' && (
-        <SearchHeader 
+        <SearchHeader
           onLocationSearch={handleLocationSearch}
           onContentSearch={handleContentSearch}
         />
       )}
 
       {/* Tab Content */}
-      <div style={{ 
-        position: 'absolute',
-        top: activeTab === 'map' ? '144px' : '80px', // 검색바 있을 때 높이 조정
-        left: 0,
-        right: 0,
-        bottom: '80px',
-        overflow: 'hidden',
-        width: '100%',
-        height: activeTab === 'map' ? 'calc(100vh - 224px)' : 'calc(100vh - 160px)'
-      }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: activeTab === 'map' ? '144px' : '80px', // 검색바 있을 때 높이 조정
+          left: 0,
+          right: 0,
+          bottom: '80px',
+          overflow: 'hidden',
+          width: '100%',
+          height:
+            activeTab === 'map' ? 'calc(100vh - 224px)' : 'calc(100vh - 160px)',
+        }}
+      >
         {renderActiveTab()}
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation 
+      <BottomNavigation
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onCreatePost={() => setShowCreatePost(true)}
@@ -188,7 +200,7 @@ export default function Home() {
 
       {/* Journey Create Modal */}
       {showCreatePost && (
-        <JourneyCreateModal 
+        <JourneyCreateModal
           isOpen={showCreatePost}
           onClose={() => {
             setShowCreatePost(false);

@@ -1,4 +1,11 @@
-import { MapPin, Home, MessageCircle, User, Plus, Calendar } from "lucide-react";
+import {
+  MapPin,
+  Home,
+  MessageCircle,
+  User,
+  Plus,
+  Calendar,
+} from 'lucide-react';
 
 interface BottomNavigationProps {
   activeTab: 'map' | 'feed' | 'chat' | 'profile' | 'timeline';
@@ -6,7 +13,11 @@ interface BottomNavigationProps {
   onCreatePost: () => void;
 }
 
-export default function BottomNavigation({ activeTab, onTabChange, onCreatePost }: BottomNavigationProps) {
+export default function BottomNavigation({
+  activeTab,
+  onTabChange,
+  onCreatePost,
+}: BottomNavigationProps) {
   const tabs = [
     { id: 'map', icon: MapPin, label: '지도' },
     { id: 'feed', icon: Home, label: '피드' },
@@ -21,7 +32,7 @@ export default function BottomNavigation({ activeTab, onTabChange, onCreatePost 
         {tabs.map((tab, index) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          
+
           return (
             <div key={tab.id} className="flex items-center">
               <button
@@ -31,7 +42,7 @@ export default function BottomNavigation({ activeTab, onTabChange, onCreatePost 
                 <Icon size={20} />
                 <span className="text-xs">{tab.label}</span>
               </button>
-              
+
               {/* Create Post Button between Timeline and Chat */}
               {index === 2 && (
                 <button

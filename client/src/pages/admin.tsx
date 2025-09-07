@@ -1,13 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, MapPin, Heart, Calendar, Search, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Trash2,
+  MapPin,
+  Heart,
+  Calendar,
+  Search,
+  ArrowLeft,
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DatabasePost {
   id: number;
@@ -36,7 +49,11 @@ export default function AdminPage() {
   // 관리자 권한 체크
   const isAdmin = user?.role === 'admin';
 
-  const { data: posts, isLoading, refetch } = useQuery({
+  const {
+    data: posts,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['/api/posts'],
     queryFn: async () => {
       const response = await fetch('/api/posts?limit=100');
@@ -61,27 +78,36 @@ export default function AdminPage() {
 
   const getThemeColor = (theme: string | null) => {
     switch (theme) {
-      case '맛집': return 'bg-orange-100 text-orange-800';
-      case '명소': return 'bg-blue-100 text-blue-800';
-      case '파티타임': return 'bg-purple-100 text-purple-800';
-      case '핫플레이스': return 'bg-red-100 text-red-800';
-      case '힐링': return 'bg-green-100 text-green-800';
-      case '감성': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case '맛집':
+        return 'bg-orange-100 text-orange-800';
+      case '명소':
+        return 'bg-blue-100 text-blue-800';
+      case '파티타임':
+        return 'bg-purple-100 text-purple-800';
+      case '핫플레이스':
+        return 'bg-red-100 text-red-800';
+      case '힐링':
+        return 'bg-green-100 text-green-800';
+      case '감성':
+        return 'bg-pink-100 text-pink-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   // 필터링된 피드
-  const filteredPosts = posts?.filter(post => {
-    const matchesSearch = !searchTerm || 
-      post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.location?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTheme = filterTheme === 'all' || post.theme === filterTheme;
-    
-    return matchesSearch && matchesTheme;
-  }) || [];
+  const filteredPosts =
+    posts?.filter((post) => {
+      const matchesSearch =
+        !searchTerm ||
+        post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.location?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesTheme = filterTheme === 'all' || post.theme === filterTheme;
+
+      return matchesSearch && matchesTheme;
+    }) || [];
 
   // 로딩 중이거나 권한 확인 중
   if (userLoading) {
@@ -101,8 +127,10 @@ export default function AdminPage() {
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">🚫</div>
           <h1 className="text-2xl font-bold mb-2">접근 권한이 없습니다</h1>
-          <p className="text-gray-600 mb-6">이 페이지는 관리자만 접근할 수 있습니다.</p>
-          <Button onClick={() => window.location.href = '/'}>
+          <p className="text-gray-600 mb-6">
+            이 페이지는 관리자만 접근할 수 있습니다.
+          </p>
+          <Button onClick={() => (window.location.href = '/')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             홈으로 돌아가기
           </Button>
@@ -128,9 +156,9 @@ export default function AdminPage() {
         {/* 헤더 */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => window.location.href = '/'}
+            <Button
+              variant="ghost"
+              onClick={() => (window.location.href = '/')}
               className="p-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -193,14 +221,14 @@ export default function AdminPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       {post.content && (
                         <p className="text-gray-600 mb-3 leading-relaxed">
                           {post.content}
                         </p>
                       )}
                     </div>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -219,7 +247,7 @@ export default function AdminPage() {
                         <span>{post.location}</span>
                       </div>
                     )}
-                    
+
                     <div className="flex items-center gap-1">
                       <Heart size={14} />
                       <span>{post.likesCount || 0}개 좋아요</span>
@@ -228,16 +256,18 @@ export default function AdminPage() {
                     <div className="flex items-center gap-1">
                       <Calendar size={14} />
                       <span>
-                        {post.postDate || new Date(post.createdAt).toLocaleDateString()}
+                        {post.postDate ||
+                          new Date(post.createdAt).toLocaleDateString()}
                         {post.postTime && ` • ${post.postTime}`}
                       </span>
                     </div>
                   </div>
 
                   {/* 좌표 정보 */}
-                  {(post.latitude && post.longitude) && (
+                  {post.latitude && post.longitude && (
                     <div className="text-sm text-gray-500 font-mono mb-3 bg-gray-50 px-3 py-2 rounded">
-                      좌표: {parseFloat(post.latitude).toFixed(6)}, {parseFloat(post.longitude).toFixed(6)}
+                      좌표: {parseFloat(post.latitude).toFixed(6)},{' '}
+                      {parseFloat(post.longitude).toFixed(6)}
                     </div>
                   )}
 
@@ -245,7 +275,10 @@ export default function AdminPage() {
                   {post.tags && post.tags.length > 0 && (
                     <div className="flex gap-2 flex-wrap mb-3">
                       {post.tags.map((tag, index) => (
-                        <span key={index} className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                        <span
+                          key={index}
+                          className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-full"
+                        >
                           {tag}
                         </span>
                       ))}
@@ -255,7 +288,9 @@ export default function AdminPage() {
                   {/* 메타 정보 */}
                   <div className="text-xs text-gray-400 border-t pt-3 flex justify-between">
                     <span>ID: {post.id}</span>
-                    <span>생성일: {new Date(post.createdAt).toLocaleString()}</span>
+                    <span>
+                      생성일: {new Date(post.createdAt).toLocaleString()}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -265,17 +300,18 @@ export default function AdminPage() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📝</div>
             <div className="text-xl font-semibold mb-2">
-              {searchTerm || filterTheme !== 'all' ? '검색 결과가 없습니다' : '저장된 피드가 없습니다'}
+              {searchTerm || filterTheme !== 'all'
+                ? '검색 결과가 없습니다'
+                : '저장된 피드가 없습니다'}
             </div>
             <div className="text-gray-500 mb-6">
-              {searchTerm || filterTheme !== 'all' 
-                ? '다른 검색어나 필터를 시도해보세요' 
-                : '첫 번째 피드를 작성해보세요'
-              }
+              {searchTerm || filterTheme !== 'all'
+                ? '다른 검색어나 필터를 시도해보세요'
+                : '첫 번째 피드를 작성해보세요'}
             </div>
-            {(!searchTerm && filterTheme === 'all') && (
-              <Button 
-                onClick={() => window.location.href = '/'} 
+            {!searchTerm && filterTheme === 'all' && (
+              <Button
+                onClick={() => (window.location.href = '/')}
                 variant="outline"
               >
                 피드 작성하러 가기
@@ -287,11 +323,12 @@ export default function AdminPage() {
         <div className="mt-8 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">지도 확인 방법</h3>
           <p className="text-sm text-blue-800">
-            위 피드들이 지도에 마커로 표시됩니다. 홈페이지로 돌아가서 지도를 확인해보세요. 
-            각 피드의 위치 좌표가 있는 경우 해당 위치에 마커가 생성됩니다.
+            위 피드들이 지도에 마커로 표시됩니다. 홈페이지로 돌아가서 지도를
+            확인해보세요. 각 피드의 위치 좌표가 있는 경우 해당 위치에 마커가
+            생성됩니다.
           </p>
-          <Button 
-            onClick={() => window.location.href = '/'} 
+          <Button
+            onClick={() => (window.location.href = '/')}
             className="mt-3"
             size="sm"
           >

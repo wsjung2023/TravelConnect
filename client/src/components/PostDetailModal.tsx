@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Heart, MessageCircle, MapPin, Calendar } from 'lucide-react';
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MessageCircle,
+  MapPin,
+  Calendar,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import type { Post } from '@shared/schema';
@@ -12,7 +20,13 @@ interface PostDetailModalProps {
   isLiked: boolean;
 }
 
-export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked }: PostDetailModalProps) {
+export default function PostDetailModal({
+  post,
+  isOpen,
+  onClose,
+  onLike,
+  isLiked,
+}: PostDetailModalProps) {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
   if (!isOpen) return null;
@@ -31,8 +45,8 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
 
   // 모든 미디어 파일 합치기 (이미지 + 동영상)
   const allMedia = [
-    ...(post.images || []).map(img => ({ type: 'image' as const, src: img })),
-    ...(post.videos || []).map(vid => ({ type: 'video' as const, src: vid }))
+    ...(post.images || []).map((img) => ({ type: 'image' as const, src: img })),
+    ...(post.videos || []).map((vid) => ({ type: 'video' as const, src: vid })),
   ];
 
   const nextMedia = () => {
@@ -54,15 +68,24 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
-              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.userId}`} />
-              <AvatarFallback>{post.userId.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarImage
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.userId}`}
+              />
+              <AvatarFallback>
+                {post.userId.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-medium text-sm">{post.userId}</p>
-              <p className="text-xs text-gray-500">{formatTime(post.createdAt)}</p>
+              <p className="text-xs text-gray-500">
+                {formatTime(post.createdAt)}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded-full"
+          >
             <X size={20} />
           </button>
         </div>
@@ -71,7 +94,9 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
         <div className="p-4 max-h-[70vh] overflow-y-auto">
           {/* Title and Content */}
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {post.title}
+            </h2>
             <p className="text-gray-700 leading-relaxed">{post.content}</p>
           </div>
 
@@ -93,7 +118,7 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
                       <span className="text-white text-3xl">📷</span>
                     </div>
                   ) : (
-                    <img 
+                    <img
                       src={`/uploads/${allMedia[currentMediaIndex].src}`}
                       alt={post.title}
                       className="w-full h-80 object-cover"
@@ -102,13 +127,14 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent) {
-                          parent.innerHTML = '<div class="w-full h-80 bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center"><span class="text-white text-3xl">📷</span></div>';
+                          parent.innerHTML =
+                            '<div class="w-full h-80 bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center"><span class="text-white text-3xl">📷</span></div>';
                         }
                       }}
                     />
                   )
                 ) : (
-                  <video 
+                  <video
                     src={`/uploads/${allMedia[currentMediaIndex].src}`}
                     controls
                     className="w-full h-80 object-cover"
@@ -117,7 +143,8 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
                       target.style.display = 'none';
                       const parent = target.parentElement;
                       if (parent) {
-                        parent.innerHTML = '<div class="w-full h-80 bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center"><span class="text-white text-3xl">🎥</span></div>';
+                        parent.innerHTML =
+                          '<div class="w-full h-80 bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center"><span class="text-white text-3xl">🎥</span></div>';
                       }
                     }}
                   />
@@ -154,7 +181,9 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
                         key={index}
                         onClick={() => setCurrentMediaIndex(index)}
                         className={`w-2 h-2 rounded-full ${
-                          index === currentMediaIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                          index === currentMediaIndex
+                            ? 'bg-white'
+                            : 'bg-white bg-opacity-50'
                         }`}
                       />
                     ))}
@@ -173,7 +202,10 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {post.tags.map((tag, index) => (
-                <span key={index} className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm">
+                <span
+                  key={index}
+                  className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm"
+                >
                   {tag}
                 </span>
               ))}
@@ -185,7 +217,8 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
             <div className="flex items-center gap-1 mb-4 text-gray-500">
               <Calendar size={16} />
               <span className="text-sm">
-                {post.postDate && new Date(post.postDate).toLocaleDateString('ko-KR')}
+                {post.postDate &&
+                  new Date(post.postDate).toLocaleDateString('ko-KR')}
                 {post.postDate && post.postTime && ' '}
                 {post.postTime}
               </span>
@@ -215,11 +248,11 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
               닫기
             </Button>
           </div>
-          
+
           {/* Comments Section */}
           <div className="mt-4 pt-4 border-t">
             <h3 className="font-semibold text-gray-900 mb-3">댓글</h3>
-            
+
             {/* Comment Input */}
             <div className="flex gap-2 mb-4">
               <Avatar className="w-8 h-8">
@@ -250,12 +283,14 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
                 <div className="flex-1">
                   <p className="text-sm">
                     <span className="font-medium text-gray-900">여행러버</span>
-                    <span className="text-gray-700 ml-2">정말 멋진 곳이네요! 저도 가보고 싶어요 ✨</span>
+                    <span className="text-gray-700 ml-2">
+                      정말 멋진 곳이네요! 저도 가보고 싶어요 ✨
+                    </span>
                   </p>
                   <p className="text-xs text-gray-500 mt-1">2시간 전</p>
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src="https://api.dicebear.com/7.x/initials/svg?seed=User2" />
@@ -264,7 +299,9 @@ export default function PostDetailModal({ post, isOpen, onClose, onLike, isLiked
                 <div className="flex-1">
                   <p className="text-sm">
                     <span className="font-medium text-gray-900">모험가</span>
-                    <span className="text-gray-700 ml-2">완전 인스타그램 감성! 📸</span>
+                    <span className="text-gray-700 ml-2">
+                      완전 인스타그램 감성! 📸
+                    </span>
                   </p>
                   <p className="text-xs text-gray-500 mt-1">1일 전</p>
                 </div>

@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction } from '@tanstack/react-query';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -12,33 +12,33 @@ export async function apiRequest(
   options: RequestInit = {}
 ): Promise<Response> {
   console.log(`API 요청: ${options.method || 'GET'} ${url}`, options.body);
-  
+
   // 토큰 가져오기
   const token = localStorage.getItem('token');
-  
+
   const headers: HeadersInit = {
     ...options.headers,
   };
-  
+
   if (options.body && !(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   const res = await fetch(url, {
     ...options,
     headers,
-    credentials: "include",
+    credentials: 'include',
   });
 
   await throwIfResNotOk(res);
   return res;
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
+type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
@@ -46,17 +46,17 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const token = localStorage.getItem('token');
     const headers: HeadersInit = {};
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
-    const res = await fetch(queryKey.join("/") as string, {
+
+    const res = await fetch(queryKey.join('/') as string, {
       headers,
-      credentials: "include",
+      credentials: 'include',
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;
     }
 
@@ -67,7 +67,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: 'throw' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,

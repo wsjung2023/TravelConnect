@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Camera, MapPin, Image } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import type { InsertPost } from "@shared/schema";
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { X, Camera, MapPin, Image } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import type { InsertPost } from '@shared/schema';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -14,11 +14,17 @@ interface CreatePostModalProps {
   location?: { lat: number; lng: number; name?: string } | null;
 }
 
-export default function CreatePostModal({ isOpen, onClose, location: initialLocation }: CreatePostModalProps) {
-  const [content, setContent] = useState("");
+export default function CreatePostModal({
+  isOpen,
+  onClose,
+  location: initialLocation,
+}: CreatePostModalProps) {
+  const [content, setContent] = useState('');
   const [location, setLocation] = useState(
-    initialLocation?.name || 
-    (initialLocation ? `${initialLocation.lat.toFixed(4)}, ${initialLocation.lng.toFixed(4)}` : "")
+    initialLocation?.name ||
+      (initialLocation
+        ? `${initialLocation.lat.toFixed(4)}, ${initialLocation.lng.toFixed(4)}`
+        : '')
   );
   const [images, setImages] = useState<string[]>([]);
   const { toast } = useToast();
@@ -26,52 +32,52 @@ export default function CreatePostModal({ isOpen, onClose, location: initialLoca
 
   const createPostMutation = useMutation({
     mutationFn: async (post: InsertPost) => {
-      const response = await fetch("/api/posts", {
-        method: "POST",
+      const response = await fetch('/api/posts', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(post),
       });
       if (!response.ok) {
-        throw new Error("Failed to create post");
+        throw new Error('Failed to create post');
       }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "게시글 작성 완료",
-        description: "새로운 여행 스토리가 공유되었습니다!",
+        title: '게시글 작성 완료',
+        description: '새로운 여행 스토리가 공유되었습니다!',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
       onClose();
-      setContent("");
-      setLocation("");
+      setContent('');
+      setLocation('');
       setImages([]);
     },
     onError: (error) => {
       toast({
-        title: "게시글 작성 실패",
-        description: "게시글 작성 중 오류가 발생했습니다.",
-        variant: "destructive",
+        title: '게시글 작성 실패',
+        description: '게시글 작성 중 오류가 발생했습니다.',
+        variant: 'destructive',
       });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!content.trim()) {
       toast({
-        title: "내용 입력",
-        description: "게시글 내용을 입력해주세요.",
-        variant: "destructive",
+        title: '내용 입력',
+        description: '게시글 내용을 입력해주세요.',
+        variant: 'destructive',
       });
       return;
     }
 
     const post: InsertPost = {
-      userId: "current-user", // This should come from auth
+      userId: 'current-user', // This should come from auth
       content,
       location: location || undefined,
       images: images.length > 0 ? images : undefined,
@@ -88,7 +94,10 @@ export default function CreatePostModal({ isOpen, onClose, location: initialLoca
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">새 게시글</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full"
+          >
             <X size={20} />
           </button>
         </div>
@@ -141,7 +150,9 @@ export default function CreatePostModal({ isOpen, onClose, location: initialLoca
                   />
                   <button
                     type="button"
-                    onClick={() => setImages(images.filter((_, i) => i !== index))}
+                    onClick={() =>
+                      setImages(images.filter((_, i) => i !== index))
+                    }
                     className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
                   >
                     ×
@@ -166,7 +177,7 @@ export default function CreatePostModal({ isOpen, onClose, location: initialLoca
               disabled={!content.trim() || createPostMutation.isPending}
               className="flex-1 travel-button"
             >
-              {createPostMutation.isPending ? "게시 중..." : "게시하기"}
+              {createPostMutation.isPending ? '게시 중...' : '게시하기'}
             </Button>
           </div>
         </form>

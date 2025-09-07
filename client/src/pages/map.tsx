@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import ExperienceCard from "@/components/ExperienceCard";
-import BookingModal from "@/components/BookingModal";
-import type { Experience } from "@shared/schema";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import ExperienceCard from '@/components/ExperienceCard';
+import BookingModal from '@/components/BookingModal';
+import type { Experience } from '@shared/schema';
 
 // Declare Google Maps types
 declare global {
@@ -13,10 +13,14 @@ declare global {
 }
 
 export default function Map() {
-  const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+  const [selectedExperience, setSelectedExperience] =
+    useState<Experience | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [map, setMap] = useState<any>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   // Fetch experiences
   const { data: experiences = [], isLoading } = useQuery({
@@ -30,11 +34,11 @@ export default function Map() {
       script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initGoogleMap`;
       script.async = true;
       script.defer = true;
-      
+
       (window as any).initGoogleMap = () => {
         // Google Maps loaded, will trigger map initialization
       };
-      
+
       document.head.appendChild(script);
     }
   }, []);
@@ -55,7 +59,7 @@ export default function Map() {
           },
           () => {
             // Default to Seoul if geolocation fails
-            const defaultLocation = { lat: 37.5665, lng: 126.9780 };
+            const defaultLocation = { lat: 37.5665, lng: 126.978 };
             setUserLocation(defaultLocation);
             initializeMap(defaultLocation);
           }
@@ -66,7 +70,7 @@ export default function Map() {
 
   const initializeMap = (center: { lat: number; lng: number }) => {
     if (!window.google?.maps) return;
-    
+
     const mapInstance = new window.google.maps.Map(
       document.getElementById('map') as HTMLElement,
       {
@@ -155,19 +159,19 @@ export default function Map() {
 
       {/* Map Controls */}
       <div className="absolute top-4 right-4 space-y-2">
-        <button 
+        <button
           className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50"
           onClick={() => map?.setZoom((map?.getZoom() || 13) + 1)}
         >
           <i className="fas fa-plus text-gray-600"></i>
         </button>
-        <button 
+        <button
           className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50"
           onClick={() => map?.setZoom(Math.max((map?.getZoom() || 13) - 1, 1))}
         >
           <i className="fas fa-minus text-gray-600"></i>
         </button>
-        <button 
+        <button
           className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50"
           onClick={() => {
             if (userLocation && map) {
@@ -184,7 +188,7 @@ export default function Map() {
       <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-4 max-h-80 overflow-y-auto custom-scrollbar slide-up">
         <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
         <h3 className="font-bold text-lg mb-4">Nearby Experiences</h3>
-        
+
         <div className="space-y-3">
           {(experiences as Experience[]).map((experience: Experience) => (
             <ExperienceCard
@@ -197,7 +201,7 @@ export default function Map() {
               compact={true}
             />
           ))}
-          
+
           {(experiences as Experience[]).length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <i className="fas fa-map-marker-alt text-3xl mb-2"></i>
@@ -213,14 +217,14 @@ export default function Map() {
           <div className="w-full bg-white rounded-t-3xl max-h-4/5 overflow-y-auto slide-up">
             <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-bold text-lg">{selectedExperience.title}</h3>
-              <button 
+              <button
                 onClick={() => setSelectedExperience(null)}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
                 <i className="fas fa-times text-gray-500"></i>
               </button>
             </div>
-            
+
             <ExperienceCard
               experience={selectedExperience}
               onBook={() => setShowBookingModal(true)}
