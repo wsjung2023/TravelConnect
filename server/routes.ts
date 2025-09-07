@@ -72,8 +72,33 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Static 파일 서빙 - 업로드된 파일들 제공
-  app.use('/uploads', express.static('uploads'));
+  // 정적 파일 서빙 제거 - 보안상 이유로 직접 접근 차단
+  // app.use('/uploads', express.static('uploads')); // 제거됨
+  
+  // 보안이 강화된 파일 접근 엔드포인트
+  app.get('/api/files/:filename', async (req, res) => {
+    try {
+      const { filename } = req.params;
+      
+      // 파일명 보안 검증
+      if (!filename || !/^[a-f0-9-]+\.[a-z0-9]+$/i.test(filename)) {
+        return res.status(400).json({ message: '잘못된 파일명입니다.' });
+      }
+      
+      const filePath = path.join(process.cwd(), 'uploads', filename);
+      
+      // 파일 존재 확인
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: '파일을 찾을 수 없습니다.' });
+      }
+      
+      // 파일 전송
+      res.sendFile(filePath);
+    } catch (error) {
+      console.error('파일 접근 오류:', error);
+      res.status(500).json({ message: '파일 접근에 실패했습니다.' });
+    }
+  });
 
   // DB Admin interface
   app.get('/db-admin', (req, res) => {
@@ -455,11 +480,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     '/api/upload',
     isAuthenticated,
-    upload.array('files', 10),
+    (req, res, next) => {
+      upload.array('files', 10)(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+              message: '파일 크기가 15MB를 초과합니다.',
+              code: 'FILE_TOO_LARGE'
+            });
+          }
+          if (err.code === 'LIMIT_FILE_COUNT') {
+            return res.status(400).json({ 
+              message: '한 번에 최대 10개의 파일만 업로드 가능합니다.',
+              code: 'TOO_MANY_FILES'
+            });
+          }
+          return res.status(400).json({ 
+            message: '파일 업로드 오류: ' + err.message,
+            code: 'UPLOAD_ERROR'
+          });
+        }
+        if (err) {
+          return res.status(400).json({ 
+            message: err.message,
+            code: 'INVALID_FILE_TYPE'
+          });
+        }
+        next();
+      });
+    },
     async (req: any, res) => {
       try {
         if (!req.files || req.files.length === 0) {
-          return res.status(400).json({ message: '업로드된 파일이 없습니다.' });
+          return res.status(400).json({ 
+            message: '업로드된 파일이 없습니다.',
+            code: 'NO_FILES'
+          });
         }
 
         const uploadedFiles = req.files.map((file: any) => ({
@@ -467,14 +523,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           originalName: file.originalname,
           mimetype: file.mimetype,
           size: file.size,
-          url: `/uploads/${file.filename}`,
+          url: `/api/files/${file.filename}`, // 보안 프록시 URL로 변경
         }));
 
         console.log('파일 업로드 성공:', uploadedFiles);
-        res.json({ files: uploadedFiles });
+        res.json({ 
+          success: true,
+          files: uploadedFiles 
+        });
       } catch (error) {
         console.error('파일 업로드 오류:', error);
-        res.status(500).json({ message: '파일 업로드에 실패했습니다.' });
+        res.status(500).json({ 
+          message: '파일 업로드에 실패했습니다.',
+          code: 'INTERNAL_ERROR'
+        });
       }
     }
   );
