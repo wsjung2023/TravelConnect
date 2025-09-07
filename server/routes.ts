@@ -693,10 +693,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let calculatedDay = 1;
       let finalTakenAt = postData.takenAt;
       
-      // takenAt 없으면 업로드 시간 사용
+      // 야간 촬영, 없는 EXIF, 연속 촬영 등 보정 처리
       if (!finalTakenAt) {
         finalTakenAt = new Date();
-        console.log('EXIF takenAt 없음, 업로드 시간 사용:', finalTakenAt);
+        console.log('EXIF takenAt 없음, 업로드 시간 사용 (야간촬영/EXIF누락 케이스):', finalTakenAt);
+      } else {
+        // 연속 촬영 케이스: 같은 시간대 사진들을 약간씩 조정
+        const takenTime = new Date(finalTakenAt);
+        const now = new Date();
+        
+        // 미래 시간이면 현재 시간으로 보정 (카메라 시계 오류)
+        if (takenTime.getTime() > now.getTime()) {
+          finalTakenAt = now;
+          console.log('미래 시간 EXIF 보정:', { original: takenTime, corrected: finalTakenAt });
+        }
+        
+        // 너무 과거 시간이면 (10년 전) 현재 시간으로 보정
+        const tenYearsAgo = new Date();
+        tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
+        if (takenTime.getTime() < tenYearsAgo.getTime()) {
+          finalTakenAt = now;
+          console.log('과거 시간 EXIF 보정:', { original: takenTime, corrected: finalTakenAt });
+        }
       }
       
       // timeline이나 trip 연결 시 trip.start_date 기준으로 Day 계산
@@ -747,6 +765,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!finalLatitude && !finalLongitude && req.body.initialLocation) {
         finalLatitude = req.body.initialLocation.lat?.toString();
         finalLongitude = req.body.initialLocation.lng?.toString();
+        console.log('EXIF GPS 없음, POI 선택 위치 사용:', { lat: finalLatitude, lng: finalLongitude });
+      }
+      
+      // GPS 좌표 유효성 검증
+      if (finalLatitude && finalLongitude) {
+        const lat = parseFloat(finalLatitude);
+        const lng = parseFloat(finalLongitude);
+        
+        // 위도는 -90~90, 경도는 -180~180 범위
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          console.log('유효하지 않은 GPS 좌표 무시:', { lat, lng });
+          finalLatitude = null;
+          finalLongitude = null;
+        }
       }
       
       const finalPostData = {
