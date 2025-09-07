@@ -17,6 +17,7 @@ const Feed = lazy(() => import('@/pages/feed'));
 const Chat = lazy(() => import('@/pages/chat'));
 const Profile = lazy(() => import('@/pages/profile'));
 const TimelinePage = lazy(() => import('@/pages/timeline'));
+const TimelineCreatePage = lazy(() => import('@/pages/TimelineCreate'));
 const Admin = lazy(() => import('@/pages/admin'));
 
 // Simple loading component
@@ -66,6 +67,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <TimelinePage />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/timeline/create"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <TimelineCreatePage />
                 </Suspense>
               )}
             />
