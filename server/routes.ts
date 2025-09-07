@@ -258,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // JWT 기반 사용자 정보 조회
-  app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
+  app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
       if (!user) {
@@ -611,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isAuthenticated,
     async (req, res) => {
       try {
-        const conversationId = parseInt(req.params.id);
+        const conversationId = parseInt(req.params.id!);
         const messages =
           await storage.getMessagesByConversation(conversationId);
         res.json(messages);
