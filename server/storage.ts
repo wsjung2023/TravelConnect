@@ -296,6 +296,31 @@ export class DatabaseStorage implements IStorage {
         .set({ likesCount: sql`${posts.likesCount} + 1` })
         .where(eq(posts.id, postId));
 
+      // 포스트 정보 조회하여 알림 생성
+      const [post] = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      if (post && post.userId !== userId) {
+        // 자신의 포스트가 아닐 때만 알림 생성
+        const [liker] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+
+        await this.createNotification({
+          userId: post.userId,
+          type: 'reaction',
+          title: '새로운 좋아요',
+          message: `${liker?.firstName || '익명의 사용자'}님이 회원님의 포스트를 좋아합니다`,
+          relatedUserId: userId,
+          relatedPostId: postId,
+        });
+      }
+
       return true;
     }
   }
@@ -389,12 +414,40 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(conversations)
       .set({
-        lastMessageId: newMessage.id,
+        lastMessageId: newMessage!.id,
         lastMessageAt: new Date(),
       })
       .where(eq(conversations.id, message.conversationId));
 
-    return newMessage;
+    // 대화상대에게 알림 생성
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, message.conversationId))
+      .limit(1);
+
+    if (conversation) {
+      const recipientId = conversation.participant1Id === message.senderId 
+        ? conversation.participant2Id 
+        : conversation.participant1Id;
+
+      const [sender] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, message.senderId))
+        .limit(1);
+
+      await this.createNotification({
+        userId: recipientId,
+        type: 'chat',
+        title: '새 메시지',
+        message: `${sender?.firstName || '익명의 사용자'}님이 메시지를 보냈습니다`,
+        relatedUserId: message.senderId,
+        relatedConversationId: message.conversationId,
+      });
+    }
+
+    return newMessage!;
   }
 
   async getMessagesByConversation(conversationId: number): Promise<Message[]> {

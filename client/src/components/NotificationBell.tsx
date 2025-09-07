@@ -202,7 +202,7 @@ export default function NotificationBell() {
                     key={notification.id}
                     className={`
                       p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors
-                      ${!notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}
+                      ${!notification.isRead ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}
                     `}
                   >
                     <div className="flex items-start gap-3">
@@ -218,7 +218,7 @@ export default function NotificationBell() {
                             {getTypeLabel(notification.type)}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {formatTimeAgo(notification.timestamp)}
+                            {formatTimeAgo(new Date(notification.createdAt))}
                           </span>
                         </div>
 

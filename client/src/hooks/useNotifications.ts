@@ -34,7 +34,7 @@ export function useNotifications() {
   const queryClient = useQueryClient();
 
   // 데이터베이스에서 알림 조회
-  const { data: notifications = [], isLoading } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
     enabled: !!user,
   });
