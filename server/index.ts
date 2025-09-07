@@ -1,8 +1,34 @@
 import express, { type Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 
 const app = express();
+
+// Security headers with helmet
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        connectSrc: ["'self'", 'https:'],
+        // External domains that might be needed:
+        // - Google Maps API: *.googleapis.com, *.gstatic.com
+        // - Google Fonts: fonts.googleapis.com, fonts.gstatic.com
+        // - Font Awesome: *.fontawesome.com
+        // - Analytics: *.analytics.com
+        // Add specific domains as needed
+      },
+    },
+    frameguard: { action: 'deny' }, // X-Frame-Options: DENY
+    noSniff: true, // X-Content-Type-Options: nosniff
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }, // Referrer-Policy
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
