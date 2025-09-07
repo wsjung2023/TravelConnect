@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
+import { tripsRouter } from './routes/trips';
 import { setupAuth, isAuthenticated } from './replitAuth';
 import { setupGoogleAuth } from './googleAuth';
 import passport from 'passport';
@@ -872,6 +873,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to update profile' });
     }
   });
+
+  // Trips 라우터 추가
+  app.use('/api/trips', tripsRouter);
 
   const httpServer = createServer(app);
 
