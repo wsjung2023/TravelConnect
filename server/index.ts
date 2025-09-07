@@ -11,16 +11,41 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        connectSrc: ["'self'", 'https:'],
-        // External domains that might be needed:
-        // - Google Maps API: *.googleapis.com, *.gstatic.com
-        // - Google Fonts: fonts.googleapis.com, fonts.gstatic.com
-        // - Font Awesome: *.fontawesome.com
-        // - Analytics: *.analytics.com
-        // Add specific domains as needed
+        imgSrc: ["'self'", 'data:', 'https:', '*.googleapis.com', '*.gstatic.com'],
+        scriptSrc: [
+          "'self'", 
+          "'unsafe-inline'", 
+          "'unsafe-eval'", 
+          '*.googleapis.com', 
+          '*.gstatic.com',
+          'cdnjs.cloudflare.com',
+          'replit.com'
+        ],
+        styleSrc: [
+          "'self'", 
+          "'unsafe-inline'", 
+          'fonts.googleapis.com', 
+          'fonts.gstatic.com',
+          'cdnjs.cloudflare.com'
+        ],
+        connectSrc: [
+          "'self'", 
+          'https:', 
+          '*.googleapis.com', 
+          'wss:'
+        ],
+        fontSrc: [
+          "'self'", 
+          'fonts.googleapis.com', 
+          'fonts.gstatic.com',
+          'cdnjs.cloudflare.com'
+        ],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'", 'data:', 'https:'],
+        frameSrc: ["'self'", '*.google.com'],
+        // Google Maps and external services
+        childSrc: ["'self'", '*.google.com'],
+        workerSrc: ["'self'", 'blob:'],
       },
     },
     frameguard: { action: 'deny' }, // X-Frame-Options: DENY
