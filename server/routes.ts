@@ -372,6 +372,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 프로필 만남 상태 업데이트
+  app.patch('/api/profile/open', isAuthenticated, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { open, region } = req.validatedData;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
+      }
+
+      // 프로필 업데이트
+      const updatedUser = await storage.updateUser(userId, {
+        openToMeet: open,
+        regionCode: region,
+        updatedAt: new Date(),
+      });
+
+      res.json({
+        message: '프로필이 업데이트되었습니다',
+        openToMeet: updatedUser.openToMeet,
+        regionCode: updatedUser.regionCode,
+      });
+    } catch (error) {
+      console.error('프로필 업데이트 오류:', error);
+      res.status(500).json({ message: '프로필 업데이트 중 오류가 발생했습니다' });
+    }
+  });
+
   // JWT 기반 사용자 정보 조회
   app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
     try {

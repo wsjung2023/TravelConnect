@@ -147,4 +147,5 @@ export type CreateBookingData = z.infer<typeof CreateBookingSchema>;
 export type UpdateBookingStatusData = z.infer<typeof UpdateBookingStatusSchema>;
 export type CreateNotificationData = z.infer<typeof CreateNotificationSchema>;
 export type AdminActionData = z.infer<typeof AdminActionSchema>;
+export type UpdateProfileOpenData = z.infer<typeof UpdateProfileOpenSchema>;
 export type PaginationData = z.infer<typeof PaginationSchema>;
