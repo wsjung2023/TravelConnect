@@ -1090,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Follow/Following API
-  app.post('/api/users/:id/follow', requireAuth, async (req: AuthRequest, res) => {
+  app.post('/api/users/:id/follow', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const followingId = req.params.id;
       const followerId = req.user!.id;
@@ -1113,7 +1113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/users/:id/follow', requireAuth, async (req: AuthRequest, res) => {
+  app.delete('/api/users/:id/follow', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const followingId = req.params.id;
       const followerId = req.user!.id;
@@ -1126,7 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/users/:id/following-status', requireAuth, async (req: AuthRequest, res) => {
+  app.get('/api/users/:id/following-status', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const targetUserId = req.params.id;
       const currentUserId = req.user!.id;
