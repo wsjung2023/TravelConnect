@@ -40,7 +40,8 @@ export function generateToken(user: {
 export function verifyToken(token: string) {
   try {
     const secret = JWT_SECRET || 'dev-fallback-key';
-    return jwt.verify(token, secret, { algorithms: [jwtOptions.algorithm] }) as {
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
+    return decoded as {
       id: string;
       email: string;
       role: string;

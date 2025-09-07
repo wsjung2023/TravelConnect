@@ -397,7 +397,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedUser = await storage.updateUser(userId, {
         openToMeet: open,
         regionCode: region,
-        updatedAt: new Date(),
       });
 
       res.json({
@@ -1092,7 +1091,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/users/:id/follow', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const followingId = req.params.id;
-      const followerId = req.user!.id;
+      const followerId = req.user?.id;
+
+      if (!followerId || !followingId) {
+        return res.status(400).json({ message: '잘못된 요청입니다' });
+      }
 
       if (followerId === followingId) {
         return res.status(400).json({ message: '자기 자신을 팔로우할 수 없습니다' });
@@ -1115,7 +1118,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/users/:id/follow', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const followingId = req.params.id;
-      const followerId = req.user!.id;
+      const followerId = req.user?.id;
+
+      if (!followerId || !followingId) {
+        return res.status(400).json({ message: '잘못된 요청입니다' });
+      }
 
       await storage.unfollowUser(followerId, followingId);
       res.status(200).json({ message: '언팔로우 완료' });
@@ -1128,7 +1135,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/:id/following-status', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const targetUserId = req.params.id;
-      const currentUserId = req.user!.id;
+      const currentUserId = req.user?.id;
+
+      if (!currentUserId || !targetUserId) {
+        return res.status(400).json({ message: '잘못된 요청입니다' });
+      }
 
       const isFollowing = await storage.isFollowing(currentUserId, targetUserId);
       res.json({ isFollowing });
