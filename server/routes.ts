@@ -5,6 +5,7 @@ import multer from 'multer';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
+import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
 import { setupAuth, isAuthenticated } from './replitAuth';
 import { setupGoogleAuth } from './googleAuth';
@@ -27,6 +28,80 @@ import {
   insertTripSchema,
   insertTimelineSchema,
 } from '@shared/schema';
+import {
+  LoginSchema,
+  RegisterSchema,
+  CreatePostSchema,
+  CreateTimelineSchema,
+  CreateEventSchema,
+  CreateBookingSchema,
+  SendMessageSchema,
+  FollowUserSchema,
+  UpdateBookingStatusSchema,
+} from '@shared/api/schema';
+
+// Rate Limit 설정
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 20, // 분당 최대 20회
+  message: {
+    error: 'Too many authentication attempts',
+    code: 'RATE_LIMIT_EXCEEDED',
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 20, // 분당 최대 20회
+  message: {
+    error: 'Too many upload attempts',
+    code: 'RATE_LIMIT_EXCEEDED',
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 100, // 분당 최대 100회 (일반 API)
+  message: {
+    error: 'Too many API requests',
+    code: 'RATE_LIMIT_EXCEEDED',
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// 스키마 검증 미들웨어 헬퍼
+function validateSchema(schema: any) {
+  return (req: any, res: any, next: any) => {
+    try {
+      const result = schema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: result.error.issues.map((issue: any) => ({
+            field: issue.path.join('.'),
+            message: issue.message
+          }))
+        });
+      }
+      req.validatedData = result.data;
+      next();
+    } catch (error) {
+      return res.status(400).json({
+        error: 'Invalid request data',
+        code: 'PARSE_ERROR'
+      });
+    }
+  };
+}
 
 // 허용된 MIME 타입 화이트리스트
 const ALLOWED_MIME_TYPES = [
@@ -144,9 +219,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupGoogleAuth(app);
 
   // 이메일/비밀번호 회원가입
-  app.post('/api/auth/register', async (req, res) => {
+  app.post('/api/auth/register', authLimiter, validateSchema(RegisterSchema), async (req: any, res) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
+      const { email, password, firstName, lastName } = req.validatedData;
 
       // 입력 검증
       if (!email || !password) {
@@ -211,9 +286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 이메일/비밀번호 로그인
-  app.post('/api/auth/login', async (req, res) => {
+  app.post('/api/auth/login', authLimiter, validateSchema(LoginSchema), async (req: any, res) => {
     try {
-      const { email, password } = req.body;
+      const { email, password } = req.validatedData;
 
       if (!email || !password) {
         return res
@@ -262,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 데모 로그인 - TEST 계정으로 비밀번호 없이 로그인
-  app.post('/api/auth/demo-login', async (req, res) => {
+  app.post('/api/auth/demo-login', authLimiter, async (req, res) => {
     try {
       // TEST 사용자 조회
       const user = await storage.getUser('TEST');
@@ -380,18 +455,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline routes
-  app.post('/api/timelines', isAuthenticated, async (req: any, res) => {
+  app.post('/api/timelines', isAuthenticated, apiLimiter, validateSchema(CreateTimelineSchema), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       console.log('타임라인 생성 요청:', req.body);
       console.log('사용자 ID:', userId);
 
-      // startDate를 Date 객체로 변환
+      // 검증된 데이터에 userId 추가
       const timelineData = {
-        ...req.body,
+        ...req.validatedData,
         userId,
-        startDate: new Date(req.body.startDate),
-        endDate: req.body.endDate ? new Date(req.body.endDate) : null,
+        startDate: new Date(req.validatedData.startDate),
+        endDate: req.validatedData.endDate ? new Date(req.validatedData.endDate) : null,
       };
 
       console.log('처리된 타임라인 데이터:', timelineData);
@@ -480,6 +555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     '/api/upload',
     isAuthenticated,
+    uploadLimiter,
     (req, res, next) => {
       upload.array('files', 10)(req, res, (err) => {
         if (err instanceof multer.MulterError) {
@@ -671,7 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat routes
-  app.get('/api/conversations', isAuthenticated, async (req: any, res) => {
+  app.get('/api/conversations', isAuthenticated, apiLimiter, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const conversations = await storage.getConversationsByUser(userId);
@@ -685,6 +761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     '/api/conversations/:id/messages',
     isAuthenticated,
+    apiLimiter,
     async (req, res) => {
       try {
         const conversationId = parseInt(req.params.id!);
@@ -698,10 +775,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.post('/api/conversations', isAuthenticated, async (req: any, res) => {
+  app.post('/api/conversations', isAuthenticated, apiLimiter, validateSchema(CreateConversationSchema), async (req: any, res) => {
     try {
       const participant1Id = req.user.claims.sub;
-      const { participant2Id } = req.body;
+      const { participant2Id } = req.validatedData;
       const conversation = await storage.getOrCreateConversation(
         participant1Id,
         participant2Id
