@@ -18,19 +18,23 @@ export default function Profile() {
   const queryClient = useQueryClient();
 
   // 만남 상태 토글 mutation
+  const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
+  const [openMeetHours, setOpenMeetHours] = useState(12);
+
   const toggleOpenToMeetMutation = useMutation({
-    mutationFn: async (open: boolean) => {
+    mutationFn: async ({ open, region, hours }: { open: boolean; region?: string; hours?: number }) => {
       await apiRequest('/api/profile/open', {
         method: 'PATCH',
-        body: JSON.stringify({ open }),
+        body: { open, region, hours },
       });
     },
     onSuccess: () => {
-      // 사용자 정보 다시 가져오기
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       toast({
-        title: '설정 변경됨',
-        description: `만남 상태가 ${user?.openToMeet ? '비활성화' : '활성화'}되었습니다.`,
+        title: '만남 상태 변경됨',
+        description: user?.openToMeet 
+          ? '만남이 비활성화되었습니다.' 
+          : `${openMeetHours}시간 동안 ${openMeetRegion}에서 만남이 활성화되었습니다.`,
       });
     },
     onError: () => {
@@ -112,24 +116,69 @@ export default function Profile() {
           )}
 
           {/* 만남 상태 토글 */}
-          <div className="flex items-center gap-3 mb-4 p-3 bg-white/50 rounded-lg border backdrop-blur-sm">
-            <Users size={18} className="text-primary" />
-            <div className="flex-1 text-left">
-              <div className="text-sm font-medium text-gray-900">
-                새로운 만남 열려있음
+          <div className="mb-4 p-4 bg-white/50 rounded-lg border backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <Users size={18} className="text-primary" />
+              <div className="flex-1 text-left">
+                <div className="text-sm font-medium text-gray-900">
+                  새로운 만남 열려있음
+                </div>
+                <div className="text-xs text-gray-500">
+                  {user?.openToMeet && user?.openUntil
+                    ? `${new Date(user.openUntil).toLocaleString()}까지 활성`
+                    : '다른 여행자들과 연결됩니다'}
+                </div>
               </div>
-              <div className="text-xs text-gray-500">
-                다른 여행자들과 연결됩니다
+              <Switch
+                checked={user?.openToMeet || false}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    toggleOpenToMeetMutation.mutate({
+                      open: true,
+                      region: openMeetRegion,
+                      hours: openMeetHours
+                    });
+                  } else {
+                    toggleOpenToMeetMutation.mutate({ open: false });
+                  }
+                }}
+                disabled={toggleOpenToMeetMutation.isPending}
+                data-testid="toggle-open-to-meet"
+              />
+            </div>
+            
+            {/* 권역 및 시간 설정 */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-gray-600 mb-1">권역</label>
+                <select
+                  value={openMeetRegion}
+                  onChange={(e) => setOpenMeetRegion(e.target.value)}
+                  className="w-full p-2 rounded border text-xs"
+                  disabled={user?.openToMeet}
+                >
+                  <option value="강남구">강남구</option>
+                  <option value="홍대/합정">홍대/합정</option>
+                  <option value="명동/중구">명동/중구</option>
+                  <option value="강북/노원">강북/노원</option>
+                  <option value="서초구">서초구</option>
+                  <option value="마포구">마포구</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1">활성 시간</label>
+                <select
+                  value={openMeetHours}
+                  onChange={(e) => setOpenMeetHours(Number(e.target.value))}
+                  className="w-full p-2 rounded border text-xs"
+                  disabled={user?.openToMeet}
+                >
+                  <option value={6}>6시간</option>
+                  <option value={12}>12시간</option>
+                  <option value={24}>24시간</option>
+                </select>
               </div>
             </div>
-            <Switch
-              checked={user?.openToMeet || false}
-              onCheckedChange={(checked) => {
-                toggleOpenToMeetMutation.mutate(checked);
-              }}
-              disabled={toggleOpenToMeetMutation.isPending}
-              data-testid="toggle-open-to-meet"
-            />
           </div>
 
           <Button className="travel-button-outline">
