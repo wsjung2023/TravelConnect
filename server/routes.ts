@@ -837,6 +837,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // "Open to meet" API endpoints
+  app.get('/api/profile/open', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // 만료 시간 체크 - 자동 off 처리
+      let isOpenToMeet = user.openToMeet;
+      if (user.openUntil && new Date() > new Date(user.openUntil)) {
+        // 만료된 경우 자동으로 false로 업데이트
+        await storage.updateUser(userId, { 
+          openToMeet: false, 
+          openUntil: null 
+        });
+        isOpenToMeet = false;
+        console.log('Open to meet 자동 만료:', userId);
+      }
+      
+      res.json({
+        openToMeet: isOpenToMeet,
+        regionCode: user.regionCode,
+        openUntil: user.openUntil
+      });
+    } catch (error) {
+      console.error('Error fetching open status:', error);
+      res.status(500).json({ message: 'Failed to fetch open status' });
+    }
+  });
+
+  app.patch('/api/profile/open', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { open, region, hours = 12 } = req.body;
+      
+      let openUntil = null;
+      if (open) {
+        // hours 후에 자동 만료 (기본 12시간)
+        openUntil = new Date();
+        openUntil.setHours(openUntil.getHours() + hours);
+      }
+      
+      const updateData = {
+        openToMeet: Boolean(open),
+        regionCode: region || null,
+        openUntil: openUntil
+      };
+      
+      await storage.updateUser(userId, updateData);
+      
+      console.log('Open to meet 상태 업데이트:', {
+        userId,
+        open,
+        region,
+        openUntil,
+        hours
+      });
+      
+      res.json({
+        openToMeet: updateData.openToMeet,
+        regionCode: updateData.regionCode,
+        openUntil: updateData.openUntil,
+        message: open ? `${hours}시간 동안 만남 열려있음으로 설정됨` : '만남 비활성화됨'
+      });
+    } catch (error) {
+      console.error('Error updating open status:', error);
+      res.status(500).json({ message: 'Failed to update open status' });
+    }
+  });
+
   // System Settings API - 관리자 전용
   app.get(
     '/api/system-settings',
