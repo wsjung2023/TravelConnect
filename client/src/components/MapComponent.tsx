@@ -705,26 +705,41 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
           console.log('지도 클릭:', clickedLat, clickedLng);
 
-          // 역지오코딩으로 주소 가져오기
-          const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode(
-            { location: { lat: clickedLat, lng: clickedLng } },
-            (results: any, status: any) => {
-              let locationName = '선택한 위치';
-              if (status === 'OK' && results[0]) {
-                locationName = results[0].formatted_address || '선택한 위치';
-              }
+          // 역지오코딩으로 주소 가져오기 (에러 처리 개선)
+          let locationName = `위도 ${clickedLat.toFixed(4)}, 경도 ${clickedLng.toFixed(4)}`;
+          
+          try {
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode(
+              { location: { lat: clickedLat, lng: clickedLng } },
+              (results: any, status: any) => {
+                if (status === 'OK' && results && results[0]) {
+                  locationName = results[0].formatted_address || locationName;
+                } else {
+                  console.log('Geocoding 실패, 기본 위치명 사용:', status);
+                }
 
-              // 전역 함수로 모달 열기
-              if ((window as any).openJourneyModal) {
-                (window as any).openJourneyModal({
-                  name: locationName,
-                  latitude: clickedLat,
-                  longitude: clickedLng,
-                });
+                // 전역 함수로 모달 열기
+                if ((window as any).openJourneyModal) {
+                  (window as any).openJourneyModal({
+                    name: locationName,
+                    latitude: clickedLat,
+                    longitude: clickedLng,
+                  });
+                }
               }
+            );
+          } catch (error) {
+            console.log('Geocoding API 오류, 기본 위치명 사용:', error);
+            // Geocoding이 실패해도 모달은 열기
+            if ((window as any).openJourneyModal) {
+              (window as any).openJourneyModal({
+                name: locationName,
+                latitude: clickedLat,
+                longitude: clickedLng,
+              });
             }
-          );
+          }
         });
       }
 
