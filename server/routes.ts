@@ -5,7 +5,6 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
-import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
