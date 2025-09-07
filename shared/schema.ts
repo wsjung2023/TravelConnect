@@ -42,6 +42,7 @@ export const users = pgTable('users', {
   isEmailVerified: boolean('is_email_verified').default(false),
   openToMeet: boolean('open_to_meet').default(false),
   regionCode: varchar('region_code'),
+  openUntil: timestamp('open_until'), // 자동 만료 시간
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
