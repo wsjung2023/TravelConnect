@@ -78,6 +78,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
   const [mapBounds, setMapBounds] = useState<ViewportBounds | null>(null);
 
+  // 150ms debounce for optimal performance
+  const debouncedZoom = useDebounce(currentZoom, 150);
+  const debouncedCenter = useDebounce(mapCenter, 150);
+  const debouncedBounds = useDebounce(mapBounds, 150);
+
   // 만남 열려있는 사용자들 조회
   const { data: openUsers = [] } = useQuery({
     queryKey: ['/api/users/open'],
@@ -95,11 +100,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
     refetchInterval: 30000, // 30초마다 갱신
     enabled: !!map && debouncedCenter.lat !== 0,
   });
-
-  // 150ms debounce for optimal performance
-  const debouncedZoom = useDebounce(currentZoom, 150);
-  const debouncedCenter = useDebounce(mapCenter, 150);
-  const debouncedBounds = useDebounce(mapBounds, 150);
   const [enabledPOITypes, setEnabledPOITypes] = useState<string[]>([
     'tourist_attraction',
   ]);
