@@ -5,7 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import * as Sentry from '@sentry/react';
-import ErrorBoundary from '@/ErrorBoundary';
+import ErrorBoundary from '../../src/ErrorBoundary';
 import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
 import Home from '@/pages/home';
@@ -38,6 +38,7 @@ const Profile = lazy(() => import('@/pages/profile'));
 const TimelinePage = lazy(() => import('@/pages/timeline'));
 const TimelineCreatePage = lazy(() => import('@/pages/TimelineCreate'));
 const Admin = lazy(() => import('@/pages/admin'));
+const ErrorTest = lazy(() => import('../../src/pages/ErrorTestPage'));
 
 // Simple loading component
 const LoadingSpinner = () => (
@@ -118,6 +119,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <Admin />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/error-test"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ErrorTest />
                 </Suspense>
               )}
             />

@@ -87,10 +87,7 @@ if (process.env.NODE_ENV === 'production') {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Sentry error handler - must be before other error handlers
-  app.use(Sentry.Handlers.errorHandler());
-
-  // Global error handler
+  // Global error handler with Sentry integration
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || 'Internal Server Error';

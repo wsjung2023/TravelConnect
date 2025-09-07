@@ -151,6 +151,13 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Test error endpoint for Sentry testing (development only)
+  if (process.env.NODE_ENV === 'development') {
+    app.get('/api/test-error', (req, res) => {
+      throw new Error('Test server error for Sentry integration!');
+    });
+  }
+
   // 정적 파일 서빙 제거 - 보안상 이유로 직접 접근 차단
   // app.use('/uploads', express.static('uploads')); // 제거됨
   
