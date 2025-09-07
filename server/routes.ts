@@ -675,6 +675,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // EXIF 기반 Day 자동 계산 함수
+  function inferDay(takenAt: Date, tripStart: Date): number {
+    const d = Math.floor((+takenAt - +tripStart) / 86400000) + 1;
+    return Math.max(1, d);
+  }
+
   app.post('/api/posts', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -683,27 +689,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
       });
       
-      // Day 자동 계산 로직
+      // Day 자동 계산 로직 (EXIF → Day/시간/위치 자동화)
       let calculatedDay = 1;
+      let finalTakenAt = postData.takenAt;
       
-      if (postData.takenAt) {
-        // 사용자의 모든 기존 게시글에서 takenAt이 있는 것들을 조회
+      // takenAt 없으면 업로드 시간 사용
+      if (!finalTakenAt) {
+        finalTakenAt = new Date();
+        console.log('EXIF takenAt 없음, 업로드 시간 사용:', finalTakenAt);
+      }
+      
+      // timeline이나 trip 연결 시 trip.start_date 기준으로 Day 계산
+      if (postData.timelineId) {
+        try {
+          const timeline = await storage.getTimeline(postData.timelineId);
+          if (timeline && timeline.startDate) {
+            calculatedDay = inferDay(new Date(finalTakenAt), new Date(timeline.startDate));
+            console.log('Timeline 기준 Day 계산:', {
+              takenAt: finalTakenAt,
+              startDate: timeline.startDate,
+              calculatedDay
+            });
+          }
+        } catch (error) {
+          console.log('Timeline 정보 조회 실패, 기본 Day 사용:', error);
+        }
+      } else {
+        // timeline이 없는 경우 사용자의 기존 게시글 기준으로 Day 계산
         const userPostsWithTakenAt = await storage.getPostsByUserWithTakenAt(userId);
         
         if (userPostsWithTakenAt && userPostsWithTakenAt.length > 0) {
-          // 날짜별로 그룹화하여 Day 생성
           const dateMap = new Map<string, number>();
-          
-          // 기존 포스트들의 날짜들을 수집
           const allDates = userPostsWithTakenAt
             .map(p => p.takenAt ? new Date(p.takenAt).toDateString() : null)
             .filter(Boolean) as string[];
             
-          // 새 게시글의 날짜도 추가
-          const newPostDate = new Date(postData.takenAt).toDateString();
+          const newPostDate = new Date(finalTakenAt).toDateString();
           allDates.push(newPostDate);
           
-          // 날짜를 올림차순으로 정렬하고 Day 번호 부여
           const uniqueDates = [...new Set(allDates)].sort((a, b) => 
             new Date(a).getTime() - new Date(b).getTime()
           );
@@ -712,23 +735,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
             dateMap.set(date, index + 1);
           });
           
-          // 새 게시글의 Day 계산
           calculatedDay = dateMap.get(newPostDate) || 1;
         }
       }
       
-      // Day 값을 포함하여 게시글 생성
+      // GPS 좌표 처리 (클라이언트에서 POI 선택한 경우 우선)
+      let finalLatitude = postData.latitude;
+      let finalLongitude = postData.longitude;
+      
+      // EXIF GPS가 없고 초기 위치가 있으면 사용
+      if (!finalLatitude && !finalLongitude && req.body.initialLocation) {
+        finalLatitude = req.body.initialLocation.lat?.toString();
+        finalLongitude = req.body.initialLocation.lng?.toString();
+      }
+      
       const finalPostData = {
         ...postData,
-        day: calculatedDay
+        takenAt: finalTakenAt,
+        day: calculatedDay,
+        latitude: finalLatitude,
+        longitude: finalLongitude
       };
       
-      console.log('게시글 생성 - Day 자동 계산 완료:', {
+      console.log('게시글 생성 - EXIF 기반 자동화 완료:', {
         userId,
-        takenAt: postData.takenAt,
+        takenAt: finalTakenAt,
         calculatedDay,
-        latitude: postData.latitude,
-        longitude: postData.longitude
+        latitude: finalLatitude,
+        longitude: finalLongitude,
+        timelineId: postData.timelineId
       });
       
       const post = await storage.createPost(finalPostData);
