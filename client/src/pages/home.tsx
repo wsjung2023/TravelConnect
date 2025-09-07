@@ -5,6 +5,7 @@ import SearchHeader from '@/components/SearchHeader';
 import NotificationBell from '@/components/NotificationBell';
 import BottomNavigation from '@/components/BottomNavigation';
 import { JourneyCreateModal } from '@/components/JourneyCreateModal';
+import CreatePostModal from '@/components/CreatePostModal';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 
@@ -23,9 +24,9 @@ export default function Home() {
   >('map');
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [prefilledLocation, setPrefilledLocation] = useState<{
-    name: string;
-    latitude: number;
-    longitude: number;
+    lat: number;
+    lng: number;
+    name?: string;
   } | null>(null);
   const mapRef = useRef<any>(null);
 
@@ -99,7 +100,15 @@ export default function Home() {
             <MapComponent
               className="w-full h-full"
               onCreatePost={(location) => {
-                setPrefilledLocation(location || null);
+                if (location) {
+                  setPrefilledLocation({
+                    lat: location.latitude,
+                    lng: location.longitude,
+                    name: location.name
+                  });
+                } else {
+                  setPrefilledLocation(null);
+                }
                 setShowCreatePost(true);
               }}
             />
@@ -228,15 +237,15 @@ export default function Home() {
         onCreatePost={() => setShowCreatePost(true)}
       />
 
-      {/* Journey Create Modal */}
+      {/* Create Post Modal */}
       {showCreatePost && (
-        <JourneyCreateModal
+        <CreatePostModal
           isOpen={showCreatePost}
           onClose={() => {
             setShowCreatePost(false);
             setPrefilledLocation(null);
           }}
-          prefilledLocation={prefilledLocation}
+          location={prefilledLocation}
         />
       )}
     </div>
