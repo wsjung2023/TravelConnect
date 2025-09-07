@@ -12,6 +12,8 @@ import {
   systemSettings,
   notifications,
   follows,
+  miniMeets,
+  miniMeetAttendees,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -34,6 +36,9 @@ import {
   type InsertNotification,
   type Follow,
   type InsertFollow,
+  type MiniMeet,
+  type MiniMeetAttendee,
+  type InsertMiniMeet,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -126,6 +131,14 @@ export interface IStorage {
   markNotificationAsRead(id: number): Promise<void>;
   markAllNotificationsAsRead(userId: string): Promise<void>;
   deleteNotification(id: number): Promise<boolean>;
+
+  // MiniMeets
+  async createMiniMeet(data: InsertMiniMeet): Promise<MiniMeet>;
+  async getMiniMeetsNearby(latitude: number, longitude: number, radius: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] })[]>;
+  async joinMiniMeet(meetId: number, userId: string): Promise<MiniMeetAttendee>;
+  async leaveMiniMeet(meetId: number, userId: string): Promise<void>;
+  async getMiniMeetAttendees(meetId: number): Promise<(MiniMeetAttendee & { user: User })[]>;
+  async getMiniMeetById(id: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] }) | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -818,6 +831,213 @@ export class DatabaseStorage implements IStorage {
     return {
       followers: followersCount?.count || 0,
       following: followingCount?.count || 0,
+    };
+  }
+
+  // MiniMeet operations
+  async createMiniMeet(data: InsertMiniMeet): Promise<MiniMeet> {
+    const [newMiniMeet] = await db.insert(miniMeets).values(data).returning();
+    return newMiniMeet;
+  }
+
+  async getMiniMeetsNearby(
+    latitude: number, 
+    longitude: number, 
+    radius: number
+  ): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] })[]> {
+    // 기본 반경 내 모임 조회 (Haversine 공식 사용)
+    const nearbyMeets = await db
+      .select({
+        id: miniMeets.id,
+        hostId: miniMeets.hostId,
+        title: miniMeets.title,
+        placeName: miniMeets.placeName,
+        latitude: miniMeets.latitude,
+        longitude: miniMeets.longitude,
+        startAt: miniMeets.startAt,
+        maxPeople: miniMeets.maxPeople,
+        visibility: miniMeets.visibility,
+        createdAt: miniMeets.createdAt,
+        updatedAt: miniMeets.updatedAt,
+        hostName: users.name,
+        hostEmail: users.email,
+      })
+      .from(miniMeets)
+      .innerJoin(users, eq(miniMeets.hostId, users.id))
+      .where(
+        and(
+          eq(miniMeets.visibility, 'public'),
+          sql`${miniMeets.startAt} > NOW()`,
+          sql`
+            (6371 * acos(
+              cos(radians(${latitude})) * 
+              cos(radians(CAST(${miniMeets.latitude} AS FLOAT))) * 
+              cos(radians(CAST(${miniMeets.longitude} AS FLOAT)) - radians(${longitude})) + 
+              sin(radians(${latitude})) * 
+              sin(radians(CAST(${miniMeets.latitude} AS FLOAT)))
+            )) <= ${radius}
+          `
+        )
+      )
+      .orderBy(miniMeets.startAt);
+
+    // 각 모임의 참석자 정보 추가
+    const meetsWithData = await Promise.all(
+      nearbyMeets.map(async (meet) => {
+        const attendees = await this.getMiniMeetAttendees(meet.id);
+        
+        return {
+          id: meet.id,
+          hostId: meet.hostId,
+          title: meet.title,
+          placeName: meet.placeName,
+          latitude: meet.latitude,
+          longitude: meet.longitude,
+          startAt: meet.startAt,
+          maxPeople: meet.maxPeople,
+          visibility: meet.visibility,
+          createdAt: meet.createdAt,
+          updatedAt: meet.updatedAt,
+          host: {
+            id: meet.hostId,
+            name: meet.hostName,
+            email: meet.hostEmail,
+          } as User,
+          attendees: attendees as MiniMeetAttendee[]
+        };
+      })
+    );
+
+    return meetsWithData;
+  }
+
+  async joinMiniMeet(meetId: number, userId: string): Promise<MiniMeetAttendee> {
+    // 중복 참여 체크
+    const existing = await db
+      .select()
+      .from(miniMeetAttendees)
+      .where(
+        and(
+          eq(miniMeetAttendees.meetId, meetId),
+          eq(miniMeetAttendees.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      throw new Error('이미 참여한 모임입니다');
+    }
+
+    // 정원 체크
+    const [attendeesCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(miniMeetAttendees)
+      .where(eq(miniMeetAttendees.meetId, meetId));
+
+    const [meet] = await db
+      .select()
+      .from(miniMeets)
+      .where(eq(miniMeets.id, meetId))
+      .limit(1);
+
+    if (!meet) {
+      throw new Error('존재하지 않는 모임입니다');
+    }
+
+    const currentCount = attendeesCount?.count || 0;
+    const maxPeople = meet.maxPeople || 6;
+
+    if (currentCount >= maxPeople) {
+      throw new Error('정원이 가득 찼습니다');
+    }
+
+    // 참여 등록
+    const [attendee] = await db
+      .insert(miniMeetAttendees)
+      .values({
+        meetId,
+        userId,
+        status: 'going'
+      })
+      .returning();
+
+    return attendee;
+  }
+
+  async leaveMiniMeet(meetId: number, userId: string): Promise<void> {
+    await db
+      .delete(miniMeetAttendees)
+      .where(
+        and(
+          eq(miniMeetAttendees.meetId, meetId),
+          eq(miniMeetAttendees.userId, userId)
+        )
+      );
+  }
+
+  async getMiniMeetAttendees(meetId: number): Promise<(MiniMeetAttendee & { user: User })[]> {
+    const result = await db
+      .select({
+        id: miniMeetAttendees.id,
+        meetId: miniMeetAttendees.meetId,
+        userId: miniMeetAttendees.userId,
+        joinedAt: miniMeetAttendees.joinedAt,
+        status: miniMeetAttendees.status,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          profilePicture: users.profilePicture,
+        }
+      })
+      .from(miniMeetAttendees)
+      .innerJoin(users, eq(miniMeetAttendees.userId, users.id))
+      .where(eq(miniMeetAttendees.meetId, meetId));
+
+    return result.map(item => ({
+      id: item.id,
+      meetId: item.meetId,
+      userId: item.userId,
+      joinedAt: item.joinedAt,
+      status: item.status,
+      user: item.user as User
+    }));
+  }
+
+  async getMiniMeetById(id: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] }) | undefined> {
+    const [meet] = await db
+      .select({
+        id: miniMeets.id,
+        hostId: miniMeets.hostId,
+        title: miniMeets.title,
+        placeName: miniMeets.placeName,
+        latitude: miniMeets.latitude,
+        longitude: miniMeets.longitude,
+        startAt: miniMeets.startAt,
+        maxPeople: miniMeets.maxPeople,
+        visibility: miniMeets.visibility,
+        createdAt: miniMeets.createdAt,
+        updatedAt: miniMeets.updatedAt,
+        host: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          profilePicture: users.profilePicture,
+        }
+      })
+      .from(miniMeets)
+      .innerJoin(users, eq(miniMeets.hostId, users.id))
+      .where(eq(miniMeets.id, id))
+      .limit(1);
+
+    if (!meet) return undefined;
+
+    const attendees = await this.getMiniMeetAttendees(id);
+
+    return {
+      ...meet,
+      host: meet.host as User,
+      attendees: attendees as MiniMeetAttendee[]
     };
   }
 }
