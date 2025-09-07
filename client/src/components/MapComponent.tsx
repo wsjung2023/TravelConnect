@@ -52,6 +52,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [map, setMap] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [selectedPOI, setSelectedPOI] = useState<any>(null);
+  const [showMiniMeetModal, setShowMiniMeetModal] = useState(false);
+  const [miniMeetLocation, setMiniMeetLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
+  const longPressRef = useRef<number | null>(null);
 
   // 상태 변화 디버깅
   useEffect(() => {
@@ -765,7 +768,52 @@ const MapComponent: React.FC<MapComponentProps> = ({
         newMap.addListener('idle', updatePOIs);
 
         // 지도 클릭 이벤트 - 피드 생성 모달 열기
+        // 롱탭을 위한 마우스다운 이벤트
+        newMap.addListener('mousedown', (event: any) => {
+          longPressRef.current = window.setTimeout(() => {
+            // 롱탭 시 MiniMeet 생성 모달 열기
+            const clickedLat = event.latLng.lat();
+            const clickedLng = event.latLng.lng();
+
+            console.log('지도 롱탭:', clickedLat, clickedLng);
+
+            // 역지오코딩으로 주소 가져오기
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode(
+              { location: { lat: clickedLat, lng: clickedLng } },
+              (results: any, status: any) => {
+                let locationName = `위도 ${clickedLat.toFixed(4)}, 경도 ${clickedLng.toFixed(4)}`;
+                if (status === 'OK' && results && results[0]) {
+                  locationName = results[0].formatted_address || locationName;
+                }
+
+                setMiniMeetLocation({
+                  lat: clickedLat,
+                  lng: clickedLng,
+                  name: locationName
+                });
+                setShowMiniMeetModal(true);
+              }
+            );
+          }, 800); // 800ms 롱탭
+        });
+
+        // 마우스업으로 롱탭 취소
+        newMap.addListener('mouseup', () => {
+          if (longPressRef.current) {
+            clearTimeout(longPressRef.current);
+            longPressRef.current = null;
+          }
+        });
+
         newMap.addListener('click', (event: any) => {
+          // 롱탭이 진행 중이면 일반 클릭 무시
+          if (longPressRef.current) {
+            clearTimeout(longPressRef.current);
+            longPressRef.current = null;
+            return;
+          }
+
           // 기본 InfoWindow가 있다면 닫기
           if ((window as any).lastInfoWindow) {
             (window as any).lastInfoWindow.close();
@@ -1430,6 +1478,196 @@ const MapComponent: React.FC<MapComponentProps> = ({
       {/* 하단 체험 정보 */}
       <div className="absolute bottom-0 left-0 right-0 bg-white p-4 border-t">
         <h3 className="font-semibold text-gray-900">{posts.length}개의 체험</h3>
+      </div>
+
+      {/* MiniMeet 생성 모달 */}
+      {showMiniMeetModal && miniMeetLocation && (
+        <CreateMiniMeetModal
+          location={miniMeetLocation}
+          onClose={() => {
+            setShowMiniMeetModal(false);
+            setMiniMeetLocation(null);
+          }}
+          onSuccess={() => {
+            setShowMiniMeetModal(false);
+            setMiniMeetLocation(null);
+            // TODO: 새로운 모임을 지도에 표시
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// MiniMeet 생성 모달 컴포넌트
+interface CreateMiniMeetModalProps {
+  location: { lat: number; lng: number; name: string };
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
+  location,
+  onClose,
+  onSuccess,
+}) => {
+  const [title, setTitle] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [maxPeople, setMaxPeople] = useState(6);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 기본값으로 1시간 후 시간 설정
+  useEffect(() => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    const timeString = now.toISOString().slice(0, 16);
+    setStartTime(timeString);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !startTime) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/mini-meets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          placeName: location.name,
+          latitude: location.lat,
+          longitude: location.lng,
+          startAt: startTime,
+          maxPeople,
+          visibility: 'public',
+        }),
+      });
+
+      if (response.ok) {
+        onSuccess();
+        console.log('모임 생성 성공');
+      } else {
+        const error = await response.json();
+        console.error('모임 생성 실패:', error.message);
+      }
+    } catch (error) {
+      console.error('모임 생성 오류:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md mx-4 w-full">
+        {/* 헤더 */}
+        <div className="h-20 bg-gradient-to-r from-emerald-400 to-teal-500 relative">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl"
+          >
+            ✕
+          </button>
+          <div className="absolute bottom-4 left-4 text-white">
+            <h2 className="text-xl font-bold">여기서 미니모임 만들기</h2>
+          </div>
+        </div>
+
+        {/* 폼 */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              📍 장소
+            </label>
+            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              {location.name}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🎯 모임 제목
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="예: 커피 한 잔 하실래요?"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              required
+              maxLength={50}
+              data-testid="input-meet-title"
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              {title.length}/50자
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ⏰ 시작 시간
+            </label>
+            <input
+              type="datetime-local"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              required
+              data-testid="input-meet-time"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              👥 최대 인원 (본인 포함)
+            </label>
+            <select
+              value={maxPeople}
+              onChange={(e) => setMaxPeople(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              data-testid="select-max-people"
+            >
+              <option value={2}>2명</option>
+              <option value={3}>3명</option>
+              <option value={4}>4명</option>
+              <option value={5}>5명</option>
+              <option value={6}>6명</option>
+              <option value={7}>7명</option>
+              <option value={8}>8명</option>
+              <option value={9}>9명</option>
+              <option value={10}>10명</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+              data-testid="button-cancel"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={!title.trim() || !startTime || isLoading}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              data-testid="button-create-meet"
+            >
+              {isLoading ? '생성 중...' : '모임 만들기'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
