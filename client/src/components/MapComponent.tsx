@@ -55,6 +55,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [showMiniMeetModal, setShowMiniMeetModal] = useState(false);
   const [miniMeetLocation, setMiniMeetLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const longPressRef = useRef<number | null>(null);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
 
   // 상태 변화 디버깅
   useEffect(() => {
@@ -501,19 +502,60 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   // Google Maps 초기화
+  // Google Maps 스크립트 로딩
   useEffect(() => {
-    const initGoogleMaps = () => {
-      if (!window.google || !window.google.maps) {
-        console.log('Google Maps API 로딩 중...');
-        setTimeout(initGoogleMaps, 100);
+    const loadScript = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleMapsLoaded(true);
         return;
       }
 
-      if (!mapRef.current || map) return;
+      if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+        // 스크립트가 이미 로딩 중이면 기다리기
+        const checkLoaded = () => {
+          if (window.google && window.google.maps) {
+            setIsGoogleMapsLoaded(true);
+          } else {
+            setTimeout(checkLoaded, 100);
+          }
+        };
+        checkLoaded();
+        return;
+      }
 
-      console.log('Google Maps 초기화 시작');
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        console.error('Google Maps API 키가 설정되지 않았습니다');
+        return;
+      }
 
-      const newMap = new window.google.maps.Map(mapRef.current, {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => {
+        console.log('Google Maps 스크립트 로드 완료');
+        setIsGoogleMapsLoaded(true);
+      };
+
+      script.onerror = () => {
+        console.error('Google Maps 스크립트 로드 실패');
+      };
+
+      document.head.appendChild(script);
+    };
+
+    loadScript();
+  }, []);
+
+  // Google Maps 초기화
+  useEffect(() => {
+    if (!isGoogleMapsLoaded || !mapRef.current || map) return;
+
+    console.log('Google Maps 초기화 시작');
+
+    const newMap = new window.google.maps.Map(mapRef.current, {
         center: { lat: 37.5665, lng: 126.978 }, // 서울
         zoom: 13,
         styles: [
@@ -889,10 +931,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       setMap(newMap);
       console.log('Google Maps 초기화 완료');
-    };
-
-    initGoogleMaps();
-  }, []);
+  }, [isGoogleMapsLoaded]);
 
   // 마커 생성 (줌 레벨에 따라 클러스터링)
   useEffect(() => {
@@ -1194,6 +1233,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
       updatePOIs();
     }
   }, [enabledPOITypes, map, currentZoom]);
+
+  // 로딩 상태 처리
+  if (!isGoogleMapsLoaded) {
+    return (
+      <div className={`relative w-full h-full ${className} flex items-center justify-center bg-gray-100 rounded-2xl`}>
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-600">지도를 로딩하고 있습니다...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative h-full ${className}`}>
@@ -1889,26 +1940,5 @@ const MiniMeetDetailModal: React.FC<MiniMeetDetailModalProps> = ({
   );
 };
 
-// Google Maps 스크립트 로드
-if (typeof window !== 'undefined') {
-  if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    console.log('API 키 확인:', apiKey ? '존재함' : '없음');
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-
-    script.onload = () => {
-      console.log('Google Maps 스크립트 로드 완료');
-    };
-
-    script.onerror = () => {
-      console.error('Google Maps 스크립트 로드 실패');
-    };
-  }
-}
 
 export default MapComponent;

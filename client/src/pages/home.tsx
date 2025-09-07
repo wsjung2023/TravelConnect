@@ -9,8 +9,10 @@ import CreatePostModal from '@/components/CreatePostModal';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 
-// Lazy load heavy components
-const MapComponent = lazy(() => import('@/components/MapComponent'));
+// Direct import MapComponent to fix hook errors, keep others lazy
+import MapComponent from '@/components/MapComponent';
+
+// Lazy load other heavy components
 const Feed = lazy(() => import('@/pages/feed'));
 const TimelinePage = lazy(() => import('@/pages/timeline'));
 const Chat = lazy(() => import('@/pages/chat'));
@@ -96,23 +98,21 @@ export default function Home() {
     switch (activeTab) {
       case 'map':
         return (
-          <Suspense fallback={<TabLoadingSpinner />}>
-            <MapComponent
-              className="w-full h-full"
-              onCreatePost={(location) => {
-                if (location) {
-                  setPrefilledLocation({
-                    lat: location.latitude,
-                    lng: location.longitude,
-                    name: location.name
-                  });
-                } else {
-                  setPrefilledLocation(null);
-                }
-                setShowCreatePost(true);
-              }}
-            />
-          </Suspense>
+          <MapComponent
+            className="w-full h-full"
+            onCreatePost={(location) => {
+              if (location) {
+                setPrefilledLocation({
+                  lat: location.latitude,
+                  lng: location.longitude,
+                  name: location.name
+                });
+              } else {
+                setPrefilledLocation(null);
+              }
+              setShowCreatePost(true);
+            }}
+          />
         );
       case 'feed':
         return (
@@ -139,11 +139,7 @@ export default function Home() {
           </Suspense>
         );
       default:
-        return (
-          <Suspense fallback={<TabLoadingSpinner />}>
-            <MapComponent />
-          </Suspense>
-        );
+        return <MapComponent />;
     }
   };
 
