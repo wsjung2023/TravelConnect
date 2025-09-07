@@ -1,8 +1,27 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import * as Sentry from '@sentry/node';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
+
+// Initialize Sentry for error tracking
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    beforeSend(event) {
+      // Don't send development errors to production Sentry
+      if (process.env.NODE_ENV === 'development' && !process.env.SENTRY_SEND_DEV_ERRORS) {
+        console.log('[Sentry] Development error (not sent):', event.exception?.values?.[0]?.value);
+        return null;
+      }
+      return event;
+    },
+  });
+  console.log('[Sentry] Initialized for', process.env.NODE_ENV || 'development');
+}
 
 const app = express();
 
@@ -68,11 +87,32 @@ if (process.env.NODE_ENV === 'production') {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Sentry error handler - must be before other error handlers
+  app.use(Sentry.Handlers.errorHandler());
+
+  // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || 'Internal Server Error';
+    
+    // Log error for debugging
+    console.error('[Server Error]', {
+      status,
+      message,
+      stack: err.stack,
+      url: _req.url,
+      method: _req.method
+    });
+    
+    // Capture error with Sentry (if not already captured)
+    if (status >= 500) {
+      Sentry.captureException(err);
+    }
 
-    res.status(status).json({ message });
+    res.status(status).json({ 
+      message: status >= 500 ? 'Internal Server Error' : message,
+      ...(process.env.NODE_ENV === 'development' && { debug: err.stack })
+    });
     throw err;
   });
 

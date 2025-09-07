@@ -4,11 +4,30 @@ import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import * as Sentry from '@sentry/react';
+import ErrorBoundary from '@/ErrorBoundary';
 import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
 import Home from '@/pages/home';
 import Config from '@/pages/config';
 import { useAuth } from '@/hooks/useAuth';
+
+// Initialize Sentry for error tracking
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    environment: import.meta.env.VITE_NODE_ENV || 'development',
+    tracesSampleRate: 0.1, // 10% of transactions for performance monitoring
+    beforeSend(event) {
+      // Filter out development errors in production
+      if (import.meta.env.VITE_NODE_ENV === 'development' && 
+          event.exception?.values?.[0]?.value?.includes('ChunkLoadError')) {
+        return null;
+      }
+      return event;
+    },
+  });
+}
 
 // Lazy load heavy components
 const Map = lazy(() => import('@/pages/map'));
@@ -113,14 +132,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="mobile-container">
-          <Toaster />
-          <Router />
-        </div>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="mobile-container">
+            <Toaster />
+            <Router />
+          </div>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
