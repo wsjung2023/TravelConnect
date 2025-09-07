@@ -151,8 +151,12 @@ export default function TimelinePage() {
       .map((day) => ({
         day: parseInt(day),
         posts: days[parseInt(day)].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          (a, b) => {
+            // EXIF 기반 타임라인 정렬: takenAt 우선, 없으면 createdAt 사용
+            const aTime = a.takenAt ? new Date(a.takenAt).getTime() : new Date(a.createdAt).getTime();
+            const bTime = b.takenAt ? new Date(b.takenAt).getTime() : new Date(b.createdAt).getTime();
+            return aTime - bTime;
+          }
         ),
       }));
   };
