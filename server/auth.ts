@@ -3,8 +3,16 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tourgether-secret-key-2025';
-const JWT_EXPIRES_IN = '7d';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET required');
+  } else {
+    console.warn('DEV: using unsafe fallback');
+  }
+}
+
+export const jwtOptions = { algorithm: 'HS256' as const, expiresIn: '7d' };
 
 export interface AuthRequest extends Request {
   user?: {
@@ -20,17 +28,19 @@ export function generateToken(user: {
   email: string;
   role: string;
 }) {
+  const secret = JWT_SECRET || 'dev-fallback-key';
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    secret,
+    jwtOptions
   );
 }
 
 // JWT 토큰 검증
 export function verifyToken(token: string) {
   try {
-    return jwt.verify(token, JWT_SECRET) as {
+    const secret = JWT_SECRET || 'dev-fallback-key';
+    return jwt.verify(token, secret, { algorithms: [jwtOptions.algorithm] }) as {
       id: string;
       email: string;
       role: string;
