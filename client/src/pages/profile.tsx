@@ -1,16 +1,46 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('posts');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // 만남 상태 토글 mutation
+  const toggleOpenToMeetMutation = useMutation({
+    mutationFn: async (open: boolean) => {
+      await apiRequest('/api/profile/open', {
+        method: 'PATCH',
+        body: JSON.stringify({ open }),
+      });
+    },
+    onSuccess: () => {
+      // 사용자 정보 다시 가져오기
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      toast({
+        title: '설정 변경됨',
+        description: `만남 상태가 ${user?.openToMeet ? '비활성화' : '활성화'}되었습니다.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: '오류',
+        description: '설정을 변경하는 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const { data: posts = [] } = useQuery({
     queryKey: ['/api/posts', 'user'],
@@ -74,6 +104,27 @@ export default function Profile() {
               ✨ 인증된 호스트
             </Badge>
           )}
+
+          {/* 만남 상태 토글 */}
+          <div className="flex items-center gap-3 mb-4 p-3 bg-white/50 rounded-lg border backdrop-blur-sm">
+            <Users size={18} className="text-primary" />
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-gray-900">
+                새로운 만남 열려있음
+              </div>
+              <div className="text-xs text-gray-500">
+                다른 여행자들과 연결됩니다
+              </div>
+            </div>
+            <Switch
+              checked={user?.openToMeet || false}
+              onCheckedChange={(checked) => {
+                toggleOpenToMeetMutation.mutate(checked);
+              }}
+              disabled={toggleOpenToMeetMutation.isPending}
+              data-testid="toggle-open-to-meet"
+            />
+          </div>
 
           <Button className="travel-button-outline">
             <Edit3 size={16} className="mr-2" />

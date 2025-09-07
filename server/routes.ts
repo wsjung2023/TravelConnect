@@ -39,6 +39,7 @@ import {
   FollowUserSchema,
   UpdateBookingStatusSchema,
   CreateConversationSchema,
+  UpdateProfileOpenSchema,
 } from '@shared/api/schema';
 
 // Rate Limit 설정
