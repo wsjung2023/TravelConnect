@@ -1,6 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+
+// Debounce hook for performance optimization
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  
+  return debouncedValue;
+}
 
 interface MapComponentProps {
   className?: string;
@@ -21,12 +38,45 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
   const [selectedPOI, setSelectedPOI] = useState<any>(null);
   const [markers, setMarkers] = useState<any[]>([]);
   const [currentZoom, setCurrentZoom] = useState(13);
+  const [mapBounds, setMapBounds] = useState<any>(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.9780 });
+  
+  // Debounced values for performance
+  const debouncedZoom = useDebounce(currentZoom, 150);
+  const debouncedCenter = useDebounce(mapCenter, 150);
+  const debouncedBounds = useDebounce(mapBounds, 150);
 
   // 포스트 데이터 가져오기
   const { data: posts = [], isLoading, error } = useQuery({
     queryKey: ['/api/posts'],
     enabled: true
   }) as { data: any[], isLoading: boolean, error: any };
+  
+  // Viewport filtering for markers - only render markers within visible bounds
+  const visiblePosts = useMemo(() => {
+    if (!debouncedBounds || !posts.length) return posts;
+    
+    return posts.filter((post: any) => {
+      if (!post.latitude || !post.longitude) return false;
+      
+      const lat = parseFloat(post.latitude);
+      const lng = parseFloat(post.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      return debouncedBounds.contains(new window.google.maps.LatLng(lat, lng));
+    });
+  }, [posts, debouncedBounds]);
+  
+  // Enhanced clustering for 200+ markers
+  const shouldShowClusters = visiblePosts.length > 200;
+  
+  console.log('성능 최적화:', {
+    totalPosts: posts.length,
+    visiblePosts: visiblePosts.length,
+    shouldShowClusters,
+    zoom: debouncedZoom
+  });
 
   // 포스트 데이터 상태 로깅
   useEffect(() => {
@@ -184,7 +234,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
       console.log('Google Maps 초기화 시작');
 
       const newMap = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 37.5665, lng: 126.9780 }, // 서울
+        center: mapCenter,
         zoom: 13,
         styles: [
           {
@@ -290,9 +340,22 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
       });
 
       // 줌 변경 이벤트 리스너
+      // Debounced event listeners for performance
       newMap.addListener('zoom_changed', () => {
         const zoom = newMap.getZoom();
         setCurrentZoom(zoom);
+      });
+      
+      newMap.addListener('center_changed', () => {
+        const center = newMap.getCenter();
+        if (center) {
+          setMapCenter({ lat: center.lat(), lng: center.lng() });
+        }
+      });
+      
+      newMap.addListener('bounds_changed', () => {
+        const bounds = newMap.getBounds();
+        setMapBounds(bounds);
       });
 
       setMap(newMap);
@@ -302,21 +365,23 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
     initGoogleMaps();
   }, []);
 
-  // 마커 생성 (줌 레벨에 따라 클러스터링)
+  // 마커 생성 (성능 최적화: debounced values 및 viewport 필터링)
   useEffect(() => {
-    if (!map || !window.google || !posts.length) return;
+    if (!map || !window.google || !visiblePosts.length) return;
+    
+    console.log('마커 업데이트 시작:', { zoom: debouncedZoom, visibleCount: visiblePosts.length });
 
     // 기존 마커 제거
     markers.forEach(marker => marker.setMap(null));
     
     const newMarkers: any[] = [];
 
-    // 사용자 포스트 마커
-    if (currentZoom >= 11) {
+    // 사용자 포스트 마커 (성능 최적화)
+    if (debouncedZoom >= 11 && !shouldShowClusters) {
       // 높은 줌: 개별 테마 아이콘 마커 표시
       const locationGroups = new Map();
       
-      posts.forEach((post: any) => {
+      visiblePosts.forEach((post: any) => {
         if (!post.latitude || !post.longitude) return;
         
         const lat = parseFloat(post.latitude);
@@ -331,8 +396,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
         locationGroups.get(key).push(post);
       });
 
-      // POI 마커 추가 (높은 줌에서만)
-      if (currentZoom >= 13) {
+      // POI 마커 추가 (높은 줌에서만, 성능 최적화)
+      if (debouncedZoom >= 13 && visiblePosts.length < 100) {
         poiData.forEach((poi) => {
           const poiMarker = new window.google.maps.Marker({
             position: { lat: poi.lat, lng: poi.lng },
@@ -371,17 +436,17 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
       });
       
     } else {
-      // 낮은 줌: 클러스터 마커 표시 (숫자로)
+      // 낮은 줌 또는 200+ 마커: 효율적인 클러스터 표시
       let clusterSize;
-      if (currentZoom <= 3) clusterSize = 5.0;        // 대륙 레벨
-      else if (currentZoom <= 6) clusterSize = 2.0;   // 국가 레벨  
-      else if (currentZoom <= 9) clusterSize = 0.5;   // 지역 레벨
-      else if (currentZoom <= 11) clusterSize = 0.1;  // 도시 레벨
+      if (debouncedZoom <= 3) clusterSize = 5.0;        // 대륙 레벨
+      else if (debouncedZoom <= 6) clusterSize = 2.0;   // 국가 레벨  
+      else if (debouncedZoom <= 9) clusterSize = 0.5;   // 지역 레벨
+      else if (debouncedZoom <= 11) clusterSize = 0.1;  // 도시 레벨
       else clusterSize = 0.05;                        // 구역 레벨
 
       const clusters = new Map();
 
-      posts.forEach((post: any) => {
+      visiblePosts.forEach((post: any) => {
         if (!post.latitude || !post.longitude) return;
         
         const lat = parseFloat(post.latitude);
@@ -421,8 +486,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ className = '' }) => {
     }
 
     setMarkers(newMarkers);
-    console.log(`줌 레벨 ${currentZoom}: ${newMarkers.length}개 마커 생성`);
-  }, [map, posts, currentZoom]);
+    console.log(`줌 레벨 ${debouncedZoom}: ${newMarkers.length}개 마커 생성 (최적화됨)`);
+  }, [map, debouncedZoom, visiblePosts, shouldShowClusters]);
 
   // 검색 기능 - Geocoding 재시도
   useEffect(() => {
