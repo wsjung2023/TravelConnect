@@ -104,6 +104,20 @@ app.use((req, res, next) => {
   if (app.get('env') === 'development') {
     await setupVite(app, server);
   } else {
+    // Block admin HTML files in production
+    const adminFiles = ['db-admin.html', 'download_backup.html', 'simple_download.html'];
+    app.use((req, res, next) => {
+      const requestedFile = req.path.split('/').pop();
+      if (adminFiles.includes(requestedFile || '')) {
+        return res.status(403).json({
+          error: 'Access forbidden',
+          code: 'ADMIN_ACCESS_DENIED',
+          message: 'Admin interface is not available in production mode'
+        });
+      }
+      next();
+    });
+    
     serveStatic(app);
   }
 
