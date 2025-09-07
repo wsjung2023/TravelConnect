@@ -1,4 +1,5 @@
 import { Switch, Route } from 'wouter';
+import { Suspense, lazy } from 'react';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,15 +7,24 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
 import Home from '@/pages/home';
-import Map from '@/pages/map';
-import MapTest from '@/pages/map-test';
 import Feed from '@/pages/feed';
-import TimelinePage from '@/pages/timeline';
 import Chat from '@/pages/chat';
 import Profile from '@/pages/profile';
-import Admin from '@/pages/admin';
 import Config from '@/pages/config';
 import { useAuth } from '@/hooks/useAuth';
+
+// Lazy load heavy components
+const Map = lazy(() => import('@/pages/map'));
+const MapTest = lazy(() => import('@/pages/map-test'));
+const TimelinePage = lazy(() => import('@/pages/timeline'));
+const Admin = lazy(() => import('@/pages/admin'));
+
+// Simple loading component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,13 +37,41 @@ function Router() {
         ) : (
           <>
             <Route path="/" component={Home} />
-            <Route path="/map-test" component={MapTest} />
-            <Route path="/map" component={Map} />
+            <Route
+              path="/map-test"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <MapTest />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/map"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Map />
+                </Suspense>
+              )}
+            />
             <Route path="/feed" component={Feed} />
-            <Route path="/timeline" component={TimelinePage} />
+            <Route
+              path="/timeline"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <TimelinePage />
+                </Suspense>
+              )}
+            />
             <Route path="/chat" component={Chat} />
             <Route path="/profile" component={Profile} />
-            <Route path="/admin" component={Admin} />
+            <Route
+              path="/admin"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Admin />
+                </Suspense>
+              )}
+            />
             <Route path="/config" component={Config} />
           </>
         )}
