@@ -1494,5 +1494,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 여행 일정 복제 API
+  app.post('/api/trips/:id/clone', isAuthenticated, apiLimiter, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const tripId = parseInt(req.params.id);
+      const { days } = req.query; // days=1-3,5 형식
+      
+      if (isNaN(tripId)) {
+        return res.status(400).json({ message: '올바른 여행 ID를 입력해주세요' });
+      }
+
+      // 원본 여행 정보 가져오기
+      const originalTrip = await storage.getTripById(tripId);
+      if (!originalTrip) {
+        return res.status(404).json({ message: '여행을 찾을 수 없습니다' });
+      }
+
+      // 선택한 일자 파싱 (예: "1-3,5" → [1,2,3,5])
+      let selectedDays: number[] = [];
+      if (days) {
+        const dayParts = (days as string).split(',');
+        for (const part of dayParts) {
+          if (part.includes('-')) {
+            const [start, end] = part.split('-').map(Number);
+            if (start && end) {
+              for (let i = start; i <= end; i++) {
+                selectedDays.push(i);
+              }
+            }
+          } else {
+            selectedDays.push(parseInt(part));
+          }
+        }
+      }
+
+      const clonedTrip = await storage.cloneTrip(tripId, userId, selectedDays);
+      
+      res.status(201).json({
+        message: '일정이 성공적으로 복제되었습니다',
+        trip: clonedTrip
+      });
+    } catch (error) {
+      console.error('여행 복제 오류:', error);
+      res.status(500).json({ message: '일정 복제에 실패했습니다' });
+    }
+  });
+
   return httpServer;
 }

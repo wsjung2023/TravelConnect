@@ -859,7 +859,8 @@ export class DatabaseStorage implements IStorage {
         visibility: miniMeets.visibility,
         createdAt: miniMeets.createdAt,
         updatedAt: miniMeets.updatedAt,
-        hostName: users.name,
+        hostFirstName: users.firstName,
+        hostLastName: users.lastName,
         hostEmail: users.email,
       })
       .from(miniMeets)
@@ -900,7 +901,8 @@ export class DatabaseStorage implements IStorage {
           updatedAt: meet.updatedAt,
           host: {
             id: meet.hostId,
-            name: meet.hostName,
+            firstName: meet.hostFirstName,
+            lastName: meet.hostLastName,
             email: meet.hostEmail,
           } as User,
           attendees: attendees as MiniMeetAttendee[]
@@ -985,9 +987,10 @@ export class DatabaseStorage implements IStorage {
         status: miniMeetAttendees.status,
         user: {
           id: users.id,
-          name: users.name,
+          firstName: users.firstName,
+          lastName: users.lastName,
           email: users.email,
-          profilePicture: users.profilePicture,
+          profileImageUrl: users.profileImageUrl,
         }
       })
       .from(miniMeetAttendees)
@@ -1020,9 +1023,10 @@ export class DatabaseStorage implements IStorage {
         updatedAt: miniMeets.updatedAt,
         host: {
           id: users.id,
-          name: users.name,
+          firstName: users.firstName,
+          lastName: users.lastName,
           email: users.email,
-          profilePicture: users.profilePicture,
+          profileImageUrl: users.profileImageUrl,
         }
       })
       .from(miniMeets)
@@ -1039,6 +1043,49 @@ export class DatabaseStorage implements IStorage {
       host: meet.host as User,
       attendees: attendees as MiniMeetAttendee[]
     };
+  }
+
+  // 여행 ID로 조회
+  async getTripById(tripId: number): Promise<Trip | undefined> {
+    const [trip] = await db
+      .select()
+      .from(trips)
+      .where(eq(trips.id, tripId))
+      .limit(1);
+    
+    return trip;
+  }
+
+  // 여행 복제 메서드
+  async cloneTrip(originalTripId: number, newOwnerId: string, selectedDays?: number[]): Promise<Trip> {
+    const originalTrip = await this.getTripById(originalTripId);
+    if (!originalTrip) {
+      throw new Error('원본 여행을 찾을 수 없습니다');
+    }
+
+    // 원본 일정에서 선택한 날짜의 itinerary만 추출
+    let clonedItinerary = originalTrip.itinerary;
+    if (selectedDays && selectedDays.length > 0) {
+      if (Array.isArray(originalTrip.itinerary)) {
+        clonedItinerary = originalTrip.itinerary.filter((dayPlan: any, index: number) => {
+          return selectedDays.includes(index + 1); // 1-based index
+        });
+      }
+    }
+
+    const clonedTripData = {
+      userId: newOwnerId,
+      title: `${originalTrip.title} (복제본)`,
+      destination: originalTrip.destination,
+      startDate: new Date(), // 오늘 날짜로 설정
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1주일 후
+      description: `원본: ${originalTrip.title} (${originalTrip.user?.firstName} ${originalTrip.user?.lastName})`,
+      itinerary: clonedItinerary,
+      isPublic: false, // 복제본은 기본적으로 비공개
+    };
+
+    const [newTrip] = await db.insert(trips).values(clonedTripData).returning();
+    return newTrip;
   }
 }
 

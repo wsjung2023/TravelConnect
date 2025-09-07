@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft,
   Calendar,
@@ -29,6 +30,8 @@ export default function TimelinePage() {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // 전역 함수로 모달 열기 등록
   useEffect(() => {
@@ -53,6 +56,35 @@ export default function TimelinePage() {
   const { data: timelineDetail } = useQuery<TimelineWithPosts>({
     queryKey: ['/api/timelines', selectedTimeline?.id],
     enabled: !!selectedTimeline?.id,
+  });
+
+  // 여행 일정 복제 mutation
+  const cloneTripMutation = useMutation({
+    mutationFn: async (tripId: number) => {
+      const response = await fetch(`/api/trips/${tripId}/clone`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || '일정 복제에 실패했습니다');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "✅ 일정이 복제되었습니다!",
+        description: "내 일정에 추가됨. 캘린더에서 확인하세요.",
+      });
+      // 캘린더 페이지로 이동 (추후 구현)
+      console.log('복제된 여행:', data.trip);
+    },
+    onError: (error) => {
+      toast({
+        title: "❌ 복제 실패",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) {
@@ -180,7 +212,18 @@ export default function TimelinePage() {
           <h1 className="text-xl font-bold text-gray-900">
             {timelineDetail.title}
           </h1>
-          <div className="w-8"></div>
+          {/* Follow 버튼 - 다른 사용자의 타임라인인 경우에만 표시 */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => cloneTripMutation.mutate(timelineDetail.id)}
+            disabled={cloneTripMutation.isPending}
+            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-none hover:from-pink-600 hover:to-purple-600"
+            data-testid="button-follow-trip"
+          >
+            <Heart className="w-4 h-4 mr-1" />
+            {cloneTripMutation.isPending ? '복제 중...' : '일정 복제'}
+          </Button>
         </div>
         <div className="p-4 pb-32 max-h-[calc(100vh-80px)] overflow-y-auto">
           <div className="max-w-4xl mx-auto">

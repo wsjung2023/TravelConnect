@@ -89,7 +89,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     refetchInterval: 60000, // 1분마다 자동 갱신
   });
 
-  // 근처 모임들 조회
+  // 근처 모임들 조회 (임시 비활성화)
   const { data: miniMeets = [] } = useQuery({
     queryKey: ['/api/mini-meets', debouncedCenter.lat, debouncedCenter.lng],
     queryFn: async () => {
@@ -98,7 +98,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       return response.json();
     },
     refetchInterval: 30000, // 30초마다 갱신
-    enabled: !!map && debouncedCenter.lat !== 0,
+    enabled: false, // 임시 비활성화
   });
   const [enabledPOITypes, setEnabledPOITypes] = useState<string[]>([
     'tourist_attraction',
@@ -107,45 +107,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [selectedMiniMeet, setSelectedMiniMeet] = useState<any>(null);
 
 
-  // MiniMeet 마커 업데이트 함수
-  const updateMiniMeetMarkers = useCallback(() => {
-    if (!map || !miniMeets) return;
+  // MiniMeet 마커 업데이트 함수 (임시 비활성화)
+  // const updateMiniMeetMarkers = useCallback(() => {
+  //   if (!map || !miniMeets) return;
+  //   // ... 마커 업데이트 로직
+  // }, [map, miniMeets]);
 
-    // 기존 MiniMeet 마커 제거
-    miniMeetMarkers.forEach(marker => marker.setMap(null));
-
-    const newMeetMarkers: any[] = [];
-
-    miniMeets.forEach((meet: any) => {
-      const marker = new window.google.maps.Marker({
-        position: { lat: meet.latitude, lng: meet.longitude },
-        map: map,
-        title: meet.title,
-        icon: {
-          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="18" fill="#10B981" stroke="#ffffff" stroke-width="3"/>
-              <text x="20" y="26" font-family="Arial" font-size="16" fill="white" text-anchor="middle">👥</text>
-            </svg>
-          `),
-          scaledSize: new window.google.maps.Size(40, 40),
-        },
-      });
-
-      marker.addListener('click', () => {
-        setSelectedMiniMeet(meet);
-      });
-
-      newMeetMarkers.push(marker);
-    });
-
-    setMiniMeetMarkers(newMeetMarkers);
-  }, [map, miniMeets, miniMeetMarkers]);
-
-  // MiniMeet 데이터가 변경될 때마다 마커 업데이트
-  useEffect(() => {
-    updateMiniMeetMarkers();
-  }, [updateMiniMeetMarkers]);
+  // useEffect(() => {
+  //   updateMiniMeetMarkers();
+  // }, [map, miniMeets]);
 
   // POI 업데이트 함수
   const updatePOIs = async () => {
