@@ -84,6 +84,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
     refetchInterval: 60000, // 1분마다 자동 갱신
   });
 
+  // 근처 모임들 조회
+  const { data: miniMeets = [] } = useQuery({
+    queryKey: ['/api/mini-meets', debouncedCenter.lat, debouncedCenter.lng],
+    queryFn: async () => {
+      const response = await fetch(`/api/mini-meets?lat=${debouncedCenter.lat}&lng=${debouncedCenter.lng}&radius=5`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    refetchInterval: 30000, // 30초마다 갱신
+    enabled: !!map && debouncedCenter.lat !== 0,
+  });
+
   // 150ms debounce for optimal performance
   const debouncedZoom = useDebounce(currentZoom, 150);
   const debouncedCenter = useDebounce(mapCenter, 150);
@@ -91,7 +103,49 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [enabledPOITypes, setEnabledPOITypes] = useState<string[]>([
     'tourist_attraction',
   ]);
+  const [miniMeetMarkers, setMiniMeetMarkers] = useState<any[]>([]);
+  const [selectedMiniMeet, setSelectedMiniMeet] = useState<any>(null);
 
+
+  // MiniMeet 마커 업데이트 함수
+  const updateMiniMeetMarkers = useCallback(() => {
+    if (!map || !miniMeets) return;
+
+    // 기존 MiniMeet 마커 제거
+    miniMeetMarkers.forEach(marker => marker.setMap(null));
+
+    const newMeetMarkers: any[] = [];
+
+    miniMeets.forEach((meet: any) => {
+      const marker = new window.google.maps.Marker({
+        position: { lat: meet.latitude, lng: meet.longitude },
+        map: map,
+        title: meet.title,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="18" fill="#10B981" stroke="#ffffff" stroke-width="3"/>
+              <text x="20" y="26" font-family="Arial" font-size="16" fill="white" text-anchor="middle">👥</text>
+            </svg>
+          `),
+          scaledSize: new window.google.maps.Size(40, 40),
+        },
+      });
+
+      marker.addListener('click', () => {
+        setSelectedMiniMeet(meet);
+      });
+
+      newMeetMarkers.push(marker);
+    });
+
+    setMiniMeetMarkers(newMeetMarkers);
+  }, [map, miniMeets, miniMeetMarkers]);
+
+  // MiniMeet 데이터가 변경될 때마다 마커 업데이트
+  useEffect(() => {
+    updateMiniMeetMarkers();
+  }, [updateMiniMeetMarkers]);
 
   // POI 업데이트 함수
   const updatePOIs = async () => {
@@ -1495,6 +1549,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
           }}
         />
       )}
+
+      {/* MiniMeet 상세 모달 */}
+      {selectedMiniMeet && (
+        <MiniMeetDetailModal
+          meet={selectedMiniMeet}
+          onClose={() => setSelectedMiniMeet(null)}
+          onJoin={() => {
+            // 참여 후 모달 닫기
+            setSelectedMiniMeet(null);
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -1668,6 +1734,186 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+};
+
+// MiniMeet 상세 모달 컴포넌트
+interface MiniMeetDetailModalProps {
+  meet: any;
+  onClose: () => void;
+  onJoin: () => void;
+}
+
+const MiniMeetDetailModal: React.FC<MiniMeetDetailModalProps> = ({
+  meet,
+  onClose,
+  onJoin,
+}) => {
+  const [isJoining, setIsJoining] = useState(false);
+  
+  const handleJoin = async () => {
+    setIsJoining(true);
+    try {
+      const response = await fetch(`/api/mini-meets/${meet.id}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('모임 참여 성공:', result.message);
+        onJoin();
+      } else {
+        const error = await response.json();
+        console.error('모임 참여 실패:', error.message);
+        alert(error.message);
+      }
+    } catch (error) {
+      console.error('모임 참여 오류:', error);
+      alert('모임 참여 중 오류가 발생했습니다.');
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ko-KR', {
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const isHost = false; // TODO: 현재 사용자가 호스트인지 확인
+  const currentAttendees = meet.attendees?.length || 0;
+  const isTimeExpired = new Date(meet.startAt) <= new Date();
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md mx-4 w-full">
+        {/* 헤더 */}
+        <div className="h-24 bg-gradient-to-r from-emerald-400 to-teal-500 relative">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/80 hover:text-white text-2xl"
+          >
+            ✕
+          </button>
+          <div className="absolute bottom-4 left-4 text-white">
+            <h2 className="text-xl font-bold">{meet.title}</h2>
+            <p className="text-sm opacity-90">
+              {meet.host?.firstName} {meet.host?.lastName}님의 모임
+            </p>
+          </div>
+        </div>
+
+        {/* 모임 정보 */}
+        <div className="p-6 space-y-4">
+          <div>
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              📍 <span className="font-medium">장소</span>
+            </div>
+            <p className="text-gray-800">{meet.placeName}</p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              ⏰ <span className="font-medium">시간</span>
+            </div>
+            <p className="text-gray-800">{formatDateTime(meet.startAt)}</p>
+            {isTimeExpired && (
+              <p className="text-red-500 text-sm mt-1">⚠️ 이미 시작된 모임입니다</p>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              👥 <span className="font-medium">참여 인원</span>
+            </div>
+            <p className="text-gray-800">
+              {currentAttendees + 1}/{meet.maxPeople}명
+              {currentAttendees + 1 >= meet.maxPeople && (
+                <span className="text-red-500 ml-2">정원 마감</span>
+              )}
+            </p>
+          </div>
+
+          {/* 참여자 목록 */}
+          {meet.attendees && meet.attendees.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                📋 <span className="font-medium">참여자</span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs">
+                    👑
+                  </div>
+                  <span className="text-sm">
+                    {meet.host?.firstName} {meet.host?.lastName} (호스트)
+                  </span>
+                </div>
+                {meet.attendees.map((attendee: any, index: number) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-xs">
+                      {index + 1}
+                    </div>
+                    <span className="text-sm">
+                      {attendee.user?.firstName} {attendee.user?.lastName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 액션 버튼 */}
+          <div className="pt-4">
+            {isHost ? (
+              <button
+                className="w-full px-4 py-3 bg-gray-100 text-gray-500 rounded-xl font-medium cursor-not-allowed"
+                disabled
+              >
+                내가 만든 모임입니다
+              </button>
+            ) : isTimeExpired ? (
+              <button
+                className="w-full px-4 py-3 bg-gray-100 text-gray-500 rounded-xl font-medium cursor-not-allowed"
+                disabled
+              >
+                시간이 지난 모임입니다
+              </button>
+            ) : currentAttendees + 1 >= meet.maxPeople ? (
+              <button
+                className="w-full px-4 py-3 bg-gray-100 text-gray-500 rounded-xl font-medium cursor-not-allowed"
+                disabled
+              >
+                정원이 가득 찼습니다
+              </button>
+            ) : (
+              <button
+                onClick={handleJoin}
+                disabled={isJoining}
+                className="w-full px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                data-testid="button-join-meet"
+              >
+                {isJoining ? '참여 중...' : '🤝 모임 참여하기'}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
