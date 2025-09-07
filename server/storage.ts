@@ -10,6 +10,7 @@ import {
   trips,
   timelines,
   systemSettings,
+  notifications,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -28,6 +29,8 @@ import {
   type Review,
   type SystemSetting,
   type InsertSystemSetting,
+  type Notification,
+  type InsertNotification,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -112,6 +115,13 @@ export interface IStorage {
     id: string,
     updates: Partial<InsertSystemSetting>
   ): Promise<SystemSetting | undefined>;
+
+  // Notification operations
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotificationsByUser(userId: string): Promise<Notification[]>;
+  markNotificationAsRead(id: number): Promise<void>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+  deleteNotification(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -592,6 +602,45 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       throw new Error(`SQL 실행 오류: ${error.message}`);
     }
+  }
+
+  // Notification operations
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values(notification)
+      .returning();
+    return newNotification;
+  }
+
+  async getNotificationsByUser(userId: string): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(50); // 최근 50개만
+  }
+
+  async markNotificationAsRead(id: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true, updatedAt: new Date() })
+      .where(eq(notifications.id, id));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true, updatedAt: new Date() })
+      .where(eq(notifications.userId, userId));
+  }
+
+  async deleteNotification(id: number): Promise<boolean> {
+    const result = await db
+      .delete(notifications)
+      .where(eq(notifications.id, id));
+    return result.rowCount > 0;
   }
 }
 

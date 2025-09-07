@@ -396,3 +396,31 @@ export const insertSystemSettingSchema = createInsertSchema(
 
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+
+// 알림 시스템
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion'] })
+    .notNull(),
+  title: varchar('title').notNull(),
+  message: text('message').notNull(),
+  location: varchar('location'),
+  isRead: boolean('is_read').default(false),
+  relatedUserId: varchar('related_user_id').references(() => users.id), // 알림과 관련된 사용자 (좋아요를 한 사람, 메시지를 보낸 사람 등)
+  relatedPostId: integer('related_post_id').references(() => posts.id), // 관련된 포스트
+  relatedConversationId: integer('related_conversation_id').references(() => conversations.id), // 관련된 대화
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
