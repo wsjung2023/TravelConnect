@@ -1,16 +1,21 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, Edit } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ChatWindow from '@/components/ChatWindow';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useAuth } from '@/hooks/useAuth';
 import type { Conversation, Message } from '@shared/schema';
 
 export default function Chat() {
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuth();
+  const { sendMessage, addMessageHandler, removeMessageHandler } = useWebSocket();
+  const queryClient = useQueryClient();
 
   const { data: conversations = [] } = useQuery<Conversation[]>({
     queryKey: ['/api/conversations'],
@@ -21,11 +26,58 @@ export default function Chat() {
     enabled: !!selectedConversation,
   });
 
-  const currentUserId = 'current-user'; // This should come from auth
+  const currentUserId = user?.id || 'current-user';
+
+  useEffect(() => {
+    // WebSocket 메시지 핸들러 등록
+    addMessageHandler('chat_message', (data) => {
+      console.log('새 메시지 수신:', data);
+      // 메시지 캐시 업데이트
+      if (data.message && selectedConversation) {
+        queryClient.setQueryData(
+          ['/api/conversations', selectedConversation.id, 'messages'],
+          (oldMessages: Message[] = []) => [...oldMessages, data.message]
+        );
+      }
+    });
+
+    addMessageHandler('message_sent', (data) => {
+      console.log('메시지 전송 확인:', data);
+      // 메시지 캐시 업데이트
+      if (data.message && selectedConversation) {
+        queryClient.setQueryData(
+          ['/api/conversations', selectedConversation.id, 'messages'],
+          (oldMessages: Message[] = []) => [...oldMessages, data.message]
+        );
+      }
+    });
+
+    return () => {
+      removeMessageHandler('chat_message');
+      removeMessageHandler('message_sent');
+    };
+  }, [selectedConversation, addMessageHandler, removeMessageHandler, queryClient]);
 
   const handleSendMessage = (content: string) => {
-    // This would send the message via WebSocket or API
-    console.log('Sending message:', content);
+    if (!selectedConversation || !user) {
+      console.error('대화방이나 사용자 정보가 없습니다');
+      return;
+    }
+
+    const recipientId = selectedConversation.participant1Id === user.id 
+      ? selectedConversation.participant2Id 
+      : selectedConversation.participant1Id;
+
+    const success = sendMessage({
+      type: 'chat_message',
+      conversationId: selectedConversation.id,
+      content,
+      recipientId
+    });
+
+    if (!success) {
+      console.error('메시지 전송 실패 - WebSocket 연결 없음');
+    }
   };
 
   const formatLastMessageTime = (date: Date) => {
