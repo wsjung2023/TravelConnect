@@ -15,6 +15,12 @@ export function useWebSocket() {
   const connect = useCallback(() => {
     if (!user?.id) return;
 
+    // 이미 연결되어 있다면 건너뛰기
+    if (ws.current && ws.current.readyState === WebSocket.CONNECTING) {
+      console.log('WebSocket 연결이 이미 진행 중...');
+      return;
+    }
+
     // WebSocket URL 생성 - 현재 도메인의 포트 5000 사용
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
@@ -30,10 +36,14 @@ export function useWebSocket() {
         console.log('WebSocket 연결됨');
         // 인증 메시지 전송
         if (ws.current && user?.id) {
-          ws.current.send(JSON.stringify({
-            type: 'auth',
-            userId: user.id
-          }));
+          try {
+            ws.current.send(JSON.stringify({
+              type: 'auth',
+              userId: user.id
+            }));
+          } catch (sendError) {
+            console.error('WebSocket 인증 메시지 전송 실패:', sendError);
+          }
         }
       };
 
@@ -52,25 +62,33 @@ export function useWebSocket() {
         }
       };
 
-      ws.current.onclose = () => {
-        console.log('WebSocket 연결 종료');
+      ws.current.onclose = (event) => {
+        console.log('WebSocket 연결 종료 - 코드:', event.code, '이유:', event.reason);
         ws.current = null;
         
-        // 5초 후 재연결 시도
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (user?.id) {
-            console.log('WebSocket 재연결 시도...');
-            connect();
-          }
-        }, 5000);
+        // 비정상 종료인 경우에만 재연결 시도 (코드 1000이 정상 종료)
+        if (event.code !== 1000 && user?.id) {
+          console.log('WebSocket 재연결 예약...');
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (user?.id) {
+              console.log('WebSocket 재연결 시도...');
+              connect();
+            }
+          }, 5000);
+        }
       };
 
       ws.current.onerror = (error) => {
         console.error('WebSocket 오류:', error);
+        // 연결이 안 되는 경우 null로 설정해서 재연결 시도
+        if (ws.current && ws.current.readyState !== WebSocket.OPEN) {
+          ws.current = null;
+        }
       };
 
     } catch (error) {
       console.error('WebSocket 연결 실패:', error);
+      ws.current = null;
     }
   }, [user?.id]);
 
