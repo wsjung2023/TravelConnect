@@ -1,0 +1,18 @@
+{
+  "name": "Tourgether",
+  "short_name": "Tourgether",
+  "description": "Connect with local travel experiences and discover authentic adventures with local hosts around the world",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/travel-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
