@@ -1,6 +1,6 @@
 export async function api(url: string, opts: { method?: string; body?: any; auth?: boolean } = {}) {
   const { method = "GET", body, auth = true } = opts;
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   const headers: HeadersInit = { "Content-Type": "application/json" };
   if (auth && token) headers["Authorization"] = `Bearer ${token}`;
   
