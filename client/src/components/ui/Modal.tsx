@@ -8,7 +8,19 @@ export default function Modal({
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";   // 배경 스크롤 잠금
-    return () => { document.body.style.overflow = prev; };
+    
+    // 탭바 숨김
+    const bottomNav = document.getElementById('bottom-nav');
+    if (bottomNav) {
+      bottomNav.style.display = 'none';
+    }
+    
+    return () => { 
+      document.body.style.overflow = prev; 
+      if (bottomNav) {
+        bottomNav.style.display = '';
+      }
+    };
   }, [open]);
 
   if (!open) return null;
