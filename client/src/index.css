@@ -1,3 +1,4 @@
+@import './styles/video-shape.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

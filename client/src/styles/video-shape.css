@@ -1,0 +1,147 @@
+/* Video Shape Styles */
+.video-shape {
+  position: relative;
+  width: 240px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 12px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-shape .video-content {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* Heart Shape Mask */
+.video-shape.heart {
+  -webkit-mask: url('/masks/heart.svg') center/contain no-repeat;
+  mask: url('/masks/heart.svg') center/contain no-repeat;
+  border-radius: 0;
+}
+
+/* Cloud Shape Mask */
+.video-shape.cloud {
+  -webkit-mask: url('/masks/cloud.svg') center/contain no-repeat;
+  mask: url('/masks/cloud.svg') center/contain no-repeat;
+  border-radius: 0;
+}
+
+/* Default Shape (rounded rectangle) */
+.video-shape.default {
+  border-radius: 20px;
+}
+
+/* Progress Ring */
+.progress-ring {
+  position: absolute;
+  inset: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.progress-ring-bg {
+  opacity: 0.4;
+}
+
+.progress-ring-fg {
+  transition: stroke-dashoffset 0.1s ease-out;
+}
+
+/* Play Overlay */
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+}
+
+.video-shape:hover .play-overlay {
+  opacity: 1;
+}
+
+.play-icon {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+}
+
+/* 반응형 크기 */
+.video-shape.small {
+  width: 120px;
+}
+
+.video-shape.medium {
+  width: 180px;
+}
+
+.video-shape.large {
+  width: 300px;
+}
+
+.video-shape.extra-large {
+  width: 400px;
+}
+
+/* 애니메이션 효과 */
+.video-shape {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.video-shape:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.video-shape:active {
+  transform: scale(0.98);
+}
+
+/* 로딩 상태 */
+.video-shape.loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 다크모드 지원 */
+.dark .video-shape {
+  background: #374151;
+}
+
+.dark .progress-ring-bg {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.dark .video-shape.loading {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}

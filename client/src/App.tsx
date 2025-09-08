@@ -37,6 +37,7 @@ const Chat = lazy(() => import('@/pages/chat'));
 const Profile = lazy(() => import('@/pages/profile'));
 const TimelinePage = lazy(() => import('@/pages/timeline'));
 const TimelineCreatePage = lazy(() => import('@/pages/TimelineCreate'));
+const VideoTestPage = lazy(() => import('@/pages/video-test'));
 const Admin = lazy(() => import('@/pages/admin'));
 const ErrorTest = lazy(() => import('../../src/pages/ErrorTestPage'));
 
@@ -95,6 +96,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <TimelineCreatePage />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/video-test"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <VideoTestPage />
                 </Suspense>
               )}
             />
