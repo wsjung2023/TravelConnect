@@ -8,12 +8,14 @@ import memoize from 'memoizee';
 import connectPg from 'connect-pg-simple';
 import { storage } from './storage';
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error('Environment variable REPLIT_DOMAINS not provided');
-}
+// 환경 의존적 설정 - REPLIT_DOMAINS가 없으면 no-op으로 동작
+const isReplitEnvironment = !!process.env.REPLIT_DOMAINS;
 
 const getOidcConfig = memoize(
   async () => {
+    if (!isReplitEnvironment) {
+      throw new Error('OIDC config not available in non-Replit environment');
+    }
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? 'https://replit.com/oidc'),
       process.env.REPL_ID!
@@ -23,6 +25,11 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
+  if (!isReplitEnvironment) {
+    // no-op 세션 (JWT 인증 사용 시)
+    return (req: any, res: any, next: any) => next();
+  }
+  
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -65,6 +72,12 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express) {
+  if (!isReplitEnvironment) {
+    console.log('💡 Replit OIDC 인증을 건너뜀 - JWT 인증 사용 중');
+    return; // Replit 환경이 아니면 OIDC 설정 건너뛰기
+  }
+
+  console.log('🔐 Replit OIDC 인증 설정 시작');
   app.set('trust proxy', 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -122,9 +135,16 @@ export async function setupAuth(app: Express) {
       );
     });
   });
+  
+  console.log('✅ Replit OIDC 인증 설정 완료');
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  if (!isReplitEnvironment) {
+    // Replit 환경이 아니면 JWT 인증을 사용하므로 여기서는 패스
+    return res.status(401).json({ message: 'Use JWT authentication instead' });
+  }
+  
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

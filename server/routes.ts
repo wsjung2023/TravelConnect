@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
-//import { setupAuth, authenticateToken } from './replitAuth';
+import { setupAuth } from './replitAuth';
 //import { authenticateToken } from "./auth";
 import { setupGoogleAuth } from './googleAuth'; // 모듈 없음으로 주석 처리
 import passport from 'passport';
@@ -247,7 +247,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Passport 초기화
+  // 조건부 인증 설정
+  if (process.env.REPLIT_DOMAINS) {
+    // Replit 환경에서만 OIDC 인증 설정
+    console.log('🔐 Replit 환경 감지 - OIDC 인증 활성화');
+    await setupAuth(app);
+  } else {
+    console.log('💡 일반 환경 - JWT 인증만 사용');
+  }
+
+  // Passport 초기화 (Google OAuth용)
   app.use(passport.initialize());
 
   // Google OAuth 설정
