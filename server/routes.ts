@@ -25,6 +25,7 @@ import {
 import {
   insertExperienceSchema,
   insertPostSchema,
+  insertCommentSchema,
   insertBookingSchema,
   insertTripSchema,
   insertTimelineSchema,
@@ -819,15 +820,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/posts/:id/like', authenticateToken, async (req: any, res) => {
+  // Comments API
+  app.post('/api/posts/:id/comments', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user.id;  // JWT에서는 .id로 접근
       const postId = parseInt(req.params.id);
-      const isLiked = await storage.toggleLike(userId, postId);
-      res.json({ isLiked });
+      const commentData = insertCommentSchema.parse({
+        postId,
+        userId,
+        content: req.body.content,
+      });
+
+      const newComment = await storage.createComment(commentData);
+      console.log('댓글 생성 성공:', newComment);
+      res.json(newComment);
     } catch (error) {
-      console.error('Error toggling like:', error);
-      res.status(500).json({ message: 'Failed to toggle like' });
+      console.error('댓글 생성 실패:', error);
+      res.status(500).json({ message: '댓글 작성에 실패했습니다.' });
+    }
+  });
+
+  app.get('/api/posts/:id/comments', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const comments = await storage.getCommentsByPost(postId);
+      console.log(`포스트 ${postId} 댓글 조회:`, comments.length, '개');
+      res.json(comments);
+    } catch (error) {
+      console.error('댓글 조회 실패:', error);
+      res.status(500).json({ message: '댓글 조회에 실패했습니다.' });
+    }
+  });
+
+  app.delete('/api/comments/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const commentId = parseInt(req.params.id);
+      const success = await storage.deleteComment(commentId, userId);
+      
+      if (success) {
+        res.json({ message: '댓글이 삭제되었습니다.' });
+      } else {
+        res.status(404).json({ message: '댓글을 찾을 수 없거나 삭제 권한이 없습니다.' });
+      }
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      res.status(500).json({ message: '댓글 삭제에 실패했습니다.' });
     }
   });
 
