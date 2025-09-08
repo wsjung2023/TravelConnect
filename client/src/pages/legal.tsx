@@ -121,6 +121,15 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
   const isAdmin = user?.role === 'admin';
   const canEdit = isAdmin && isAdminMode;
   
+  // 디버깅용 로그
+  console.log('🔍 편집 권한 체크:', { 
+    user: user, 
+    isAdmin, 
+    isAdminMode, 
+    canEdit,
+    role: user?.role 
+  });
+  
   const document = legalDocuments[documentType];
 
   useEffect(() => {
@@ -232,12 +241,21 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
-          <Link href={isAdminMode ? "/admin" : "/legal"}>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              {isAdminMode ? "관리자 화면으로" : "목록으로"} 돌아가기
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => {
+              if (isAdminMode && isAdmin) {
+                window.location.href = "/admin";
+              } else {
+                window.location.href = "/legal";
+              }
+            }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {isAdminMode && isAdmin ? "관리자 화면으로" : "목록으로"} 돌아가기
+          </Button>
           
           {canEdit && !isEditing && (
             <Button onClick={handleEdit} className="gap-2">
