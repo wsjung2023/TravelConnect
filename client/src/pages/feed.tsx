@@ -37,24 +37,62 @@ export default function Feed() {
 
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
-      console.log('좋아요 API 호출:', postId);
       return apiRequest(`/api/posts/${postId}/like`, { method: 'POST' });
     },
-    onSuccess: (data: any, postId) => {
-      console.log('좋아요 성공:', data);
+    onMutate: async (postId) => {
+      // 옵티미스틱 업데이트: UI를 먼저 업데이트
+      await queryClient.cancelQueries({ queryKey: ['/api/posts'] });
+      
+      const previousPosts = queryClient.getQueryData<Post[]>(['/api/posts']);
+      
+      // 즉시 UI 업데이트
+      queryClient.setQueryData<Post[]>(['/api/posts'], (oldPosts) => {
+        if (!oldPosts) return oldPosts;
+        return oldPosts.map(post => {
+          if (post.id === postId) {
+            const isCurrentlyLiked = likedPosts.has(postId);
+            return {
+              ...post,
+              likesCount: isCurrentlyLiked ? (post.likesCount || 1) - 1 : (post.likesCount || 0) + 1
+            };
+          }
+          return post;
+        });
+      });
+      
+      // likedPosts 상태도 즉시 업데이트
       setLikedPosts((prev) => {
         const newSet = new Set(prev);
-        if (data.isLiked) {
-          newSet.add(postId);
-        } else {
+        if (newSet.has(postId)) {
           newSet.delete(postId);
+        } else {
+          newSet.add(postId);
         }
         return newSet;
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      
+      return { previousPosts };
     },
-    onError: (error) => {
-      console.error('좋아요 실패:', error);
+    onError: (err, postId, context) => {
+      // 에러 시 롤백
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['/api/posts'], context.previousPosts);
+      }
+      // likedPosts도 롤백
+      setLikedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(postId)) {
+          newSet.delete(postId);
+        } else {
+          newSet.add(postId);
+        }
+        return newSet;
+      });
+      console.error('좋아요 실패:', err);
+    },
+    onSettled: () => {
+      // 완료 후 서버에서 최신 데이터 가져오기
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
     },
   });
 
@@ -71,6 +109,10 @@ export default function Feed() {
   };
 
   const handleLike = (postId: number) => {
+    // 이미 처리 중인 요청이면 무시
+    if (likeMutation.isPending) {
+      return;
+    }
     console.log('좋아요 버튼 클릭:', postId);
     likeMutation.mutate(postId);
   };
