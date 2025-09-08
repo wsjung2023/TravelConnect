@@ -819,9 +819,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/posts/:id/like', isAuthenticated, async (req: any, res) => {
+  app.post('/api/posts/:id/like', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;  // JWT에서는 .id로 접근
       const postId = parseInt(req.params.id);
       const isLiked = await storage.toggleLike(userId, postId);
       res.json({ isLiked });
