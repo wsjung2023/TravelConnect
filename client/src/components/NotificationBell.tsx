@@ -239,11 +239,11 @@ export default function NotificationBell() {
                           </div>
                         )}
 
-                        {notification.userName && (
+                        {notification.relatedUserId && (
                           <div className="flex items-center gap-2 mt-2">
                             <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
                             <span className="text-xs text-gray-500">
-                              {notification.userName}
+                              사용자 {notification.relatedUserId}
                             </span>
                           </div>
                         )}

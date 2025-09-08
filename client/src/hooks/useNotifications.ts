@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +32,7 @@ export interface NotificationCounts {
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const wsRef = useRef<WebSocket | null>(null);
 
   // 데이터베이스에서 알림 조회
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
@@ -51,6 +52,54 @@ export function useNotifications() {
   };
 
   const hasNewNotifications = counts.total > 0;
+
+  // WebSocket 연결 및 실시간 알림 수신
+  useEffect(() => {
+    if (!user) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket 연결됨');
+      // 사용자 인증
+      ws.send(JSON.stringify({
+        type: 'auth',
+        userId: user.id
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'notification') {
+          console.log('실시간 알림 수신:', data.notification);
+          // 알림 목록 새로고침
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+        }
+      } catch (error) {
+        console.error('WebSocket 메시지 파싱 오류:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket 오류:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket 연결 해제');
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, [user, queryClient]);
 
   // 알림을 읽음으로 표시하는 뮤테이션
   const markAsReadMutation = useMutation({
