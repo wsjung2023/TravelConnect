@@ -396,7 +396,10 @@ export default function Feed() {
       {/* Post Detail Modal */}
       {selectedPost && (
         <PostDetailModal
-          post={selectedPost}
+          post={
+            // 최신 포스트 데이터로 업데이트
+            posts?.find(p => p.id === selectedPost.id) || selectedPost
+          }
           isOpen={!!selectedPost}
           onClose={() => setSelectedPost(null)}
           onLike={handleLike}
