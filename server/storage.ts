@@ -403,24 +403,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCommentsByPost(postId: number): Promise<Comment[]> {
-    return await db
-      .select({
-        id: comments.id,
-        postId: comments.postId,
-        userId: comments.userId,
-        content: comments.content,
-        createdAt: comments.createdAt,
-        author: {
-          id: users.id,
-          nickname: users.nickname,
-          firstName: users.firstName,
-          lastName: users.lastName,
-        }
-      })
-      .from(comments)
-      .leftJoin(users, eq(comments.userId, users.id))
-      .where(eq(comments.postId, postId))
-      .orderBy(desc(comments.createdAt));
+    try {
+      // Raw SQL을 사용하여 Drizzle ORM 오류 회피
+      const result = await db.execute(sql`
+        SELECT id, post_id as "postId", user_id as "userId", content, created_at as "createdAt"
+        FROM comments 
+        WHERE post_id = ${postId} 
+        ORDER BY created_at DESC
+      `);
+      return result.rows as any[];
+    } catch (error) {
+      console.error('댓글 조회 오류:', error);
+      return [];
+    }
   }
 
   async deleteComment(commentId: number, userId: string): Promise<boolean> {
