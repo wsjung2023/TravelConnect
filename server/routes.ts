@@ -192,13 +192,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DB Admin interface
-  app.get('/db-admin', (req, res) => {
+  // DB Admin interface - ADMIN ONLY
+  app.get('/db-admin', authenticateToken, requireAdmin, (req: AuthRequest, res) => {
     res.sendFile(path.join(process.cwd(), 'db-admin.html'));
   });
 
-  // SQL execution endpoint for DB admin
-  app.post('/api/sql', async (req, res) => {
+  // SQL execution endpoint for DB admin - ADMIN ONLY
+  app.post('/api/sql', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const { query } = req.body;
 
@@ -206,12 +206,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Query is required' });
       }
 
-      // 기본적인 보안 검사
+      // 강화된 보안 검사 - DDL/DCL 전면 차단
       const dangerousPatterns = [
-        /drop\s+database/i,
-        /drop\s+schema/i,
-        /truncate\s+table/i,
-        /alter\s+table.*drop/i,
+        // DDL (Data Definition Language) - 구조 변경
+        /\b(create|drop|alter)\s+(database|schema|table|index|view|sequence|function|procedure|trigger)/i,
+        /\b(truncate)\s+table/i,
+        
+        // DCL (Data Control Language) - 권한 관리
+        /\b(grant|revoke|deny)\b/i,
+        
+        // 위험한 DML 패턴
+        /\b(delete)\s+from\s+(?!.*where)/i, // WHERE 없는 DELETE
+        /\b(update)\s+.*set\s+(?!.*where)/i, // WHERE 없는 UPDATE
+        /\b(insert)\s+into\s+.*(users|auth|admin)/i, // 사용자 테이블 INSERT
+        
+        // 시스템 함수/명령어
+        /\b(exec|execute|sp_|xp_)/i,
+        /\b(shutdown|restart)/i,
+        
+        // 파일 시스템 접근
+        /\b(load_file|into\s+outfile|dumpfile)/i,
+        
+        // PostgreSQL 특화 위험 명령어
+        /\b(copy)\s+.*from\s+program/i,
+        /\b(\\\w+)/i, // PostgreSQL 메타명령어
       ];
 
       const isDangerous = dangerousPatterns.some((pattern) =>
