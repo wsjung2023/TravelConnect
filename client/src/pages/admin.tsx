@@ -19,6 +19,11 @@ import {
   Calendar,
   Search,
   ArrowLeft,
+  Shield,
+  FileText,
+  Cookie,
+  Code,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -334,6 +339,122 @@ export default function AdminPage() {
           >
             지도에서 확인하기
           </Button>
+        </div>
+
+        {/* 법적 고지 및 정책 섹션 */}
+        <div className="mt-8 bg-white rounded-lg shadow-sm border">
+          <div className="p-6 border-b">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                법적 고지 및 정책
+              </h2>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              시스템 설정을 관리하고 법적 문서를 확인하실 수 있습니다.
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="grid gap-4">
+              <div 
+                onClick={() => window.location.href = '/legal/privacy?admin=true'}
+                className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      개인정보 처리방침
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      개인정보 수집, 이용, 처리에 관한 정책
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => window.location.href = '/legal/terms?admin=true'}
+                className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      서비스 이용약관
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      서비스 이용에 관한 약관 및 조건
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => window.location.href = '/legal/location?admin=true'}
+                className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      위치기반서비스 이용약관
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      위치정보 수집 및 이용에 관한 약관
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => window.location.href = '/legal/cookies?admin=true'}
+                className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <Cookie className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      쿠키 및 트래킹 공지
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      쿠키 및 트래킹 기술 사용에 관한 공지
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => window.location.href = '/legal/oss?admin=true'}
+                className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <Code className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      오픈소스 라이선스
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      사용된 오픈소스 라이브러리의 라이선스
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

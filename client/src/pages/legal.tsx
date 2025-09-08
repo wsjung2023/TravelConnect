@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useRoute } from 'wouter';
+import { useRoute, useLocation } from 'wouter';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, Shield, MapPin, Cookie, Code } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { ArrowLeft, FileText, Shield, MapPin, Cookie, Code, Edit, Save, X } from 'lucide-react';
 import { Link } from 'wouter';
 
 const legalDocuments = {
@@ -104,6 +107,19 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const [saving, setSaving] = useState(false);
+  
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [location] = useLocation();
+  
+  // URL에서 admin 파라미터 확인
+  const urlParams = new URLSearchParams(window.location.search);
+  const isAdminMode = urlParams.get('admin') === 'true';
+  const isAdmin = user?.role === 'admin';
+  const canEdit = isAdmin && isAdminMode;
   
   const document = legalDocuments[documentType];
 
@@ -117,6 +133,7 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
         }
         const text = await response.text();
         setContent(text);
+        setEditContent(text);
       } catch (err) {
         setError(err instanceof Error ? err.message : '문서 로드 중 오류가 발생했습니다.');
       } finally {
@@ -126,6 +143,58 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
 
     fetchDocument();
   }, [document.file]);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditContent(content);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(content);
+  };
+
+  const handleSave = async () => {
+    if (!canEdit) {
+      toast({
+        title: "권한 없음",
+        description: "문서를 편집할 권한이 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await fetch(`/api/legal/${documentType}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ content: editContent }),
+      });
+
+      if (!response.ok) {
+        throw new Error('문서 저장에 실패했습니다.');
+      }
+
+      setContent(editContent);
+      setIsEditing(false);
+      toast({
+        title: "저장 완료",
+        description: "법적 문서가 성공적으로 업데이트되었습니다.",
+      });
+    } catch (err) {
+      toast({
+        title: "저장 실패",
+        description: err instanceof Error ? err.message : '문서 저장 중 오류가 발생했습니다.',
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -162,13 +231,41 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/legal">
+        <div className="flex items-center justify-between mb-8">
+          <Link href={isAdminMode ? "/admin" : "/legal"}>
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="w-4 h-4" />
-              목록으로 돌아가기
+              {isAdminMode ? "관리자 화면으로" : "목록으로"} 돌아가기
             </Button>
           </Link>
+          
+          {canEdit && !isEditing && (
+            <Button onClick={handleEdit} className="gap-2">
+              <Edit className="w-4 h-4" />
+              편집
+            </Button>
+          )}
+          
+          {canEdit && isEditing && (
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleSave} 
+                disabled={saving}
+                className="gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? "저장 중..." : "저장"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleCancelEdit}
+                className="gap-2"
+              >
+                <X className="w-4 h-4" />
+                취소
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border">
@@ -189,8 +286,25 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
           </div>
 
           <div className="p-6">
-            <div className="prose prose-gray dark:prose-invert max-w-none">
-              <ReactMarkdown
+            {isEditing ? (
+              <div className="space-y-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="mb-2">⚠️ <strong>관리자 편집 모드</strong></p>
+                  <p>마크다운 형식으로 작성해주세요. 변경사항은 즉시 모든 사용자에게 적용됩니다.</p>
+                </div>
+                <Textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="min-h-[500px] font-mono text-sm"
+                  placeholder="마크다운 내용을 입력하세요..."
+                />
+                <div className="text-xs text-gray-500">
+                  미리보기는 저장 후 확인할 수 있습니다.
+                </div>
+              </div>
+            ) : (
+              <div className="prose prose-gray dark:prose-invert max-w-none">
+                <ReactMarkdown
                 components={{
                   h1: ({ children }) => (
                     <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
@@ -257,9 +371,10 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
                   ),
                 }}
               >
-                {content}
-              </ReactMarkdown>
-            </div>
+                  {content}
+                </ReactMarkdown>
+              </div>
+            )}
           </div>
         </div>
       </div>
