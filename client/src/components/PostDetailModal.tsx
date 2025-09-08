@@ -82,7 +82,7 @@ export default function PostDetailModal({
             <div>
               <p className="font-medium text-sm">{post.userId}</p>
               <p className="text-xs text-gray-500">
-                {formatTime(post.createdAt)}
+                {post.createdAt ? formatTime(post.createdAt) : '방금 전'}
               </p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function PostDetailModal({
           )}
 
           {/* Media Carousel */}
-          {allMedia.length > 0 && (
+          {allMedia.length > 0 && allMedia[currentMediaIndex] && (
             <div className="relative mb-4">
               <div className="rounded-lg overflow-hidden bg-gray-100">
                 {allMedia[currentMediaIndex].type === 'image' ? (
@@ -122,10 +122,10 @@ export default function PostDetailModal({
                   ) : (
                     <img
                       src={`/uploads/${allMedia[currentMediaIndex].src}`}
-                      alt={post.title}
+                      alt={post.title ?? ''}
                       className="w-full h-80 object-cover"
                       onError={() => {
-                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex].src));
+                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex]?.src || ''));
                       }}
                     />
                   )
@@ -141,7 +141,7 @@ export default function PostDetailModal({
                       controls
                       className="w-full h-80 object-cover"
                       onError={() => {
-                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex].src));
+                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex]?.src || ''));
                       }}
                     />
                   )

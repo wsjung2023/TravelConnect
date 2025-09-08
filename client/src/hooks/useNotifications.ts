@@ -58,7 +58,9 @@ export function useNotifications() {
     if (!user) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const host = window.location.hostname;
+    const port = '5000'; // 명시적으로 포트 설정
+    const wsUrl = `${protocol}//${host}:${port}/ws`;
     
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

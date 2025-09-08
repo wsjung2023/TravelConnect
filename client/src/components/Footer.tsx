@@ -35,11 +35,12 @@ export default function Footer() {
             <ul className="space-y-2">
               {legalLinks.map(({ href, label, icon: Icon }) => (
                 <li key={href}>
-                  <Link href={href}>
-                    <a className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                      <Icon className="w-3 h-3" />
-                      {label}
-                    </a>
+                  <Link 
+                    href={href}
+                    className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <Icon className="w-3 h-3" />
+                    {label}
                   </Link>
                 </li>
               ))}
@@ -66,10 +67,11 @@ export default function Footer() {
               © {currentYear} Tourgether. All rights reserved.
             </p>
             <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-500">
-              <Link href="/legal">
-                <a className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                  법적 고지
-                </a>
+              <Link 
+                href="/legal"
+                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                법적 고지
               </Link>
               <span>|</span>
               <a 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ImageFallbackProps {
-  shape?: string;
+  shape?: string | undefined;
   isVideo?: boolean;
   className?: string;
 }

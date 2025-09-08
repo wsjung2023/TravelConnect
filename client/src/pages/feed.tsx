@@ -306,13 +306,13 @@ export default function Feed() {
                     </div>
                   ) : failedImages.has(post.id) ? (
                     <ImageFallback 
-                      shape={post.shape || undefined} 
+                      shape={post.shape ?? undefined} 
                       className="w-full h-64 bg-gradient-to-br flex items-center justify-center" 
                     />
                   ) : (
                     <img
-                      src={`/uploads/${post.images?.[0] || ''}`}
-                      alt={post.title}
+                      src={post.images?.[0] ? `/uploads/${post.images[0]}` : ''}
+                      alt={post.title ?? ''}
                       className={`w-full h-64 object-cover ${
                         post.shape === 'heart' ? 'clip-path-heart' : ''
                       }`}
