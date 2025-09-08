@@ -20,8 +20,13 @@ export async function apiRequest(
     ...options.headers,
   };
 
+  // body가 있고 FormData가 아닌 경우 JSON으로 처리
   if (options.body && !(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
+    // body가 이미 문자열이 아닌 경우에만 JSON.stringify 적용
+    if (typeof options.body !== 'string') {
+      options.body = JSON.stringify(options.body);
+    }
   }
 
   if (token) {

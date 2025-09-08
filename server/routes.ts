@@ -463,6 +463,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/experiences/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid experience ID' });
+      }
       const experience = await storage.getExperienceById(id);
       if (!experience) {
         return res.status(404).json({ message: 'Experience not found' });
@@ -492,6 +495,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/experiences/:id/reviews', async (req, res) => {
     try {
       const experienceId = parseInt(req.params.id);
+      if (isNaN(experienceId)) {
+        return res.status(400).json({ message: 'Invalid experience ID' });
+      }
       const reviews = await storage.getReviewsByExperience(experienceId);
       res.json(reviews);
     } catch (error) {
