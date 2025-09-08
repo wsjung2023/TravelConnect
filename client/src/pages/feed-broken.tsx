@@ -11,7 +11,7 @@ import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import type { Post } from '@shared/schema';
 
 export default function Feed() {
@@ -25,7 +25,7 @@ export default function Feed() {
 
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
-      return apiRequest(`/api/posts/${postId}/like`, {
+      return api(`/api/posts/${postId}/like`, {
         method: 'POST',
       });
     },

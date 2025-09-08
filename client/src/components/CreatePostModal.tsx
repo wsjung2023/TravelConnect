@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import type { InsertPost } from '@shared/schema';
 import exifr from 'exifr';
 
@@ -41,7 +41,7 @@ export default function CreatePostModal({
 
   const createPostMutation = useMutation({
     mutationFn: async (post: InsertPost) => {
-      return apiRequest('/api/posts', {
+      return api('/api/posts', {
         method: 'POST',
         body: post,
       });

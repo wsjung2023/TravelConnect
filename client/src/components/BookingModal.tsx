@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import type { Experience, InsertBooking } from '@shared/schema';
 
 interface BookingModalProps {
@@ -27,9 +27,9 @@ export default function BookingModal({
 
   const bookingMutation = useMutation({
     mutationFn: async (booking: InsertBooking) => {
-      return apiRequest('/api/bookings', {
+      return api('/api/bookings', {
         method: 'POST',
-        body: JSON.stringify(booking),
+        body: booking,
       });
     },
     onSuccess: () => {

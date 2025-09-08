@@ -24,7 +24,7 @@ import {
   Film,
   Search,
 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -415,25 +415,28 @@ export function JourneyCreateModal({
         videos: uploadedVideoFilenames,
       });
 
-      const response = await apiRequest('/api/posts', 'POST', {
-        content: content,
-        location: selectedLocation?.name || '',
-        latitude: selectedLocation?.lat
-          ? selectedLocation.lat.toString()
-          : null,
-        longitude: selectedLocation?.lng
-          ? selectedLocation.lng.toString()
-          : null,
-        title,
-        day: day && day.trim() !== '' ? parseInt(day) : 1,
-        shape: selectedShape,
-        theme: selectedTheme,
-        postDate: selectedDate,
-        postTime: selectedTime,
-        tags: tagsArray,
-        images: uploadedImageFilenames,
-        videos: uploadedVideoFilenames,
-        timelineId: selectedTimelineId,
+      const response = await api('/api/posts', {
+        method: 'POST',
+        body: {
+          content: content,
+          location: selectedLocation?.name || '',
+          latitude: selectedLocation?.lat
+            ? selectedLocation.lat.toString()
+            : null,
+          longitude: selectedLocation?.lng
+            ? selectedLocation.lng.toString()
+            : null,
+          title,
+          day: day && day.trim() !== '' ? parseInt(day) : 1,
+          shape: selectedShape,
+          theme: selectedTheme,
+          postDate: selectedDate,
+          postTime: selectedTime,
+          tags: tagsArray,
+          images: uploadedImageFilenames,
+          videos: uploadedVideoFilenames,
+          timelineId: selectedTimelineId,
+        }
       });
 
       console.log('게시물 생성 성공:', response);

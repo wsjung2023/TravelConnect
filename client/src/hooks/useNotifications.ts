@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
 // 데이터베이스 스키마와 일치하도록 수정된 Notification 인터페이스
@@ -104,7 +104,7 @@ export function useNotifications() {
   // 알림을 읽음으로 표시하는 뮤테이션
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      await apiRequest(`/api/notifications/${notificationId}/read`, {
+      await api(`/api/notifications/${notificationId}/read`, {
         method: 'PATCH',
       });
     },
@@ -116,7 +116,7 @@ export function useNotifications() {
   // 모든 알림을 읽음으로 표시하는 뮤테이션
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('/api/notifications/read-all', {
+      await api('/api/notifications/read-all', {
         method: 'PATCH',
       });
     },
@@ -128,7 +128,7 @@ export function useNotifications() {
   // 알림 삭제 뮤테이션
   const deleteNotificationMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      await apiRequest(`/api/notifications/${notificationId}`, {
+      await api(`/api/notifications/${notificationId}`, {
         method: 'DELETE',
       });
     },
@@ -183,9 +183,9 @@ export async function createNotification({
   relatedPostId?: number;
   relatedConversationId?: number;
 }) {
-  return await apiRequest('/api/notifications', {
+  return await api('/api/notifications', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       userId,
       type,
       title,
@@ -194,6 +194,6 @@ export async function createNotification({
       relatedUserId,
       relatedPostId,
       relatedConversationId,
-    }),
+    },
   });
 }

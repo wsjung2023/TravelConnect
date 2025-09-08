@@ -12,7 +12,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import PostDetailModal from '@/components/PostDetailModal';
 import { VirtualizedFeed, FeedStats } from '@/components/VirtualizedFeed';
 import { groupSimilarPosts } from '@/utils/postGrouping';
@@ -37,7 +37,7 @@ export default function Feed() {
 
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
-      return apiRequest(`/api/posts/${postId}/like`, { method: 'POST' });
+      return api(`/api/posts/${postId}/like`, { method: 'POST' });
     },
     onMutate: async (postId) => {
       // 옵티미스틱 업데이트: UI를 먼저 업데이트

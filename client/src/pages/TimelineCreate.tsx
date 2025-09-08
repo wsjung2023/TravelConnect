@@ -6,7 +6,7 @@ import { TimelineCard } from '@/components/TimelineCard';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 
 interface ProcessedFile {
   originalName: string;

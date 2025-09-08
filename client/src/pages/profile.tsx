@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -25,7 +25,7 @@ export default function Profile() {
 
   const toggleOpenToMeetMutation = useMutation({
     mutationFn: async ({ open, region, hours }: { open: boolean; region?: string; hours?: number }) => {
-      await apiRequest('/api/profile/open', {
+      await api('/api/profile/open', {
         method: 'PATCH',
         body: { open, region, hours },
       });

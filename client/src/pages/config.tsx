@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 import {
   Settings,
   Save,
@@ -131,9 +131,9 @@ export default function ConfigPage() {
       id: string;
       updates: Partial<SystemSetting>;
     }) => {
-      return await apiRequest(`/api/system-settings/${id}`, {
+      return await api(`/api/system-settings/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(updates),
+        body: updates,
       });
     },
     onSuccess: () => {

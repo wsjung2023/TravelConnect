@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Clock } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 
 interface OpenToMeetToggleProps {
   compact?: boolean;
@@ -37,9 +37,9 @@ export default function OpenToMeetToggle({
       region?: string; 
       hours?: number 
     }) => {
-      await apiRequest('/api/profile/open', {
+      await api('/api/profile/open', {
         method: 'PATCH',
-        body: JSON.stringify({ open, region, hours }),
+        body: { open, region, hours },
       });
     },
     onSuccess: () => {
