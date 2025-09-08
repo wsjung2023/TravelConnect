@@ -29,39 +29,24 @@ export function generateToken(user: {
   role: string;
 }) {
   const secret = JWT_SECRET || 'dev-fallback-key';
-  console.log('토큰 생성:', {
-    userId: user.id,
-    userRole: user.role,
-    secretExists: !!JWT_SECRET,
-    jwtOptions
-  });
-  const token = jwt.sign(
+  return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     secret,
     jwtOptions
   );
-  console.log('생성된 토큰:', token.substring(0, 50) + '...');
-  return token;
 }
 
 // JWT 토큰 검증
 export function verifyToken(token: string) {
   try {
     const secret = JWT_SECRET || 'dev-fallback-key';
-    console.log('토큰 검증 시도:', {
-      tokenLength: token.length,
-      secretExists: !!JWT_SECRET,
-      tokenPrefix: token.substring(0, 20)
-    });
     const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
-    console.log('토큰 검증 성공:', decoded);
     return decoded as {
       id: string;
       email: string;
       role: string;
     };
   } catch (error) {
-    console.log('토큰 검증 실패:', error);
     return null;
   }
 }
@@ -86,22 +71,10 @@ export async function authenticateToken(
   res: Response,
   next: NextFunction
 ) {
-  console.log('🔍 authenticateToken 미들웨어 호출됨');
-  console.log('요청 정보:', {
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    headers: req.headers
-  });
-  
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-  console.log('Authorization 헤더:', authHeader);
-  console.log('추출된 토큰:', token ? `있음 (${token.substring(0, 20)}...)` : '없음');
-
   if (!token) {
-    console.log('⚠️ 토큰이 없어서 401 반환');
     return res.status(401).json({ message: 'Access token required' });
   }
 
