@@ -2,19 +2,22 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useComments } from '@/features/comments/useComments';
 
 export default function CommentsSection({ postId }: { postId: number }) {
-  const { data: comments = [], isLoading } = useComments(postId);
+  const { data: comments, isLoading } = useComments(postId);
+  
+  // 안전한 데이터 처리
+  const safeComments = Array.isArray(comments) ? comments : [];
 
   if (isLoading) {
     return <div className="text-center text-gray-500 py-4">댓글 로딩중...</div>;
   }
 
-  if (comments.length === 0) {
+  if (safeComments.length === 0) {
     return <div className="text-center text-gray-500 py-4">첫 댓글을 남겨보세요!</div>;
   }
 
   return (
     <div className="space-y-3 max-h-32 overflow-y-auto">
-      {comments.map((comment: any) => (
+      {safeComments.map((comment: any) => (
         <div key={comment.id} className="flex gap-2">
           <Avatar className="w-8 h-8">
             <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.userId || 'User'}`} />
