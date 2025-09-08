@@ -15,6 +15,7 @@ export async function apiRequest(
 
   // 토큰 가져오기
   const token = localStorage.getItem('token');
+  console.log('토큰 상태:', token ? `있음 (${token.substring(0, 20)}...)` : '없음');
 
   const headers: HeadersInit = {
     ...options.headers,
@@ -37,6 +38,12 @@ export async function apiRequest(
     ...options,
     headers,
     credentials: 'include',
+  });
+
+  console.log(`응답: ${res.status} ${res.statusText}`, {
+    url,
+    hasToken: !!token,
+    method: options.method || 'GET'
   });
 
   await throwIfResNotOk(res);

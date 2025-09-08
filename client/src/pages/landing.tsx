@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { LoginModal } from '@/components/LoginModal';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import Footer from '@/components/Footer';
 
 export default function Landing() {
   const { toast } = useToast();
@@ -280,6 +281,9 @@ export default function Landing() {
         onClose={() => setShowLoginModal(false)}
         onSuccess={handleLoginSuccess}
       />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
