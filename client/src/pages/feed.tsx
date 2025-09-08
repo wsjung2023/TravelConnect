@@ -27,7 +27,7 @@ export default function Feed() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: posts = [], isLoading } = useQuery<Post[]>({
     queryKey: ['/api/posts'],
   });
 
@@ -38,9 +38,9 @@ export default function Feed() {
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
       console.log('좋아요 API 호출:', postId);
-      return apiRequest(`/api/posts/${postId}/like`, 'POST');
+      return apiRequest(`/api/posts/${postId}/like`, { method: 'POST' });
     },
-    onSuccess: (data, postId) => {
+    onSuccess: (data: any, postId) => {
       console.log('좋아요 성공:', data);
       setLikedPosts((prev) => {
         const newSet = new Set(prev);
@@ -171,7 +171,7 @@ export default function Feed() {
                   <div>
                     <p className="font-medium text-sm">{post.userId}</p>
                     <p className="text-xs text-gray-500">
-                      {formatTime(post.createdAt)}
+                      {formatTime(post.createdAt || new Date())}
                     </p>
                   </div>
                 </div>

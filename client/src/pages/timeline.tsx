@@ -98,8 +98,8 @@ export default function TimelinePage() {
         <div className="flex items-center justify-between p-4 border-b bg-white">
           <button
             onClick={() => {
-              // 강제로 홈 탭으로 이동
-              window.postMessage({ type: 'navigate-home' }, '*');
+              console.log('타임라인 홈 버튼 클릭');
+              setLocation('/');
             }}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >

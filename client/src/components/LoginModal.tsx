@@ -170,6 +170,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             onClick={handleGoogleLogin}
             variant="outline"
             className="w-full flex items-center gap-2"
+            type="button"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path

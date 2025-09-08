@@ -266,7 +266,13 @@ export default function PostDetailModal({
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      alert('댓글 기능은 곧 구현될 예정입니다!');
+                      const target = e.target as HTMLInputElement;
+                      const commentText = target.value.trim();
+                      if (commentText) {
+                        console.log('댓글 작성:', commentText, 'for post:', post?.id);
+                        // TODO: 댓글 API 연동 필요
+                        target.value = '';
+                      }
                     }
                   }}
                 />

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +17,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('posts');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // 만남 상태 토글 mutation
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
@@ -81,7 +83,12 @@ export default function Profile() {
       {/* Profile Header */}
       <div className="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-6">
         <div className="absolute top-4 right-4">
-          <Button variant="ghost" size="sm" className="p-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-2"
+            onClick={() => setLocation('/config')}
+          >
             <Settings size={20} />
           </Button>
         </div>
