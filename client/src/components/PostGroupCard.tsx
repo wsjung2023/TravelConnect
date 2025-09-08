@@ -16,15 +16,13 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
   const { posts, primaryPost, location, timeRange } = group;
   const isMultiPost = posts.length > 1;
 
-  // 미디어 파일 여부 확인
+  // 미디어 파일 여부 확인 (images 배열의 첫 번째 이미지 사용)
   const hasMedia = (post: Post) => {
-    return post.mediaUrl && (
-      post.mediaUrl.includes('.jpg') || 
-      post.mediaUrl.includes('.png') || 
-      post.mediaUrl.includes('.mp4') || 
-      post.mediaUrl.includes('.webm') ||
-      post.mediaUrl.includes('.gif')
-    );
+    return post.images && post.images.length > 0;
+  };
+
+  const getMediaUrl = (post: Post) => {
+    return post.images && post.images.length > 0 ? post.images[0] : null;
   };
 
   const isVideo = (url: string) => {
@@ -121,9 +119,9 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
         {/* 메인 미디어 표시 (단일 포스트) */}
         {!isMultiPost && hasMedia(primaryPost) && (
           <div className="mb-3 flex justify-center">
-            {isVideo(primaryPost.mediaUrl!) ? (
+            {isVideo(getMediaUrl(primaryPost)!) ? (
               <VideoShape
-                src={primaryPost.mediaUrl!}
+                src={getMediaUrl(primaryPost)!}
                 shape="default"
                 className="medium"
                 autoPlay={false}
@@ -131,7 +129,7 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
               />
             ) : (
               <ImageShape
-                src={primaryPost.mediaUrl!}
+                src={getMediaUrl(primaryPost)!}
                 alt={primaryPost.title || 'Post image'}
                 shape="default"
                 className="medium"
@@ -147,9 +145,9 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
             {posts.slice(0, 4).map((post, index) => (
               hasMedia(post) && (
                 <div key={post.id} className="relative">
-                  {isVideo(post.mediaUrl!) ? (
+                  {isVideo(getMediaUrl(post)!) ? (
                     <VideoShape
-                      src={post.mediaUrl!}
+                      src={getMediaUrl(post)!}
                       shape="heart"
                       className="small"
                       autoPlay={false}
@@ -157,7 +155,7 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
                     />
                   ) : (
                     <ImageShape
-                      src={post.mediaUrl!}
+                      src={getMediaUrl(post)!}
                       alt={`Post ${index + 1}`}
                       shape={index === 0 ? 'heart' : index === 1 ? 'cloud' : 'default'}
                       className="small"
