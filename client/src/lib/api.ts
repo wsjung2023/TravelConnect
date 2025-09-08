@@ -7,7 +7,8 @@ export async function api(path: string, opts: {
   headers?: Record<string, string>;
 } = {}) {
   const { method = "GET", body, auth = true, headers = {} } = opts;
-  const token = localStorage.getItem("access_token"); // 실제 키에 맞춰 조정
+  // Replit Auth는 세션 기반이므로 토큰 대신 세션 사용
+  const token = localStorage.getItem("access_token") || localStorage.getItem("authToken") || localStorage.getItem("token");
   const h: Record<string, string> = { "Content-Type": "application/json", ...headers };
   if (auth && token) h.Authorization = `Bearer ${token}`;
 

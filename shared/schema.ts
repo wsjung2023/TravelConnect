@@ -423,7 +423,7 @@ export const notifications = pgTable('notifications', {
   userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
-  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion'] })
+  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion', 'comment'] })
     .notNull(),
   title: varchar('title').notNull(),
   message: text('message').notNull(),

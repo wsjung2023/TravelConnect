@@ -26,9 +26,16 @@ export function useAddComment(postId: number) {
       qc.setQueryData(["comments", postId], [temp, ...prev]);
       return { prev };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(["comments", postId], ctx.prev);
-      alert("댓글 전송 실패: 로그인 또는 네트워크를 확인하세요.");
+      
+      if (err.message.includes("401")) {
+        alert("댓글을 작성하려면 먼저 로그인해주세요!");
+        // 로그인 페이지로 리다이렉트
+        window.location.href = "/";
+      } else {
+        alert("댓글 전송 실패: 네트워크를 확인하세요.");
+      }
     },
     onSuccess: (newComment) => {
       qc.setQueryData<any[]>(["comments", postId], (old = []) => {
