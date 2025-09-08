@@ -1609,5 +1609,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 법적 문서 편집 API (관리자 전용)
+  app.put('/api/legal/:documentType', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { documentType } = req.params;
+      const { content } = req.body;
+
+      if (!content || typeof content !== 'string') {
+        return res.status(400).json({ message: '올바른 내용을 입력해주세요.' });
+      }
+
+      const validDocuments = {
+        'privacy': 'privacy_ko.md',
+        'terms': 'terms_ko.md', 
+        'location': 'location_terms_ko.md',
+        'cookies': 'cookie_notice_ko.md',
+        'oss': 'oss_licenses_ko.md'
+      };
+
+      if (!validDocuments[documentType as keyof typeof validDocuments]) {
+        return res.status(400).json({ message: '유효하지 않은 문서 타입입니다.' });
+      }
+
+      const fileName = validDocuments[documentType as keyof typeof validDocuments];
+      const filePath = path.join(process.cwd(), 'client', 'public', 'legal', fileName);
+
+      // 디렉토리가 존재하지 않으면 생성
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // 백업 파일 생성
+      if (fs.existsSync(filePath)) {
+        const backupPath = filePath + `.backup.${Date.now()}`;
+        fs.copyFileSync(filePath, backupPath);
+      }
+
+      // 새 내용 저장
+      fs.writeFileSync(filePath, content, 'utf8');
+
+      console.log(`✅ 법적 문서 업데이트 완료: ${documentType} by ${req.user?.email}`);
+
+      res.json({ 
+        message: '문서가 성공적으로 업데이트되었습니다.',
+        documentType,
+        updatedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('❌ 법적 문서 저장 실패:', error);
+      res.status(500).json({ message: '문서 저장 중 오류가 발생했습니다.' });
+    }
+  });
+
   return httpServer;
 }
