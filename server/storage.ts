@@ -22,6 +22,8 @@ import {
   type Post,
   type InsertBooking,
   type Booking,
+  type InsertComment,
+  type Comment,
   type InsertMessage,
   type Message,
   type Conversation,
@@ -69,6 +71,11 @@ export interface IStorage {
   getPostsByUser(userId: string): Promise<Post[]>;
   getPostsByUserWithTakenAt(userId: string): Promise<Post[]>;
   toggleLike(userId: string, postId: number): Promise<boolean>;
+
+  // Comment operations
+  createComment(comment: InsertComment): Promise<Comment>;
+  getCommentsByPost(postId: number): Promise<Comment[]>;
+  deleteComment(commentId: number, userId: string): Promise<boolean>;
 
   // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;
