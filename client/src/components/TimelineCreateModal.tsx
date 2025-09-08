@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Calendar, MapPin, FileText } from 'lucide-react';
+import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 
 interface TimelineCreateModalProps {
   isOpen: boolean;
@@ -35,9 +36,19 @@ export default function TimelineCreateModal({
     useRef<google.maps.places.AutocompleteService | null>(null);
 
   useEffect(() => {
-    if (isOpen && window.google?.maps?.places) {
-      autocompleteService.current =
-        new google.maps.places.AutocompleteService();
+    if (isOpen) {
+      const initGoogleMaps = async () => {
+        try {
+          await loadGoogleMaps();
+          if (window.google?.maps?.places) {
+            autocompleteService.current =
+              new google.maps.places.AutocompleteService();
+          }
+        } catch (error) {
+          console.error('Google Maps 로드 실패:', error);
+        }
+      };
+      initGoogleMaps();
     }
   }, [isOpen]);
 

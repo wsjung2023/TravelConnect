@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -501,52 +502,20 @@ const MapComponent: React.FC<MapComponentProps> = ({
     };
   };
 
-  // Google Maps 초기화
   // Google Maps 스크립트 로딩
   useEffect(() => {
-    const loadScript = () => {
-      if (window.google && window.google.maps) {
+    const initializeGoogleMaps = async () => {
+      try {
+        console.log('Google Maps 로딩 시작...');
+        await loadGoogleMaps();
+        console.log('Google Maps 로딩 완료!');
         setIsGoogleMapsLoaded(true);
-        return;
+      } catch (error) {
+        console.error('Google Maps 로드 실패:', error);
       }
-
-      if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-        // 스크립트가 이미 로딩 중이면 기다리기
-        const checkLoaded = () => {
-          if (window.google && window.google.maps) {
-            setIsGoogleMapsLoaded(true);
-          } else {
-            setTimeout(checkLoaded, 100);
-          }
-        };
-        checkLoaded();
-        return;
-      }
-
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      if (!apiKey) {
-        console.error('Google Maps API 키가 설정되지 않았습니다');
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      
-      script.onload = () => {
-        console.log('Google Maps 스크립트 로드 완료');
-        setIsGoogleMapsLoaded(true);
-      };
-
-      script.onerror = () => {
-        console.error('Google Maps 스크립트 로드 실패');
-      };
-
-      document.head.appendChild(script);
     };
 
-    loadScript();
+    initializeGoogleMaps();
   }, []);
 
   // Google Maps 초기화
