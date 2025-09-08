@@ -23,7 +23,14 @@ import {
   AlertCircle,
   CheckCircle,
   ShieldAlert,
+  FileText,
+  Shield,
+  MapPin,
+  Cookie,
+  Code,
+  ExternalLink,
 } from 'lucide-react';
+import { Link } from 'wouter';
 
 interface SystemSetting {
   id: string;
@@ -386,6 +393,74 @@ export default function ConfigPage() {
             )
           )}
         </div>
+
+        {/* Legal Documents Section */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              법적 고지 및 정책
+            </CardTitle>
+            <CardDescription>
+              서비스 이용과 관련된 법적 문서들을 확인하실 수 있습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {[
+                {
+                  href: '/legal/privacy',
+                  icon: Shield,
+                  title: '개인정보 처리방침',
+                  desc: '개인정보 수집, 이용, 처리에 관한 정책'
+                },
+                {
+                  href: '/legal/terms',
+                  icon: FileText,
+                  title: '서비스 이용약관',
+                  desc: '서비스 이용에 관한 약관 및 조건'
+                },
+                {
+                  href: '/legal/location',
+                  icon: MapPin,
+                  title: '위치기반서비스 이용약관',
+                  desc: '위치정보 수집 및 이용에 관한 약관'
+                },
+                {
+                  href: '/legal/cookies',
+                  icon: Cookie,
+                  title: '쿠키 및 트래킹 공지',
+                  desc: '쿠키 및 트래킹 기술 사용에 관한 공지'
+                },
+                {
+                  href: '/legal/oss',
+                  icon: Code,
+                  title: '오픈소스 라이선스',
+                  desc: '사용된 오픈소스 라이브러리의 라이선스'
+                }
+              ].map(({ href, icon: Icon, title, desc }) => (
+                <Link key={href} href={href} className="block">
+                  <div className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                        <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {title}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {desc}
+                        </p>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Footer */}
         <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">

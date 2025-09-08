@@ -10,6 +10,7 @@ import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
 import Home from '@/pages/home';
 import Config from '@/pages/config';
+import LegalPage from '@/pages/legal';
 import { useAuth } from '@/hooks/useAuth';
 
 // Initialize Sentry for error tracking
@@ -142,6 +143,8 @@ function Router() {
             <Route path="/config" component={Config} />
           </>
         )}
+        {/* Legal pages accessible to everyone */}
+        <Route path="/legal/:type?" component={LegalPage} />
         <Route component={NotFound} />
       </Switch>
     </div>
