@@ -387,9 +387,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 프로필 만남 상태 업데이트
-  app.patch('/api/profile/open', isAuthenticated, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: any, res) => {
+  app.patch('/api/profile/open', authenticateToken, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: AuthRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
       const { open, region } = req.validatedData;
 
       const user = await storage.getUser(userId);
@@ -842,9 +845,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // "Open to meet" API endpoints
-  app.get('/api/profile/open', isAuthenticated, async (req: any, res) => {
+  app.get('/api/profile/open', authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -893,45 +899,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/profile/open', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { open, region, hours = 12 } = req.body;
-      
-      let openUntil = null;
-      if (open) {
-        // hours 후에 자동 만료 (기본 12시간)
-        openUntil = new Date();
-        openUntil.setHours(openUntil.getHours() + hours);
-      }
-      
-      const updateData = {
-        openToMeet: Boolean(open),
-        regionCode: region || null,
-        openUntil: openUntil
-      };
-      
-      await storage.updateUser(userId, updateData);
-      
-      console.log('Open to meet 상태 업데이트:', {
-        userId,
-        open,
-        region,
-        openUntil,
-        hours
-      });
-      
-      res.json({
-        openToMeet: updateData.openToMeet,
-        regionCode: updateData.regionCode,
-        openUntil: updateData.openUntil,
-        message: open ? `${hours}시간 동안 만남 열려있음으로 설정됨` : '만남 비활성화됨'
-      });
-    } catch (error) {
-      console.error('Error updating open status:', error);
-      res.status(500).json({ message: 'Failed to update open status' });
-    }
-  });
 
   // System Settings API - 관리자 전용
   app.get(
@@ -1094,9 +1061,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification routes
-  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+  app.get('/api/notifications', authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
       const notifications = await storage.getNotificationsByUser(userId);
       res.json(notifications);
     } catch (error) {
@@ -1105,7 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/notifications', isAuthenticated, async (req: any, res) => {
+  app.post('/api/notifications', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const notificationData = insertNotificationSchema.parse(req.body);
       const notification = await storage.createNotification(notificationData);
@@ -1116,7 +1086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/notifications/:id/read', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const notificationId = parseInt(req.params.id);
       await storage.markNotificationAsRead(notificationId);
@@ -1127,9 +1097,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/notifications/read-all', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/notifications/read-all', authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
       await storage.markAllNotificationsAsRead(userId);
       res.json({ message: 'All notifications marked as read' });
     } catch (error) {
@@ -1138,7 +1111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/notifications/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/notifications/:id', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const notificationId = parseInt(req.params.id);
       const success = await storage.deleteNotification(notificationId);
