@@ -3,6 +3,7 @@ import {
   experiences,
   posts,
   bookings,
+  comments,
   conversations,
   messages,
   reviews,
@@ -359,6 +360,97 @@ export class DatabaseStorage implements IStorage {
       }
 
       return true;
+    }
+  }
+
+  // Comment operations
+  async createComment(comment: InsertComment): Promise<Comment> {
+    // Create comment
+    const [newComment] = await db.insert(comments).values(comment).returning();
+    
+    // Update comments count
+    await db
+      .update(posts)
+      .set({ commentsCount: sql`${posts.commentsCount} + 1` })
+      .where(eq(posts.id, comment.postId));
+
+    // 포스트 정보 조회하여 알림 생성
+    const [post] = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, comment.postId))
+      .limit(1);
+
+    if (post && post.userId !== comment.userId) {
+      // 자신의 포스트가 아닐 때만 알림 생성
+      const [commenter] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, comment.userId))
+        .limit(1);
+
+      await this.createNotification({
+        userId: post.userId,
+        type: 'comment',
+        title: '새로운 댓글',
+        message: `${commenter?.firstName || '익명의 사용자'}님이 회원님의 포스트에 댓글을 남겼습니다`,
+        relatedUserId: comment.userId,
+        relatedPostId: comment.postId,
+      });
+    }
+
+    return newComment;
+  }
+
+  async getCommentsByPost(postId: number): Promise<Comment[]> {
+    return await db
+      .select({
+        id: comments.id,
+        postId: comments.postId,
+        userId: comments.userId,
+        content: comments.content,
+        createdAt: comments.createdAt,
+        author: {
+          id: users.id,
+          nickname: users.nickname,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        }
+      })
+      .from(comments)
+      .leftJoin(users, eq(comments.userId, users.id))
+      .where(eq(comments.postId, postId))
+      .orderBy(desc(comments.createdAt));
+  }
+
+  async deleteComment(commentId: number, userId: string): Promise<boolean> {
+    try {
+      // Get comment to check ownership and postId
+      const [comment] = await db
+        .select()
+        .from(comments)
+        .where(eq(comments.id, commentId))
+        .limit(1);
+
+      if (!comment || comment.userId !== userId) {
+        return false; // Comment not found or not owned by user
+      }
+
+      // Delete comment
+      await db
+        .delete(comments)
+        .where(eq(comments.id, commentId));
+
+      // Update comments count
+      await db
+        .update(posts)
+        .set({ commentsCount: sql`${posts.commentsCount} - 1` })
+        .where(eq(posts.id, comment.postId));
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      return false;
     }
   }
 
