@@ -503,21 +503,6 @@ export const miniMeetAttendees = pgTable('mini_meet_attendees', {
   index('IDX_mini_meet_attendees_user_id').on(table.userId),
 ]);
 
-// 알림 테이블
-export const notifications = pgTable('notifications', {
-  id: serial('id').primaryKey(),
-  userId: varchar('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar('type').notNull(), // mini_meet_invite, mention, follow, mini_meet_join
-  title: varchar('title').notNull(),
-  message: text('message').notNull(),
-  payload: jsonb('payload'), // 관련 데이터 (meetId, postId, fromUserId 등)
-  readAt: timestamp('read_at'),
-  actionUrl: varchar('action_url'), // 클릭시 이동할 URL
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
 
 // Zod 스키마
 export const insertMiniMeetSchema = createInsertSchema(miniMeets).omit({
@@ -531,19 +516,11 @@ export const insertMiniMeetAttendeeSchema = createInsertSchema(miniMeetAttendees
   joinedAt: true,
 });
 
-export const insertNotificationSchema = createInsertSchema(notifications).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 // 타입 정의
 export type MiniMeet = typeof miniMeets.$inferSelect;
 export type InsertMiniMeet = z.infer<typeof insertMiniMeetSchema>;
 export type MiniMeetAttendee = typeof miniMeetAttendees.$inferSelect;
 export type InsertMiniMeetAttendee = z.infer<typeof insertMiniMeetAttendeeSchema>;
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // MiniMeet 관계 설정
 export const miniMeetsRelations = relations(miniMeets, ({ one, many }) => ({
@@ -565,10 +542,3 @@ export const miniMeetAttendeesRelations = relations(miniMeetAttendees, ({ one })
   }),
 }));
 
-// Notification 관계 설정
-export const notificationsRelations = relations(notifications, ({ one }) => ({
-  user: one(users, {
-    fields: [notifications.userId],
-    references: [users.id],
-  }),
-}));
