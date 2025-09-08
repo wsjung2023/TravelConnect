@@ -86,10 +86,22 @@ export async function authenticateToken(
   res: Response,
   next: NextFunction
 ) {
+  console.log('🔍 authenticateToken 미들웨어 호출됨');
+  console.log('요청 정보:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    headers: req.headers
+  });
+  
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+  console.log('Authorization 헤더:', authHeader);
+  console.log('추출된 토큰:', token ? `있음 (${token.substring(0, 20)}...)` : '없음');
+
   if (!token) {
+    console.log('⚠️ 토큰이 없어서 401 반환');
     return res.status(401).json({ message: 'Access token required' });
   }
 
