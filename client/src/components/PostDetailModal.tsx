@@ -14,6 +14,7 @@ import Modal from '@/components/ui/Modal';
 import CommentForm from '@/components/post/CommentForm';
 import CommentsSection from '@/components/post/CommentsSection';
 import type { Post } from '@shared/schema';
+import { ImageFallback } from '@/components/ImageFallback';
 
 interface PostDetailModalProps {
   post: Post;
@@ -31,6 +32,7 @@ export default function PostDetailModal({
   isLiked,
 }: PostDetailModalProps) {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [failedMedia, setFailedMedia] = useState(new Set<string>());
 
   if (!isOpen) return null;
 
@@ -115,42 +117,35 @@ export default function PostDetailModal({
             <div className="relative mb-4">
               <div className="rounded-lg overflow-hidden bg-gray-100">
                 {allMedia[currentMediaIndex].type === 'image' ? (
-                  allMedia[currentMediaIndex].src.startsWith('dummy_') ? (
-                    <div className="w-full h-80 bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center">
-                      <span className="text-white text-3xl">📷</span>
-                    </div>
+                  allMedia[currentMediaIndex].src.startsWith('dummy_') || failedMedia.has(allMedia[currentMediaIndex].src) ? (
+                    <ImageFallback className="w-full h-80 bg-gradient-to-br flex items-center justify-center" />
                   ) : (
                     <img
                       src={`/uploads/${allMedia[currentMediaIndex].src}`}
                       alt={post.title}
                       className="w-full h-80 object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML =
-                            '<div class="w-full h-80 bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center"><span class="text-white text-3xl">📷</span></div>';
-                        }
+                      onError={() => {
+                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex].src));
                       }}
                     />
                   )
                 ) : (
-                  <video
-                    src={`/uploads/${allMedia[currentMediaIndex].src}`}
-                    controls
-                    className="w-full h-80 object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLVideoElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.innerHTML =
-                          '<div class="w-full h-80 bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center"><span class="text-white text-3xl">🎥</span></div>';
-                      }
-                    }}
-                  />
-                )}
+                  failedMedia.has(allMedia[currentMediaIndex].src) ? (
+                    <ImageFallback 
+                      isVideo={true} 
+                      className="w-full h-80 bg-gradient-to-br flex items-center justify-center" 
+                    />
+                  ) : (
+                    <video
+                      src={`/uploads/${allMedia[currentMediaIndex].src}`}
+                      controls
+                      className="w-full h-80 object-cover"
+                      onError={() => {
+                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex].src));
+                      }}
+                    />
+                  )
+                )
               </div>
 
               {/* Media Navigation */}

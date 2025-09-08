@@ -17,11 +17,13 @@ import PostDetailModal from '@/components/PostDetailModal';
 import { VirtualizedFeed, FeedStats } from '@/components/VirtualizedFeed';
 import { groupSimilarPosts } from '@/utils/postGrouping';
 import type { Post } from '@shared/schema';
+import { ImageFallback } from '@/components/ImageFallback';
 
 export default function Feed() {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(false);
+  const [failedImages, setFailedImages] = useState(new Set<number>());
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -302,6 +304,11 @@ export default function Feed() {
                                 : '📷'}
                       </span>
                     </div>
+                  ) : failedImages.has(post.id) ? (
+                    <ImageFallback 
+                      shape={post.shape} 
+                      className="w-full h-64 bg-gradient-to-br flex items-center justify-center" 
+                    />
                   ) : (
                     <img
                       src={`/uploads/${post.images[0]}`}
@@ -309,23 +316,8 @@ export default function Feed() {
                       className={`w-full h-64 object-cover ${
                         post.shape === 'heart' ? 'clip-path-heart' : ''
                       }`}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          const shapeIcon =
-                            post.shape === 'heart'
-                              ? '💖'
-                              : post.shape === 'cloud'
-                                ? '☁️'
-                                : post.shape === 'wave'
-                                  ? '🌊'
-                                  : post.shape === 'polaroid'
-                                    ? '📸'
-                                    : '📷';
-                          parent.innerHTML = `<div class="w-full h-64 bg-gradient-to-br from-teal-200 to-pink-200 flex items-center justify-center"><span class="text-white text-2xl">${shapeIcon}</span></div>`;
-                        }
+                      onError={() => {
+                        setFailedImages(prev => new Set(prev).add(post.id));
                       }}
                     />
                   )}
