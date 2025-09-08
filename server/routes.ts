@@ -1189,9 +1189,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // WebSocket setup for real-time chat
+  // WebSocket setup for real-time chat and notifications
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   const clients = new Map<string, WebSocket>();
+
+  // 알림 전송 헬퍼 함수
+  const sendNotificationToUser = (userId: string, notification: any) => {
+    const userWs = clients.get(userId);
+    if (userWs && userWs.readyState === WebSocket.OPEN) {
+      userWs.send(JSON.stringify({
+        type: 'notification',
+        notification: notification
+      }));
+    }
+  };
+
+  // 전역 알림 전송 함수를 앱 객체에 추가
+  (app as any).sendNotificationToUser = sendNotificationToUser;
 
   wss.on('connection', (ws: WebSocket, req) => {
     let userId: string | null = null;
@@ -1271,6 +1285,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.followUser(followerId, followingId);
+
+      // 팔로우 알림 생성
+      const follower = await storage.getUser(followerId);
+      if (follower) {
+        const notification = await storage.createNotification({
+          userId: followingId,
+          type: 'follow',
+          title: '새로운 팔로워',
+          message: `${follower.username}님이 회원님을 팔로우하기 시작했습니다.`,
+          relatedUserId: followerId,
+        });
+
+        // 실시간 알림 전송
+        const sendNotificationToUser = (app as any).sendNotificationToUser;
+        if (sendNotificationToUser) {
+          sendNotificationToUser(followingId, notification);
+        }
+      }
+
       res.status(200).json({ message: '팔로우 완료' });
     } catch (error) {
       console.error('Follow error:', error);
@@ -1451,6 +1484,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const attendee = await storage.joinMiniMeet(meetId, userId);
+
+      // 호스트에게 참가 알림 생성
+      const participant = await storage.getUser(userId);
+      if (participant && meet.hostId !== userId) {
+        const notification = await storage.createNotification({
+          userId: meet.hostId,
+          type: 'chat', // MiniMeet 관련이므로 chat 타입 사용
+          title: 'MiniMeet 참가자',
+          message: `${participant.username}님이 "${meet.title}" 모임에 참가했습니다.`,
+          relatedUserId: userId,
+        });
+
+        // 실시간 알림 전송
+        const sendNotificationToUser = (app as any).sendNotificationToUser;
+        if (sendNotificationToUser) {
+          sendNotificationToUser(meet.hostId, notification);
+        }
+      }
 
       // 참여 후 최신 모임 정보 반환
       const updatedMeet = await storage.getMiniMeetById(meetId);
