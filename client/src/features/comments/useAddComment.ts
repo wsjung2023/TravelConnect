@@ -19,6 +19,7 @@ export function useAddComment(postId: number) {
         id: `temp-${Date.now()}`,
         content,
         createdAt: new Date().toISOString(),
+        userId: "현재사용자", // 임시 사용자 ID
         author: { nickname: "나" },
         _optimistic: true,
       };
