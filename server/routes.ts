@@ -8,7 +8,8 @@ import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
-import { setupAuth, isAuthenticated } from './replitAuth';
+//import { setupAuth, authenticateToken } from './replitAuth';
+//import { authenticateToken } from "./auth";
 // import { setupGoogleAuth } from './googleAuth'; // 모듈 없음으로 주석 처리
 import passport from 'passport';
 import {
@@ -435,9 +436,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Replit Auth 사용자 조회 (호환성 유지)
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -478,9 +479,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/experiences', isAuthenticated, async (req: any, res) => {
+  app.post('/api/experiences', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const experienceData = insertExperienceSchema.parse({
         ...req.body,
         hostId: userId,
@@ -508,9 +509,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timeline routes
-  app.post('/api/timelines', isAuthenticated, apiLimiter, validateSchema(CreateTimelineSchema), async (req: any, res) => {
+  app.post('/api/timelines', authenticateToken, apiLimiter, validateSchema(CreateTimelineSchema), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       console.log('타임라인 생성 요청:', req.body);
       console.log('사용자 ID:', userId);
 
@@ -542,9 +543,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/timelines', isAuthenticated, async (req: any, res) => {
+  app.get('/api/timelines', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const timelines = await storage.getTimelinesByUser(userId);
       res.json(timelines);
     } catch (error) {
@@ -581,9 +582,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete post (Admin only)
-  app.delete('/api/posts/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/posts/:id', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const user = await storage.getUser(userId);
 
       if (user?.role !== 'admin') {
@@ -607,7 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 파일 업로드 엔드포인트
   app.post(
     '/api/upload',
-    isAuthenticated,
+    authenticateToken,
     uploadLimiter,
     (req, res, next) => {
       upload.array('files', 10)(req, res, (err) => {
@@ -695,9 +696,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return Math.max(1, d);
   }
 
-  app.post('/api/posts', isAuthenticated, async (req: any, res) => {
+  app.post('/api/posts', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const postData = insertPostSchema.parse({
         ...req.body,
         userId,
@@ -870,9 +871,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Booking routes
-  app.get('/api/bookings', isAuthenticated, async (req: any, res) => {
+  app.get('/api/bookings', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const { type } = req.query;
 
       let bookings;
@@ -978,7 +979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.post('/api/bookings', isAuthenticated, async (req: any, res) => {
+  app.post('/api/bookings', authenticateToken, async (req: any, res) => {
     try {
       const guestId = req.user.claims.sub;
       const bookingData = insertBookingSchema.parse({
@@ -993,7 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/bookings/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/bookings/:id', authenticateToken, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
@@ -1009,9 +1010,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat routes
-  app.get('/api/conversations', isAuthenticated, apiLimiter, async (req: any, res) => {
+  app.get('/api/conversations', authenticateToken, apiLimiter, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const conversations = await storage.getConversationsByUser(userId);
       res.json(conversations);
     } catch (error) {
@@ -1022,7 +1023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get(
     '/api/conversations/:id/messages',
-    isAuthenticated,
+    authenticateToken,
     apiLimiter,
     async (req, res) => {
       try {
@@ -1037,7 +1038,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.post('/api/conversations', isAuthenticated, apiLimiter, validateSchema(CreateConversationSchema), async (req: any, res) => {
+  app.post('/api/conversations', authenticateToken, apiLimiter, validateSchema(CreateConversationSchema), async (req: any, res) => {
     try {
       const participant1Id = req.user.claims.sub;
       const { participant2Id } = req.validatedData;
@@ -1053,9 +1054,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trip routes
-  app.get('/api/trips', isAuthenticated, async (req: any, res) => {
+  app.get('/api/trips', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const trips = await storage.getTripsByUser(userId);
       res.json(trips);
     } catch (error) {
@@ -1064,9 +1065,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/trips', isAuthenticated, async (req: any, res) => {
+  app.post('/api/trips', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const tripData = insertTripSchema.parse({
         ...req.body,
         userId,
@@ -1080,9 +1081,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User profile routes
-  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/user/profile', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const { bio, location, isHost } = req.body;
 
       const existingUser = await storage.getUser(userId);
@@ -1397,9 +1398,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // MiniMeet 관련 API
   // 모임 생성
-  app.post('/api/mini-meets', isAuthenticated, apiLimiter, validateSchema(CreateMiniMeetSchema), async (req: any, res) => {
+  app.post('/api/mini-meets', authenticateToken, apiLimiter, validateSchema(CreateMiniMeetSchema), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       
       const meetData = {
         ...req.validatedData,
@@ -1475,9 +1476,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 모임 참여
-  app.post('/api/mini-meets/:id/join', isAuthenticated, apiLimiter, async (req: any, res) => {
+  app.post('/api/mini-meets/:id/join', authenticateToken, apiLimiter, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const meetId = parseInt(req.params.id);
       
       if (isNaN(meetId)) {
@@ -1544,9 +1545,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 모임 나가기
-  app.delete('/api/mini-meets/:id/leave', isAuthenticated, apiLimiter, async (req: any, res) => {
+  app.delete('/api/mini-meets/:id/leave', authenticateToken, apiLimiter, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const meetId = parseInt(req.params.id);
       
       if (isNaN(meetId)) {
@@ -1563,9 +1564,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 여행 일정 복제 API
-  app.post('/api/trips/:id/clone', isAuthenticated, apiLimiter, async (req: any, res) => {
+  app.post('/api/trips/:id/clone', authenticateToken, apiLimiter, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user!.id;
       const tripId = parseInt(req.params.id);
       const { days } = req.query; // days=1-3,5 형식
       
