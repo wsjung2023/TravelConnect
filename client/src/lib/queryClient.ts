@@ -11,11 +11,14 @@ export async function apiRequest(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  console.log(`API 요청: ${options.method || 'GET'} ${url}`, options.body);
+  console.log('=== 🚀 API 요청 시작 ===');
+  console.log(`방법: ${options.method || 'GET'}`);
+  console.log(`URL: ${url}`);
+  console.log('옵션:', options);
 
   // 토큰 가져오기
   const token = localStorage.getItem('token');
-  console.log('토큰 상태:', token ? `있음 (${token.substring(0, 20)}...)` : '없음');
+  console.log('🔑 토큰 상태:', token ? `있음 (${token.substring(0, 20)}...)` : '❌ 없음');
 
   const headers: HeadersInit = {
     ...options.headers,
@@ -32,19 +35,31 @@ export async function apiRequest(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+    console.log('✅ Authorization 헤더 추가됨');
+  } else {
+    console.error('⚠️ 경고: 토큰이 없어서 Authorization 헤더를 추가할 수 없습니다!');
   }
 
-  const res = await fetch(url, {
+  console.log('📝 최종 헤더들:', headers);
+
+  const fetchOptions = {
     ...options,
     headers,
-    credentials: 'include',
-  });
+    credentials: 'include' as RequestCredentials,
+  };
+  
+  console.log('🌐 fetch 옵션:', fetchOptions);
 
-  console.log(`응답: ${res.status} ${res.statusText}`, {
+  const res = await fetch(url, fetchOptions);
+
+  console.log(`📋 응답: ${res.status} ${res.statusText}`);
+  console.log('응답 세부:', {
     url,
     hasToken: !!token,
-    method: options.method || 'GET'
+    method: options.method || 'GET',
+    status: res.status
   });
+  console.log('=== ✅ API 요청 완료 ===');
 
   await throwIfResNotOk(res);
   return res;
