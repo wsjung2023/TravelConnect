@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import PostDetailModal from '@/components/PostDetailModal';
 import TimelineCreateModal from '@/components/TimelineCreateModal';
+import { VirtualizedTimeline, TimelineStats } from '@/components/VirtualizedTimeline';
+import { groupPostsByDay } from '@/utils/postGrouping';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +31,8 @@ export default function TimelinePage() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [useVirtualization, setUseVirtualization] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -194,6 +198,7 @@ export default function TimelinePage() {
   };
 
   if (selectedTimeline && timelineDetail) {
+    const shouldUseVirtualization = timelineDetail.posts.length > 30 || useVirtualization;
     const dayGroups = getDaysByTimeline(timelineDetail.posts);
 
     return (
@@ -212,20 +217,37 @@ export default function TimelinePage() {
           <h1 className="text-xl font-bold text-gray-900">
             {timelineDetail.title}
           </h1>
-          {/* Follow 버튼 - 다른 사용자의 타임라인인 경우에만 표시 */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => cloneTripMutation.mutate(timelineDetail.id)}
-            disabled={cloneTripMutation.isPending}
-            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-none hover:from-pink-600 hover:to-purple-600"
-            data-testid="button-follow-trip"
-          >
-            <Heart className="w-4 h-4 mr-1" />
-            {cloneTripMutation.isPending ? '복제 중...' : '일정 복제'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* 가상화 토글 */}
+            <button
+              onClick={() => setUseVirtualization(!useVirtualization)}
+              className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                shouldUseVirtualization 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {shouldUseVirtualization ? '가상화' : '일반'}
+            </button>
+            {/* Follow 버튼 - 다른 사용자의 타임라인인 경우에만 표시 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => cloneTripMutation.mutate(timelineDetail.id)}
+              disabled={cloneTripMutation.isPending}
+              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-none hover:from-pink-600 hover:to-purple-600"
+              data-testid="button-follow-trip"
+            >
+              <Heart className="w-4 h-4 mr-1" />
+              {cloneTripMutation.isPending ? '복제 중...' : '일정 복제'}
+            </Button>
+          </div>
         </div>
-        <div className="p-4 pb-32 max-h-[calc(100vh-80px)] overflow-y-auto">
+        <div 
+          className="p-4 pb-32 max-h-[calc(100vh-80px)] overflow-y-auto" 
+          ref={containerRef}
+          style={{ height: shouldUseVirtualization ? '100%' : 'auto' }}
+        >
           <div className="max-w-4xl mx-auto">
             {/* 타임라인 정보 */}
             <Card className="mb-6">
@@ -261,21 +283,37 @@ export default function TimelinePage() {
               </CardHeader>
             </Card>
 
-            {/* Day별 타임라인 */}
-            <div className="space-y-8 pb-10">
-              {dayGroups.map(({ day, posts }) => (
-                <div key={day} className="relative">
-                  {/* Day 헤더 */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="bg-teal-500 text-white px-4 py-2 rounded-full font-bold">
-                      DAY {day}
-                    </div>
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                  </div>
+            {/* 통계 정보 */}
+            {shouldUseVirtualization && (
+              <TimelineStats 
+                dayGroups={groupPostsByDay(timelineDetail.posts, new Date(timelineDetail.startDate))}
+                originalPostCount={timelineDetail.posts.length}
+              />
+            )}
 
-                  {/* 해당 Day의 포스트들 */}
-                  <div className="space-y-4 ml-8">
-                    {posts.map((post, index) => (
+            {/* Day별 타임라인 */}
+            {shouldUseVirtualization ? (
+              <VirtualizedTimeline
+                posts={timelineDetail.posts}
+                onPostClick={(post) => setSelectedPost(post)}
+                containerRef={containerRef}
+                startDate={new Date(timelineDetail.startDate)}
+              />
+            ) : (
+              <div className="space-y-8 pb-10">
+                {dayGroups.map(({ day, posts }) => (
+                  <div key={day} className="relative">
+                    {/* Day 헤더 */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="bg-teal-500 text-white px-4 py-2 rounded-full font-bold">
+                        DAY {day}
+                      </div>
+                      <div className="flex-1 h-px bg-gray-300"></div>
+                    </div>
+
+                    {/* 해당 Day의 포스트들 */}
+                    <div className="space-y-4 ml-8">
+                      {posts.map((post, index) => (
                       <Card
                         key={post.id}
                         className="relative cursor-pointer hover:shadow-lg transition-shadow"
@@ -369,6 +407,7 @@ export default function TimelinePage() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </div>
 

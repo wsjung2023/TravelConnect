@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Heart,
@@ -14,11 +14,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import PostDetailModal from '@/components/PostDetailModal';
+import { VirtualizedFeed, FeedStats } from '@/components/VirtualizedFeed';
+import { groupSimilarPosts } from '@/utils/postGrouping';
 import type { Post } from '@shared/schema';
 
 export default function Feed() {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [useVirtualization, setUseVirtualization] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -26,6 +30,10 @@ export default function Feed() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['/api/posts'],
   });
+
+  // 포스트 수가 많으면 자동으로 가상화 활성화
+  const shouldUseVirtualization = posts.length > 50 || useVirtualization;
+  const postGroups = groupSimilarPosts(posts);
 
   const likeMutation = useMutation({
     mutationFn: async (postId: number) => {
@@ -90,7 +98,7 @@ export default function Feed() {
   }
 
   return (
-    <div className="mobile-content custom-scrollbar">
+    <div className="mobile-content" ref={containerRef} style={{ height: '100vh', overflow: 'auto' }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
@@ -104,21 +112,50 @@ export default function Feed() {
           </button>
           <h1 className="text-xl font-bold text-gray-800">여행 피드</h1>
         </div>
-        <Link href="/timeline">
-          <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
-            <Calendar size={20} className="text-purple-600" />
+        <div className="flex items-center gap-2">
+          {/* 가상화 토글 */}
+          <button
+            onClick={() => setUseVirtualization(!useVirtualization)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              shouldUseVirtualization 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {shouldUseVirtualization ? '가상화 ON' : '가상화 OFF'}
           </button>
-        </Link>
+          <Link href="/timeline">
+            <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
+              <Calendar size={20} className="text-purple-600" />
+            </button>
+          </Link>
+        </div>
       </div>
 
+      {/* 통계 정보 */}
+      {shouldUseVirtualization && posts.length > 0 && (
+        <div className="p-4 pb-0">
+          <FeedStats 
+            originalCount={posts.length}
+            groupedCount={postGroups.length}
+          />
+        </div>
+      )}
+
       {/* Posts */}
-      <div className="space-y-4 p-4">
-        {posts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            아직 피드가 없습니다.
-          </div>
-        ) : (
-          posts.map((post: Post) => (
+      {posts.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          아직 피드가 없습니다.
+        </div>
+      ) : shouldUseVirtualization ? (
+        <VirtualizedFeed
+          posts={posts}
+          onPostClick={(post) => setSelectedPost(post)}
+          containerRef={containerRef}
+        />
+      ) : (
+        <div className="space-y-4 p-4">
+          {posts.map((post: Post) => (
             <div key={post.id} className="travel-card p-4">
               {/* Post Header */}
               <div className="flex items-center justify-between mb-3">
@@ -290,9 +327,9 @@ export default function Feed() {
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Post Detail Modal */}
       {selectedPost && (
