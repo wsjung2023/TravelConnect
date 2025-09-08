@@ -278,7 +278,7 @@ export default function Feed() {
                             : 'rounded-lg'
                   }`}
                 >
-                  {post.images[0].startsWith('dummy_') ? (
+                  {post.images?.[0]?.startsWith('dummy_') ? (
                     <div
                       className={`w-full h-64 flex items-center justify-center ${
                         post.shape === 'heart'
@@ -306,12 +306,12 @@ export default function Feed() {
                     </div>
                   ) : failedImages.has(post.id) ? (
                     <ImageFallback 
-                      shape={post.shape} 
+                      shape={post.shape || undefined} 
                       className="w-full h-64 bg-gradient-to-br flex items-center justify-center" 
                     />
                   ) : (
                     <img
-                      src={`/uploads/${post.images[0]}`}
+                      src={`/uploads/${post.images?.[0] || ''}`}
                       alt={post.title}
                       className={`w-full h-64 object-cover ${
                         post.shape === 'heart' ? 'clip-path-heart' : ''
