@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import Modal from '@/components/ui/Modal';
+import CommentForm from '@/components/post/CommentForm';
 import type { Post } from '@shared/schema';
 
 interface PostDetailModalProps {
@@ -62,10 +64,9 @@ export default function PostDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+    <Modal open={isOpen} onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10">
               <AvatarImage
@@ -90,8 +91,8 @@ export default function PostDetailModal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-4 max-h-[70vh] overflow-y-auto">
+      {/* Content */}
+      <div className="p-4 flex-1 overflow-y-auto">
           {/* Title and Content */}
           <div className="mb-4">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -254,30 +255,7 @@ export default function PostDetailModal({
             <h3 className="font-semibold text-gray-900 mb-3">댓글</h3>
 
             {/* Comment Input */}
-            <div className="flex gap-2 mb-4">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src="https://api.dicebear.com/7.x/initials/svg?seed=Current" />
-                <AvatarFallback>나</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="댓글을 입력하세요..."
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      const target = e.target as HTMLInputElement;
-                      const commentText = target.value.trim();
-                      if (commentText) {
-                        console.log('댓글 작성:', commentText, 'for post:', post?.id);
-                        // TODO: 댓글 API 연동 필요
-                        target.value = '';
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </div>
+            <CommentForm postId={post.id} onSent={() => console.log('댓글 전송 완료')} />
 
             {/* Sample Comments */}
             <div className="space-y-3 max-h-32 overflow-y-auto">
@@ -315,7 +293,6 @@ export default function PostDetailModal({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
