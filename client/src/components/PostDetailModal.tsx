@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Modal from '@/components/ui/Modal';
 import CommentForm from '@/components/post/CommentForm';
+import CommentsSection from '@/components/post/CommentsSection';
 import type { Post } from '@shared/schema';
 
 interface PostDetailModalProps {
@@ -255,42 +256,10 @@ export default function PostDetailModal({
             <h3 className="font-semibold text-gray-900 mb-3">댓글</h3>
 
             {/* Comment Input */}
-            <CommentForm postId={post.id} onSent={() => console.log('댓글 전송 완료')} />
+            <CommentForm postId={post.id} />
 
-            {/* Sample Comments */}
-            <div className="space-y-3 max-h-32 overflow-y-auto">
-              <div className="flex gap-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src="https://api.dicebear.com/7.x/initials/svg?seed=User1" />
-                  <AvatarFallback>여행</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="text-sm">
-                    <span className="font-medium text-gray-900">여행러버</span>
-                    <span className="text-gray-700 ml-2">
-                      정말 멋진 곳이네요! 저도 가보고 싶어요 ✨
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">2시간 전</p>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src="https://api.dicebear.com/7.x/initials/svg?seed=User2" />
-                  <AvatarFallback>모험</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="text-sm">
-                    <span className="font-medium text-gray-900">모험가</span>
-                    <span className="text-gray-700 ml-2">
-                      완전 인스타그램 감성! 📸
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">1일 전</p>
-                </div>
-              </div>
-            </div>
+            {/* Live Comments */}
+            <CommentsSection postId={post.id} />
           </div>
         </div>
     </Modal>
