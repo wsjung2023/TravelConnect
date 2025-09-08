@@ -29,24 +29,39 @@ export function generateToken(user: {
   role: string;
 }) {
   const secret = JWT_SECRET || 'dev-fallback-key';
-  return jwt.sign(
+  console.log('토큰 생성:', {
+    userId: user.id,
+    userRole: user.role,
+    secretExists: !!JWT_SECRET,
+    jwtOptions
+  });
+  const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     secret,
     jwtOptions
   );
+  console.log('생성된 토큰:', token.substring(0, 50) + '...');
+  return token;
 }
 
 // JWT 토큰 검증
 export function verifyToken(token: string) {
   try {
     const secret = JWT_SECRET || 'dev-fallback-key';
+    console.log('토큰 검증 시도:', {
+      tokenLength: token.length,
+      secretExists: !!JWT_SECRET,
+      tokenPrefix: token.substring(0, 20)
+    });
     const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
+    console.log('토큰 검증 성공:', decoded);
     return decoded as {
       id: string;
       email: string;
       role: string;
     };
   } catch (error) {
+    console.log('토큰 검증 실패:', error);
     return null;
   }
 }
