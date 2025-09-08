@@ -3,16 +3,33 @@ import { PostGroup } from '@/utils/postGrouping';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Clock, Users } from 'lucide-react';
+import VideoShape, { ImageShape } from '@/components/VideoShape';
+import type { Post } from '@shared/schema';
 
 interface PostGroupCardProps {
   group: PostGroup;
-  onClick: (post: any) => void;
+  onClick: (post: Post) => void;
   className?: string;
 }
 
 export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardProps) {
   const { posts, primaryPost, location, timeRange } = group;
   const isMultiPost = posts.length > 1;
+
+  // 미디어 파일 여부 확인
+  const hasMedia = (post: Post) => {
+    return post.mediaUrl && (
+      post.mediaUrl.includes('.jpg') || 
+      post.mediaUrl.includes('.png') || 
+      post.mediaUrl.includes('.mp4') || 
+      post.mediaUrl.includes('.webm') ||
+      post.mediaUrl.includes('.gif')
+    );
+  };
+
+  const isVideo = (url: string) => {
+    return url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
+  };
 
   // 테마별 색상
   const getThemeColor = (theme?: string) => {
@@ -101,17 +118,52 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
           </p>
         )}
 
-        {/* 이미지 그리드 (멀티포스트인 경우) */}
+        {/* 메인 미디어 표시 (단일 포스트) */}
+        {!isMultiPost && hasMedia(primaryPost) && (
+          <div className="mb-3 flex justify-center">
+            {isVideo(primaryPost.mediaUrl!) ? (
+              <VideoShape
+                src={primaryPost.mediaUrl!}
+                shape="default"
+                className="medium"
+                autoPlay={false}
+                data-testid={`video-${primaryPost.id}`}
+              />
+            ) : (
+              <ImageShape
+                src={primaryPost.mediaUrl!}
+                alt={primaryPost.title || 'Post image'}
+                shape="default"
+                className="medium"
+                data-testid={`image-${primaryPost.id}`}
+              />
+            )}
+          </div>
+        )}
+
+        {/* 멀티포스트 미디어 그리드 */}
         {isMultiPost && (
           <div className="grid grid-cols-2 gap-2 mb-3">
             {posts.slice(0, 4).map((post, index) => (
-              post.images?.[0] && (
+              hasMedia(post) && (
                 <div key={post.id} className="relative">
-                  <img 
-                    src={post.images[0]} 
-                    alt={`Post ${index + 1}`}
-                    className="w-full h-20 object-cover rounded-lg"
-                  />
+                  {isVideo(post.mediaUrl!) ? (
+                    <VideoShape
+                      src={post.mediaUrl!}
+                      shape="heart"
+                      className="small"
+                      autoPlay={false}
+                      data-testid={`grid-video-${post.id}`}
+                    />
+                  ) : (
+                    <ImageShape
+                      src={post.mediaUrl!}
+                      alt={`Post ${index + 1}`}
+                      shape={index === 0 ? 'heart' : index === 1 ? 'cloud' : 'default'}
+                      className="small"
+                      data-testid={`grid-image-${post.id}`}
+                    />
+                  )}
                   {index === 3 && posts.length > 4 && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center text-white text-xs">
                       +{posts.length - 4}개 더
@@ -121,15 +173,6 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
               )
             ))}
           </div>
-        )}
-
-        {/* 단일 포스트 이미지 */}
-        {!isMultiPost && primaryPost.images?.[0] && (
-          <img 
-            src={primaryPost.images[0]} 
-            alt="Post image"
-            className="w-full h-40 object-cover rounded-lg mb-3"
-          />
         )}
 
         {/* 메타 정보 */}
