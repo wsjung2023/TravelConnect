@@ -263,7 +263,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(posts)
-      .orderBy(desc(posts.createdAt))
+      .orderBy(desc(posts.createdAt), desc(posts.id)) // ID로 2차 정렬 추가
       .limit(limit)
       .offset(offset);
   }
