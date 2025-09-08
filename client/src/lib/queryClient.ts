@@ -7,38 +7,25 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Deprecated: Use api() from @/lib/api instead
 export async function apiRequest(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  // 토큰 가져오기
-  const token = localStorage.getItem('token');
-
-  const headers: HeadersInit = {
-    ...options.headers,
-  };
-
-  // body가 있고 FormData가 아닌 경우 JSON으로 처리
-  if (options.body && !(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-    // body가 이미 문자열이 아닌 경우에만 JSON.stringify 적용
-    if (typeof options.body !== 'string') {
-      options.body = JSON.stringify(options.body);
-    }
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+  // 호환성을 위해 api() 함수 사용
+  const { api } = await import('@/lib/api');
+  const method = options.method || 'GET';
+  const body = options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : undefined;
+  
+  const result = await api(url, { method, body });
+  
+  // Response 객체처럼 보이게 만들기 (호환성)
+  return {
+    json: () => Promise.resolve(result),
+    ok: true,
+    status: 200,
+    statusText: 'OK'
+  } as Response;
 }
 
 type UnauthorizedBehavior = 'returnNull' | 'throw';

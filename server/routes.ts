@@ -10,7 +10,7 @@ import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
 //import { setupAuth, authenticateToken } from './replitAuth';
 //import { authenticateToken } from "./auth";
-// import { setupGoogleAuth } from './googleAuth'; // 모듈 없음으로 주석 처리
+import { setupGoogleAuth } from './googleAuth'; // 모듈 없음으로 주석 처리
 import passport from 'passport';
 import {
   authenticateToken,
@@ -233,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
 
   // Google OAuth 설정
-  // setupGoogleAuth(app); // googleAuth 모듈 없음으로 주석 처리
+  setupGoogleAuth(app); // googleAuth 모듈 없음으로 주석 처리
 
   // 이메일/비밀번호 회원가입
   app.post('/api/auth/register', authLimiter, validateSchema(RegisterSchema), async (req: any, res) => {
