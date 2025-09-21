@@ -1,7 +1,24 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { storage } from './storage';
+
+// Express Request 타입 확장
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      email: string;
+      role: string;
+    }
+    interface Request {
+      user?: User;
+      validatedData?: unknown;
+    }
+  }
+}
+
+export type AuthRequest = Request; // 호환성을 위한 타입 별칭
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -12,14 +29,6 @@ if (!JWT_SECRET) {
 }
 
 export const jwtOptions: jwt.SignOptions = { algorithm: 'HS256' as const, expiresIn: '7d' };
-
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
 
 // JWT 토큰 생성
 export function generateToken(user: {
@@ -69,11 +78,7 @@ export async function comparePassword(
 }
 
 // 인증 미들웨어
-export async function authenticateToken(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) {
+export const authenticateToken: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -94,17 +99,10 @@ export async function authenticateToken(
 
   req.user = decoded;
   next();
-}
+};
 
-// 관리자 권한 확인 미들웨어
-export async function requireAdmin(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) {
-  // 먼저 인증 확인
-  await authenticateToken(req, res, () => {});
-
+// 관리자 권한 확인 미들웨어 (authenticateToken 이후에 사용)
+export const requireAdmin: RequestHandler = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
@@ -115,7 +113,7 @@ export async function requireAdmin(
   }
 
   next();
-}
+};
 
 // 이메일 유효성 검증
 export function isValidEmail(email: string): boolean {

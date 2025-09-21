@@ -15,6 +15,8 @@ import {
   follows,
   miniMeets,
   miniMeetAttendees,
+  channels,
+  channelMembers,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -42,6 +44,10 @@ import {
   type MiniMeet,
   type MiniMeetAttendee,
   type InsertMiniMeet,
+  type Channel,
+  type InsertChannel,
+  type ChannelMember,
+  type InsertChannelMember,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -141,12 +147,25 @@ export interface IStorage {
   deleteNotification(id: number): Promise<boolean>;
 
   // MiniMeets
-  async createMiniMeet(data: InsertMiniMeet): Promise<MiniMeet>;
-  async getMiniMeetsNearby(latitude: number, longitude: number, radius: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] })[]>;
-  async joinMiniMeet(meetId: number, userId: string): Promise<MiniMeetAttendee>;
-  async leaveMiniMeet(meetId: number, userId: string): Promise<void>;
-  async getMiniMeetAttendees(meetId: number): Promise<(MiniMeetAttendee & { user: User })[]>;
-  async getMiniMeetById(id: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] }) | undefined>;
+  createMiniMeet(data: InsertMiniMeet): Promise<MiniMeet>;
+  getMiniMeetsNearby(latitude: number, longitude: number, radius: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] })[]>;
+  joinMiniMeet(meetId: number, userId: string): Promise<MiniMeetAttendee>;
+  leaveMiniMeet(meetId: number, userId: string): Promise<void>;
+  getMiniMeetAttendees(meetId: number): Promise<(MiniMeetAttendee & { user: User })[]>;
+  getMiniMeetById(id: number): Promise<(MiniMeet & { host: User; attendees: MiniMeetAttendee[] }) | undefined>;
+
+  // Channel operations (새로운 채널 시스템)
+  createChannel(channel: InsertChannel): Promise<Channel>;
+  getChannelsByUser(userId: string): Promise<Channel[]>;
+  getChannelById(id: number): Promise<Channel | undefined>;
+  addChannelMember(channelId: number, userId: string, role?: string): Promise<ChannelMember>;
+  removeChannelMember(channelId: number, userId: string): Promise<void>;
+  getChannelMembers(channelId: number): Promise<(ChannelMember & { user: User })[]>;
+  
+  // Message operations (기존 + 채널 지원)
+  createChannelMessage(message: Omit<InsertMessage, 'conversationId'> & { channelId: number }): Promise<Message>;
+  getMessagesByChannel(channelId: number, limit?: number, offset?: number): Promise<Message[]>;
+  getThreadMessages(parentMessageId: number): Promise<Message[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1180,6 +1199,144 @@ export class DatabaseStorage implements IStorage {
 
     const [newTrip] = await db.insert(trips).values(clonedTripData).returning();
     return newTrip;
+  }
+
+  // Channel operations implementation
+  async createChannel(channel: InsertChannel): Promise<Channel> {
+    const [newChannel] = await db.insert(channels).values(channel).returning();
+    
+    // 채널 생성자를 owner로 자동 추가
+    if (channel.ownerId) {
+      await this.addChannelMember(newChannel.id, channel.ownerId, 'owner');
+    }
+    
+    return newChannel;
+  }
+
+  async getChannelsByUser(userId: string): Promise<Channel[]> {
+    const userChannels = await db
+      .select({
+        id: channels.id,
+        type: channels.type,
+        name: channels.name,
+        description: channels.description,
+        ownerId: channels.ownerId,
+        isPrivate: channels.isPrivate,
+        lastMessageId: channels.lastMessageId,
+        lastMessageAt: channels.lastMessageAt,
+        createdAt: channels.createdAt,
+        updatedAt: channels.updatedAt,
+      })
+      .from(channels)
+      .innerJoin(channelMembers, eq(channels.id, channelMembers.channelId))
+      .where(eq(channelMembers.userId, userId))
+      .orderBy(desc(channels.lastMessageAt));
+
+    return userChannels;
+  }
+
+  async getChannelById(id: number): Promise<Channel | undefined> {
+    const [channel] = await db.select().from(channels).where(eq(channels.id, id));
+    return channel;
+  }
+
+  async addChannelMember(channelId: number, userId: string, role: string = 'member'): Promise<ChannelMember> {
+    const [member] = await db
+      .insert(channelMembers)
+      .values({ channelId, userId, role })
+      .returning();
+    return member;
+  }
+
+  async removeChannelMember(channelId: number, userId: string): Promise<void> {
+    await db
+      .delete(channelMembers)
+      .where(
+        and(
+          eq(channelMembers.channelId, channelId),
+          eq(channelMembers.userId, userId)
+        )
+      );
+  }
+
+  async getChannelMembers(channelId: number): Promise<(ChannelMember & { user: User })[]> {
+    const members = await db
+      .select({
+        id: channelMembers.id,
+        channelId: channelMembers.channelId,
+        userId: channelMembers.userId,
+        role: channelMembers.role,
+        joinedAt: channelMembers.joinedAt,
+        lastReadAt: channelMembers.lastReadAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          bio: users.bio,
+          location: users.location,
+          role: users.role,
+          isHost: users.isHost,
+          authProvider: users.authProvider,
+          openToMeet: users.openToMeet,
+          regionCode: users.regionCode,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(channelMembers)
+      .innerJoin(users, eq(channelMembers.userId, users.id))
+      .where(eq(channelMembers.channelId, channelId));
+
+    return members.map((m) => ({
+      id: m.id,
+      channelId: m.channelId,
+      userId: m.userId,
+      role: m.role,
+      joinedAt: m.joinedAt,
+      lastReadAt: m.lastReadAt,
+      user: m.user,
+    }));
+  }
+
+  // Message operations (채널 지원)
+  async createChannelMessage(message: Omit<InsertMessage, 'conversationId'> & { channelId: number }): Promise<Message> {
+    const [newMessage] = await db.insert(messages).values(message).returning();
+    
+    // 채널의 마지막 메시지 정보 업데이트
+    await db
+      .update(channels)
+      .set({
+        lastMessageId: newMessage.id,
+        lastMessageAt: newMessage.createdAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(channels.id, message.channelId));
+
+    return newMessage;
+  }
+
+  async getMessagesByChannel(channelId: number, limit: number = 50, offset: number = 0): Promise<Message[]> {
+    const channelMessages = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.channelId, channelId))
+      .orderBy(desc(messages.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return channelMessages.reverse(); // 최신 메시지가 아래에 오도록
+  }
+
+  async getThreadMessages(parentMessageId: number): Promise<Message[]> {
+    const threadMessages = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.parentMessageId, parentMessageId))
+      .orderBy(asc(messages.createdAt));
+
+    return threadMessages;
   }
 }
 

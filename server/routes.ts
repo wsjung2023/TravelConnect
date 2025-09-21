@@ -453,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
-      const { open, region } = req.validatedData;
+      const { open, region } = req.validatedData as { open: boolean; region: string };
 
       const user = await storage.getUser(userId);
       if (!user) {
@@ -793,7 +793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // timeline이나 trip 연결 시 trip.start_date 기준으로 Day 계산
       if (postData.timelineId) {
         try {
-          const timeline = await storage.getTimeline(postData.timelineId);
+          const timeline = await storage.getTimelineById(postData.timelineId);
           if (timeline && timeline.startDate) {
             calculatedDay = inferDay(new Date(finalTakenAt), new Date(timeline.startDate));
             console.log('Timeline 기준 Day 계산:', {
@@ -818,7 +818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const newPostDate = new Date(finalTakenAt).toDateString();
           allDates.push(newPostDate);
           
-          const uniqueDates = [...new Set(allDates)].sort((a, b) => 
+          const uniqueDates = Array.from(new Set(allDates)).sort((a, b) => 
             new Date(a).getTime() - new Date(b).getTime()
           );
           
@@ -1206,7 +1206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/notifications/:id/read', authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const notificationId = parseInt(req.params.id);
+      const notificationId = parseInt(req.params.id!);
       await storage.markNotificationAsRead(notificationId);
       res.json({ message: 'Notification marked as read' });
     } catch (error) {
@@ -1231,7 +1231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/notifications/:id', authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const notificationId = parseInt(req.params.id);
+      const notificationId = parseInt(req.params.id!);
       const success = await storage.deleteNotification(notificationId);
       if (success) {
         res.json({ message: 'Notification deleted' });
@@ -1333,7 +1333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             conversationId,
             senderId: userId,
             content,
-          });
+          } as any);
 
           // Send to recipient if online
           const recipientWs = clients.get(recipientId);
@@ -1395,7 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: followingId,
           type: 'follow',
           title: '새로운 팔로워',
-          message: `${follower.username}님이 회원님을 팔로우하기 시작했습니다.`,
+          message: `${follower.firstName || follower.email}님이 회원님을 팔로우하기 시작했습니다.`,
           relatedUserId: followerId,
         });
 
@@ -1594,7 +1594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: meet.hostId,
           type: 'chat', // MiniMeet 관련이므로 chat 타입 사용
           title: 'MiniMeet 참가자',
-          message: `${participant.username}님이 "${meet.title}" 모임에 참가했습니다.`,
+          message: `${participant.firstName || participant.email}님이 "${meet.title}" 모임에 참가했습니다.`,
           relatedUserId: userId,
         });
 
@@ -1745,6 +1745,253 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ 법적 문서 저장 실패:', error);
       res.status(500).json({ message: '문서 저장 중 오류가 발생했습니다.' });
+    }
+  });
+
+  // =================== 채널 시스템 API 엔드포인트 ===================
+  
+  // 채널 생성 (그룹 채팅, 토픽 채널)
+  app.post('/api/channels', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { type = 'group', name, description, isPrivate = false } = req.body;
+      
+      if (!['dm', 'group', 'topic'].includes(type)) {
+        return res.status(400).json({ message: '유효하지 않은 채널 타입입니다' });
+      }
+
+      const channel = await storage.createChannel({
+        type,
+        name,
+        description,
+        ownerId: userId,
+        isPrivate,
+      });
+
+      res.status(201).json(channel);
+    } catch (error) {
+      console.error('채널 생성 오류:', error);
+      res.status(500).json({ message: '채널 생성 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 사용자의 채널 목록 조회
+  app.get('/api/channels', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const channels = await storage.getChannelsByUser(userId);
+      res.json(channels);
+    } catch (error) {
+      console.error('채널 목록 조회 오류:', error);
+      res.status(500).json({ message: '채널 목록 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 특정 채널 정보 조회
+  app.get('/api/channels/:id', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const channelId = parseInt(req.params.id!);
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const channel = await storage.getChannelById(channelId);
+      if (!channel) {
+        return res.status(404).json({ message: '채널을 찾을 수 없습니다' });
+      }
+
+      // 채널 멤버인지 확인
+      const members = await storage.getChannelMembers(channelId);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember && channel.isPrivate) {
+        return res.status(403).json({ message: '이 채널에 접근할 권한이 없습니다' });
+      }
+
+      res.json({ ...channel, members });
+    } catch (error) {
+      console.error('채널 조회 오류:', error);
+      res.status(500).json({ message: '채널 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 채널에 멤버 추가
+  app.post('/api/channels/:id/members', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const channelId = parseInt(req.params.id!);
+      const { targetUserId, role = 'member' } = req.body;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // 채널 존재 확인
+      const channel = await storage.getChannelById(channelId);
+      if (!channel) {
+        return res.status(404).json({ message: '채널을 찾을 수 없습니다' });
+      }
+
+      // 권한 확인 (채널 소유자 또는 관리자만)
+      const members = await storage.getChannelMembers(channelId);
+      const requesterMember = members.find(m => m.userId === userId);
+      
+      if (!requesterMember || (requesterMember.role !== 'owner' && requesterMember.role !== 'admin')) {
+        return res.status(403).json({ message: '멤버를 추가할 권한이 없습니다' });
+      }
+
+      const newMember = await storage.addChannelMember(channelId, targetUserId, role);
+      res.status(201).json(newMember);
+    } catch (error) {
+      console.error('채널 멤버 추가 오류:', error);
+      res.status(500).json({ message: '채널 멤버 추가 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 채널에서 멤버 제거
+  app.delete('/api/channels/:id/members/:userId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const requesterId = req.user?.id;
+      const channelId = parseInt(req.params.id!);
+      const targetUserId = req.params.userId;
+      
+      if (!requesterId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // 채널 존재 확인
+      const channel = await storage.getChannelById(channelId);
+      if (!channel) {
+        return res.status(404).json({ message: '채널을 찾을 수 없습니다' });
+      }
+
+      // 자신을 나가는 경우는 항상 허용
+      if (requesterId !== targetUserId) {
+        // 다른 사람을 내보내는 경우 권한 확인
+        const members = await storage.getChannelMembers(channelId);
+        const requesterMember = members.find(m => m.userId === requesterId);
+        
+        if (!requesterMember || (requesterMember.role !== 'owner' && requesterMember.role !== 'admin')) {
+          return res.status(403).json({ message: '멤버를 제거할 권한이 없습니다' });
+        }
+      }
+
+      await storage.removeChannelMember(channelId, targetUserId!);
+      res.json({ message: '멤버가 제거되었습니다' });
+    } catch (error) {
+      console.error('채널 멤버 제거 오류:', error);
+      res.status(500).json({ message: '채널 멤버 제거 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 채널 메시지 목록 조회
+  app.get('/api/channels/:id/messages', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const channelId = parseInt(req.params.id!);
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // 채널 멤버인지 확인
+      const members = await storage.getChannelMembers(channelId);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: '이 채널의 메시지를 볼 권한이 없습니다' });
+      }
+
+      const messages = await storage.getMessagesByChannel(channelId, limit, offset);
+      res.json(messages);
+    } catch (error) {
+      console.error('채널 메시지 조회 오류:', error);
+      res.status(500).json({ message: '채널 메시지 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 채널에 메시지 전송
+  app.post('/api/channels/:id/messages', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const channelId = parseInt(req.params.id!);
+      const { content, messageType = 'text', parentMessageId } = req.body;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: '메시지 내용이 필요합니다' });
+      }
+
+      // 채널 멤버인지 확인
+      const members = await storage.getChannelMembers(channelId);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: '이 채널에 메시지를 보낼 권한이 없습니다' });
+      }
+
+      const message = await storage.createChannelMessage({
+        channelId,
+        senderId: userId,
+        content: content.trim(),
+        messageType,
+        parentMessageId,
+      } as any);
+
+      // WebSocket으로 실시간 전송
+      const wsClients = (app as any).wsClients as Map<string, any>;
+      if (wsClients) {
+        for (const member of members) {
+          if (member.userId !== userId) { // 발신자 제외
+            const memberWs = wsClients.get(member.userId);
+            if (memberWs && memberWs.readyState === 1) { // WebSocket.OPEN
+              memberWs.send(JSON.stringify({
+                type: 'channel_message',
+                channelId,
+                message,
+              }));
+            }
+          }
+        }
+      }
+
+      res.status(201).json(message);
+    } catch (error) {
+      console.error('채널 메시지 전송 오류:', error);
+      res.status(500).json({ message: '채널 메시지 전송 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 스레드 메시지 조회
+  app.get('/api/messages/:id/thread', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      const parentMessageId = parseInt(req.params.id!);
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const threadMessages = await storage.getThreadMessages(parentMessageId);
+      res.json(threadMessages);
+    } catch (error) {
+      console.error('스레드 메시지 조회 오류:', error);
+      res.status(500).json({ message: '스레드 메시지 조회 중 오류가 발생했습니다' });
     }
   });
 
