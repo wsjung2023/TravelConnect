@@ -278,6 +278,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Commerce Admin API - ADMIN ONLY
+  
+  // 커머스 통계 조회
+  app.get('/api/admin/commerce/stats', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const stats = await storage.getCommerceStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching commerce stats:', error);
+      res.status(500).json({ error: 'Failed to fetch commerce stats' });
+    }
+  });
+
+  // 관리자용 경험 목록 조회 (호스트 정보 포함)
+  app.get('/api/admin/experiences', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const experiences = await storage.getExperiencesWithHosts();
+      res.json(experiences);
+    } catch (error) {
+      console.error('Error fetching admin experiences:', error);
+      res.status(500).json({ error: 'Failed to fetch experiences' });
+    }
+  });
+
+  // 관리자용 예약 목록 조회 (관련 정보 조인)
+  app.get('/api/admin/bookings', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const bookings = await storage.getBookingsWithDetails();
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error fetching admin bookings:', error);
+      res.status(500).json({ error: 'Failed to fetch bookings' });
+    }
+  });
+
+  // 관리자용 결제 목록 조회
+  app.get('/api/admin/payments', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const payments = await storage.getAllPayments();
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching admin payments:', error);
+      res.status(500).json({ error: 'Failed to fetch payments' });
+    }
+  });
+
   // 조건부 인증 설정
   if (process.env.REPLIT_DOMAINS) {
     // Replit 환경에서만 OIDC 인증 설정
