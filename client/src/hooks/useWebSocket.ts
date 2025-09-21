@@ -21,11 +21,10 @@ export function useWebSocket() {
       return;
     }
 
-    // WebSocket URL 생성 - 현재 도메인의 포트 5000 사용
+    // WebSocket URL 생성 - 보안 강화 및 URL 문제 해결
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname;
-    const port = '5000'; // 명시적으로 포트 설정
-    const wsUrl = `${protocol}//${host}:${port}/ws`;
+    const host = window.location.host; // hostname:port 포함
+    const wsUrl = `${protocol}//${host}/ws`;
     
     console.log('WebSocket 연결 시도:', wsUrl);
 
@@ -34,13 +33,19 @@ export function useWebSocket() {
 
       ws.current.onopen = () => {
         console.log('WebSocket 연결됨');
-        // 인증 메시지 전송
+        // JWT 토큰으로 인증 메시지 전송 (보안 강화)
         if (ws.current && user?.id) {
           try {
-            ws.current.send(JSON.stringify({
-              type: 'auth',
-              userId: user.id
-            }));
+            const token = localStorage.getItem('token');
+            if (token) {
+              ws.current.send(JSON.stringify({
+                type: 'auth',
+                token: token
+              }));
+            } else {
+              console.error('JWT 토큰이 없어 WebSocket 인증 실패');
+              ws.current.close();
+            }
           } catch (sendError) {
             console.error('WebSocket 인증 메시지 전송 실패:', sendError);
           }

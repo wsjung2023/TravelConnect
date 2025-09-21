@@ -342,7 +342,7 @@ export default function TimelinePage() {
                             {/* 포스트 이미지 */}
                             {post.images && post.images.length > 0 && (
                               <img
-                                src={`/uploads/${post.images[0]}`}
+                                src={`/api/files/${post.images[0]}`}
                                 alt={post.title || ''}
                                 className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
                                 onError={(e) => {

@@ -10,7 +10,7 @@ import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
 import { setupAuth } from './replitAuth';
 //import { authenticateToken } from "./auth";
-import { setupGoogleAuth } from './googleAuth'; // 모듈 없음으로 주석 처리
+// import { setupGoogleAuth } from './googleAuth'; // 모듈 없음 - 주석 처리
 import passport from 'passport';
 import {
   authenticateToken,
@@ -21,6 +21,7 @@ import {
   isValidEmail,
   isValidPassword,
   generateUserId,
+  verifyToken,
   AuthRequest,
 } from './auth';
 import {
@@ -259,8 +260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Passport 초기화 (Google OAuth용)
   app.use(passport.initialize());
 
-  // Google OAuth 설정
-  setupGoogleAuth(app); // googleAuth 모듈 없음으로 주석 처리
+  // Google OAuth 설정 - 모듈 없음으로 주석 처리
+  // setupGoogleAuth(app);
 
   // 이메일/비밀번호 회원가입
   app.post('/api/auth/register', authLimiter, validateSchema(RegisterSchema), async (req: any, res) => {
@@ -1260,11 +1261,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const message = JSON.parse(data.toString());
 
         if (message.type === 'auth') {
-          userId = message.userId;
-          if (userId) {
-            clients.set(userId, ws);
-            ws.send(JSON.stringify({ type: 'auth_success' }));
+          // JWT 토큰 검증으로 보안 강화
+          const token = message.token;
+          if (!token) {
+            ws.close(4001, 'Missing authentication token');
+            return;
           }
+          
+          const decoded = verifyToken(token);
+          if (!decoded) {
+            ws.close(4001, 'Invalid authentication token');
+            return;
+          }
+          
+          userId = decoded.id;
+          clients.set(userId, ws);
+          ws.send(JSON.stringify({ type: 'auth_success', userId }));
           return;
         }
 
