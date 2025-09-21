@@ -1003,6 +1003,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // Public System Settings API - 특정 설정 조회 (누구나 접근 가능)
+  app.get('/api/public/settings/:category/:key', async (req, res) => {
+    try {
+      const { category, key } = req.params;
+      const setting = await storage.getSystemSetting(category, key);
+      if (!setting) {
+        return res.status(404).json({ message: 'Setting not found' });
+      }
+      res.json({ value: setting });
+    } catch (error) {
+      console.error('Error fetching public setting:', error);
+      res.status(500).json({ message: 'Failed to fetch setting' });
+    }
+  });
+
   // System Settings API - 관리자 전용
   app.get(
     '/api/system-settings',

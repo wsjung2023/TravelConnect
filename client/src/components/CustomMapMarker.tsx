@@ -1,4 +1,5 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 interface CustomMapMarkerProps {
   type: 'tour' | 'food' | 'activity' | 'tip';
@@ -11,31 +12,47 @@ export const CustomMapMarker: React.FC<CustomMapMarkerProps> = ({
   count = 1,
   theme,
 }) => {
+  // DB에서 테마 색상 설정 가져오기
+  const { data: themeColorsData } = useQuery({
+    queryKey: ['/api/public/settings/ui/theme_colors'],
+    enabled: true,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+  });
+
   const getMarkerColor = () => {
-    const themeColors = {
+    // DB에서 가져온 색상 사용, 없으면 하드코딩된 기본값 사용
+    let themeColors: Record<string, string> = {
       맛집: '#FF6B9D',
       명소: '#4ECDC4',
       파티타임: '#FF4757',
       핫플레이스: '#FFA726',
       힐링: '#66BB6A',
-    } as const;
+      tour: '#4ECDC4',
+      food: '#FF6B9D',
+      activity: '#FF4757',
+      tip: '#66BB6A',
+      default: '#9C88FF',
+    };
+
+    // DB 데이터가 있으면 사용
+    if (themeColorsData?.value) {
+      try {
+        const dbColors = JSON.parse(themeColorsData.value);
+        themeColors = { ...themeColors, ...dbColors };
+      } catch (error) {
+        console.warn('테마 색상 파싱 오류:', error);
+      }
+    }
 
     if (theme && theme in themeColors) {
-      return themeColors[theme as keyof typeof themeColors];
+      return themeColors[theme];
     }
 
-    switch (type) {
-      case 'tour':
-        return '#4ECDC4';
-      case 'food':
-        return '#FF6B9D';
-      case 'activity':
-        return '#FF4757';
-      case 'tip':
-        return '#66BB6A';
-      default:
-        return '#9C88FF';
+    if (type in themeColors) {
+      return themeColors[type];
     }
+
+    return themeColors.default || '#9C88FF';
   };
 
   const color = getMarkerColor();
