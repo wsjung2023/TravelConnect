@@ -42,11 +42,17 @@ export default function Chat() {
     // DM 메시지 핸들러
     addMessageHandler('chat_message', (data) => {
       console.log('새 DM 메시지 수신:', data);
-      if (data.message && selectedConversation) {
-        queryClient.setQueryData(
-          ['/api/conversations', selectedConversation.id, 'messages'],
-          (oldMessages: Message[] = []) => [...oldMessages, data.message]
-        );
+      if (data.message) {
+        // 현재 선택된 대화의 메시지 목록 업데이트
+        if (selectedConversation && data.message.conversationId === selectedConversation.id) {
+          queryClient.setQueryData(
+            ['/api/conversations', selectedConversation.id, 'messages'],
+            (oldMessages: Message[] = []) => [...oldMessages, data.message]
+          );
+        }
+
+        // 대화 목록 새로고침 (마지막 메시지 정보 및 읽지 않음 카운트 업데이트)
+        queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
       }
     });
 
