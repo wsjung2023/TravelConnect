@@ -1,0 +1,120 @@
+5) 기능/콘텐츠 보완 (실행 플랜)
+5-1. “슬랙/디스코드 느낌”의 스레드형 채팅/DM
+데이터 모델(Drizzle, 최소 변경 버전)
+
+현재 conversations, messages가 1:1 DM에 가깝다. “스레드/채널”을 넣으려면:
+
+channels (id, type: 'dm' | 'group' | 'topic', name, ownerId, isPrivate, createdAt…)
+
+channel_members (channelId, userId, role)
+
+messages에 channelId 추가 (nullable), parentMessageId(nullable)로 스레드 표현
+
+DM은 channels.type='dm' + 멤버 2명으로 대체 → 점진적으로 conversations는 유지·호환 or 마이그레이션.
+
+// shared/schema.ts (요지)
+export const channels = pgTable('channels', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', { enum: ['dm','group','topic'] }).notNull(),
+  name: varchar('name'),
+  ownerId: varchar('owner_id').references(() => users.id),
+  isPrivate: boolean('is_private').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const channelMembers = pgTable('channel_members', {
+  channelId: integer('channel_id').references(() => channels.id).notNull(),
+  userId: varchar('user_id').references(() => users.id).notNull(),
+  role: varchar('role').default('member'),
+}, (t) => ({ pk: primaryKey({ columns: [t.channelId, t.userId] }) }));
+
+// messages 확장
+export const messages = pgTable('messages', {
+  // ...기존 필드
+  channelId: integer('channel_id').references(() => channels.id),
+  parentMessageId: integer('parent_message_id').references(() => messages.id),
+});
+
+서버/API
+
+채널 CRUD: 생성(비공개 초대), 초대/추방, 목록, 멤버 목록.
+
+메시지: 채널별 페이지네이션, 스레드 열람(parentMessageId 기준), 멘션(@), 읽음표시.
+
+WS 이벤트: message_new, thread_new, typing, presence, notification.
+
+권한 체크: 멤버가 아닌 채널로 메시지 전송 금지. (P0!)
+
+클라이언트
+
+좌측 채널 리스트, 중앙 메시지, 우측 스레드 패널(선택 시).
+
+모바일: 채널↔메시지 탭 전환, 스레드는 슬라이드업 모달.
+
+5-2. 경제활동 #1: 가이드(현지 경험 호스팅)
+
+이미 experiences, bookings, reviews 테이블이 잘 잡혀 있어서 곧장 실사용 가능. 여기에 가용 시간/슬롯, 취소/환불 규정, 정산만 얹자.
+
+필요한 최소 확장
+
+experience_slots (id, experienceId, startAt, endAt, capacity, priceOverride?)
+
+payout_accounts (userId, provider, accountRef, verified)
+
+policies (experienceId, cancellationPolicy, cutoffHours…)
+
+플로우
+
+호스트 등록(KYC 가볍게, 신뢰 레벨 상승 구조: 후기≥N + 수익≥X → 점진적 신원요건 강화 → 우섭의 “책임·자유” 철학과 합치)
+
+경험 등록(제목/설명/가격/정원/카테고리/지역/사진)
+
+슬롯 발행(날짜·시간·수량) → 지도/타임라인/피드에 노출
+
+예약(결제 보류/에스크로) → 확정 알림 + WS DM 자동 오픈
+
+체험 완료 → 정산(수수료 차감) → 후기 요청
+
+분쟁 처리(간단 양식 + 타임라인/채팅 로그 첨부)
+
+수익화 기본: 결제 수수료 + 호스트 수수료(예: 10~15%). “미니 이벤트(미니밋)”는 무료/유료 혼합.
+
+5-3. 경제활동 #2: 구매대행(여행자↔구매자 매칭)
+
+우섭이 말한 “샤넬 캐비어백 380달러 수수료” 같은 프리미엄 대행을 안전하게.
+
+데이터 모델(요지)
+
+purchase_requests (id, requesterId, itemName, brand, model, targetPrice, feeProposal, destinationCountry, dueDate, photos[], status)
+
+purchase_offers (id, requestId, travelerId, fee, eta, message, status)
+
+escrow_transactions (id, requestId, offerId, status: HOLD/RELEASE/REFUND, amount, fee, currency)
+
+shipping_info (id, requestId, method, tracking, insurance, declaredValue)
+
+플로우
+
+요청 등록(구매자): 품목·희망가·수수료 범위·마감·목적지·금지품 확인 체크(상표/관세/통관 고지)
+
+오퍼(여행자): 견적/ETA/메시지. 요청자는 하나를 채택.
+
+에스크로 홀드: 플랫폼이 금액 홀드(취소 정책에 따라 자동 해제/환불 규칙)
+
+구매/인증: 영수증·시리얼·사진 업로드, 채팅으로 커뮤니케이션
+
+배송: 배송사·보험·통관(관·부가세는 구매자 부담으로 명확화), 금지품/위험물 필터링
+
+검수 후 릴리즈: 구매자가 수령확정 → 에스크로 해제, 수수료 정산
+
+평가/리뷰: 양측 평판 누적(가짜 평판 방지: 거래액/정산 여부 후 가중치 부여)
+
+법/리스크 가드레일(간단하지만 필수):
+
+플랫폼은 “마켓플레이스/연결” 역할 명시(직접 판매/수입자가 아님).
+
+금지/제한 품목 자동 필터 + 체크박스 동의.
+
+KYC(고액/빈번 거래자), AML 이벤트 모니터링 상한치.
+
+분쟁/환불 프로세스 간단 양식. 증빙은 타임라인/채팅/영수증.

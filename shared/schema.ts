@@ -133,19 +133,57 @@ export const conversations = pgTable('conversations', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// 채널 시스템 - 그룹 채팅, 토픽 채널, DM 통합 관리
+export const channels = pgTable('channels', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', { enum: ['dm', 'group', 'topic'] }).notNull().default('dm'),
+  name: varchar('name'), // 그룹/토픽 채널명 (DM은 null)
+  description: text('description'), // 채널 설명
+  ownerId: varchar('owner_id').references(() => users.id),
+  isPrivate: boolean('is_private').default(false),
+  lastMessageId: integer('last_message_id'),
+  lastMessageAt: timestamp('last_message_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 채널 멤버십 관리
+export const channelMembers = pgTable('channel_members', {
+  id: serial('id').primaryKey(),
+  channelId: integer('channel_id')
+    .notNull()
+    .references(() => channels.id),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  role: varchar('role').default('member'), // owner, admin, member
+  joinedAt: timestamp('joined_at').defaultNow(),
+  lastReadAt: timestamp('last_read_at').defaultNow(),
+}, (table) => [
+  index('IDX_channel_members_channel_id').on(table.channelId),
+  index('IDX_channel_members_user_id').on(table.userId),
+]);
+
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
   conversationId: integer('conversation_id')
-    .notNull()
-    .references(() => conversations.id),
+    .references(() => conversations.id), // 기존 1:1 DM용 (하위 호환)
+  channelId: integer('channel_id')
+    .references(() => channels.id), // 새로운 채널 시스템용
   senderId: varchar('sender_id')
     .notNull()
     .references(() => users.id),
   content: text('content').notNull(),
-  messageType: varchar('message_type').default('text'), // text, image, booking
+  messageType: varchar('message_type').default('text'), // text, image, booking, thread
+  parentMessageId: integer('parent_message_id')
+    .references(() => messages.id), // 스레드 지원
   metadata: jsonb('metadata'), // for booking requests, image urls, etc
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => [
+  index('IDX_messages_conversation_id').on(table.conversationId),
+  index('IDX_messages_channel_id').on(table.channelId),
+  index('IDX_messages_parent_message_id').on(table.parentMessageId),
+]);
 
 export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
@@ -294,7 +332,36 @@ export const messageRelations = relations(messages, ({ one }) => ({
     fields: [messages.conversationId],
     references: [conversations.id],
   }),
+  channel: one(channels, {
+    fields: [messages.channelId],
+    references: [channels.id],
+  }),
   sender: one(users, { fields: [messages.senderId], references: [users.id] }),
+  parentMessage: one(messages, {
+    fields: [messages.parentMessageId],
+    references: [messages.id],
+  }),
+}));
+
+// 채널 관계 정의
+export const channelRelations = relations(channels, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [channels.ownerId],
+    references: [users.id],
+  }),
+  members: many(channelMembers),
+  messages: many(messages),
+}));
+
+export const channelMemberRelations = relations(channelMembers, ({ one }) => ({
+  channel: one(channels, {
+    fields: [channelMembers.channelId],
+    references: [channels.id],
+  }),
+  user: one(users, {
+    fields: [channelMembers.userId],
+    references: [users.id],
+  }),
 }));
 
 export const tripRelations = relations(trips, ({ one }) => ({
@@ -466,6 +533,23 @@ export const insertFollowSchema = createInsertSchema(follows).omit({
 export type Follow = typeof follows.$inferSelect;
 export type InsertFollow = z.infer<typeof insertFollowSchema>;
 
+// 채널 시스템 스키마 및 타입
+export const insertChannelSchema = createInsertSchema(channels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChannelMemberSchema = createInsertSchema(channelMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export type Channel = typeof channels.$inferSelect;
+export type InsertChannel = z.infer<typeof insertChannelSchema>;
+export type ChannelMember = typeof channelMembers.$inferSelect;
+export type InsertChannelMember = z.infer<typeof insertChannelMemberSchema>;
+
 // 관계 정의
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
@@ -475,6 +559,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   notifications: many(notifications),
   followers: many(follows, { relationName: 'userFollowers' }),
   following: many(follows, { relationName: 'userFollowing' }),
+  ownedChannels: many(channels),
+  channelMemberships: many(channelMembers),
 }));
 
 export const followsRelations = relations(follows, ({ one }) => ({
