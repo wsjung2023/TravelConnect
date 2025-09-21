@@ -47,6 +47,7 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+
 export const experiences = pgTable('experiences', {
   id: serial('id').primaryKey(),
   hostId: varchar('host_id')
