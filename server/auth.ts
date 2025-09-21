@@ -5,11 +5,10 @@ import { storage } from './storage';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET required');
-  } else {
-    console.warn('DEV: using unsafe fallback');
-  }
+  console.error('❌ JWT_SECRET 환경변수가 설정되지 않았습니다.');
+  console.error('💡 Replit Secrets에서 JWT_SECRET을 설정해주세요.');
+  console.error('   예시 값: openssl rand -hex 32');
+  throw new Error('JWT_SECRET은 필수 환경변수입니다. 보안상 fallback을 제거했습니다.');
 }
 
 export const jwtOptions: jwt.SignOptions = { algorithm: 'HS256' as const, expiresIn: '7d' };
@@ -28,10 +27,12 @@ export function generateToken(user: {
   email: string;
   role: string;
 }) {
-  const secret = JWT_SECRET || 'dev-fallback-key';
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET not configured');
+  }
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
-    secret,
+    JWT_SECRET,
     jwtOptions
   );
 }
@@ -39,8 +40,10 @@ export function generateToken(user: {
 // JWT 토큰 검증
 export function verifyToken(token: string) {
   try {
-    const secret = JWT_SECRET || 'dev-fallback-key';
-    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET not configured');
+    }
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     return decoded as {
       id: string;
       email: string;
