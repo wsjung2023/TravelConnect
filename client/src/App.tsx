@@ -41,6 +41,7 @@ const TimelineCreatePage = lazy(() => import('@/pages/TimelineCreate'));
 const VideoTestPage = lazy(() => import('@/pages/video-test'));
 const Admin = lazy(() => import('@/pages/admin'));
 const ErrorTest = lazy(() => import('@/pages/ErrorTestPage'));
+const Marketplace = lazy(() => import('@/pages/marketplace'));
 
 // Simple loading component
 const LoadingSpinner = () => (
@@ -137,6 +138,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <ErrorTest />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/marketplace"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Marketplace />
                 </Suspense>
               )}
             />
