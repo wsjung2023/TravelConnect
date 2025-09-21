@@ -6,6 +6,11 @@ import ThreadPanel from '@/components/ThreadPanel';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { apiRequest } from '@/lib/queryClient';
 import type { Conversation, Message, Channel } from '@shared/schema';
 
 type ChatMode = 'list' | 'chat' | 'thread';
@@ -178,9 +183,42 @@ export default function Chat() {
     setChatMode('list');
   };
 
+  // 채널 생성 상태
+  const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+
   const handleCreateChannel = () => {
-    console.log('채널 생성 기능 준비 중...');
-    // TODO: 채널 생성 모달 구현
+    setIsCreateChannelOpen(true);
+  };
+
+  const handleCreateChannelSubmit = async () => {
+    if (!newChannelName.trim()) return;
+    
+    try {
+      const newChannel = await apiRequest('/api/channels', {
+        method: 'POST',
+        body: {
+          name: newChannelName.trim(),
+          type: 'topic',
+          description: ''
+        }
+      });
+      
+      // 채널 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
+      
+      // 모달 닫기 및 초기화
+      setIsCreateChannelOpen(false);
+      setNewChannelName('');
+      
+      // 새로 생성된 채널 선택
+      if (newChannel) {
+        setSelectedChannel(newChannel);
+        setSelectedConversation(null);
+      }
+    } catch (error) {
+      console.error('채널 생성 실패:', error);
+    }
   };
 
   // 데스크톱 레이아웃 (3-panel) - 실시간 반응형
@@ -236,6 +274,56 @@ export default function Chat() {
             currentUserId={currentUserId}
           />
         )}
+
+        {/* 채널 생성 모달 */}
+        <Dialog open={isCreateChannelOpen} onOpenChange={setIsCreateChannelOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>새 채널 만들기</DialogTitle>
+              <DialogDescription>
+                새로운 채널을 만들어 팀원들과 소통해보세요.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="channel-name" className="text-right">
+                  채널명
+                </Label>
+                <Input
+                  id="channel-name"
+                  data-testid="input-channel-name"
+                  value={newChannelName}
+                  onChange={(e) => setNewChannelName(e.target.value)}
+                  placeholder="예: 일반, 공지사항"
+                  className="col-span-3"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleCreateChannelSubmit();
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsCreateChannelOpen(false);
+                  setNewChannelName('');
+                }}
+              >
+                취소
+              </Button>
+              <Button 
+                onClick={handleCreateChannelSubmit}
+                disabled={!newChannelName.trim()}
+                data-testid="button-create-channel-submit"
+              >
+                만들기
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -274,15 +362,67 @@ export default function Chat() {
 
   // 기본: 채널/대화 목록
   return (
-    <div className="h-full">
-      <ChannelList
-        selectedChannelId={selectedChannel?.id}
-        selectedConversationId={selectedConversation?.id}
-        onChannelSelect={handleChannelSelect}
-        onConversationSelect={handleConversationSelect}
-        onCreateChannel={handleCreateChannel}
-        currentUserId={currentUserId}
-      />
-    </div>
+    <>
+      <div className="h-full">
+        <ChannelList
+          selectedChannelId={selectedChannel?.id}
+          selectedConversationId={selectedConversation?.id}
+          onChannelSelect={handleChannelSelect}
+          onConversationSelect={handleConversationSelect}
+          onCreateChannel={handleCreateChannel}
+          currentUserId={currentUserId}
+        />
+      </div>
+
+      {/* 채널 생성 모달 */}
+      <Dialog open={isCreateChannelOpen} onOpenChange={setIsCreateChannelOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>새 채널 만들기</DialogTitle>
+            <DialogDescription>
+              새로운 채널을 만들어 팀원들과 소통해보세요.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="channel-name" className="text-right">
+                채널명
+              </Label>
+              <Input
+                id="channel-name"
+                data-testid="input-channel-name"
+                value={newChannelName}
+                onChange={(e) => setNewChannelName(e.target.value)}
+                placeholder="예: 일반, 공지사항"
+                className="col-span-3"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateChannelSubmit();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsCreateChannelOpen(false);
+                setNewChannelName('');
+              }}
+            >
+              취소
+            </Button>
+            <Button 
+              onClick={handleCreateChannelSubmit}
+              disabled={!newChannelName.trim()}
+              data-testid="button-create-channel-submit"
+            >
+              만들기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

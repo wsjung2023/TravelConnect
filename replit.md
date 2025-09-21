@@ -6,6 +6,15 @@ Tourgether is a full-stack web application designed to connect travelers with lo
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### Phase B - Code Quality Improvements (September 21, 2025)
+- **Thread Real-time Updates**: Implemented WebSocket-based real-time synchronization for threaded comments with optimistic UI updates
+- **Responsive Enhancement**: Added useMediaQuery hook for real-time window resize detection and responsive behavior
+- **UX Improvements**: Added comprehensive loading/error states across all major components (ChannelList, EnhancedChatWindow, ThreadPanel)
+- **WebSocket Stability**: Enhanced connection reliability with heartbeat mechanism, exponential backoff reconnection, and improved error handling
+- **Cache Synchronization**: Improved DM message handling to properly sync conversation list with last message updates and unread status
+
 ## System Architecture
 
 ### Frontend
@@ -34,8 +43,8 @@ Preferred communication style: Simple, everyday language.
 - **Authentication System**: Replit Auth and JWT-based email/password, secure session management, automatic user profile creation.
 - **Experience Management**: Categorized experiences (tours, food, activities, tips), booking system, host management, geographic discovery.
 - **Social Features**: Content sharing with location tagging, like system, trip planning.
-- **Real-time Communication**: Integrated chat system with message persistence.
-- **Mobile Experience**: Progressive Web App (PWA) with responsive design and touch navigation.
+- **Real-time Communication**: Enhanced 3-panel chat system (Slack/Discord style) with threaded messaging, real-time WebSocket updates, heartbeat mechanism for stable connections, and optimistic UI updates.
+- **Mobile Experience**: Progressive Web App (PWA) with responsive design, touch navigation, and real-time responsive behavior using useMediaQuery hook for window resize detection.
 - **Map Integration**: Custom Google Maps styling, SVG markers, theme-based color coding, interactive info windows, zoom-level responsive clustering, POI filtering, and direct feed creation from map clicks.
 - **File Upload System**: Multer-based file uploads (images/videos) with UUID-based naming, static file serving, and database integration.
 - **Database Management Tool**: In-app DB admin interface (`/db-admin`) for real-time statistics, grid view data visualization, safe SQL query execution, and CRUD operations.
