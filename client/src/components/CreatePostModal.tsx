@@ -26,6 +26,7 @@ export default function CreatePostModal({
   onClose,
   location: initialLocation,
 }: CreatePostModalProps) {
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [location, setLocation] = useState(
     initialLocation?.name ||
@@ -33,6 +34,7 @@ export default function CreatePostModal({
         ? `${initialLocation.lat.toFixed(4)}, ${initialLocation.lng.toFixed(4)}`
         : '')
   );
+  const [theme, setTheme] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [exifData, setExifData] = useState<ExifData[]>([]);
@@ -40,7 +42,7 @@ export default function CreatePostModal({
   const queryClient = useQueryClient();
 
   const createPostMutation = useMutation({
-    mutationFn: async (post: InsertPost) => {
+    mutationFn: async (post: any) => {
       return api('/api/posts', {
         method: 'POST',
         body: post,
@@ -53,8 +55,10 @@ export default function CreatePostModal({
       });
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
       onClose();
+      setTitle('');
       setContent('');
       setLocation('');
+      setTheme('');
       setImages([]);
     },
     onError: (error) => {
@@ -125,10 +129,28 @@ export default function CreatePostModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!title.trim()) {
+      toast({
+        title: '제목 입력',
+        description: '게시글 제목을 입력해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!content.trim()) {
       toast({
         title: '내용 입력',
         description: '게시글 내용을 입력해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!theme) {
+      toast({
+        title: '테마 선택',
+        description: '게시글 테마를 선택해주세요.',
         variant: 'destructive',
       });
       return;
@@ -151,9 +173,11 @@ export default function CreatePostModal({
       }
     }
 
-    const post: InsertPost = {
+    const post = {
+      title,
       content,
       location: location || undefined,
+      theme,
       images: images.length > 0 ? images : undefined,
       takenAt: earliestTakenAt || undefined,
       latitude: bestLatitude?.toString(),
@@ -182,14 +206,45 @@ export default function CreatePostModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4">
+          {/* Title */}
+          <div className="mb-4">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="여행 제목을 입력하세요"
+              className="border-gray-200 text-lg font-medium"
+              autoFocus
+            />
+          </div>
+
+          {/* Theme Selection */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+              <span>테마 선택</span>
+            </div>
+            <select
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-md"
+            >
+              <option value="">테마를 선택하세요</option>
+              <option value="restaurant">맛집</option>
+              <option value="landmark">명소</option>
+              <option value="activity">액티비티</option>
+              <option value="emotional">감성</option>
+              <option value="party">파티</option>
+              <option value="healing">힐링</option>
+              <option value="hotplace">핫플레이스</option>
+            </select>
+          </div>
+
           {/* Content */}
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="어떤 여행 이야기를 공유하고 싶나요?"
             className="border-0 resize-none text-base"
-            rows={6}
-            autoFocus
+            rows={4}
           />
 
           {/* Location */}
@@ -256,7 +311,7 @@ export default function CreatePostModal({
             </Button>
             <Button
               type="submit"
-              disabled={!content.trim() || createPostMutation.isPending}
+              disabled={!title.trim() || !content.trim() || !theme || createPostMutation.isPending}
               className="flex-1 travel-button"
             >
               {createPostMutation.isPending ? '게시 중...' : '게시하기'}
