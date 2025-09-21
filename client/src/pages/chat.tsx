@@ -5,6 +5,7 @@ import EnhancedChatWindow from '@/components/EnhancedChatWindow';
 import ThreadPanel from '@/components/ThreadPanel';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsDesktop } from '@/hooks/useMediaQuery';
 import type { Conversation, Message, Channel } from '@shared/schema';
 
 type ChatMode = 'list' | 'chat' | 'thread';
@@ -52,7 +53,18 @@ export default function Chat() {
           ['/api/conversations', selectedConversation.id, 'messages'],
           (oldMessages: Message[] = []) => [...oldMessages, data.message]
         );
+
+        // 스레드 메시지인 경우 스레드 캐시도 업데이트
+        if (data.message.parentMessageId) {
+          queryClient.setQueryData(
+            ['/api/messages', data.message.parentMessageId, 'thread'],
+            (oldThreadMessages: Message[] = []) => [...oldThreadMessages, data.message]
+          );
+        }
       }
+      
+      // 대화 목록도 업데이트 (마지막 메시지 정보)
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
     });
 
     // 채널 메시지 핸들러
@@ -63,6 +75,14 @@ export default function Chat() {
           ['/api/channels', data.channelId, 'messages'],
           (oldMessages: Message[] = []) => [...oldMessages, data.message]
         );
+
+        // 스레드 메시지인 경우 스레드 캐시도 업데이트
+        if (data.message.parentMessageId) {
+          queryClient.setQueryData(
+            ['/api/messages', data.message.parentMessageId, 'thread'],
+            (oldThreadMessages: Message[] = []) => [...oldThreadMessages, data.message]
+          );
+        }
       }
       
       // 채널 목록도 업데이트
@@ -153,8 +173,8 @@ export default function Chat() {
     // TODO: 채널 생성 모달 구현
   };
 
-  // 데스크톱 레이아웃 (3-panel)
-  const isDesktop = window.innerWidth >= 1024;
+  // 데스크톱 레이아웃 (3-panel) - 실시간 반응형
+  const isDesktop = useIsDesktop();
 
   if (isDesktop) {
     return (

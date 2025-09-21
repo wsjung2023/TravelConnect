@@ -36,7 +36,28 @@ export default function ThreadPanel({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (replyText.trim() && parentMessage) {
-      onSendReply(replyText.trim(), parentMessage.id);
+      const replyContent = replyText.trim();
+      
+      // Optimistic update - 즉시 UI에 반영
+      const optimisticMessage: Message = {
+        id: Date.now(), // 임시 ID
+        content: replyContent,
+        senderId: currentUserId,
+        parentMessageId: parentMessage.id,
+        channelId: parentMessage.channelId,
+        conversationId: parentMessage.conversationId,
+        messageType: 'text',
+        metadata: null,
+        createdAt: new Date(),
+      };
+
+      // 쿼리 캐시에 즉시 추가
+      queryClient.setQueryData(
+        ['/api/messages', parentMessage.id, 'thread'],
+        (oldMessages: Message[] = []) => [...oldMessages, optimisticMessage]
+      );
+
+      onSendReply(replyContent, parentMessage.id);
       setReplyText('');
     }
   };
