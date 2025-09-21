@@ -186,11 +186,11 @@ export default function TimelinePage() {
       .sort((a, b) => parseInt(a) - parseInt(b))
       .map((day) => ({
         day: parseInt(day),
-        posts: days[parseInt(day)].sort(
+        posts: (days[parseInt(day)] || []).sort(
           (a, b) => {
             // EXIF 기반 타임라인 정렬: takenAt 우선, 없으면 createdAt 사용
-            const aTime = a.takenAt ? new Date(a.takenAt).getTime() : new Date(a.createdAt).getTime();
-            const bTime = b.takenAt ? new Date(b.takenAt).getTime() : new Date(b.createdAt).getTime();
+            const aTime = a.takenAt ? new Date(a.takenAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+            const bTime = b.takenAt ? new Date(b.takenAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
             return aTime - bTime;
           }
         ),
@@ -266,7 +266,7 @@ export default function TimelinePage() {
                       )}
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {formatDate(timelineDetail.startDate)}
+                        {formatDate(timelineDetail.startDate?.toISOString() || new Date().toISOString())}
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
@@ -422,7 +422,7 @@ export default function TimelinePage() {
             }}
             onLike={(postId) => {
               console.log('좋아요 클릭:', postId);
-              setLikedPosts((prev) => new Set([...prev, postId]));
+              setLikedPosts((prev) => new Set([...Array.from(prev), postId]));
             }}
             isLiked={likedPosts.has(selectedPost.id)}
           />
@@ -487,7 +487,7 @@ export default function TimelinePage() {
                           )}
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            {formatDate(timeline.startDate)}
+                            {formatDate(timeline.startDate?.toISOString() || new Date().toISOString())}
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
@@ -556,7 +556,7 @@ export default function TimelinePage() {
           isOpen={!!selectedPost}
           onClose={() => setSelectedPost(null)}
           onLike={(postId) => {
-            setLikedPosts((prev) => new Set([...prev, postId]));
+            setLikedPosts((prev) => new Set([...Array.from(prev), postId]));
           }}
           isLiked={likedPosts.has(selectedPost.id)}
         />

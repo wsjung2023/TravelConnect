@@ -1,0 +1,187 @@
+1) P0 보안 이슈 (즉시 조치)
+1-1. WebSocket 인증 취약점 (임의 사용자 가장 가능)
+
+위치: server/routes.ts (WS 핸드셰이크)
+
+문제: 클라이언트가 type: 'auth', userId: '...' 형태로 userId만 보내면 서버가 곧바로 신뢰하고 clients에 등록함 ⇒ 누구나 남의 ID로 로그인 가능.
+
+해결: 초기 메시지에 JWT 토큰을 함께 보내고, 서버에서 verifyToken()으로 검증 후 decoded.id를 userId로 채택. 그리고 대화 참여자 검증(보낸 사용자가 해당 conversationId의 참여자인지)까지 필수.
+
+// server/routes.ts (발췌 수정)
+import { verifyToken } from './auth';
+
+wss.on('connection', (ws: WebSocket) => {
+  let userId: string | null = null;
+
+  ws.on('message', async (data) => {
+    const message = JSON.parse(data.toString());
+
+    // 1) 인증 단계
+    if (message.type === 'auth') {
+      const decoded = verifyToken(message.token);  // <-- 토큰 검증
+      if (!decoded) { ws.close(4001, 'invalid token'); return; }
+      userId = decoded.id;
+      clients.set(userId, ws);
+      ws.send(JSON.stringify({ type: 'auth_success' }));
+      return;
+    }
+
+    // 2) 메시지 전송 단계
+    if (message.type === 'send_message') {
+      if (!userId) { ws.close(4002, 'unauthenticated'); return; }
+
+      const { conversationId, content, recipientId } = message;
+      const conv = await storage.getConversationById(conversationId); // 새로 추가 필요
+      if (!conv || (conv.participant1Id !== userId && conv.participant2Id !== userId)) {
+        ws.send(JSON.stringify({ type: 'error', code: 'FORBIDDEN' }));
+        return;
+      }
+
+      const newMessage = await storage.createMessage({ conversationId, senderId: userId, content });
+      // ...수신자에게 푸시
+    }
+  });
+});
+
+// server/storage.ts (추가)
+async getConversationById(id: number): Promise<Conversation | undefined> {
+  const [conv] = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
+  return conv;
+}
+
+// client/src/hooks/useWebSocket.ts (초기 인증 시 토큰 포함)
+const token = localStorage.getItem('token');
+ws.current?.send(JSON.stringify({ type: 'auth', token }));  // userId 대신 token!
+
+1-2. 업로드 파일 접근 경로 불일치(+ 직노출 위험)
+
+위치: 클라에서 /uploads/파일명을 직접 참조.
+
+client/src/components/PostDetailModal.tsx
+
+client/src/pages/feed.tsx
+
+client/src/pages/timeline.tsx
+
+문제: 서버는 보안을 위해 /api/files/:filename 프록시 라우트만 열어둠. 클라가 /uploads로 때리면 ① 안 보이거나 ② 나중에 실수로 정적 공개되면 보안 리스크.
+
+해결: 전부 /api/files/${filename}로 변경.
+
+- src={`/uploads/${post.images[0]}`}
++ src={`/api/files/${post.images[0]}`}
+
+
+또한 리포지토리에 업로드된 샘플 파일이 포함되어 있어(uploads/*.png, .mp4). .gitignore에 /uploads 추가 권장.
+
+위치: 프로젝트 루트 .gitignore
+
+ node_modules
+ dist
+ server/public
++.uploads
++uploads
+
+1-3. JWT 보관 위치 & CSP
+
+현 상태: 토큰을 localStorage에 저장 + helmet({ contentSecurityPolicy: false }) 비활성.
+
+리스크: XSS 발생 시 토큰 탈취 → 계정 탈취.
+
+대안(권장 순):
+
+HttpOnly 쿠키로 전환(SameSite=Lax/Strict + Secure).
+
+당장 구조 바꾸기 어렵다면, CSP를 켜고 지도/폰트/WS 허용만 화이트리스트:
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      imgSrc: ["'self'", "data:", "blob:", "https://maps.googleapis.com", "https://maps.gstatic.com"],
+      scriptSrc: ["'self'", "https://maps.googleapis.com", "https://maps.gstatic.com", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"]
+    }
+  }
+}));
+
+1-4. Google OAuth 모듈 “유령 import”
+
+위치: server/routes.ts
+
+import { setupGoogleAuth } from './googleAuth'; // 모듈 없음으로 주석 처리
+setupGoogleAuth(app); // <-- 이 호출도 그대로 있음
+
+
+문제: 파일이 없는데 import/호출이 남아있음 → 빌드 실패/런타임 에러.
+
+해결: 환경 플래그로 감싸거나 통째로 제거:
+
+if (process.env.ENABLE_GOOGLE_OAUTH === 'true') {
+  const { setupGoogleAuth } = await import('./googleAuth');
+  setupGoogleAuth(app);
+}
+
+1-5. /api/sql 관리자 콘솔
+
+위치: server/routes.ts (POST /api/sql) + db-admin.html
+
+현 상태: 관리자만 허용 + 프로덕션 모드에서 라우팅 차단 로직 존재.
+
+권고: 배포 빌드에서는 완전 배제(환경변수로 끊기) + 위험 정규식은 누락 케이스가 많음.
+
+빌드 시 ENABLE_DB_ADMIN !== 'true'면 라우트 등록 자체를 생략.
+
+1-6. EXIF 민감정보 제거
+
+현 상태: 업로드 후 EXIF 읽어서 takenAt 등 계산은 하지만, EXIF를 제거하지 않음 → 위치/기기 정보가 그대로 노출될 수 있음.
+
+조치: 업로드 저장 직후 sharp 등으로 메타데이터 제거한 사본 저장:
+
+import sharp from 'sharp';
+await sharp(file.path).withMetadata({ orientation: undefined }).toFile(safePath);
+
+2) P1 품질/버그(흐름 깨지는 지점)
+2-1. WS 주소 하드코딩
+
+위치: client/src/hooks/useWebSocket.ts
+
+const port = '5000';
+const wsUrl = `${protocol}//${host}:${port}/ws`;
+
+
+문제: 프록시/서버 포트가 달라지면 WS 연결 실패.
+
+해결: 호스트만 사용:
+
+const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${protocol}//${location.host}/ws`;
+
+2-2. JWT/REPLIT 사용자 속성 혼용
+
+위치: server/routes.ts
+
+// JWT일 땐 req.user.id, Replit OIDC일 땐 req.user.claims.sub
+app.post('/api/conversations', ..., (req) => {
+  const participant1Id = req.user.claims.sub; // <-- JWT환경에선 런타임 에러
+});
+
+
+해결: 공통 헬퍼로 통일:
+
+function currentUserId(req: any) {
+  return req.user?.id || req.user?.claims?.sub;
+}
+
+2-3. DB 스키마 파일 구버전 혼재
+
+위치: database_schema.sql vs shared/schema.ts
+
+문제: Drizzle 스키마가 소스 오브 트루스인데 SQL 백업이 오래됨 → 혼란.
+
+해결: SQL 백업에 “참고용” 주석 명시 or 제거. 배포는 Drizzle 마이그레이션만.
+
+2-4. 레거시 파일/페이지
+
+client/src/pages/feed-broken.tsx, legacy_src_bak/* → 혼선. 빌드 대상에서 제외/삭제 권장.
