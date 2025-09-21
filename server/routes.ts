@@ -14,6 +14,7 @@ import { setupAuth } from './replitAuth';
 import passport from 'passport';
 import {
   authenticateToken,
+  authenticateHybrid,
   requireAdmin,
   generateToken,
   hashPassword,
@@ -324,6 +325,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ================== 호스트 전용 API ==================
+  
+  // 호스트용 경험 목록 조회 (자신의 경험만)
+  app.get('/api/host/experiences', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
+      const hostId = req.user.id;
+      const experiences = await storage.getExperiencesByHost(hostId);
+      res.json(experiences);
+    } catch (error) {
+      console.error('Error fetching host experiences:', error);
+      res.status(500).json({ error: 'Failed to fetch experiences' });
+    }
+  });
+
+  // 호스트용 예약 목록 조회 (자신의 예약만)  
+  app.get('/api/host/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
+      const hostId = req.user.id;
+      const bookings = await storage.getBookingsByHost(hostId);
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error fetching host bookings:', error);
+      res.status(500).json({ error: 'Failed to fetch bookings' });
+    }
+  });
+
   // 조건부 인증 설정
   if (process.env.REPLIT_DOMAINS) {
     // Replit 환경에서만 OIDC 인증 설정
@@ -458,6 +493,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 데모 로그인 - TEST 계정으로 비밀번호 없이 로그인
+  // 현재 사용자 정보 조회 (하이브리드 인증)
+  app.get('/api/auth/me', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // 사용자 정보 조회
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        isHost: user.isHost || false,
+        profileImage: user.profileImage || null,
+      });
+    } catch (error) {
+      console.error('사용자 정보 조회 오류:', error);
+      res.status(500).json({ message: '사용자 정보 조회 중 오류가 발생했습니다' });
+    }
+  });
+
   app.post('/api/auth/demo-login', authLimiter, async (req, res) => {
     try {
       // TEST 사용자 조회

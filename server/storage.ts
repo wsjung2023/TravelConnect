@@ -287,7 +287,28 @@ export class DatabaseStorage implements IStorage {
 
   async getExperiencesByHost(hostId: string): Promise<Experience[]> {
     return await db
-      .select()
+      .select({
+        id: experiences.id,
+        hostId: experiences.hostId,
+        title: experiences.title,
+        description: experiences.description,
+        price: experiences.price,
+        currency: experiences.currency,
+        location: experiences.location,
+        latitude: experiences.latitude,
+        longitude: experiences.longitude,
+        category: experiences.category,
+        duration: experiences.duration,
+        maxParticipants: experiences.maxParticipants,
+        images: experiences.images,
+        included: experiences.included,
+        requirements: experiences.requirements,
+        rating: experiences.rating,
+        reviewCount: experiences.reviewCount,
+        isActive: experiences.isActive,
+        createdAt: experiences.createdAt,
+        updatedAt: experiences.updatedAt,
+      })
       .from(experiences)
       .where(eq(experiences.hostId, hostId))
       .orderBy(desc(experiences.createdAt));
@@ -509,7 +530,19 @@ export class DatabaseStorage implements IStorage {
 
   async getBookingsByHost(hostId: string): Promise<Booking[]> {
     return await db
-      .select()
+      .select({
+        id: bookings.id,
+        experienceId: bookings.experienceId,
+        guestId: bookings.guestId,
+        hostId: bookings.hostId,
+        date: bookings.date,
+        participants: bookings.participants,
+        totalPrice: bookings.totalPrice,
+        status: bookings.status,
+        specialRequests: bookings.specialRequests,
+        createdAt: bookings.createdAt,
+        updatedAt: bookings.updatedAt,
+      })
       .from(bookings)
       .where(eq(bookings.hostId, hostId))
       .orderBy(desc(bookings.createdAt));

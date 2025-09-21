@@ -101,6 +101,34 @@ export const authenticateToken: RequestHandler = async (req, res, next) => {
   next();
 };
 
+// 하이브리드 인증 미들웨어 (JWT + 세션 모두 지원)
+export const authenticateHybrid: RequestHandler = async (req, res, next) => {
+  // 1. JWT Bearer 토큰 확인
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (token) {
+    const decoded = verifyToken(token);
+    if (decoded) {
+      // JWT 토큰이 유효하면 사용자 정보 설정
+      const user = await storage.getUser(decoded.id);
+      if (user) {
+        req.user = decoded;
+        return next();
+      }
+    }
+  }
+
+  // 2. 세션 기반 인증 확인 (OIDC 또는 기존 세션)
+  if (req.user) {
+    // 이미 세션에서 인증된 사용자
+    return next();
+  }
+
+  // 3. 둘 다 실패하면 401 반환
+  return res.status(401).json({ message: 'Authentication required' });
+};
+
 // 관리자 권한 확인 미들웨어 (authenticateToken 이후에 사용)
 export const requireAdmin: RequestHandler = (req, res, next) => {
   if (!req.user) {
