@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,6 +11,8 @@ interface EnhancedChatWindowProps {
   channel?: Channel | undefined;
   conversation?: Conversation | undefined;
   messages: Message[];
+  messagesLoading?: boolean;
+  messagesError?: Error | null;
   onSendMessage: (content: string, parentMessageId?: number) => void;
   onBack?: () => void;
   onStartThread?: (message: Message) => void;
@@ -21,6 +23,8 @@ export default function EnhancedChatWindow({
   channel,
   conversation,
   messages,
+  messagesLoading = false,
+  messagesError = null,
   onSendMessage,
   onBack,
   onStartThread,
@@ -179,7 +183,24 @@ export default function EnhancedChatWindow({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {messages.length === 0 ? (
+        {messagesLoading ? (
+          <div className="text-center text-gray-500 mt-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>메시지를 불러오는 중...</p>
+          </div>
+        ) : messagesError ? (
+          <div className="text-center text-gray-500 mt-8">
+            <div className="text-4xl mb-4">⚠️</div>
+            <p className="mb-4">메시지를 불러올 수 없습니다</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => window.location.reload()}
+            >
+              다시 시도
+            </Button>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             <div className="text-4xl mb-4">💬</div>
             <p>대화를 시작해보세요!</p>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { X, Send, MessageSquare } from 'lucide-react';
+import { X, Send, MessageSquare, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,7 +24,11 @@ export default function ThreadPanel({
   const queryClient = useQueryClient();
 
   // 스레드 메시지 조회
-  const { data: threadMessages = [] } = useQuery<Message[]>({
+  const { 
+    data: threadMessages = [], 
+    isLoading: threadLoading, 
+    error: threadError 
+  } = useQuery<Message[]>({
     queryKey: ['/api/messages', parentMessage?.id, 'thread'],
     enabled: !!parentMessage?.id,
   });
@@ -143,7 +147,28 @@ export default function ThreadPanel({
 
       {/* Thread Messages */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {threadMessages.length === 0 ? (
+        {threadLoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-3"></div>
+            <p className="text-sm text-gray-500">
+              댓글을 불러오는 중...
+            </p>
+          </div>
+        ) : threadError ? (
+          <div className="text-center py-8">
+            <div className="text-3xl mb-3">⚠️</div>
+            <p className="text-sm text-gray-500 mb-3">
+              댓글을 불러올 수 없습니다
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => window.location.reload()}
+            >
+              다시 시도
+            </Button>
+          </div>
+        ) : threadMessages.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-3xl mb-3">💬</div>
             <p className="text-sm text-gray-500">

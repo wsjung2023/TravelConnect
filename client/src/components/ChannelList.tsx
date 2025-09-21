@@ -32,12 +32,20 @@ export default function ChannelList({
   const [activeTab, setActiveTab] = useState<'all' | 'channels' | 'dms'>('all');
 
   // 사용자의 채널 목록 조회
-  const { data: channels = [] } = useQuery<Channel[]>({
+  const { 
+    data: channels = [], 
+    isLoading: channelsLoading, 
+    error: channelsError 
+  } = useQuery<Channel[]>({
     queryKey: ['/api/channels'],
   });
 
   // 기존 1:1 대화 목록 조회
-  const { data: conversations = [] } = useQuery<Conversation[]>({
+  const { 
+    data: conversations = [], 
+    isLoading: conversationsLoading, 
+    error: conversationsError 
+  } = useQuery<Conversation[]>({
     queryKey: ['/api/conversations'],
   });
 
@@ -175,7 +183,30 @@ export default function ChannelList({
 
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {filteredItems.length === 0 ? (
+        {(channelsLoading || conversationsLoading) ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-500 text-sm">채팅 목록을 불러오는 중...</p>
+          </div>
+        ) : (channelsError || conversationsError) ? (
+          <div className="text-center py-12">
+            <div className="text-4xl mb-4">⚠️</div>
+            <h3 className="text-base font-medium text-gray-900 mb-2">
+              오류가 발생했습니다
+            </h3>
+            <p className="text-gray-500 text-sm mb-4">
+              채팅 목록을 불러올 수 없습니다
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => window.location.reload()}
+              data-testid="button-retry"
+            >
+              다시 시도
+            </Button>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-base font-medium text-gray-900 mb-2">

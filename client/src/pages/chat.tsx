@@ -23,7 +23,11 @@ export default function Chat() {
   const currentUserId = user?.id || 'current-user';
 
   // 현재 선택된 채팅의 메시지 조회
-  const { data: messages = [] } = useQuery<Message[]>({
+  const { 
+    data: messages = [], 
+    isLoading: messagesLoading, 
+    error: messagesError 
+  } = useQuery<Message[]>({
     queryKey: selectedChannel 
       ? ['/api/channels', selectedChannel.id, 'messages'] 
       : selectedConversation 
@@ -196,6 +200,8 @@ export default function Chat() {
               channel={selectedChannel ? selectedChannel : undefined}
               conversation={selectedConversation ? selectedConversation : undefined}
               messages={messages}
+              messagesLoading={messagesLoading}
+              messagesError={messagesError}
               onSendMessage={handleSendMessage}
               onStartThread={handleStartThread}
               currentUserId={currentUserId}
@@ -249,6 +255,8 @@ export default function Chat() {
           channel={selectedChannel ? selectedChannel : undefined}
           conversation={selectedConversation ? selectedConversation : undefined}
           messages={messages}
+          messagesLoading={messagesLoading}
+          messagesError={messagesError}
           onSendMessage={handleSendMessage}
           onBack={handleBack}
           onStartThread={handleStartThread}
