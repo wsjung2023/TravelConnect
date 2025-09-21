@@ -69,6 +69,12 @@ export const experiences = pgTable('experiences', {
   rating: decimal('rating', { precision: 3, scale: 2 }).default('0'),
   reviewCount: integer('review_count').default(0),
   isActive: boolean('is_active').default(true),
+  // 커머스 확장 필드
+  cancelPolicy: varchar('cancel_policy').default('flexible'), // flexible, moderate, strict
+  minLeadHours: integer('min_lead_hours').default(24), // 최소 예약 시간 (시간 단위)
+  meetingPoint: varchar('meeting_point'), // 만날 장소
+  contactPhone: varchar('contact_phone'), // 연락처
+  autoConfirm: boolean('auto_confirm').default(true), // 자동 승인 여부
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -116,9 +122,76 @@ export const bookings = pgTable('bookings', {
   totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
   status: varchar('status').default('pending'), // pending, confirmed, completed, cancelled
   specialRequests: text('special_requests'),
+  // 커머스 확장 필드
+  slotId: integer('slot_id').references(() => experienceSlots.id),
+  paymentStatus: varchar('payment_status').default('pending'), // pending, paid, failed, refunded
+  expiresAt: timestamp('expires_at'), // 결제 대기 만료 시간
+  cancelReason: text('cancel_reason'),
+  cancelledAt: timestamp('cancelled_at'),
+  confirmedAt: timestamp('confirmed_at'),
+  completedAt: timestamp('completed_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+// 커머스 테이블들
+
+// 경험 시간 슬롯 관리
+export const experienceSlots = pgTable('experience_slots', {
+  id: serial('id').primaryKey(),
+  experienceId: integer('experience_id')
+    .notNull()
+    .references(() => experiences.id),
+  startAt: timestamp('start_at').notNull(),
+  endAt: timestamp('end_at').notNull(),
+  capacity: integer('capacity').notNull(),
+  priceOverride: decimal('price_override', { precision: 10, scale: 2 }), // null이면 기본 가격 사용
+  currency: varchar('currency').default('KRW'),
+  remaining: integer('remaining').notNull(), // 남은 자리
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_experience_slots_experience_id').on(table.experienceId),
+  index('IDX_experience_slots_start_at').on(table.startAt),
+]);
+
+// 결제 정보
+export const payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  bookingId: integer('booking_id')
+    .notNull()
+    .references(() => bookings.id),
+  provider: varchar('provider').notNull(), // 'paypal', 'toss', 'mock'
+  intentId: varchar('intent_id'), // 결제 프로바이더의 결제 Intent ID
+  chargeId: varchar('charge_id'), // 실제 차지 ID
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency').default('KRW'),
+  status: varchar('status').default('pending'), // pending, authorized, captured, failed, refunded
+  receiptUrl: varchar('receipt_url'), // 영수증 URL
+  metadata: jsonb('metadata'), // 프로바이더별 추가 정보
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_payments_booking_id').on(table.bookingId),
+  index('IDX_payments_status').on(table.status),
+]);
+
+
+// 환불 기록
+export const refunds = pgTable('refunds', {
+  id: serial('id').primaryKey(),
+  paymentId: integer('payment_id')
+    .notNull()
+    .references(() => payments.id),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  reason: varchar('reason'), // customer_request, cancellation, etc
+  status: varchar('status').default('pending'), // pending, processed, failed
+  processedAt: timestamp('processed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_refunds_payment_id').on(table.paymentId),
+]);
 
 export const conversations = pgTable('conversations', {
   id: serial('id').primaryKey(),
@@ -141,11 +214,14 @@ export const channels = pgTable('channels', {
   description: text('description'), // 채널 설명
   ownerId: varchar('owner_id').references(() => users.id),
   isPrivate: boolean('is_private').default(false),
+  bookingId: integer('booking_id').references(() => bookings.id), // 예약 관련 채팅
   lastMessageId: integer('last_message_id'),
   lastMessageAt: timestamp('last_message_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  index('IDX_channels_booking_id').on(table.bookingId),
+]);
 
 // 채널 멤버십 관리
 export const channelMembers = pgTable('channel_members', {
@@ -189,16 +265,21 @@ export const reviews = pgTable('reviews', {
   experienceId: integer('experience_id')
     .notNull()
     .references(() => experiences.id),
-  guestId: varchar('guest_id')
+  bookingId: integer('booking_id')
+    .notNull()
+    .references(() => bookings.id),
+  reviewerId: varchar('reviewer_id')
     .notNull()
     .references(() => users.id),
-  hostId: varchar('host_id')
-    .notNull()
-    .references(() => users.id),
-  rating: integer('rating').notNull(),
+  rating: integer('rating').notNull(), // 1-5
   comment: text('comment'),
+  images: text('images').array(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_reviews_experience_id').on(table.experienceId),
+  index('IDX_reviews_booking_id').on(table.bookingId),
+]);
 
 export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
@@ -258,23 +339,7 @@ export const trips = pgTable('trips', {
 });
 
 // Relations
-export const userRelations = relations(users, ({ many }) => ({
-  experiences: many(experiences),
-  posts: many(posts),
-  bookingsAsGuest: many(bookings, { relationName: 'guestBookings' }),
-  bookingsAsHost: many(bookings, { relationName: 'hostBookings' }),
-  trips: many(trips),
-  timelines: many(timelines),
-  likes: many(likes),
-  reviews: many(reviews),
-}));
 
-export const experienceRelations = relations(experiences, ({ one, many }) => ({
-  host: one(users, { fields: [experiences.hostId], references: [users.id] }),
-  bookings: many(bookings),
-  posts: many(posts),
-  reviews: many(reviews),
-}));
 
 export const postRelations = relations(posts, ({ one, many }) => ({
   user: one(users, { fields: [posts.userId], references: [users.id] }),
@@ -294,22 +359,6 @@ export const timelineRelations = relations(timelines, ({ one, many }) => ({
   posts: many(posts),
 }));
 
-export const bookingRelations = relations(bookings, ({ one }) => ({
-  experience: one(experiences, {
-    fields: [bookings.experienceId],
-    references: [experiences.id],
-  }),
-  guest: one(users, {
-    fields: [bookings.guestId],
-    references: [users.id],
-    relationName: 'guestBookings',
-  }),
-  host: one(users, {
-    fields: [bookings.hostId],
-    references: [users.id],
-    relationName: 'hostBookings',
-  }),
-}));
 
 export const conversationRelations = relations(
   conversations,
@@ -347,6 +396,10 @@ export const channelRelations = relations(channels, ({ one, many }) => ({
   owner: one(users, {
     fields: [channels.ownerId],
     references: [users.id],
+  }),
+  booking: one(bookings, {
+    fields: [channels.bookingId],
+    references: [bookings.id],
   }),
   members: many(channelMembers),
   messages: many(messages),
@@ -562,6 +615,76 @@ export const usersRelations = relations(users, ({ many }) => ({
   channelMemberships: many(channelMembers),
 }));
 
+// 커머스 관계 설정
+export const experiencesRelations = relations(experiences, ({ one, many }) => ({
+  host: one(users, {
+    fields: [experiences.hostId],
+    references: [users.id],
+  }),
+  slots: many(experienceSlots),
+  bookings: many(bookings),
+  reviews: many(reviews),
+}));
+
+export const experienceSlotsRelations = relations(experienceSlots, ({ one }) => ({
+  experience: one(experiences, {
+    fields: [experienceSlots.experienceId],
+    references: [experiences.id],
+  }),
+}));
+
+export const bookingsRelations = relations(bookings, ({ one, many }) => ({
+  experience: one(experiences, {
+    fields: [bookings.experienceId],
+    references: [experiences.id],
+  }),
+  guest: one(users, {
+    fields: [bookings.guestId],
+    references: [users.id],
+  }),
+  host: one(users, {
+    fields: [bookings.hostId],
+    references: [users.id],
+  }),
+  slot: one(experienceSlots, {
+    fields: [bookings.slotId],
+    references: [experienceSlots.id],
+  }),
+  payments: many(payments),
+  reviews: many(reviews),
+  channels: many(channels),
+}));
+
+export const paymentsRelations = relations(payments, ({ one, many }) => ({
+  booking: one(bookings, {
+    fields: [payments.bookingId],
+    references: [bookings.id],
+  }),
+  refunds: many(refunds),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  experience: one(experiences, {
+    fields: [reviews.experienceId],
+    references: [experiences.id],
+  }),
+  booking: one(bookings, {
+    fields: [reviews.bookingId],
+    references: [bookings.id],
+  }),
+  reviewer: one(users, {
+    fields: [reviews.reviewerId],
+    references: [users.id],
+  }),
+}));
+
+export const refundsRelations = relations(refunds, ({ one }) => ({
+  payment: one(payments, {
+    fields: [refunds.paymentId],
+    references: [payments.id],
+  }),
+}));
+
 export const followsRelations = relations(follows, ({ one }) => ({
   follower: one(users, {
     fields: [follows.followerId],
@@ -626,6 +749,40 @@ export type MiniMeet = typeof miniMeets.$inferSelect;
 export type InsertMiniMeet = z.infer<typeof insertMiniMeetSchema>;
 export type MiniMeetAttendee = typeof miniMeetAttendees.$inferSelect;
 export type InsertMiniMeetAttendee = z.infer<typeof insertMiniMeetAttendeeSchema>;
+
+// 커머스 테이블 Zod 스키마
+export const insertExperienceSlotSchema = createInsertSchema(experienceSlots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRefundSchema = createInsertSchema(refunds).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+
+// 커머스 타입 정의
+export type ExperienceSlot = typeof experienceSlots.$inferSelect;
+export type InsertExperienceSlot = z.infer<typeof insertExperienceSlotSchema>;
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Refund = typeof refunds.$inferSelect;
+export type InsertRefund = z.infer<typeof insertRefundSchema>;
 
 // MiniMeet 관계 설정
 export const miniMeetsRelations = relations(miniMeets, ({ one, many }) => ({
