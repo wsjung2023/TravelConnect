@@ -311,7 +311,7 @@ export default function Feed() {
                     />
                   ) : (
                     <img
-                      src={post.images?.[0] ? `/uploads/${post.images[0]}` : ''}
+                      src={post.images?.[0] ? `/api/files/${post.images[0]}` : ''}
                       alt={post.title ?? ''}
                       className={`w-full h-64 object-cover ${
                         post.shape === 'heart' ? 'clip-path-heart' : ''

@@ -144,7 +144,7 @@ export default function Feed() {
                 <div className="aspect-square bg-gray-100 overflow-hidden">
                   {post.images?.length > 0 ? (
                     <img
-                      src={`/uploads/${post.images[0]}`}
+                      src={`/api/files/${post.images[0]}`}
                       alt={post.title || ''}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -155,7 +155,7 @@ export default function Feed() {
                     />
                   ) : post.videos?.length > 0 ? (
                     <video
-                      src={`/uploads/${post.videos[0]}`}
+                      src={`/api/files/${post.videos[0]}`}
                       className="w-full h-full object-cover"
                       controls
                     />
