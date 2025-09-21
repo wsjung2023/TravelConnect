@@ -158,6 +158,36 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // 보안 헤더 추가 - CSP, XSS 보호 등
+  app.use((req, res, next) => {
+    // X-Frame-Options: 클릭재킹 공격 방지
+    res.setHeader('X-Frame-Options', 'DENY');
+    
+    // X-Content-Type-Options: MIME 스니핑 방지
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // X-XSS-Protection: XSS 공격 방지
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // Referrer Policy: 개인정보 보호
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    // Content Security Policy: 다양한 공격 방지
+    res.setHeader('Content-Security-Policy', [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.replit.dev *.googleapis.com",
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+      "font-src 'self' fonts.gstatic.com data:",
+      "img-src 'self' data: https: *.unsplash.com *.googleusercontent.com",
+      "connect-src 'self' wss: ws: *.replit.dev *.googleapis.com",
+      "media-src 'self' data: blob:",
+      "object-src 'none'",
+      "frame-src 'none'"
+    ].join('; '));
+    
+    next();
+  });
+
   // Test error endpoint for Sentry testing (development only)
   if (process.env.NODE_ENV === 'development') {
     app.get('/api/test-error', (req, res) => {
