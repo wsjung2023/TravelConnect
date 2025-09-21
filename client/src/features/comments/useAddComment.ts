@@ -43,6 +43,19 @@ export function useAddComment(postId: number) {
         const noTemps = old.filter((c: any) => !c._optimistic);
         return [newComment, ...noTemps];
       });
+      
+      // 메인 피드의 포스트 데이터도 업데이트 (댓글 개수 증가)
+      qc.setQueryData<any[]>(['/api/posts'], (oldPosts = []) => {
+        return oldPosts.map((post: any) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              commentsCount: (post.commentsCount || 0) + 1
+            };
+          }
+          return post;
+        });
+      });
     },
   });
 }
