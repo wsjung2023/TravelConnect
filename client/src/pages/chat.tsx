@@ -1,38 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Edit } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ChatWindow from '@/components/ChatWindow';
+import ChannelList from '@/components/ChannelList';
+import EnhancedChatWindow from '@/components/EnhancedChatWindow';
+import ThreadPanel from '@/components/ThreadPanel';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
-import type { Conversation, Message } from '@shared/schema';
+import type { Conversation, Message, Channel } from '@shared/schema';
+
+type ChatMode = 'list' | 'chat' | 'thread';
 
 export default function Chat() {
-  const [selectedConversation, setSelectedConversation] =
-    useState<Conversation | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedThreadMessage, setSelectedThreadMessage] = useState<Message | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>('list');
+  
   const { user } = useAuth();
   const { sendMessage, addMessageHandler, removeMessageHandler } = useWebSocket();
   const queryClient = useQueryClient();
 
-  const { data: conversations = [] } = useQuery<Conversation[]>({
-    queryKey: ['/api/conversations'],
-  });
-
-  const { data: messages = [] } = useQuery<Message[]>({
-    queryKey: ['/api/conversations', selectedConversation?.id, 'messages'],
-    enabled: !!selectedConversation,
-  });
-
   const currentUserId = user?.id || 'current-user';
+
+  // 현재 선택된 채팅의 메시지 조회
+  const { data: messages = [] } = useQuery<Message[]>({
+    queryKey: selectedChannel 
+      ? ['/api/channels', selectedChannel.id, 'messages'] 
+      : selectedConversation 
+      ? ['/api/conversations', selectedConversation.id, 'messages']
+      : ['no-messages'],
+    enabled: !!(selectedChannel || selectedConversation),
+  });
 
   useEffect(() => {
     // WebSocket 메시지 핸들러 등록
+    
+    // DM 메시지 핸들러
     addMessageHandler('chat_message', (data) => {
-      console.log('새 메시지 수신:', data);
-      // 메시지 캐시 업데이트
+      console.log('새 DM 메시지 수신:', data);
       if (data.message && selectedConversation) {
         queryClient.setQueryData(
           ['/api/conversations', selectedConversation.id, 'messages'],
@@ -42,8 +46,7 @@ export default function Chat() {
     });
 
     addMessageHandler('message_sent', (data) => {
-      console.log('메시지 전송 확인:', data);
-      // 메시지 캐시 업데이트
+      console.log('DM 메시지 전송 확인:', data);
       if (data.message && selectedConversation) {
         queryClient.setQueryData(
           ['/api/conversations', selectedConversation.id, 'messages'],
@@ -52,165 +55,200 @@ export default function Chat() {
       }
     });
 
+    // 채널 메시지 핸들러
+    addMessageHandler('channel_message', (data) => {
+      console.log('새 채널 메시지 수신:', data);
+      if (data.message && data.channelId === selectedChannel?.id) {
+        queryClient.setQueryData(
+          ['/api/channels', data.channelId, 'messages'],
+          (oldMessages: Message[] = []) => [...oldMessages, data.message]
+        );
+      }
+      
+      // 채널 목록도 업데이트
+      queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
+    });
+
     return () => {
       removeMessageHandler('chat_message');
-      removeMessageHandler('message_sent');
+      removeMessageHandler('message_sent'); 
+      removeMessageHandler('channel_message');
     };
-  }, [selectedConversation, addMessageHandler, removeMessageHandler, queryClient]);
+  }, [selectedConversation, selectedChannel, addMessageHandler, removeMessageHandler, queryClient]);
 
-  const handleSendMessage = (content: string) => {
-    if (!selectedConversation || !user) {
-      console.error('대화방이나 사용자 정보가 없습니다');
+  const handleSendMessage = (content: string, parentMessageId?: number) => {
+    if (!user) {
+      console.error('사용자 정보가 없습니다');
       return;
     }
 
-    const recipientId = selectedConversation.participant1Id === user.id 
-      ? selectedConversation.participant2Id 
-      : selectedConversation.participant1Id;
+    if (selectedChannel) {
+      // 채널 메시지 전송
+      const success = sendMessage({
+        type: 'channel_message',
+        channelId: selectedChannel.id,
+        content,
+        parentMessageId,
+      });
 
-    const success = sendMessage({
-      type: 'chat_message',
-      conversationId: selectedConversation.id,
-      content,
-      recipientId
-    });
+      if (!success) {
+        console.error('채널 메시지 전송 실패 - WebSocket 연결 없음');
+      }
+    } else if (selectedConversation) {
+      // DM 메시지 전송
+      const recipientId = selectedConversation.participant1Id === user.id 
+        ? selectedConversation.participant2Id 
+        : selectedConversation.participant1Id;
 
-    if (!success) {
-      console.error('메시지 전송 실패 - WebSocket 연결 없음');
+      const success = sendMessage({
+        type: 'chat_message',
+        conversationId: selectedConversation.id,
+        content,
+        recipientId
+      });
+
+      if (!success) {
+        console.error('DM 메시지 전송 실패 - WebSocket 연결 없음');
+      }
     }
   };
 
-  const formatLastMessageTime = (date: Date) => {
-    const now = new Date();
-    const messageDate = new Date(date);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const messageDay = new Date(
-      messageDate.getFullYear(),
-      messageDate.getMonth(),
-      messageDate.getDate()
+  const handleSendThreadReply = (content: string, parentMessageId: number) => {
+    handleSendMessage(content, parentMessageId);
+  };
+
+  const handleChannelSelect = (channel: Channel) => {
+    setSelectedChannel(channel);
+    setSelectedConversation(null);
+    setSelectedThreadMessage(null);
+    setChatMode('chat');
+  };
+
+  const handleConversationSelect = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    setSelectedChannel(null);
+    setSelectedThreadMessage(null);
+    setChatMode('chat');
+  };
+
+  const handleStartThread = (message: Message) => {
+    setSelectedThreadMessage(message);
+    setChatMode('thread');
+  };
+
+  const handleCloseThread = () => {
+    setSelectedThreadMessage(null);
+    setChatMode('chat');
+  };
+
+  const handleBack = () => {
+    setSelectedChannel(null);
+    setSelectedConversation(null);
+    setSelectedThreadMessage(null);
+    setChatMode('list');
+  };
+
+  const handleCreateChannel = () => {
+    console.log('채널 생성 기능 준비 중...');
+    // TODO: 채널 생성 모달 구현
+  };
+
+  // 데스크톱 레이아웃 (3-panel)
+  const isDesktop = window.innerWidth >= 1024;
+
+  if (isDesktop) {
+    return (
+      <div className="h-full flex bg-gray-50">
+        {/* Left Panel - Channel List */}
+        <ChannelList
+          selectedChannelId={selectedChannel?.id}
+          selectedConversationId={selectedConversation?.id}
+          onChannelSelect={handleChannelSelect}
+          onConversationSelect={handleConversationSelect}
+          onCreateChannel={handleCreateChannel}
+          currentUserId={currentUserId}
+        />
+
+        {/* Center Panel - Chat Window */}
+        <div className="flex-1 min-w-0">
+          {selectedChannel || selectedConversation ? (
+            <EnhancedChatWindow
+              channel={selectedChannel ? selectedChannel : undefined}
+              conversation={selectedConversation ? selectedConversation : undefined}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              onStartThread={handleStartThread}
+              currentUserId={currentUserId}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center bg-white">
+              <div className="text-center">
+                <div className="text-6xl mb-4">💬</div>
+                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                  채팅을 선택하세요
+                </h3>
+                <p className="text-gray-500">
+                  왼쪽에서 채널이나 대화를 선택해서 채팅을 시작하세요
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel - Thread Panel */}
+        {selectedThreadMessage && (
+          <ThreadPanel
+            parentMessage={selectedThreadMessage}
+            onClose={handleCloseThread}
+            onSendReply={handleSendThreadReply}
+            currentUserId={currentUserId}
+          />
+        )}
+      </div>
     );
+  }
 
-    if (messageDay.getTime() === today.getTime()) {
-      return messageDate.toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-    } else {
-      return messageDate.toLocaleDateString('ko-KR', {
-        month: 'short',
-        day: 'numeric',
-      });
-    }
-  };
-
-  const filteredConversations = conversations.filter((conv: Conversation) => {
-    const otherParticipant =
-      conv.participant1Id === currentUserId
-        ? conv.participant2Id
-        : conv.participant1Id;
-    return otherParticipant.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  if (selectedConversation) {
+  // 모바일 레이아웃 (단일 패널)
+  if (chatMode === 'thread' && selectedThreadMessage) {
     return (
       <div className="h-full">
-        <ChatWindow
-          conversation={selectedConversation}
-          messages={messages}
-          onSendMessage={handleSendMessage}
+        <ThreadPanel
+          parentMessage={selectedThreadMessage}
+          onClose={handleCloseThread}
+          onSendReply={handleSendThreadReply}
           currentUserId={currentUserId}
         />
       </div>
     );
   }
 
+  if (chatMode === 'chat' && (selectedChannel || selectedConversation)) {
+    return (
+      <div className="h-full">
+        <EnhancedChatWindow
+          channel={selectedChannel ? selectedChannel : undefined}
+          conversation={selectedConversation ? selectedConversation : undefined}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onBack={handleBack}
+          onStartThread={handleStartThread}
+          currentUserId={currentUserId}
+        />
+      </div>
+    );
+  }
+
+  // 기본: 채널/대화 목록
   return (
-    <div className="mobile-content bg-white">
-      {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">채팅</h2>
-          <Button variant="ghost" size="sm" className="p-2">
-            <Edit size={20} />
-          </Button>
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={16}
-          />
-          <Input
-            placeholder="채팅방 검색..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 rounded-full bg-gray-100 border-0"
-          />
-        </div>
-      </div>
-
-      {/* Conversations List */}
-      <div className="custom-scrollbar">
-        {filteredConversations.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">💬</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              채팅방이 없어요
-            </h3>
-            <p className="text-gray-500 text-sm">
-              호스트와 대화를 시작해보세요!
-            </p>
-          </div>
-        ) : (
-          <div>
-            {filteredConversations.map((conversation: Conversation) => {
-              const otherParticipant =
-                conversation.participant1Id === currentUserId
-                  ? conversation.participant2Id
-                  : conversation.participant1Id;
-
-              return (
-                <div
-                  key={conversation.id}
-                  onClick={() => setSelectedConversation(conversation)}
-                  className="flex items-center gap-3 p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarFallback>
-                        {otherParticipant.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {otherParticipant}
-                      </h4>
-                      {conversation.lastMessageAt && (
-                        <span className="text-xs text-gray-500">
-                          {formatLastMessageTime(conversation.lastMessageAt)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 truncate">
-                      마지막 메시지 내용이 여기에 표시됩니다...
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+    <div className="h-full">
+      <ChannelList
+        selectedChannelId={selectedChannel?.id}
+        selectedConversationId={selectedConversation?.id}
+        onChannelSelect={handleChannelSelect}
+        onConversationSelect={handleConversationSelect}
+        onCreateChannel={handleCreateChannel}
+        currentUserId={currentUserId}
+      />
     </div>
   );
 }

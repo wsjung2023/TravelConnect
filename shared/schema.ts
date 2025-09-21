@@ -175,8 +175,7 @@ export const messages = pgTable('messages', {
     .references(() => users.id),
   content: text('content').notNull(),
   messageType: varchar('message_type').default('text'), // text, image, booking, thread
-  parentMessageId: integer('parent_message_id')
-    .references(() => messages.id), // 스레드 지원
+  parentMessageId: integer('parent_message_id'), // 스레드 지원 - self reference
   metadata: jsonb('metadata'), // for booking requests, image urls, etc
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => [
