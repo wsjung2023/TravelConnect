@@ -214,14 +214,12 @@ export const channels = pgTable('channels', {
   description: text('description'), // 채널 설명
   ownerId: varchar('owner_id').references(() => users.id),
   isPrivate: boolean('is_private').default(false),
-  bookingId: integer('booking_id').references(() => bookings.id), // 예약 관련 채팅
+  // bookingId: integer('booking_id').references(() => bookings.id), // 예약 관련 채팅 - 주석처리 (DB에 컬럼 없음)
   lastMessageId: integer('last_message_id'),
   lastMessageAt: timestamp('last_message_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => [
-  index('IDX_channels_booking_id').on(table.bookingId),
-]);
+});
 
 // 채널 멤버십 관리
 export const channelMembers = pgTable('channel_members', {
@@ -397,10 +395,10 @@ export const channelRelations = relations(channels, ({ one, many }) => ({
     fields: [channels.ownerId],
     references: [users.id],
   }),
-  booking: one(bookings, {
-    fields: [channels.bookingId],
-    references: [bookings.id],
-  }),
+  // booking: one(bookings, {
+  //   fields: [channels.bookingId],
+  //   references: [bookings.id],
+  // }), // 주석처리 - bookingId 필드가 DB에 없음
   members: many(channelMembers),
   messages: many(messages),
 }));

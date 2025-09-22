@@ -2117,5 +2117,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 테스트용 JWT 토큰 생성 엔드포인트 (개발 환경에서만)
+  if (process.env.NODE_ENV === 'development') {
+    app.post('/api/test/create-token', async (req, res) => {
+      try {
+        const { sub, email, first_name, last_name } = req.body;
+        
+        if (!sub || !email) {
+          return res.status(400).json({ message: 'sub and email are required' });
+        }
+
+        // 테스트 사용자 생성/업데이트
+        const userId = sub;
+        const testUser = {
+          id: userId,
+          email,
+          firstName: first_name || 'Test',
+          lastName: last_name || 'User', 
+          role: 'user' as const,
+          profileImageUrl: null,
+          bio: null,
+          location: null,
+          isProfileOpen: true,
+        };
+
+        await storage.upsertUser(testUser);
+
+        // JWT 토큰 생성
+        const token = generateToken({
+          id: userId,
+          email,
+          role: 'user',
+        });
+
+        res.json({ 
+          token,
+          user: testUser,
+          message: 'Test token created successfully' 
+        });
+      } catch (error) {
+        console.error('Error creating test token:', error);
+        res.status(500).json({ message: 'Failed to create test token' });
+      }
+    });
+  }
+
   return httpServer;
 }

@@ -1273,7 +1273,18 @@ export class DatabaseStorage implements IStorage {
 
   // Channel operations implementation
   async createChannel(channel: InsertChannel): Promise<Channel> {
-    const [newChannel] = await db.insert(channels).values(channel).returning();
+    // 실제 존재하는 데이터베이스 컬럼만 사용하여 삽입
+    const existingColumns = {
+      type: channel.type || 'dm',
+      name: channel.name,
+      description: channel.description,
+      ownerId: channel.ownerId,
+      isPrivate: channel.isPrivate || false,
+      lastMessageId: channel.lastMessageId,
+      lastMessageAt: channel.lastMessageAt,
+    };
+    
+    const [newChannel] = await db.insert(channels).values(existingColumns).returning();
     
     // 채널 생성자를 owner로 자동 추가
     if (channel.ownerId) {
