@@ -830,7 +830,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(reviews)
       .innerJoin(experiences, eq(reviews.experienceId, experiences.id))
-      .innerJoin(users, eq(reviews.reviewerId, users.id))
+      .innerJoin(users, eq(sql`reviews.guest_id`, users.id))
       .where(eq(experiences.hostId, hostId))
       .orderBy(desc(reviews.createdAt));
   }

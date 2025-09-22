@@ -1,10 +1,10 @@
-import { useRoute } from 'wouter';
+import { useRoute, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, Users, MapPin, Star, Heart } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, Star, Heart, User } from 'lucide-react';
 import BookingModal from '@/components/BookingModal';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -174,6 +174,39 @@ export default function ExperienceDetailPage() {
                 <p className="text-foreground leading-relaxed" data-testid="text-description">
                   {experience.description}
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* Host Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>가이드 정보</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link 
+                  to={`/guide/${experience.hostId}`}
+                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  data-testid="link-guide-profile"
+                >
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-medium">
+                    {experience.host?.firstName?.[0] || <User className="w-6 h-6" />}
+                    {experience.host?.lastName?.[0] || ''}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {experience.host?.firstName && experience.host?.lastName 
+                        ? `${experience.host.firstName} ${experience.host.lastName}`
+                        : '가이드'
+                      }
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      가이드 프로필 보기 →
+                    </p>
+                  </div>
+                  <div className="text-blue-600 dark:text-blue-400">
+                    <Star className="w-5 h-5" />
+                  </div>
+                </Link>
               </CardContent>
             </Card>
 
