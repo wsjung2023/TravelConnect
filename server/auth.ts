@@ -103,29 +103,83 @@ export const authenticateToken: RequestHandler = async (req, res, next) => {
 
 // 하이브리드 인증 미들웨어 (JWT + 세션 모두 지원)
 export const authenticateHybrid: RequestHandler = async (req, res, next) => {
+  console.log(`[AUTH] ${req.method} ${req.path} - Starting authentication`);
+  console.log(`[AUTH] Session user:`, req.user ? 'PRESENT' : 'NOT PRESENT');
+  console.log(`[AUTH] Authorization header:`, req.headers.authorization ? 'PRESENT' : 'NOT PRESENT');
+  
   // 1. JWT Bearer 토큰 확인
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (token) {
+    console.log(`[AUTH] JWT token found, verifying...`);
     const decoded = verifyToken(token);
     if (decoded) {
       // JWT 토큰이 유효하면 사용자 정보 설정
       const user = await storage.getUser(decoded.id);
       if (user) {
+        console.log(`[AUTH] JWT authentication successful for user ${decoded.id}`);
         req.user = decoded;
         return next();
       }
     }
+    console.log(`[AUTH] JWT authentication failed`);
   }
 
   // 2. 세션 기반 인증 확인 (OIDC 또는 기존 세션)
   if (req.user) {
     // 이미 세션에서 인증된 사용자
+    console.log(`[AUTH] Session authentication successful for user ${req.user.id}`);
     return next();
   }
 
-  // 3. 둘 다 실패하면 401 반환
+  // 3. 개발 환경에서 기본 사용자 생성 (테스트용)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[AUTH] Development mode - creating default user`);
+    // 기본 테스트 사용자 생성
+    const defaultUser = {
+      id: 'test-user-123',
+      email: 'test@example.com',
+      role: 'user'
+    };
+    
+    // 데이터베이스에 사용자가 없으면 생성 (이메일로도 확인)
+    let user = await storage.getUser(defaultUser.id);
+    if (!user) {
+      // 이메일로도 확인 (기존 사용자가 있을 수 있음)
+      const existingUser = await storage.getUserByEmail(defaultUser.email);
+      if (existingUser) {
+        // 기존 사용자가 있으면 ID를 업데이트하여 사용
+        defaultUser.id = existingUser.id;
+        console.log(`[AUTH] Using existing user: ${existingUser.id} (${existingUser.email})`);
+      } else {
+        // 새 사용자 생성
+        try {
+          await storage.upsertUser({
+            id: defaultUser.id,
+            email: defaultUser.email,
+            firstName: 'Test',
+            lastName: 'User',
+            role: 'user',
+            isHost: true, // 테스트를 위해 호스트로 설정
+          });
+          console.log(`[AUTH] Created default test user: ${defaultUser.id}`);
+        } catch (error) {
+          console.log(`[AUTH] Failed to create user, using existing one`);
+          const existingUser = await storage.getUserByEmail(defaultUser.email);
+          if (existingUser) {
+            defaultUser.id = existingUser.id;
+          }
+        }
+      }
+    }
+    
+    req.user = defaultUser;
+    return next();
+  }
+
+  // 4. 프로덕션에서는 401 반환
+  console.log(`[AUTH] Authentication failed - no valid JWT or session`);
   return res.status(401).json({ message: 'Authentication required' });
 };
 
