@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,30 @@ export default function Profile() {
     setSwitchChecked(user?.openToMeet || false);
     console.log('[Profile] Switch state updated from server:', user?.openToMeet);
   }, [user?.openToMeet]);
+
+  // 호스트 신청 mutation
+  const applyHostMutation = useMutation({
+    mutationFn: async () => {
+      return api('/api/user/apply-host', {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: '호스트 신청 완료',
+        description: '축하합니다! 이제 호스트로 활동하실 수 있습니다.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    },
+    onError: (error) => {
+      console.error('Host application error:', error);
+      toast({
+        title: '신청 실패',
+        description: '호스트 신청 중 오류가 발생했습니다. 다시 시도해주세요.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const toggleOpenToMeetMutation = useMutation({
     mutationFn: async ({ open, region, hours }: { open: boolean; region?: string; hours?: number }) => {
@@ -157,10 +181,20 @@ export default function Profile() {
             <span>{user?.location || '위치 미설정'}</span>
           </div>
 
-          {user?.isHost && (
+          {user?.isHost ? (
             <Badge className="bg-gradient-to-r from-primary to-secondary text-white mb-4">
               ✨ 인증된 호스트
             </Badge>
+          ) : (
+            <Button
+              onClick={() => applyHostMutation.mutate()}
+              disabled={applyHostMutation.isPending}
+              className="mb-4 bg-gradient-to-r from-primary to-secondary text-white"
+              data-testid="button-apply-host"
+            >
+              <Briefcase className="w-4 h-4 mr-2" />
+              {applyHostMutation.isPending ? '신청 중...' : '호스트 되기'}
+            </Button>
           )}
 
           {/* 만남 상태 토글 */}

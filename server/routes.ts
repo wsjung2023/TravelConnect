@@ -2216,5 +2216,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // 호스트 신청 API
+  app.post('/api/user/apply-host', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const userId = req.user.id;
+      const updates = { isHost: true };
+
+      const updatedUser = await storage.updateUser(userId, updates);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      console.log(`[HOST-APPLY] User ${req.user.email} became a host`);
+      res.json({ 
+        message: '호스트 신청이 완료되었습니다!',
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('Error applying for host:', error);
+      res.status(500).json({ message: 'Failed to apply for host' });
+    }
+  });
+
   return httpServer;
 }
