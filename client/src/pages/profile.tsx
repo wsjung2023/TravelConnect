@@ -23,29 +23,14 @@ export default function Profile() {
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
   const [openMeetHours, setOpenMeetHours] = useState(12);
   
-  // 로컬 토글 상태 (즉시 반응용)
-  const [localOpenToMeet, setLocalOpenToMeet] = useState<boolean | null>(null);
+  // Switch 직접 제어를 위한 상태
+  const [switchChecked, setSwitchChecked] = useState(false);
   
-  // 실제 표시할 토글 상태 (로컬 상태가 있으면 우선, 없으면 서버 상태)
-  const displayOpenToMeet = localOpenToMeet !== null ? localOpenToMeet : (user?.openToMeet || false);
-  
-  // 디버깅을 위한 로그
-  console.log('[Profile] State Debug:', {
-    localOpenToMeet,
-    userOpenToMeet: user?.openToMeet,
-    displayOpenToMeet,
-    userObject: user
-  });
-  
-  // user 변경 시 로컬 상태 동기화
+  // 서버 상태를 Switch에 반영
   useEffect(() => {
-    if (user?.openToMeet !== undefined) {
-      // 서버 상태가 로컬 상태와 같아지면 로컬 상태 제거
-      if (localOpenToMeet === user.openToMeet) {
-        setLocalOpenToMeet(null);
-      }
-    }
-  }, [user?.openToMeet, localOpenToMeet]);
+    setSwitchChecked(user?.openToMeet || false);
+    console.log('[Profile] Switch state updated from server:', user?.openToMeet);
+  }, [user?.openToMeet]);
 
   const toggleOpenToMeetMutation = useMutation({
     mutationFn: async ({ open, region, hours }: { open: boolean; region?: string; hours?: number }) => {
@@ -56,18 +41,12 @@ export default function Profile() {
       return result;
     },
     onMutate: async ({ open }) => {
-      // 로컬 상태는 이미 클릭 시 업데이트됨
       console.log('[Profile] Mutation starting: openToMeet =', open);
       await queryClient.cancelQueries({ queryKey: ['/api/auth/me'] });
       
       const previousUser = queryClient.getQueryData(['/api/auth/me']);
       
-      // 낙관적 업데이트 (백업용)
-      queryClient.setQueryData(['/api/auth/me'], (old: any) => {
-        if (!old) return old;
-        return { ...old, openToMeet: open };
-      });
-      
+      // Switch 상태는 이미 즉시 업데이트됨
       return { previousUser };
     },
     onSuccess: (data, variables) => {
@@ -77,12 +56,11 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['/api/profile/open'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/open'] });
       
-      // 강제 리페치 후 로컬 상태 정리
+      // 강제 리페치 (로컬 상태는 useEffect에서 동기화)
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['/api/auth/me'] }).then(() => {
-          console.log('[Profile] Refetch completed, clearing local state');
-          // 서버 데이터와 동기화되면 로컬 상태 제거
-          setLocalOpenToMeet(null);
+          console.log('[Profile] Refetch completed, waiting for useEffect sync');
+          // 로컬 상태 clear는 useEffect에서 안전하게 처리
         });
       }, 100);
       
@@ -95,8 +73,8 @@ export default function Profile() {
     },
     onError: (err, variables, context) => {
       console.error('[Profile] Mutation error:', err);
-      // 실패 시 로컬 상태를 이전 서버 상태로 롤백
-      setLocalOpenToMeet(user?.openToMeet || false);
+      // 실패 시 Switch를 이전 서버 상태로 롤백
+      setSwitchChecked(user?.openToMeet || false);
       
       // 캐시도 롤백
       if (context?.previousUser) {
@@ -111,34 +89,34 @@ export default function Profile() {
     },
   });
 
-  const { data: posts = [] } = useQuery({
+  const { data: posts = [] } = useQuery<any[]>({
     queryKey: ['/api/posts', 'user'],
   });
 
-  const { data: trips = [] } = useQuery({
+  const { data: trips = [] } = useQuery<any[]>({
     queryKey: ['/api/trips'],
   });
 
-  const { data: experiences = [] } = useQuery({
+  const { data: experiences = [] } = useQuery<any[]>({
     queryKey: ['/api/experiences', 'user'],
   });
 
-  const { data: bookings = [] } = useQuery({
+  const { data: bookings = [] } = useQuery<any[]>({
     queryKey: ['/api/bookings'],
   });
 
   // 실제 팔로우 데이터 가져오기
-  const { data: followCounts = { followers: 0, following: 0 } } = useQuery({
+  const { data: followCounts = { followers: 0, following: 0 } } = useQuery<{ followers: number; following: number }>({
     queryKey: ['/api/users', user?.id, 'follow-counts'],
     enabled: !!user?.id,
   });
 
   const stats = {
-    posts: posts.length,
-    trips: trips.length,
-    followers: followCounts.followers,
-    following: followCounts.following,
-    experiences: experiences.length,
+    posts: (posts as any[]).length,
+    trips: (trips as any[]).length,
+    followers: (followCounts as any).followers || 0,
+    following: (followCounts as any).following || 0,
+    experiences: (experiences as any[]).length,
   };
 
   return (
@@ -200,11 +178,11 @@ export default function Profile() {
                 </div>
               </div>
               <Switch
-                checked={displayOpenToMeet}
+                checked={switchChecked}
                 onCheckedChange={(checked) => {
-                  // 즉시 로컬 상태 업데이트
-                  setLocalOpenToMeet(checked);
-                  console.log('[Profile] Local toggle update:', checked);
+                  // 즉시 Switch 상태 업데이트
+                  setSwitchChecked(checked);
+                  console.log('[Profile] Switch toggled to:', checked);
                   
                   if (checked) {
                     toggleOpenToMeetMutation.mutate({
