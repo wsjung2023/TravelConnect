@@ -18,6 +18,9 @@ import {
   channels,
   channelMembers,
   payments,
+  purchaseRequests,
+  purchaseQuotes,
+  purchaseOrders,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -51,6 +54,12 @@ import {
   type InsertChannel,
   type ChannelMember,
   type InsertChannelMember,
+  type PurchaseRequest,
+  type InsertPurchaseRequest,
+  type PurchaseQuote,
+  type InsertPurchaseQuote,
+  type PurchaseOrder,
+  type InsertPurchaseOrder,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -204,6 +213,27 @@ export interface IStorage {
     hostName: string; 
   })[]>;
   getAllPayments(): Promise<Payment[]>;
+
+  // Purchase Proxy operations (구매대행 서비스)
+  createPurchaseRequest(request: InsertPurchaseRequest): Promise<PurchaseRequest>;
+  getPurchaseRequestById(id: number): Promise<PurchaseRequest | undefined>;
+  getPurchaseRequestsByBuyer(buyerId: string): Promise<PurchaseRequest[]>;
+  getPurchaseRequestsBySeller(sellerId: string): Promise<PurchaseRequest[]>;
+  updatePurchaseRequestStatus(id: number, status: string): Promise<PurchaseRequest | undefined>;
+  
+  createPurchaseQuote(quote: InsertPurchaseQuote): Promise<PurchaseQuote>;
+  getPurchaseQuotesByRequest(requestId: number): Promise<PurchaseQuote[]>;
+  getPurchaseQuoteById(id: number): Promise<PurchaseQuote | undefined>;
+  updatePurchaseQuoteStatus(id: number, status: string): Promise<PurchaseQuote | undefined>;
+  
+  createPurchaseOrder(order: InsertPurchaseOrder): Promise<PurchaseOrder>;
+  getPurchaseOrderById(id: number): Promise<PurchaseOrder | undefined>;
+  getPurchaseOrdersByBuyer(buyerId: string): Promise<PurchaseOrder[]>;
+  getPurchaseOrdersBySeller(sellerId: string): Promise<PurchaseOrder[]>;
+  updatePurchaseOrderStatus(id: number, status: string): Promise<PurchaseOrder | undefined>;
+  
+  // 구매대행 서비스 검색 (shopping 카테고리 경험들)
+  getShoppingServices(): Promise<Experience[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1676,6 +1706,139 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(payments.createdAt));
 
     return allPayments;
+  }
+
+  // Purchase Proxy operations (구매대행 서비스)
+  async createPurchaseRequest(request: InsertPurchaseRequest): Promise<PurchaseRequest> {
+    const [newRequest] = await db
+      .insert(purchaseRequests)
+      .values(request)
+      .returning();
+    return newRequest;
+  }
+
+  async getPurchaseRequestById(id: number): Promise<PurchaseRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.id, id));
+    return request;
+  }
+
+  async getPurchaseRequestsByBuyer(buyerId: string): Promise<PurchaseRequest[]> {
+    const requests = await db
+      .select()
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.buyerId, buyerId))
+      .orderBy(desc(purchaseRequests.createdAt));
+    return requests;
+  }
+
+  async getPurchaseRequestsBySeller(sellerId: string): Promise<PurchaseRequest[]> {
+    const requests = await db
+      .select()
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.sellerId, sellerId))
+      .orderBy(desc(purchaseRequests.createdAt));
+    return requests;
+  }
+
+  async updatePurchaseRequestStatus(id: number, status: string): Promise<PurchaseRequest | undefined> {
+    const [updated] = await db
+      .update(purchaseRequests)
+      .set({ status, updatedAt: sql`now()` })
+      .where(eq(purchaseRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async createPurchaseQuote(quote: InsertPurchaseQuote): Promise<PurchaseQuote> {
+    const [newQuote] = await db
+      .insert(purchaseQuotes)
+      .values(quote)
+      .returning();
+    return newQuote;
+  }
+
+  async getPurchaseQuotesByRequest(requestId: number): Promise<PurchaseQuote[]> {
+    const quotes = await db
+      .select()
+      .from(purchaseQuotes)
+      .where(eq(purchaseQuotes.requestId, requestId))
+      .orderBy(desc(purchaseQuotes.createdAt));
+    return quotes;
+  }
+
+  async getPurchaseQuoteById(id: number): Promise<PurchaseQuote | undefined> {
+    const [quote] = await db
+      .select()
+      .from(purchaseQuotes)
+      .where(eq(purchaseQuotes.id, id));
+    return quote;
+  }
+
+  async updatePurchaseQuoteStatus(id: number, status: string): Promise<PurchaseQuote | undefined> {
+    const [updated] = await db
+      .update(purchaseQuotes)
+      .set({ status, updatedAt: sql`now()` })
+      .where(eq(purchaseQuotes.id, id))
+      .returning();
+    return updated;
+  }
+
+  async createPurchaseOrder(order: InsertPurchaseOrder): Promise<PurchaseOrder> {
+    const [newOrder] = await db
+      .insert(purchaseOrders)
+      .values(order)
+      .returning();
+    return newOrder;
+  }
+
+  async getPurchaseOrderById(id: number): Promise<PurchaseOrder | undefined> {
+    const [order] = await db
+      .select()
+      .from(purchaseOrders)
+      .where(eq(purchaseOrders.id, id));
+    return order;
+  }
+
+  async getPurchaseOrdersByBuyer(buyerId: string): Promise<PurchaseOrder[]> {
+    const orders = await db
+      .select()
+      .from(purchaseOrders)
+      .where(eq(purchaseOrders.buyerId, buyerId))
+      .orderBy(desc(purchaseOrders.createdAt));
+    return orders;
+  }
+
+  async getPurchaseOrdersBySeller(sellerId: string): Promise<PurchaseOrder[]> {
+    const orders = await db
+      .select()
+      .from(purchaseOrders)
+      .where(eq(purchaseOrders.sellerId, sellerId))
+      .orderBy(desc(purchaseOrders.createdAt));
+    return orders;
+  }
+
+  async updatePurchaseOrderStatus(id: number, status: string): Promise<PurchaseOrder | undefined> {
+    const [updated] = await db
+      .update(purchaseOrders)
+      .set({ orderStatus: status, updatedAt: sql`now()` })
+      .where(eq(purchaseOrders.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getShoppingServices(): Promise<Experience[]> {
+    const services = await db
+      .select()
+      .from(experiences)
+      .where(and(
+        eq(experiences.category, 'shopping'),
+        eq(experiences.isActive, true)
+      ))
+      .orderBy(desc(experiences.rating), desc(experiences.createdAt));
+    return services;
   }
 }
 

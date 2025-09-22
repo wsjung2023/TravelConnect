@@ -9,6 +9,7 @@ import {
   decimal,
   integer,
   boolean,
+  date,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { createInsertSchema } from 'drizzle-zod';
@@ -60,7 +61,7 @@ export const experiences = pgTable('experiences', {
   location: varchar('location').notNull(),
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
-  category: varchar('category').notNull(), // tour, food, activity, tip
+  category: varchar('category').notNull(), // tour, food, activity, tip, shopping
   duration: integer('duration'), // in minutes
   maxParticipants: integer('max_participants'),
   images: text('images').array(),
@@ -75,6 +76,12 @@ export const experiences = pgTable('experiences', {
   meetingPoint: varchar('meeting_point'), // 만날 장소
   contactPhone: varchar('contact_phone'), // 연락처
   autoConfirm: boolean('auto_confirm').default(true), // 자동 승인 여부
+  // 구매대행 전용 필드들
+  specialtyAreas: text('specialty_areas').array(), // 전문 분야: ['cosmetics', 'clothing', 'food', 'souvenirs']
+  commissionRate: decimal('commission_rate', { precision: 5, scale: 2 }), // 수수료율 (%)
+  shippingInfo: text('shipping_info'), // 배송 정보
+  supportedCountries: text('supported_countries').array(), // 지원 국가들
+  processingTime: varchar('processing_time'), // 처리 시간 (예: "1-3 days")
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -263,20 +270,18 @@ export const reviews = pgTable('reviews', {
   experienceId: integer('experience_id')
     .notNull()
     .references(() => experiences.id),
-  bookingId: integer('booking_id')
+  guestId: varchar('guest_id')
     .notNull()
-    .references(() => bookings.id),
-  reviewerId: varchar('reviewer_id')
+    .references(() => users.id),
+  hostId: varchar('host_id')
     .notNull()
     .references(() => users.id),
   rating: integer('rating').notNull(), // 1-5
   comment: text('comment'),
-  images: text('images').array(),
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('IDX_reviews_experience_id').on(table.experienceId),
-  index('IDX_reviews_booking_id').on(table.bookingId),
+  index('IDX_reviews_guest_id').on(table.guestId),
 ]);
 
 export const comments = pgTable('comments', {
@@ -679,13 +684,15 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
     fields: [reviews.experienceId],
     references: [experiences.id],
   }),
-  booking: one(bookings, {
-    fields: [reviews.bookingId],
-    references: [bookings.id],
-  }),
-  reviewer: one(users, {
-    fields: [reviews.reviewerId],
+  guest: one(users, {
+    fields: [reviews.guestId],
     references: [users.id],
+    relationName: 'reviewGuest',
+  }),
+  host: one(users, {
+    fields: [reviews.hostId],
+    references: [users.id],
+    relationName: 'reviewHost',
   }),
 }));
 
@@ -742,6 +749,88 @@ export const miniMeetAttendees = pgTable('mini_meet_attendees', {
   index('IDX_mini_meet_attendees_user_id').on(table.userId),
 ]);
 
+// 구매대행 서비스 테이블들
+export const purchaseRequests = pgTable('purchase_requests', {
+  id: serial('id').primaryKey(),
+  serviceId: integer('service_id')
+    .notNull()
+    .references(() => experiences.id), // shopping 카테고리 경험 참조
+  buyerId: varchar('buyer_id')
+    .notNull()
+    .references(() => users.id),
+  sellerId: varchar('seller_id')
+    .notNull()
+    .references(() => users.id),
+  productName: varchar('product_name').notNull(),
+  productDescription: text('product_description'),
+  productUrl: text('product_url'), // 상품 링크
+  productImages: text('product_images').array(),
+  estimatedPrice: decimal('estimated_price', { precision: 10, scale: 2 }),
+  currency: varchar('currency').default('KRW'),
+  quantity: integer('quantity').default(1),
+  urgency: varchar('urgency').default('normal'), // urgent, normal, flexible
+  deliveryAddress: text('delivery_address'),
+  specialInstructions: text('special_instructions'),
+  status: varchar('status').default('pending'), // pending, quoted, accepted, purchased, shipped, completed, cancelled
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const purchaseQuotes = pgTable('purchase_quotes', {
+  id: serial('id').primaryKey(),
+  requestId: integer('request_id')
+    .notNull()
+    .references(() => purchaseRequests.id),
+  sellerId: varchar('seller_id')
+    .notNull()
+    .references(() => users.id),
+  productPrice: decimal('product_price', { precision: 10, scale: 2 }).notNull(),
+  commissionFee: decimal('commission_fee', { precision: 10, scale: 2 }).notNull(),
+  shippingFee: decimal('shipping_fee', { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
+  estimatedDelivery: varchar('estimated_delivery'), // "3-5 days"
+  paymentMethod: varchar('payment_method'), // paypal, bank_transfer, etc
+  notes: text('notes'),
+  validUntil: timestamp('valid_until'),
+  status: varchar('status').default('pending'), // pending, accepted, rejected, expired
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const purchaseOrders = pgTable('purchase_orders', {
+  id: serial('id').primaryKey(),
+  requestId: integer('request_id')
+    .notNull()
+    .references(() => purchaseRequests.id),
+  quoteId: integer('quote_id')
+    .notNull()
+    .references(() => purchaseQuotes.id),
+  buyerId: varchar('buyer_id')
+    .notNull()
+    .references(() => users.id),
+  sellerId: varchar('seller_id')
+    .notNull()
+    .references(() => users.id),
+  orderNumber: varchar('order_number').notNull().unique(),
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
+  paymentStatus: varchar('payment_status').default('pending'), // pending, paid, refunded
+  orderStatus: varchar('order_status').default('confirmed'), // confirmed, purchased, shipped, delivered, completed
+  purchaseProof: text('purchase_proof').array(), // 구매 인증샷
+  qualityCheckImages: text('quality_check_images').array(), // 품질 확인 사진
+  trackingNumber: varchar('tracking_number'), // 배송 추적번호
+  shippingMethod: varchar('shipping_method'), // international_shipping, direct_delivery
+  estimatedDelivery: date('estimated_delivery'),
+  actualDelivery: date('actual_delivery'),
+  buyerNotes: text('buyer_notes'),
+  sellerNotes: text('seller_notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_purchase_orders_buyer_id').on(table.buyerId),
+  index('IDX_purchase_orders_seller_id').on(table.sellerId),
+  index('IDX_purchase_orders_status').on(table.orderStatus),
+]);
+
 
 // Zod 스키마
 export const insertMiniMeetSchema = createInsertSchema(miniMeets).omit({
@@ -787,6 +876,33 @@ export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type Refund = typeof refunds.$inferSelect;
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
 
+// 구매대행 서비스 Zod 스키마
+export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPurchaseQuoteSchema = createInsertSchema(purchaseQuotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// 구매대행 서비스 타입 정의
+export type PurchaseRequest = typeof purchaseRequests.$inferSelect;
+export type InsertPurchaseRequest = z.infer<typeof insertPurchaseRequestSchema>;
+export type PurchaseQuote = typeof purchaseQuotes.$inferSelect;
+export type InsertPurchaseQuote = z.infer<typeof insertPurchaseQuoteSchema>;
+export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
+export type InsertPurchaseOrder = z.infer<typeof insertPurchaseOrderSchema>;
+
 // MiniMeet 관계 설정
 export const miniMeetsRelations = relations(miniMeets, ({ one, many }) => ({
   host: one(users, {
@@ -807,3 +923,54 @@ export const miniMeetAttendeesRelations = relations(miniMeetAttendees, ({ one })
   }),
 }));
 
+// 구매대행 서비스 관계 설정
+export const purchaseRequestsRelations = relations(purchaseRequests, ({ one, many }) => ({
+  service: one(experiences, {
+    fields: [purchaseRequests.serviceId],
+    references: [experiences.id],
+  }),
+  buyer: one(users, {
+    fields: [purchaseRequests.buyerId],
+    references: [users.id],
+    relationName: 'purchaseRequestBuyer',
+  }),
+  seller: one(users, {
+    fields: [purchaseRequests.sellerId],
+    references: [users.id],
+    relationName: 'purchaseRequestSeller',
+  }),
+  quotes: many(purchaseQuotes),
+  orders: many(purchaseOrders),
+}));
+
+export const purchaseQuotesRelations = relations(purchaseQuotes, ({ one }) => ({
+  request: one(purchaseRequests, {
+    fields: [purchaseQuotes.requestId],
+    references: [purchaseRequests.id],
+  }),
+  seller: one(users, {
+    fields: [purchaseQuotes.sellerId],
+    references: [users.id],
+  }),
+}));
+
+export const purchaseOrdersRelations = relations(purchaseOrders, ({ one }) => ({
+  request: one(purchaseRequests, {
+    fields: [purchaseOrders.requestId],
+    references: [purchaseRequests.id],
+  }),
+  quote: one(purchaseQuotes, {
+    fields: [purchaseOrders.quoteId],
+    references: [purchaseQuotes.id],
+  }),
+  buyer: one(users, {
+    fields: [purchaseOrders.buyerId],
+    references: [users.id],
+    relationName: 'purchaseOrderBuyer',
+  }),
+  seller: one(users, {
+    fields: [purchaseOrders.sellerId],
+    references: [users.id],
+    relationName: 'purchaseOrderSeller',
+  }),
+}));
