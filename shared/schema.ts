@@ -495,6 +495,16 @@ export const insertTripSchema = createInsertSchema(trips).omit({
   updatedAt: true,
 });
 
+export const insertReviewSchema = createInsertSchema(reviews, {
+  rating: z.number().min(1, '평점은 1점 이상이어야 합니다').max(5, '평점은 5점 이하여야 합니다'),
+  comment: z.string().min(10, '후기는 최소 10글자 이상 작성해주세요').max(500, '후기는 최대 500글자까지 작성 가능합니다').optional(),
+  images: z.array(z.string()).max(5, '이미지는 최대 5개까지 업로드 가능합니다').optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -513,6 +523,7 @@ export type InsertTimeline = z.infer<typeof insertTimelineSchema>;
 export type Timeline = typeof timelines.$inferSelect;
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
 
 // 시스템 설정값 관리 테이블 - 하드코딩 대신 DB로 관리
@@ -767,14 +778,6 @@ export const insertRefundSchema = createInsertSchema(refunds).omit({
   id: true,
   createdAt: true,
 });
-
-export const insertReviewSchema = createInsertSchema(reviews).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type InsertReview = z.infer<typeof insertReviewSchema>;
 
 // 커머스 타입 정의
 export type ExperienceSlot = typeof experienceSlots.$inferSelect;

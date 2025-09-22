@@ -35,6 +35,7 @@ import {
   type Trip,
   type InsertTimeline,
   type Timeline,
+  type InsertReview,
   type Review,
   type SystemSetting,
   type InsertSystemSetting,
@@ -123,13 +124,7 @@ export interface IStorage {
   ): Promise<Trip | undefined>;
 
   // Review operations
-  createReview(review: {
-    experienceId: number;
-    guestId: string;
-    hostId: string;
-    rating: number;
-    comment?: string;
-  }): Promise<Review>;
+  createReview(review: InsertReview): Promise<Review>;
   getReviewsByExperience(experienceId: number): Promise<Review[]>;
 
   // System Settings operations
@@ -763,13 +758,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Review operations
-  async createReview(review: {
-    experienceId: number;
-    guestId: string;
-    hostId: string;
-    rating: number;
-    comment?: string;
-  }): Promise<Review> {
+  async createReview(review: InsertReview): Promise<Review> {
     const [newReview] = await db.insert(reviews).values(review).returning();
 
     // Update experience rating
@@ -785,8 +774,8 @@ export class DatabaseStorage implements IStorage {
       await db
         .update(experiences)
         .set({
-          rating: avgRating[0].avg.toFixed(2),
-          reviewCount: avgRating[0].count,
+          rating: Number(avgRating[0].avg.toFixed(2)),
+          reviewCount: Number(avgRating[0].count),
         })
         .where(eq(experiences.id, review.experienceId));
     }

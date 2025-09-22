@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star } from 'lucide-react';
+import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import CreateExperienceModal from '@/components/CreateExperienceModal';
+import CreateReviewModal from '@/components/CreateReviewModal';
 
 interface Experience {
   id: number;
@@ -426,13 +427,26 @@ export default function HostDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              data-testid={`button-manage-${booking.id}`}
-                            >
-                              관리
-                            </Button>
+                            {booking.status === 'completed' ? (
+                              <CreateReviewModal booking={booking}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  data-testid={`button-review-${booking.id}`}
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  후기 작성
+                                </Button>
+                              </CreateReviewModal>
+                            ) : (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                data-testid={`button-manage-${booking.id}`}
+                              >
+                                관리
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

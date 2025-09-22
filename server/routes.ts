@@ -2243,5 +2243,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 후기 작성 API
+  app.post('/api/reviews', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const reviewData = insertReviewSchema.parse({
+        ...req.body,
+        reviewerId: req.user.id,
+      });
+
+      const review = await storage.createReview(reviewData);
+      
+      console.log(`[REVIEW] User ${req.user.email} created review for experience ${reviewData.experienceId}`);
+      res.json(review);
+    } catch (error) {
+      console.error('Error creating review:', error);
+      res.status(500).json({ message: 'Failed to create review' });
+    }
+  });
+
+  // 후기 조회 API (경험별)
+  app.get('/api/experiences/:id/reviews', async (req, res) => {
+    try {
+      const experienceId = parseInt(req.params.id);
+      const reviews = await storage.getReviewsByExperience(experienceId);
+      res.json(reviews);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      res.status(500).json({ message: 'Failed to fetch reviews' });
+    }
+  });
+
   return httpServer;
 }
