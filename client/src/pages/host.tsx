@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star, MessageSquare } from 'lucide-react';
+import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import CreateExperienceModal from '@/components/CreateExperienceModal';
 import CreateReviewModal from '@/components/CreateReviewModal';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface Experience {
   id: number;
@@ -46,6 +48,7 @@ export default function HostDashboard() {
   const [, setLocation] = useLocation();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'experiences' | 'bookings'>('overview');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // 로딩 중이면 스피너 표시
   if (authLoading) {
@@ -127,6 +130,35 @@ export default function HostDashboard() {
       case 'activity': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'tip': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  };
+
+  // 예약 승인/거절 처리
+  const handleBookingAction = async (bookingId: number, newStatus: 'confirmed' | 'cancelled') => {
+    try {
+      await apiRequest(`/api/host/bookings/${bookingId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // 성공 메시지
+      toast({
+        title: newStatus === 'confirmed' ? '예약이 승인되었습니다' : '예약이 거절되었습니다',
+        description: `예약 #${bookingId}의 상태가 업데이트되었습니다.`,
+      });
+
+      // 예약 목록 다시 불러오기
+      queryClient.invalidateQueries({ queryKey: ['/api/host/bookings'] });
+    } catch (error) {
+      toast({
+        title: '오류 발생',
+        description: '예약 상태 변경 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+      console.error('예약 상태 변경 오류:', error);
     }
   };
 
@@ -438,6 +470,27 @@ export default function HostDashboard() {
                                   후기 작성
                                 </Button>
                               </CreateReviewModal>
+                            ) : booking.status === 'pending' ? (
+                              <div className="flex space-x-2">
+                                <Button 
+                                  variant="default" 
+                                  size="sm"
+                                  onClick={() => handleBookingAction(booking.id, 'confirmed')}
+                                  data-testid={`button-approve-${booking.id}`}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  승인
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => handleBookingAction(booking.id, 'cancelled')}
+                                  data-testid={`button-reject-${booking.id}`}
+                                >
+                                  <XCircle className="w-4 h-4 mr-1" />
+                                  거절
+                                </Button>
+                              </div>
                             ) : (
                               <Button 
                                 variant="outline" 

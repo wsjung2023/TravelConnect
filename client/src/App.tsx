@@ -44,6 +44,7 @@ const Host = lazy(() => import('@/pages/host'));
 const ErrorTest = lazy(() => import('@/pages/ErrorTestPage'));
 const Marketplace = lazy(() => import('@/pages/marketplace'));
 const ExperienceDetail = lazy(() => import('@/pages/experience'));
+const GuideProfile = lazy(() => import('@/pages/guide-profile'));
 
 // Simple loading component
 const LoadingSpinner = () => (
@@ -156,6 +157,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <Marketplace />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/guide/:id"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <GuideProfile />
                 </Suspense>
               )}
             />

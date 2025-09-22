@@ -385,6 +385,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 호스트용 예약 상태 업데이트 (시나리오 7 지원)
+  app.patch('/api/host/bookings/:id/status', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
+      const bookingId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!bookingId || !status) {
+        return res.status(400).json({ error: 'Booking ID and status are required' });
+      }
+
+      if (!['confirmed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Must be "confirmed" or "cancelled"' });
+      }
+
+      // 예약이 현재 호스트의 것인지 확인
+      const booking = await storage.getBookingById(bookingId);
+      if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+
+      // 해당 예약의 경험이 현재 호스트의 것인지 확인
+      const experience = await storage.getExperienceById(booking.experienceId);
+      if (!experience || experience.hostId !== req.user.id) {
+        return res.status(403).json({ error: 'Not authorized to update this booking' });
+      }
+
+      // 예약 상태 업데이트
+      const updatedBooking = await storage.updateBookingStatus(bookingId, status);
+      res.json(updatedBooking);
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      res.status(500).json({ error: 'Failed to update booking status' });
+    }
+  });
+
   // 조건부 인증 설정
   if (process.env.REPLIT_DOMAINS) {
     // Replit 환경에서만 OIDC 인증 설정
@@ -723,6 +762,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching reviews:', error);
       res.status(500).json({ message: 'Failed to fetch reviews' });
+    }
+  });
+
+  // Guide Profile API - 시나리오 7 지원
+  app.get('/api/guide/:id', async (req, res) => {
+    try {
+      const guideId = req.params.id;
+      const guide = await storage.getGuideProfile(guideId);
+      
+      if (!guide) {
+        return res.status(404).json({ message: 'Guide not found' });
+      }
+      
+      res.json(guide);
+    } catch (error) {
+      console.error('Error fetching guide profile:', error);
+      res.status(500).json({ message: 'Failed to fetch guide profile' });
+    }
+  });
+
+  app.get('/api/guide/:id/experiences', async (req, res) => {
+    try {
+      const guideId = req.params.id;
+      const experiences = await storage.getExperiencesByHost(guideId);
+      res.json(experiences);
+    } catch (error) {
+      console.error('Error fetching guide experiences:', error);
+      res.status(500).json({ message: 'Failed to fetch guide experiences' });
+    }
+  });
+
+  app.get('/api/guide/:id/posts', async (req, res) => {
+    try {
+      const guideId = req.params.id;
+      const posts = await storage.getPostsByUser(guideId);
+      res.json(posts);
+    } catch (error) {
+      console.error('Error fetching guide posts:', error);
+      res.status(500).json({ message: 'Failed to fetch guide posts' });
+    }
+  });
+
+  app.get('/api/guide/:id/reviews', async (req, res) => {
+    try {
+      const guideId = req.params.id;
+      const reviews = await storage.getReviewsByHost(guideId);
+      res.json(reviews);
+    } catch (error) {
+      console.error('Error fetching guide reviews:', error);
+      res.status(500).json({ message: 'Failed to fetch guide reviews' });
     }
   });
 

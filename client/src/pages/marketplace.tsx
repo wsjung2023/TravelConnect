@@ -274,6 +274,28 @@ export default function Marketplace() {
                     </div>
                   </div>
 
+                  {/* 호스트 정보 */}
+                  {experience.host && (
+                    <div className="mb-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+                      <Link 
+                        to={`/guide/${experience.hostId}`}
+                        className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+                        data-testid={`link-guide-${experience.hostId}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                          {experience.host.firstName?.[0]}{experience.host.lastName?.[0]}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {experience.host.firstName} {experience.host.lastName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">가이드 프로필 보기</p>
+                        </div>
+                        <div className="text-xs text-blue-600 dark:text-blue-400">→</div>
+                      </Link>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />

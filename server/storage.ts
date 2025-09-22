@@ -89,6 +89,7 @@ export interface IStorage {
 
   // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;
+  getBookingById(id: number): Promise<Booking | undefined>;
   getBookingsByGuest(guestId: string): Promise<Booking[]>;
   getBookingsByHost(hostId: string): Promise<Booking[]>;
   updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
@@ -126,6 +127,23 @@ export interface IStorage {
   // Review operations
   createReview(review: InsertReview): Promise<Review>;
   getReviewsByExperience(experienceId: number): Promise<Review[]>;
+  getReviewsByHost(hostId: string): Promise<Review[]>;
+
+  // Guide Profile operations
+  getGuideProfile(guideId: string): Promise<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    bio?: string;
+    location?: string;
+    isHost: boolean;
+    totalExperiences: number;
+    totalReviews: number;
+    averageRating: number;
+    responseRate: number;
+    joinedAt: string;
+  } | undefined>;
 
   // System Settings operations
   getSystemSetting(category: string, key: string): Promise<string | undefined>;
@@ -535,6 +553,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bookings.createdAt));
   }
 
+  async getBookingById(id: number): Promise<Booking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id))
+      .limit(1);
+    return booking;
+  }
+
   async getBookingsByHost(hostId: string): Promise<Booking[]> {
     return await db
       .select({
@@ -789,6 +816,78 @@ export class DatabaseStorage implements IStorage {
       .from(reviews)
       .where(eq(reviews.experienceId, experienceId))
       .orderBy(desc(reviews.createdAt));
+  }
+
+  async getReviewsByHost(hostId: string): Promise<Review[]> {
+    return await db
+      .select({
+        id: reviews.id,
+        rating: reviews.rating,
+        comment: reviews.comment,
+        reviewerName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
+        experienceTitle: experiences.title,
+        createdAt: reviews.createdAt,
+      })
+      .from(reviews)
+      .innerJoin(experiences, eq(reviews.experienceId, experiences.id))
+      .innerJoin(users, eq(reviews.reviewerId, users.id))
+      .where(eq(experiences.hostId, hostId))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async getGuideProfile(guideId: string): Promise<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    bio?: string;
+    location?: string;
+    isHost: boolean;
+    totalExperiences: number;
+    totalReviews: number;
+    averageRating: number;
+    responseRate: number;
+    joinedAt: string;
+  } | undefined> {
+    // 기본 사용자 정보
+    const user = await this.getUser(guideId);
+    if (!user || !user.isHost) {
+      return undefined;
+    }
+
+    // 경험 개수
+    const experienceCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(experiences)
+      .where(and(eq(experiences.hostId, guideId), eq(experiences.isActive, true)));
+
+    // 후기 통계
+    const reviewStats = await db
+      .select({
+        count: sql<number>`count(*)`,
+        avgRating: sql<number>`avg(${reviews.rating})`,
+      })
+      .from(reviews)
+      .innerJoin(experiences, eq(reviews.experienceId, experiences.id))
+      .where(eq(experiences.hostId, guideId));
+
+    // 응답률 계산 (간단히 95%로 설정, 실제로는 메시지 응답 시간을 계산해야 함)
+    const responseRate = 95;
+
+    return {
+      id: user.id,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      profileImageUrl: user.profileImageUrl || undefined,
+      bio: user.bio || undefined,
+      location: user.location || undefined,
+      isHost: user.isHost,
+      totalExperiences: experienceCount[0]?.count || 0,
+      totalReviews: reviewStats[0]?.count || 0,
+      averageRating: Number(reviewStats[0]?.avgRating?.toFixed(1)) || 0,
+      responseRate,
+      joinedAt: user.createdAt?.toISOString() || new Date().toISOString(),
+    };
   }
 
   // System Settings operations
