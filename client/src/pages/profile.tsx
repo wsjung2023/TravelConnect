@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users } from 'lucide-react';
@@ -22,24 +22,87 @@ export default function Profile() {
   // 만남 상태 토글 mutation
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
   const [openMeetHours, setOpenMeetHours] = useState(12);
+  
+  // 로컬 토글 상태 (즉시 반응용)
+  const [localOpenToMeet, setLocalOpenToMeet] = useState<boolean | null>(null);
+  
+  // 실제 표시할 토글 상태 (로컬 상태가 있으면 우선, 없으면 서버 상태)
+  const displayOpenToMeet = localOpenToMeet !== null ? localOpenToMeet : (user?.openToMeet || false);
+  
+  // 디버깅을 위한 로그
+  console.log('[Profile] State Debug:', {
+    localOpenToMeet,
+    userOpenToMeet: user?.openToMeet,
+    displayOpenToMeet,
+    userObject: user
+  });
+  
+  // user 변경 시 로컬 상태 동기화
+  useEffect(() => {
+    if (user?.openToMeet !== undefined) {
+      // 서버 상태가 로컬 상태와 같아지면 로컬 상태 제거
+      if (localOpenToMeet === user.openToMeet) {
+        setLocalOpenToMeet(null);
+      }
+    }
+  }, [user?.openToMeet, localOpenToMeet]);
 
   const toggleOpenToMeetMutation = useMutation({
     mutationFn: async ({ open, region, hours }: { open: boolean; region?: string; hours?: number }) => {
-      await api('/api/profile/open', {
+      const result = await api('/api/profile/open', {
         method: 'PATCH',
         body: { open, region, hours },
       });
+      return result;
     },
-    onSuccess: () => {
+    onMutate: async ({ open }) => {
+      // 로컬 상태는 이미 클릭 시 업데이트됨
+      console.log('[Profile] Mutation starting: openToMeet =', open);
+      await queryClient.cancelQueries({ queryKey: ['/api/auth/me'] });
+      
+      const previousUser = queryClient.getQueryData(['/api/auth/me']);
+      
+      // 낙관적 업데이트 (백업용)
+      queryClient.setQueryData(['/api/auth/me'], (old: any) => {
+        if (!old) return old;
+        return { ...old, openToMeet: open };
+      });
+      
+      return { previousUser };
+    },
+    onSuccess: (data, variables) => {
+      console.log('[Profile] Mutation success, invalidating queries');
+      // 여러 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/profile/open'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/open'] });
+      
+      // 강제 리페치 후 로컬 상태 정리
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/auth/me'] }).then(() => {
+          console.log('[Profile] Refetch completed, clearing local state');
+          // 서버 데이터와 동기화되면 로컬 상태 제거
+          setLocalOpenToMeet(null);
+        });
+      }, 100);
+      
       toast({
         title: '만남 상태 변경됨',
-        description: user?.openToMeet 
-          ? '만남이 비활성화되었습니다.' 
-          : `${openMeetHours}시간 동안 ${openMeetRegion}에서 만남이 활성화되었습니다.`,
+        description: variables.open
+          ? `${openMeetHours}시간 동안 ${openMeetRegion}에서 만남이 활성화되었습니다.`
+          : '만남이 비활성화되었습니다.',
       });
     },
-    onError: () => {
+    onError: (err, variables, context) => {
+      console.error('[Profile] Mutation error:', err);
+      // 실패 시 로컬 상태를 이전 서버 상태로 롤백
+      setLocalOpenToMeet(user?.openToMeet || false);
+      
+      // 캐시도 롤백
+      if (context?.previousUser) {
+        queryClient.setQueryData(['/api/auth/me'], context.previousUser);
+      }
+      
       toast({
         title: '오류',
         description: '설정을 변경하는 중 오류가 발생했습니다.',
@@ -137,8 +200,12 @@ export default function Profile() {
                 </div>
               </div>
               <Switch
-                checked={user?.openToMeet || false}
+                checked={displayOpenToMeet}
                 onCheckedChange={(checked) => {
+                  // 즉시 로컬 상태 업데이트
+                  setLocalOpenToMeet(checked);
+                  console.log('[Profile] Local toggle update:', checked);
+                  
                   if (checked) {
                     toggleOpenToMeetMutation.mutate({
                       open: true,

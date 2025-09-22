@@ -564,34 +564,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const { open, region, hours } = req.validatedData as { open: boolean; region?: string; hours?: number };
 
+      console.log(`[PATCH /api/profile/open] 사용자 ${userId}: open=${open}, region=${region}, hours=${hours}`);
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
       }
+
+      console.log(`[PATCH /api/profile/open] 현재 사용자 상태: openToMeet=${user.openToMeet}, openUntil=${user.openUntil}`);
 
       // openUntil 계산 (활성화 시에만)
       let openUntil = null;
       if (open) {
         const activeHours = hours || 12; // 기본값 12시간
         openUntil = new Date(Date.now() + activeHours * 60 * 60 * 1000);
+        console.log(`[PATCH /api/profile/open] openUntil 계산: ${openUntil} (${activeHours}시간 후)`);
+      } else {
+        console.log(`[PATCH /api/profile/open] 비활성화 - openUntil을 null로 설정`);
       }
 
       // 프로필 업데이트
       const updateData: any = {
         openToMeet: open,
+        openUntil: openUntil,
       };
       
       if (region) {
         updateData.regionCode = region;
       }
-      
-      if (open) {
-        updateData.openUntil = openUntil;
-      } else {
-        updateData.openUntil = null; // 비활성화 시 만료 시간 제거
-      }
+
+      console.log(`[PATCH /api/profile/open] 업데이트 데이터:`, updateData);
 
       const updatedUser = await storage.updateUser(userId, updateData);
+
+      console.log(`[PATCH /api/profile/open] 업데이트 완료: openToMeet=${updatedUser.openToMeet}, openUntil=${updatedUser.openUntil}`);
 
       res.json({
         message: '프로필이 업데이트되었습니다',
