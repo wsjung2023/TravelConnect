@@ -58,12 +58,19 @@ export default function Marketplace() {
   const [sortBy, setSortBy] = useState('rating');
 
   const { data: experiences = [], isLoading } = useQuery<Experience[]>({
-    queryKey: ['/api/experiences', { 
-      search: searchQuery, 
-      category: categoryFilter,
-      priceRange: priceFilter,
-      sortBy 
-    }],
+    queryKey: ['/api/experiences', searchQuery, categoryFilter, priceFilter, sortBy],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (categoryFilter && categoryFilter !== 'all') params.append('category', categoryFilter);
+      if (priceFilter && priceFilter !== 'all') params.append('priceRange', priceFilter);
+      if (sortBy) params.append('sortBy', sortBy);
+      
+      const url = `/api/experiences${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch experiences');
+      return response.json();
+    },
   });
 
   const formatPrice = (price: string, currency: string) => {

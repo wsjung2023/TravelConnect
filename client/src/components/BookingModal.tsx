@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import type { Experience, InsertBooking } from '@shared/schema';
 
@@ -23,6 +24,7 @@ export default function BookingModal({
   const [participants, setParticipants] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const bookingMutation = useMutation({
@@ -52,6 +54,15 @@ export default function BookingModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      toast({
+        title: '로그인 필요',
+        description: '예약하려면 먼저 로그인해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!selectedDate) {
       toast({
         title: '날짜 선택',
@@ -65,7 +76,7 @@ export default function BookingModal({
 
     const booking: InsertBooking = {
       experienceId: experience.id,
-      guestId: 'current-user', // This should come from auth
+      guestId: user.id,
       hostId: experience.hostId,
       date: new Date(selectedDate),
       participants,

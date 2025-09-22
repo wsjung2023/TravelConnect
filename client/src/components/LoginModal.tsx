@@ -123,11 +123,11 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
   const handleGoogleLogin = () => {
     console.log('구글 로그인 버튼 클릭됨');
-    const googleAuthUrl = `https://${window.location.host}/auth/google`;
+    const googleAuthUrl = `${window.location.protocol}//${window.location.host}/api/login`;
     console.log('구글 인증 URL:', googleAuthUrl);
 
     // 서버 연결 테스트
-    fetch('/auth/google', { redirect: 'manual' })
+    fetch('/api/login', { redirect: 'manual' })
       .then((response) => {
         console.log('서버 응답 상태:', response.status);
         console.log('응답 헤더:', response.headers.get('location'));
