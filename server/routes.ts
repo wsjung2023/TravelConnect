@@ -562,23 +562,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
-      const { open, region } = req.validatedData as { open: boolean; region: string };
+      const { open, region, hours } = req.validatedData as { open: boolean; region?: string; hours?: number };
 
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
       }
 
+      // openUntil 계산 (활성화 시에만)
+      let openUntil = null;
+      if (open) {
+        const activeHours = hours || 12; // 기본값 12시간
+        openUntil = new Date(Date.now() + activeHours * 60 * 60 * 1000);
+      }
+
       // 프로필 업데이트
-      const updatedUser = await storage.updateUser(userId, {
+      const updateData: any = {
         openToMeet: open,
-        regionCode: region,
-      });
+      };
+      
+      if (region) {
+        updateData.regionCode = region;
+      }
+      
+      if (open) {
+        updateData.openUntil = openUntil;
+      } else {
+        updateData.openUntil = null; // 비활성화 시 만료 시간 제거
+      }
+
+      const updatedUser = await storage.updateUser(userId, updateData);
 
       res.json({
         message: '프로필이 업데이트되었습니다',
         openToMeet: updatedUser.openToMeet,
         regionCode: updatedUser.regionCode,
+        openUntil: updatedUser.openUntil,
       });
     } catch (error) {
       console.error('프로필 업데이트 오류:', error);

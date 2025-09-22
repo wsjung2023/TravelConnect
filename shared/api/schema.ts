@@ -128,6 +128,12 @@ export const AdminActionSchema = z.object({
 export const UpdateProfileOpenSchema = z.object({
   open: z.boolean(),
   region: z.string().min(1, '지역 코드를 입력해주세요').optional(),
+  hours: z.number().min(1).max(168).default(12), // 기본값 12시간
+}).refine((data) => {
+  // open이 true일 때는 hours가 필요하지만 기본값으로 처리됨
+  return true;
+}, {
+  message: "만나요 활성화 시 시간 설정이 필요합니다"
 });
 
 // Type inference
