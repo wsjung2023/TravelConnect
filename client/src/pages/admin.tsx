@@ -398,7 +398,11 @@ export default function AdminPage() {
               <CardContent>
                 <div className="space-y-4">
                   <Button
-                    onClick={() => window.open('/db-admin', '_blank')}
+                    onClick={() => {
+                      const token = localStorage.getItem('token');
+                      const url = token ? `/db-admin?token=${encodeURIComponent(token)}` : '/db-admin';
+                      window.open(url, '_blank');
+                    }}
                     className="w-full justify-start"
                     variant="outline"
                     data-testid="button-db-admin"

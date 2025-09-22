@@ -4,6 +4,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
@@ -224,9 +225,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DB Admin interface - ADMIN ONLY
-  app.get('/db-admin', authenticateToken, requireAdmin, (req: AuthRequest, res) => {
-    res.sendFile(path.join(process.cwd(), 'db-admin.html'));
+  // DB Admin interface - ADMIN ONLY (with query token support)
+  app.get('/db-admin', async (req: Request, res: Response) => {
+    try {
+      // 먼저 쿼리에서 토큰 확인
+      const queryToken = req.query.token as string;
+      const authHeader = req.headers.authorization;
+      
+      let token = '';
+      if (queryToken) {
+        token = queryToken;
+      } else if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      } else {
+        return res.status(401).json({ message: 'No token provided' });
+      }
+
+      // JWT 토큰 검증
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as any;
+      if (!decoded.role || decoded.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      console.log(`[DB-ADMIN] Admin access granted to ${decoded.email} (${decoded.id})`);
+      res.sendFile(path.join(process.cwd(), 'db-admin.html'));
+    } catch (error) {
+      console.error('[DB-ADMIN] Access denied:', error);
+      res.status(401).json({ message: 'Invalid token' });
+    }
   });
 
   // SQL execution endpoint for DB admin - ADMIN ONLY
@@ -513,7 +539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: user.lastName,
         role: user.role,
         isHost: user.isHost || false,
-        profileImage: user.profileImage || null,
+        profileImage: user.profileImageUrl || null,
       });
     } catch (error) {
       console.error('사용자 정보 조회 오류:', error);
@@ -1216,7 +1242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/bookings/:id', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id!);
       const { status } = req.body;
       const booking = await storage.updateBookingStatus(id, status);
       if (!booking) {
@@ -2146,7 +2172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (process.env.NODE_ENV === 'development') {
     app.post('/api/test/create-token', async (req, res) => {
       try {
-        const { sub, email, first_name, last_name } = req.body;
+        const { sub, email, first_name, last_name, role } = req.body;
         
         if (!sub || !email) {
           return res.status(400).json({ message: 'sub and email are required' });
@@ -2154,12 +2180,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // 테스트 사용자 생성/업데이트
         const userId = sub;
+        const userRole = (role === 'admin') ? 'admin' : 'user';
         const testUser = {
           id: userId,
           email,
           firstName: first_name || 'Test',
           lastName: last_name || 'User', 
-          role: 'user' as const,
+          role: userRole as 'admin' | 'user',
           profileImageUrl: null,
           bio: null,
           location: null,
@@ -2172,13 +2199,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const token = generateToken({
           id: userId,
           email,
-          role: 'user',
+          role: userRole,
         });
+
+        console.log(`[TEST TOKEN] Created ${userRole} token for ${email} (${userId})`);
 
         res.json({ 
           token,
           user: testUser,
-          message: 'Test token created successfully' 
+          message: `Test ${userRole} token created successfully` 
         });
       } catch (error) {
         console.error('Error creating test token:', error);
