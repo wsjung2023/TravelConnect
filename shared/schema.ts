@@ -123,7 +123,7 @@ export const bookings = pgTable('bookings', {
   status: varchar('status').default('pending'), // pending, confirmed, completed, cancelled
   specialRequests: text('special_requests'),
   // 커머스 확장 필드
-  slotId: integer('slot_id').references(() => experienceSlots.id),
+  // slotId: integer('slot_id').references(() => experienceSlots.id), // 주석처리 - DB에 컬럼 없음
   paymentStatus: varchar('payment_status').default('pending'), // pending, paid, failed, refunded
   expiresAt: timestamp('expires_at'), // 결제 대기 만료 시간
   cancelReason: text('cancel_reason'),
@@ -646,10 +646,10 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
     fields: [bookings.hostId],
     references: [users.id],
   }),
-  slot: one(experienceSlots, {
-    fields: [bookings.slotId],
-    references: [experienceSlots.id],
-  }),
+  // slot: one(experienceSlots, {
+  //   fields: [bookings.slotId],
+  //   references: [experienceSlots.id],
+  // }), // 주석처리 - slotId 필드가 DB에 없음
   payments: many(payments),
   reviews: many(reviews),
   channels: many(channels),
