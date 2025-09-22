@@ -516,7 +516,19 @@ export class DatabaseStorage implements IStorage {
 
   // Booking operations
   async createBooking(booking: InsertBooking): Promise<Booking> {
-    const [newBooking] = await db.insert(bookings).values(booking).returning();
+    // 실제 존재하는 데이터베이스 컬럼만 사용하여 삽입
+    const existingColumns = {
+      experienceId: booking.experienceId,
+      guestId: booking.guestId,
+      hostId: booking.hostId,
+      date: booking.date,
+      participants: booking.participants,
+      totalPrice: booking.totalPrice,
+      status: booking.status || 'pending',
+      specialRequests: booking.specialRequests,
+    };
+    
+    const [newBooking] = await db.insert(bookings).values(existingColumns).returning();
     return newBooking;
   }
 

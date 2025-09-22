@@ -1161,14 +1161,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.post('/api/bookings', authenticateToken, async (req: any, res) => {
+  app.post('/api/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
-      const guestId = req.user.claims.sub;
-      const bookingData = insertBookingSchema.parse({
-        ...req.body,
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+      
+      const guestId = req.user.id; // 하이브리드 인증에서는 user.id 사용
+      
+      // 기존 데이터베이스 컬럼만 사용하도록 데이터 정리
+      const basicBookingData = {
+        experienceId: req.body.experienceId,
         guestId,
-      });
-      const booking = await storage.createBooking(bookingData);
+        hostId: req.body.hostId,
+        date: new Date(req.body.date), // 문자열을 Date로 변환
+        participants: req.body.participants,
+        totalPrice: req.body.totalPrice,
+        specialRequests: req.body.specialRequests,
+        status: 'pending', // 기본값
+      };
+      
+      const booking = await storage.createBooking(basicBookingData);
       res.status(201).json(booking);
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -1176,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/bookings/:id', authenticateToken, async (req: any, res) => {
+  app.patch('/api/bookings/:id', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;

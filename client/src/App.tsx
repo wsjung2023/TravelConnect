@@ -43,6 +43,7 @@ const Admin = lazy(() => import('@/pages/admin'));
 const Host = lazy(() => import('@/pages/host'));
 const ErrorTest = lazy(() => import('@/pages/ErrorTestPage'));
 const Marketplace = lazy(() => import('@/pages/marketplace'));
+const ExperienceDetail = lazy(() => import('@/pages/experience'));
 
 // Simple loading component
 const LoadingSpinner = () => (
@@ -155,6 +156,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <Marketplace />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/experience/:id"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ExperienceDetail />
                 </Suspense>
               )}
             />

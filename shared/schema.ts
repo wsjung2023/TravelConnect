@@ -455,6 +455,8 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  date: z.coerce.date(), // 문자열을 Date 객체로 자동 변환
 });
 
 export const insertCommentSchema = createInsertSchema(comments).omit({
