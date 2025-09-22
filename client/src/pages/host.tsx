@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
+import CreateExperienceModal from '@/components/CreateExperienceModal';
 
 interface Experience {
   id: number;
@@ -43,6 +44,7 @@ export default function HostDashboard() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'experiences' | 'bookings'>('overview');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // 로딩 중이면 스피너 표시
   if (authLoading) {
@@ -150,6 +152,7 @@ export default function HostDashboard() {
           </div>
           <Button 
             className="mt-4 md:mt-0"
+            onClick={() => setIsCreateModalOpen(true)}
             data-testid="button-add-experience"
           >
             <PlusCircle className="w-4 h-4 mr-2" />
@@ -441,6 +444,12 @@ export default function HostDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* 경험 등록 모달 */}
+      <CreateExperienceModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
   );
 }
