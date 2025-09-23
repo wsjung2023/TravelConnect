@@ -154,7 +154,7 @@
 /* Large tablet/small desktop */
 @media (min-width: 769px) {
   .mobile-container {
-    max-width: 428px; /* Keep mobile-like experience */
+    max-width: min(640px, 100vw); /* Wider for desktop but still mobile-first */
   }
 }
 

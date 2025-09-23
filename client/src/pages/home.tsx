@@ -159,7 +159,7 @@ export default function Home() {
             <p className="text-xs text-gray-500">Explore the world</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-2">
           <NotificationBell />
 
           {/* Admin 전용 버튼들 */}
@@ -169,7 +169,7 @@ export default function Home() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/config')}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
                 title="Configuration Panel"
                 data-testid="button-config-panel"
               >
@@ -177,17 +177,17 @@ export default function Home() {
               </Button>
               <button
                 onClick={() => window.open('/db-admin', '_blank')}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
                 title="DB Admin 도구"
                 data-testid="button-db-admin"
               >
-                <i className="fas fa-database text-gray-600"></i>
+                <i className="fas fa-database text-gray-600 text-sm"></i>
               </button>
             </>
           )}
 
           <button
-            className="p-2 hover:bg-gray-100 rounded-full"
+            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
             onClick={() => {
               localStorage.removeItem('token');
               localStorage.removeItem('user');
@@ -196,7 +196,7 @@ export default function Home() {
             title="로그아웃"
             data-testid="button-logout"
           >
-            <i className="fas fa-sign-out-alt text-gray-600"></i>
+            <i className="fas fa-sign-out-alt text-gray-600 text-sm"></i>
           </button>
         </div>
       </header>

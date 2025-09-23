@@ -1256,38 +1256,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // System Settings API - 관리자 전용
-  app.get(
-    '/api/system-settings',
-    requireAdmin as any,
-    async (req: any, res) => {
-      try {
-        const settings = await storage.getAllSystemSettings();
-        res.json(settings);
-      } catch (error) {
-        console.error('Error fetching system settings:', error);
-        res.status(500).json({ message: 'Failed to fetch system settings' });
-      }
+  app.get('/api/system-settings', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const settings = await storage.getAllSystemSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching system settings:', error);
+      res.status(500).json({ message: 'Failed to fetch system settings' });
     }
-  );
+  });
 
-  app.put(
-    '/api/system-settings/:id',
-    requireAdmin as any,
-    async (req: any, res) => {
-      try {
-        const { id } = req.params;
-        const updates = req.body;
-        const setting = await storage.updateSystemSetting(id, updates);
-        if (!setting) {
-          return res.status(404).json({ message: 'Setting not found' });
-        }
-        res.json(setting);
-      } catch (error) {
-        console.error('Error updating system setting:', error);
-        res.status(500).json({ message: 'Failed to update system setting' });
+  app.put('/api/system-settings/:id', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const setting = await storage.updateSystemSetting(id, updates);
+      if (!setting) {
+        return res.status(404).json({ message: 'Setting not found' });
       }
+      res.json(setting);
+    } catch (error) {
+      console.error('Error updating system setting:', error);
+      res.status(500).json({ message: 'Failed to update system setting' });
     }
-  );
+  });
 
   app.post('/api/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
