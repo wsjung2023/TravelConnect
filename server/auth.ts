@@ -136,43 +136,44 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   // 3. 개발 환경에서 기본 사용자 생성 (테스트용)
   if (process.env.NODE_ENV === 'development') {
     console.log(`[AUTH] Development mode - creating default user`);
-    // 기본 테스트 사용자 생성
-    const defaultUser = {
-      id: 'test-user-123',
-      email: 'test@example.com',
-      role: 'user'
-    };
     
-    // 데이터베이스에 사용자가 없으면 생성 (이메일로도 확인)
-    let user = await storage.getUser(defaultUser.id);
-    if (!user) {
-      // 이메일로도 확인 (기존 사용자가 있을 수 있음)
-      const existingUser = await storage.getUserByEmail(defaultUser.email);
-      if (existingUser) {
-        // 기존 사용자가 있으면 ID를 업데이트하여 사용
-        defaultUser.id = existingUser.id;
-        console.log(`[AUTH] Using existing user: ${existingUser.id} (${existingUser.email})`);
-      } else {
-        // 새 사용자 생성
-        try {
-          await storage.upsertUser({
-            id: defaultUser.id,
-            email: defaultUser.email,
-            firstName: 'Test',
-            lastName: 'User',
-            role: 'user',
-            isHost: true, // 테스트를 위해 호스트로 설정
-          });
-          console.log(`[AUTH] Created default test user: ${defaultUser.id}`);
-        } catch (error) {
-          console.log(`[AUTH] Failed to create user, using existing one`);
-          const existingUser = await storage.getUserByEmail(defaultUser.email);
-          if (existingUser) {
-            defaultUser.id = existingUser.id;
-          }
+    // 기본 테스트 사용자 ID 생성 (고정 ID 대신 동적 생성)
+    const defaultUserId = generateUserId();
+    
+    // 이메일로 기존 사용자 확인
+    const existingUser = await storage.getUserByEmail('test@example.com');
+    let userId = defaultUserId;
+    
+    if (existingUser) {
+      // 기존 사용자가 있으면 그 사용자 사용
+      userId = existingUser.id;
+      console.log(`[AUTH] Using existing user: ${existingUser.id} (${existingUser.email})`);
+    } else {
+      // 새 사용자 생성
+      try {
+        await storage.upsertUser({
+          id: userId,
+          email: 'test@example.com',
+          firstName: 'Test',
+          lastName: 'User',
+          role: 'user',
+          isHost: true, // 테스트를 위해 호스트로 설정
+        });
+        console.log(`[AUTH] Created default test user: ${userId}`);
+      } catch (error) {
+        console.log(`[AUTH] Failed to create user, using existing one if available`);
+        const fallbackUser = await storage.getUserByEmail('test@example.com');
+        if (fallbackUser) {
+          userId = fallbackUser.id;
         }
       }
     }
+    
+    const defaultUser = {
+      id: userId,
+      email: 'test@example.com',
+      role: 'user'
+    };
     
     req.user = defaultUser;
     return next();

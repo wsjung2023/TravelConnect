@@ -679,21 +679,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // JWT 기반 사용자 정보 조회
-  app.get('/api/auth/me', authenticateToken, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user!.id);
-      if (!user) {
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
-      }
-      res.json(user);
-    } catch (error) {
-      console.error('사용자 정보 조회 오류:', error);
-      res
-        .status(500)
-        .json({ message: '사용자 정보 조회 중 오류가 발생했습니다' });
-    }
-  });
 
   // Replit Auth 사용자 조회 (호환성 유지)
   app.get('/api/auth/user', authenticateToken, async (req: any, res) => {
@@ -1574,19 +1559,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // JWT 토큰 검증으로 보안 강화
           const token = message.token;
           if (!token) {
+            console.error('WebSocket: Missing authentication token');
             ws.close(4001, 'Missing authentication token');
             return;
           }
           
           const decoded = verifyToken(token);
           if (!decoded) {
+            console.error('WebSocket: Invalid authentication token');
             ws.close(4001, 'Invalid authentication token');
             return;
           }
           
           userId = decoded.id;
           clients.set(userId, ws);
+          console.log(`WebSocket: User ${userId} authenticated successfully`);
           ws.send(JSON.stringify({ type: 'auth_success', userId }));
+          return;
+        }
+
+        if (message.type === 'ping') {
+          // 하트비트 응답
+          ws.send(JSON.stringify({ type: 'pong' }));
           return;
         }
 
