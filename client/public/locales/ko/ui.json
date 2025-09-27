@@ -102,5 +102,12 @@
       "completedPayments": "결제 완료 건",
       "failedPaymentCount": "결제 실패 건"
     }
+  },
+  "search": {
+    "location": "장소",
+    "content": "컨텐츠",
+    "locationPlaceholder": "장소, 지역, 위치 검색...",
+    "contentPlaceholder": "컨텐츠 검색...",
+    "searchChannels": "채널 검색..."
   }
 }

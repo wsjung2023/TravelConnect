@@ -102,5 +102,12 @@
       "completedPayments": "Completed payments",
       "failedPaymentCount": "Failed payments"
     }
+  },
+  "search": {
+    "location": "Location",
+    "content": "Content", 
+    "locationPlaceholder": "Search location, region, place...",
+    "contentPlaceholder": "Search content...",
+    "searchChannels": "Search channels..."
   }
 }
