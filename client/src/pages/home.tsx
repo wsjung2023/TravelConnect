@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import SearchHeader from '@/components/SearchHeader';
 import NotificationBell from '@/components/NotificationBell';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import BottomNavigation from '@/components/BottomNavigation';
 import { JourneyCreateModal } from '@/components/JourneyCreateModal';
 import CreatePostModal from '@/components/CreatePostModal';
@@ -161,6 +162,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           <NotificationBell />
+          <LanguageSwitcher />
 
           {/* Admin 전용 버튼들 */}
           {user?.role === 'admin' && (
