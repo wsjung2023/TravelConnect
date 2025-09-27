@@ -6,6 +6,7 @@ import {
   Plus,
   Calendar,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 
 interface BottomNavigationProps {
@@ -21,12 +22,13 @@ export default function BottomNavigation({
   onCreatePost,
   hidden,
 }: BottomNavigationProps) {
+  const { t } = useTranslation(['ui']);
   const tabs = [
-    { id: 'map', icon: MapPin, label: '지도' },
-    { id: 'feed', icon: Home, label: '피드' },
-    { id: 'timeline', icon: Calendar, label: '타임라인' },
-    { id: 'chat', icon: MessageCircle, label: '채팅' },
-    { id: 'profile', icon: User, label: '프로필' },
+    { id: 'map', icon: MapPin, label: t('ui.navigation.map') },
+    { id: 'feed', icon: Home, label: t('ui.navigation.feed') },
+    { id: 'timeline', icon: Calendar, label: t('ui.navigation.timeline') },
+    { id: 'chat', icon: MessageCircle, label: t('ui.navigation.chat') },
+    { id: 'profile', icon: User, label: t('ui.navigation.profile') },
   ];
 
   return (

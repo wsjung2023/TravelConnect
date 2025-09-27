@@ -65,5 +65,42 @@
     "viewTogether": " voir ensemble",
     "moreCount": " de plus",
     "minuteUnit": "min"
+  },
+  "navigation": {
+    "map": "Carte",
+    "feed": "Flux",
+    "timeline": "Chronologie",
+    "chat": "Discussion",
+    "profile": "Profil"
+  },
+  "dashboard": {
+    "title": "💼 Tableau de bord Commerce",
+    "subtitle": "Gestion des expériences de voyage et réservations",
+    "tabs": {
+      "overview": "Aperçu",
+      "experiences": "Gestion expériences",
+      "bookings": "Gestion réservations",
+      "payments": "Gestion paiements"
+    },
+    "cards": {
+      "totalExperiences": "Expériences totales",
+      "totalBookings": "Réservations totales",
+      "totalRevenue": "Revenus totaux",
+      "activeHosts": "Hôtes actifs",
+      "averageRating": "Note moyenne",
+      "pendingBookings": "Réservations en attente",
+      "successfulPayments": "Paiements réussis",
+      "failedPayments": "Paiements échoués"
+    },
+    "descriptions": {
+      "registeredExperiences": "Expériences de voyage enregistrées",
+      "totalBookingsCount": "Nombre total de réservations",
+      "cumulativeRevenue": "Revenus cumulés",
+      "registeredHosts": "Hôtes enregistrés",
+      "outOfFive": "sur 5",
+      "awaitingApproval": "En attente d'approbation",
+      "completedPayments": "Paiements terminés",
+      "failedPaymentCount": "Paiements échoués"
+    }
   }
 }

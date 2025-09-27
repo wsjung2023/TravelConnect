@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,7 @@ interface Payment {
 }
 
 export default function CommerceDashboard() {
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'experiences' | 'bookings' | 'payments'>('overview');
 
   // 통계 데이터 조회
@@ -147,18 +149,18 @@ export default function CommerceDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">💼 커머스 대시보드</h2>
-          <p className="text-muted-foreground">여행 경험 및 예약 관리</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('ui.dashboard.title')}</h2>
+          <p className="text-muted-foreground">{t('ui.dashboard.subtitle')}</p>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex space-x-1 bg-muted p-1 rounded-lg">
         {[
-          { id: 'overview', label: '개요', icon: TrendingUp },
-          { id: 'experiences', label: '경험 관리', icon: MapPin },
-          { id: 'bookings', label: '예약 관리', icon: Calendar },
-          { id: 'payments', label: '결제 관리', icon: CreditCard },
+          { id: 'overview', label: t('ui.dashboard.tabs.overview'), icon: TrendingUp },
+          { id: 'experiences', label: t('ui.dashboard.tabs.experiences'), icon: MapPin },
+          { id: 'bookings', label: t('ui.dashboard.tabs.bookings'), icon: Calendar },
+          { id: 'payments', label: t('ui.dashboard.tabs.payments'), icon: CreditCard },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -198,105 +200,105 @@ export default function CommerceDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card data-testid="card-total-experiences">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">총 경험</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.totalExperiences')}</CardTitle>
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-total-experiences">
                     {stats.totalExperiences}
                   </div>
-                  <p className="text-xs text-muted-foreground">등록된 여행 경험</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.registeredExperiences')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-total-bookings">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">총 예약</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.totalBookings')}</CardTitle>
                   <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-total-bookings">
                     {stats.totalBookings}
                   </div>
-                  <p className="text-xs text-muted-foreground">전체 예약 건수</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.totalBookingsCount')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-total-revenue">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">총 매출</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.totalRevenue')}</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-total-revenue">
                     {formatPrice(stats.totalRevenue.toString(), 'KRW')}
                   </div>
-                  <p className="text-xs text-muted-foreground">누적 매출액</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.cumulativeRevenue')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-total-hosts">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">활성 호스트</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.activeHosts')}</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-total-hosts">
                     {stats.totalHosts}
                   </div>
-                  <p className="text-xs text-muted-foreground">등록된 호스트</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.registeredHosts')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-average-rating">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">평균 평점</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.averageRating')}</CardTitle>
                   <Star className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-average-rating">
                     {stats.averageRating.toFixed(1)}
                   </div>
-                  <p className="text-xs text-muted-foreground">5점 만점</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.outOfFive')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-pending-bookings">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">대기 예약</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.pendingBookings')}</CardTitle>
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-pending-bookings">
                     {stats.pendingBookings}
                   </div>
-                  <p className="text-xs text-muted-foreground">승인 대기 중</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.awaitingApproval')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-successful-payments">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">성공 결제</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.successfulPayments')}</CardTitle>
                   <CheckCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-successful-payments">
                     {stats.successfulPayments}
                   </div>
-                  <p className="text-xs text-muted-foreground">결제 완료 건</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.completedPayments')}</p>
                 </CardContent>
               </Card>
 
               <Card data-testid="card-failed-payments">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">실패 결제</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('ui.dashboard.cards.failedPayments')}</CardTitle>
                   <XCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-failed-payments">
                     {stats.failedPayments}
                   </div>
-                  <p className="text-xs text-muted-foreground">결제 실패 건</p>
+                  <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.failedPaymentCount')}</p>
                 </CardContent>
               </Card>
             </div>
