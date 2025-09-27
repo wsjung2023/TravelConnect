@@ -1,24 +1,51 @@
 {
   "buttons": {
-    "createPost": "Create Post",
-    "sendMessage": "Send Message",
-    "uploadImage": "Upload Image",
-    "selectLocation": "Select Location",
-    "submitReview": "Submit Review"
+    "createPost": "Créer une publication",
+    "sendMessage": "Envoyer un message",
+    "uploadImage": "Télécharger une image",
+    "selectLocation": "Sélectionner un lieu",
+    "submitReview": "Soumettre l'avis"
   },
   "labels": {
-    "title": "Title",
-    "content": "Content",
-    "location": "Location",
-    "rating": "Rating",
-    "price": "Price",
-    "quantity": "Quantity",
-    "deliveryAddress": "Delivery Address"
+    "title": "Titre",
+    "content": "Contenu",
+    "location": "Lieu",
+    "rating": "Note",
+    "price": "Prix",
+    "quantity": "Quantité",
+    "deliveryAddress": "Adresse de livraison",
+    "destination": "Destination",
+    "duration": "Durée du voyage",
+    "days": "jours"
   },
   "placeholders": {
-    "enterTitle": "Enter title...",
-    "enterContent": "Enter content...",
-    "searchLocation": "Search location...",
-    "writeReview": "Write your honest review about this experience..."
+    "enterTitle": "Saisir le titre...",
+    "enterContent": "Saisir le contenu...",
+    "searchLocation": "Rechercher un lieu...",
+    "writeReview": "Rédigez votre avis sincère sur cette expérience...",
+    "destinationExample": "Ex: Tokyo, Japon ou Séoul, Corée du Sud",
+    "enterMessage": "Saisissez votre message..."
+  },
+  "themes": {
+    "restaurant": "Restaurant",
+    "tourist_attraction": "Attraction touristique",
+    "party": "Fête",
+    "hotplace": "Lieu branché",
+    "healing": "Détente",
+    "nightview": "Vue nocturne",
+    "hiking": "Randonnée",
+    "hotel": "Hôtel",
+    "shopping": "Shopping",
+    "cafe": "Café",
+    "emotional": "Émotionnel",
+    "landmark": "Monument",
+    "activity": "Activité"
+  },
+  "filters": {
+    "poi": "Filtres des POI",
+    "tourist_attraction": "Attractions touristiques",
+    "restaurant": "Restaurants",
+    "lodging": "Hébergement",
+    "shopping_mall": "Centres commerciaux"
   }
 }

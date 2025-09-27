@@ -55,7 +55,7 @@ i18n
     returnNull: false,
     
     // Load all namespaces by default
-    preload: ['en', 'ko'],
+    preload: ['en', 'ko', 'fr', 'es', 'ja', 'zh'],
   });
 
 export default i18n;

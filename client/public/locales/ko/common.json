@@ -17,11 +17,12 @@
   },
   "navigation": {
     "map": "지도",
-    "feed": "피드", 
+    "feed": "피드",
     "timeline": "타임라인",
     "chat": "채팅",
     "profile": "프로필",
-    "admin": "관리자"
+    "admin": "관리자",
+    "home": "홈"
   },
   "auth": {
     "login": "로그인",
@@ -30,5 +31,17 @@
     "email": "이메일",
     "password": "비밀번호",
     "confirmPassword": "비밀번호 확인"
+  },
+  "search": {
+    "location": "장소",
+    "content": "컨텐츠",
+    "locationPlaceholder": "주소, 지역, 명소 검색...",
+    "contentPlaceholder": "키워드로 피드 검색...",
+    "searchChannels": "채팅방 검색..."
+  },
+  "tabs": {
+    "all": "전체",
+    "channels": "채널",
+    "dm": "DM"
   }
 }

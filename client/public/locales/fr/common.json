@@ -1,34 +1,47 @@
 {
   "app": {
     "name": "Tourgether",
-    "tagline": "Explore the world",
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "retry": "Retry",
-    "cancel": "Cancel",
-    "save": "Save",
-    "edit": "Edit",
-    "delete": "Delete",
-    "back": "Back",
-    "next": "Next",
-    "confirm": "Confirm",
-    "yes": "Yes",
-    "no": "No"
+    "tagline": "Explorez le monde",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "back": "Retour",
+    "next": "Suivant",
+    "confirm": "Confirmer",
+    "yes": "Oui",
+    "no": "Non"
   },
   "navigation": {
-    "map": "Map",
-    "feed": "Feed", 
-    "timeline": "Timeline",
-    "chat": "Chat",
-    "profile": "Profile",
-    "admin": "Admin"
+    "map": "Carte",
+    "feed": "Flux",
+    "timeline": "Chronologie",
+    "chat": "Discussion",
+    "profile": "Profil",
+    "admin": "Administration",
+    "home": "Accueil"
   },
   "auth": {
-    "login": "Login",
-    "logout": "Logout",
-    "register": "Register",
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password"
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "S'inscrire",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe"
+  },
+  "search": {
+    "location": "Lieu",
+    "content": "Contenu",
+    "locationPlaceholder": "Rechercher une adresse, région, lieu...",
+    "contentPlaceholder": "Rechercher par mot-clé dans le flux...",
+    "searchChannels": "Rechercher des conversations..."
+  },
+  "tabs": {
+    "all": "Tous",
+    "channels": "Canaux",
+    "dm": "Messages privés"
   }
 }

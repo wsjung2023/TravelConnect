@@ -13,12 +13,39 @@
     "rating": "평점",
     "price": "가격",
     "quantity": "수량",
-    "deliveryAddress": "배송 주소"
+    "deliveryAddress": "배송 주소",
+    "destination": "목적지",
+    "duration": "여행 기간",
+    "days": "일"
   },
   "placeholders": {
     "enterTitle": "제목을 입력하세요...",
     "enterContent": "내용을 입력하세요...",
     "searchLocation": "위치를 검색하세요...",
-    "writeReview": "경험에 대한 솔직한 후기를 작성해주세요..."
+    "writeReview": "경험에 대한 솔직한 후기를 작성해주세요...",
+    "destinationExample": "예: 도쿄, 일본 또는 서울, 대한민국",
+    "enterMessage": "메시지를 입력하세요..."
+  },
+  "themes": {
+    "restaurant": "맛집",
+    "tourist_attraction": "관광지",
+    "party": "파티타임",
+    "hotplace": "핫플레이스",
+    "healing": "힐링",
+    "nightview": "야경",
+    "hiking": "하이킹",
+    "hotel": "호텔",
+    "shopping": "쇼핑",
+    "cafe": "카페",
+    "emotional": "감성",
+    "landmark": "명소",
+    "activity": "액티비티"
+  },
+  "filters": {
+    "poi": "POI 필터",
+    "tourist_attraction": "관광지",
+    "restaurant": "음식점",
+    "lodging": "숙박",
+    "shopping_mall": "쇼핑몰"
   }
 }
