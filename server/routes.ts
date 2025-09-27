@@ -7,6 +7,9 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
+import i18next from 'i18next';
+import * as i18nMiddleware from 'i18next-http-middleware';
+import * as i18nFsBackend from 'i18next-fs-backend';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
 import { setupAuth } from './replitAuth';
@@ -163,6 +166,26 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // I18n 초기화
+  await i18next
+    .use(i18nFsBackend)
+    .use(i18nMiddleware.LanguageDetector)
+    .init({
+      lng: 'en', // 기본 언어
+      fallbackLng: 'en',
+      preload: ['en', 'ko', 'ja', 'zh', 'fr', 'es'],
+      backend: {
+        loadPath: path.join(process.cwd(), 'client/public/locales/{{lng}}/{{ns}}.json'),
+      },
+      detection: {
+        order: ['header', 'querystring'],
+        caches: false,
+      },
+    });
+
+  // I18n 미들웨어 적용
+  app.use(i18nMiddleware.handle(i18next));
+
   // 보안 헤더 추가 - CSP, XSS 보호 등
   app.use((req, res, next) => {
     // X-Frame-Options: 클릭재킹 공격 방지
