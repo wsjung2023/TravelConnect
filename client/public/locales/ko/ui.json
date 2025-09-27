@@ -58,5 +58,12 @@
     "createButton": "타임라인 생성",
     "destinationHelp": "도시명과 국가명을 함께 입력해주세요 (예: 파리, 프랑스)",
     "daysUnit": "일"
+  },
+  "post": {
+    "noTitle": "제목 없음",
+    "countUnit": "개",
+    "viewTogether": "개 함께보기",
+    "moreCount": "개 더",
+    "minuteUnit": "분간"
   }
 }

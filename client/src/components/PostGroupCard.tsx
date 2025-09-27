@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PostGroup } from '@/utils/postGrouping';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ interface PostGroupCardProps {
 }
 
 export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardProps) {
+  const { t, i18n } = useTranslation();
   const { posts, primaryPost, location, timeRange } = group;
   const isMultiPost = posts.length > 1;
 
@@ -48,7 +50,7 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
     const end = timeRange.end;
     
     if (start.getTime() === end.getTime()) {
-      return start.toLocaleTimeString('ko-KR', { 
+      return start.toLocaleTimeString(i18n.language, { 
         hour: '2-digit', 
         minute: '2-digit' 
       });
@@ -59,13 +61,13 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
       return `${start.toLocaleTimeString('ko-KR', { 
         hour: '2-digit', 
         minute: '2-digit' 
-      })} (${Math.round(timeDiff)}분간)`;
+      })} (${Math.round(timeDiff)}${t('ui.post.minuteUnit')})`;
     }
     
-    return `${start.toLocaleTimeString('ko-KR', { 
+    return `${start.toLocaleTimeString(i18n.language, { 
       hour: '2-digit', 
       minute: '2-digit' 
-    })} - ${end.toLocaleTimeString('ko-KR', { 
+    })} - ${end.toLocaleTimeString(i18n.language, { 
       hour: '2-digit', 
       minute: '2-digit' 
     })}`;
@@ -85,7 +87,7 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
           <div className="absolute -top-2 -right-2 z-10">
             <Badge variant="secondary" className="bg-blue-500 text-white text-xs">
               <Users className="w-3 h-3 mr-1" />
-              {posts.length}개
+              {posts.length}{t('ui.post.countUnit')}
             </Badge>
           </div>
         )}
@@ -95,18 +97,18 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
           <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-2 ${
             getThemeColor(primaryPost.theme)
           }`}>
-            {primaryPost.theme === 'emotional' && '💕 감성'}
-            {primaryPost.theme === 'healing' && '🌿 힐링'}
-            {primaryPost.theme === 'landmark' && '🏛️ 명소'}
-            {primaryPost.theme === 'food' && '🍽️ 맛집'}
-            {primaryPost.theme === 'party' && '🎉 파티'}
-            {primaryPost.theme === 'hotplace' && '🔥 핫플'}
+            {primaryPost.theme === 'emotional' && `💕 ${t('themes.emotional')}`}
+            {primaryPost.theme === 'healing' && `🌿 ${t('themes.healing')}`}
+            {primaryPost.theme === 'landmark' && `🏛️ ${t('themes.landmark')}`}
+            {primaryPost.theme === 'food' && `🍽️ ${t('themes.restaurant')}`}
+            {primaryPost.theme === 'party' && `🎉 ${t('themes.party')}`}
+            {primaryPost.theme === 'hotplace' && `🔥 ${t('themes.hotplace')}`}
           </div>
         )}
 
         {/* 제목 */}
         <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-          {primaryPost.title || '제목 없음'}
+          {primaryPost.title || t('ui.post.noTitle')}
         </h3>
 
         {/* 내용 미리보기 */}
@@ -164,7 +166,7 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
                   )}
                   {index === 3 && posts.length > 4 && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center text-white text-xs">
-                      +{posts.length - 4}개 더
+                      +{posts.length - 4}{t('ui.post.moreCount')}
                     </div>
                   )}
                 </div>
@@ -190,7 +192,7 @@ export function PostGroupCard({ group, onClick, className = '' }: PostGroupCardP
           
           {isMultiPost && (
             <span className="text-blue-600 font-medium">
-              {posts.length}개 함께보기
+              {posts.length}{t('ui.post.viewTogether')}
             </span>
           )}
         </div>

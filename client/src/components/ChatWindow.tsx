@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Phone, Video, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ export default function ChatWindow({
   onSendMessage,
   currentUserId,
 }: ChatWindowProps) {
+  const { t, i18n } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +40,7 @@ export default function ChatWindow({
   };
 
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('ko-KR', {
+    return new Date(date).toLocaleTimeString(i18n.language, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -126,7 +128,7 @@ export default function ChatWindow({
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="메시지를 입력하세요..."
+            placeholder={t('placeholders.enterMessage')}
             className="flex-1 rounded-full border-gray-200"
           />
           <Button

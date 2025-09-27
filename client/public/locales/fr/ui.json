@@ -58,5 +58,12 @@
     "createButton": "Créer la chronologie",
     "destinationHelp": "Veuillez saisir le nom de la ville et du pays ensemble (ex: Paris, France)",
     "daysUnit": "jours"
+  },
+  "post": {
+    "noTitle": "Sans titre",
+    "countUnit": "",
+    "viewTogether": " voir ensemble",
+    "moreCount": " de plus",
+    "minuteUnit": "min"
   }
 }
