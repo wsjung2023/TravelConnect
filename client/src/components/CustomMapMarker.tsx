@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 interface CustomMapMarkerProps {
   type: 'tour' | 'food' | 'activity' | 'tip';
@@ -12,6 +13,7 @@ export const CustomMapMarker: React.FC<CustomMapMarkerProps> = ({
   count = 1,
   theme,
 }) => {
+  const { t } = useTranslation();
   // DB에서 테마 색상 설정 가져오기
   const { data: themeColorsData } = useQuery({
     queryKey: ['/api/public/settings/ui/theme_colors'],
@@ -22,11 +24,12 @@ export const CustomMapMarker: React.FC<CustomMapMarkerProps> = ({
   const getMarkerColor = () => {
     // DB에서 가져온 색상 사용, 없으면 하드코딩된 기본값 사용
     let themeColors: Record<string, string> = {
-      맛집: '#FF6B9D',
-      명소: '#4ECDC4',
-      파티타임: '#FF4757',
-      핫플레이스: '#FFA726',
-      힐링: '#66BB6A',
+      restaurant: '#FF6B9D',
+      tourist_attraction: '#4ECDC4',
+      landmark: '#4ECDC4',
+      party: '#FF4757',
+      hotplace: '#FFA726',
+      healing: '#66BB6A',
       tour: '#4ECDC4',
       food: '#FF6B9D',
       activity: '#FF4757',
@@ -40,7 +43,7 @@ export const CustomMapMarker: React.FC<CustomMapMarkerProps> = ({
         const dbColors = JSON.parse(themeColorsData.value);
         themeColors = { ...themeColors, ...dbColors };
       } catch (error) {
-        console.warn('테마 색상 파싱 오류:', error);
+        console.warn(t('app.error'), error);
       }
     }
 
