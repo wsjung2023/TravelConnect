@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Search, MapPin, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import OpenToMeetToggle from '@/components/OpenToMeetToggle';
 
 interface SearchHeaderProps {
@@ -11,6 +12,7 @@ export default function SearchHeader({
   onLocationSearch,
   onContentSearch,
 }: SearchHeaderProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'location' | 'content'>(
     'location'
@@ -82,12 +84,12 @@ export default function SearchHeader({
               {searchMode === 'location' ? (
                 <>
                   <MapPin size={14} />
-                  장소
+                  {t('search.location')}
                 </>
               ) : (
                 <>
                   <Users size={14} />
-                  컨텐츠
+                  {t('search.content')}
                 </>
               )}
             </button>
@@ -100,8 +102,8 @@ export default function SearchHeader({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
                 searchMode === 'location'
-                  ? '주소, 지역, 명소 검색...'
-                  : '키워드로 피드 검색...'
+                  ? t('search.locationPlaceholder')
+                  : t('search.contentPlaceholder')
               }
               style={{
                 flex: 1,
@@ -169,9 +171,9 @@ export default function SearchHeader({
               >
                 <MapPin size={16} color="#4ECDC4" />
                 <div>
-                  <div style={{ fontWeight: 'bold' }}>장소 검색</div>
+                  <div style={{ fontWeight: 'bold' }}>{t('search.location')}</div>
                   <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
-                    주소, 지역, 도시, 명소, 가게명으로 검색
+                    {t('search.locationPlaceholder')}
                   </div>
                 </div>
               </button>
@@ -194,9 +196,9 @@ export default function SearchHeader({
               >
                 <Users size={16} color="#FF6B9D" />
                 <div>
-                  <div style={{ fontWeight: 'bold' }}>컨텐츠 검색</div>
+                  <div style={{ fontWeight: 'bold' }}>{t('search.content')}</div>
                   <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
-                    키워드로 다른 사람의 피드와 여행 정보 검색
+                    {t('search.contentPlaceholder')}
                   </div>
                 </div>
               </button>
