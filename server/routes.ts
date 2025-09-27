@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
 import i18next from 'i18next';
 import * as i18nMiddleware from 'i18next-http-middleware';
-import * as i18nFsBackend from 'i18next-fs-backend';
+import i18nFsBackend from 'i18next-fs-backend';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
 import { setupAuth } from './replitAuth';
@@ -171,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     .use(i18nFsBackend)
     .use(i18nMiddleware.LanguageDetector)
     .init({
-      lng: 'en', // 기본 언어
+      lng: 'en',
       fallbackLng: 'en',
       preload: ['en', 'ko', 'ja', 'zh', 'fr', 'es'],
       backend: {
