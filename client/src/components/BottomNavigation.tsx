@@ -22,13 +22,13 @@ export default function BottomNavigation({
   onCreatePost,
   hidden,
 }: BottomNavigationProps) {
-  const { t } = useTranslation(['ui']);
+  const { t } = useTranslation('ui');
   const tabs = [
-    { id: 'map', icon: MapPin, label: t('ui.navigation.map') },
-    { id: 'feed', icon: Home, label: t('ui.navigation.feed') },
-    { id: 'timeline', icon: Calendar, label: t('ui.navigation.timeline') },
-    { id: 'chat', icon: MessageCircle, label: t('ui.navigation.chat') },
-    { id: 'profile', icon: User, label: t('ui.navigation.profile') },
+    { id: 'map', icon: MapPin, label: t('navigation.map') },
+    { id: 'feed', icon: Home, label: t('navigation.feed') },
+    { id: 'timeline', icon: Calendar, label: t('navigation.timeline') },
+    { id: 'chat', icon: MessageCircle, label: t('navigation.chat') },
+    { id: 'profile', icon: User, label: t('navigation.profile') },
   ];
 
   return (

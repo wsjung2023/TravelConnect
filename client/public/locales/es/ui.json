@@ -1,24 +1,113 @@
 {
   "buttons": {
-    "createPost": "Create Post",
-    "sendMessage": "Send Message",
-    "uploadImage": "Upload Image",
-    "selectLocation": "Select Location",
-    "submitReview": "Submit Review"
+    "createPost": "Crear publicación",
+    "sendMessage": "Enviar mensaje",
+    "uploadImage": "Subir imagen",
+    "selectLocation": "Seleccionar ubicación",
+    "submitReview": "Enviar reseña"
   },
   "labels": {
-    "title": "Title",
-    "content": "Content",
-    "location": "Location",
-    "rating": "Rating",
-    "price": "Price",
-    "quantity": "Quantity",
-    "deliveryAddress": "Delivery Address"
+    "title": "Título",
+    "content": "Contenido",
+    "location": "Ubicación",
+    "rating": "Calificación",
+    "price": "Precio",
+    "quantity": "Cantidad",
+    "deliveryAddress": "Dirección de entrega",
+    "destination": "Destino",
+    "duration": "Duración del viaje",
+    "days": "días"
   },
   "placeholders": {
-    "enterTitle": "Enter title...",
-    "enterContent": "Enter content...",
-    "searchLocation": "Search location...",
-    "writeReview": "Write your honest review about this experience..."
+    "enterTitle": "Ingresa el título...",
+    "enterContent": "Ingresa el contenido...",
+    "searchLocation": "Buscar ubicación...",
+    "writeReview": "Escribe tu reseña honesta sobre esta experiencia...",
+    "destinationExample": "Ej: Tokio, Japón o Seúl, Corea del Sur",
+    "enterMessage": "Ingresa tu mensaje..."
+  },
+  "themes": {
+    "restaurant": "Restaurante",
+    "tourist_attraction": "Atracción turística",
+    "party": "Fiesta",
+    "hotplace": "Lugar de moda",
+    "healing": "Sanación",
+    "nightview": "Vista nocturna",
+    "hiking": "Senderismo",
+    "hotel": "Hotel",
+    "shopping": "Compras",
+    "cafe": "Café",
+    "emotional": "Emocional",
+    "landmark": "Monumento",
+    "activity": "Actividad"
+  },
+  "filters": {
+    "poi": "Filtros de PDI",
+    "tourist_attraction": "Atracciones turísticas",
+    "restaurant": "Restaurantes",
+    "lodging": "Alojamiento",
+    "shopping_mall": "Centros comerciales"
+  },
+  "search": {
+    "location": "Ubicación",
+    "content": "Contenido",
+    "locationPlaceholder": "Buscar ubicación, región, lugar...",
+    "contentPlaceholder": "Buscar contenido...",
+    "searchChannels": "Buscar canales..."
+  },
+  "timeline": {
+    "create": "Crear nueva cronología",
+    "titleLabel": "Título de la cronología *",
+    "destinationLabel": "Destino del viaje *",
+    "startDateLabel": "Fecha de inicio *",
+    "durationLabel": "Duración del viaje",
+    "descriptionLabel": "Descripción del viaje",
+    "createButton": "Crear cronología",
+    "destinationHelp": "Por favor ingresa el nombre de la ciudad y el país juntos (ej: París, Francia)",
+    "daysUnit": "días"
+  },
+  "post": {
+    "noTitle": "Sin título",
+    "countUnit": "",
+    "viewTogether": " ver juntos",
+    "moreCount": " más",
+    "minuteUnit": "min"
+  },
+  "navigation": {
+    "map": "Mapa",
+    "feed": "Feed",
+    "timeline": "Cronología",
+    "chat": "Chat",
+    "profile": "Perfil"
+  },
+  "dashboard": {
+    "title": "💼 Panel de comercio",
+    "subtitle": "Gestión de experiencias de viaje y reservas",
+    "tabs": {
+      "overview": "Resumen",
+      "experiences": "Gestión de experiencias",
+      "bookings": "Gestión de reservas",
+      "payments": "Gestión de pagos"
+    },
+    "cards": {
+      "totalExperiences": "Experiencias totales",
+      "totalBookings": "Reservas totales",
+      "totalRevenue": "Ingresos totales",
+      "activeHosts": "Anfitriones activos",
+      "averageRating": "Calificación promedio",
+      "pendingBookings": "Reservas pendientes",
+      "successfulPayments": "Pagos exitosos",
+      "failedPayments": "Pagos fallidos"
+    },
+    "descriptions": {
+      "registeredExperiences": "Experiencias de viaje registradas",
+      "totalBookingsCount": "Número total de reservas",
+      "cumulativeRevenue": "Ingresos acumulados",
+      "registeredHosts": "Anfitriones registrados",
+      "outOfFive": "de 5",
+      "awaitingApproval": "Esperando aprobación",
+      "completedPayments": "Pagos completados",
+      "failedPaymentCount": "Pagos fallidos"
+    }
   }
 }

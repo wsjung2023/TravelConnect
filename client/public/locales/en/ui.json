@@ -13,12 +13,94 @@
     "rating": "Rating",
     "price": "Price",
     "quantity": "Quantity",
-    "deliveryAddress": "Delivery Address"
+    "deliveryAddress": "Delivery Address",
+    "destination": "Destination",
+    "duration": "Trip duration",
+    "days": "days"
   },
   "placeholders": {
     "enterTitle": "Enter title...",
     "enterContent": "Enter content...",
     "searchLocation": "Search location...",
-    "writeReview": "Write your honest review about this experience..."
+    "writeReview": "Write your honest review about this experience...",
+    "destinationExample": "Ex: Tokyo, Japan or Seoul, South Korea",
+    "enterMessage": "Enter your message..."
+  },
+  "themes": {
+    "restaurant": "Restaurant",
+    "tourist_attraction": "Tourist Attraction",
+    "party": "Party",
+    "hotplace": "Hot Place",
+    "healing": "Healing",
+    "nightview": "Night View",
+    "hiking": "Hiking",
+    "hotel": "Hotel",
+    "shopping": "Shopping",
+    "cafe": "Cafe",
+    "emotional": "Emotional",
+    "landmark": "Landmark",
+    "activity": "Activity"
+  },
+  "filters": {
+    "poi": "POI Filters",
+    "tourist_attraction": "Tourist Attractions",
+    "restaurant": "Restaurants",
+    "lodging": "Lodging",
+    "shopping_mall": "Shopping Malls"
+  },
+  "timeline": {
+    "create": "Create New Timeline",
+    "titleLabel": "Timeline Title *",
+    "destinationLabel": "Trip Destination *",
+    "startDateLabel": "Start Date *",
+    "durationLabel": "Trip Duration",
+    "descriptionLabel": "Trip Description",
+    "createButton": "Create Timeline",
+    "destinationHelp": "Please enter city and country name together (ex: Paris, France)",
+    "daysUnit": "days"
+  },
+  "post": {
+    "noTitle": "Untitled",
+    "countUnit": "",
+    "viewTogether": " view together",
+    "moreCount": " more",
+    "minuteUnit": "min"
+  },
+  "navigation": {
+    "map": "Map",
+    "feed": "Feed",
+    "timeline": "Timeline",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "title": "💼 Commerce Dashboard",
+    "subtitle": "Travel experience and booking management",
+    "tabs": {
+      "overview": "Overview",
+      "experiences": "Experience Management",
+      "bookings": "Booking Management",
+      "payments": "Payment Management"
+    },
+    "cards": {
+      "totalExperiences": "Total Experiences",
+      "totalBookings": "Total Bookings",
+      "totalRevenue": "Total Revenue",
+      "activeHosts": "Active Hosts",
+      "averageRating": "Average Rating",
+      "pendingBookings": "Pending Bookings",
+      "successfulPayments": "Successful Payments",
+      "failedPayments": "Failed Payments"
+    },
+    "descriptions": {
+      "registeredExperiences": "Registered travel experiences",
+      "totalBookingsCount": "Total number of bookings",
+      "cumulativeRevenue": "Cumulative revenue",
+      "registeredHosts": "Registered hosts",
+      "outOfFive": "out of 5",
+      "awaitingApproval": "Awaiting approval",
+      "completedPayments": "Completed payments",
+      "failedPaymentCount": "Failed payments"
+    }
   }
 }

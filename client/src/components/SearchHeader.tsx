@@ -12,7 +12,7 @@ export default function SearchHeader({
   onLocationSearch,
   onContentSearch,
 }: SearchHeaderProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'location' | 'content'>(
     'location'
