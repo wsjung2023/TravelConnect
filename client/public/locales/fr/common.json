@@ -43,5 +43,14 @@
     "all": "Tous",
     "channels": "Canaux",
     "dm": "Messages privés"
+  },
+  "messages": {
+    "noDescription": "Aucune description",
+    "lastMessage": "Dernier message",
+    "noChats": "Aucune conversation",
+    "createChannel": "Créez un canal !",
+    "startConversation": "Commencez une conversation !",
+    "loadingChats": "Chargement des conversations...",
+    "chatLoadError": "Impossible de charger les conversations"
   }
 }

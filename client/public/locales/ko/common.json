@@ -43,5 +43,14 @@
     "all": "전체",
     "channels": "채널",
     "dm": "DM"
+  },
+  "messages": {
+    "noDescription": "설명 없음",
+    "lastMessage": "마지막 메시지",
+    "noChats": "채팅방이 없어요",
+    "createChannel": "채널을 만들어보세요!",
+    "startConversation": "대화를 시작해보세요!",
+    "loadingChats": "채팅 목록을 불러오는 중...",
+    "chatLoadError": "채팅 목록을 불러올 수 없습니다"
   }
 }

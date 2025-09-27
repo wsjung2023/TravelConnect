@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Hash, MessageCircle, Users, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ export default function ChannelList({
   onCreateChannel,
   currentUserId,
 }: ChannelListProps) {
+  const { t, i18n } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'channels' | 'dms'>('all');
 
@@ -90,14 +92,16 @@ export default function ChannelList({
       messageDate.getDate()
     );
 
+    const locale = i18n.language === 'ko' ? 'ko-KR' : 'en-US';
+    
     if (messageDay.getTime() === today.getTime()) {
-      return messageDate.toLocaleTimeString('ko-KR', {
+      return messageDate.toLocaleTimeString(locale, {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
       });
     } else {
-      return messageDate.toLocaleDateString('ko-KR', {
+      return messageDate.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
       });
@@ -122,7 +126,7 @@ export default function ChannelList({
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">채팅</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('navigation.chat')}</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -141,7 +145,7 @@ export default function ChannelList({
             size={16}
           />
           <Input
-            placeholder="채팅방 검색..."
+            placeholder={t('search.searchChannels')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 rounded-lg bg-gray-50 border-gray-200"
@@ -158,7 +162,7 @@ export default function ChannelList({
             className="flex-1 text-xs"
             data-testid="tab-all"
           >
-            전체
+            {t('tabs.all')}
           </Button>
           <Button
             variant={activeTab === 'channels' ? 'default' : 'ghost'}
@@ -167,7 +171,7 @@ export default function ChannelList({
             className="flex-1 text-xs"
             data-testid="tab-channels"
           >
-            채널
+            {t('tabs.channels')}
           </Button>
           <Button
             variant={activeTab === 'dms' ? 'default' : 'ghost'}
@@ -176,7 +180,7 @@ export default function ChannelList({
             className="flex-1 text-xs"
             data-testid="tab-dms"
           >
-            DM
+            {t('tabs.dm')}
           </Button>
         </div>
       </div>
@@ -186,16 +190,16 @@ export default function ChannelList({
         {(channelsLoading || conversationsLoading) ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-500 text-sm">채팅 목록을 불러오는 중...</p>
+            <p className="text-gray-500 text-sm">{t('messages.loadingChats')}</p>
           </div>
         ) : (channelsError || conversationsError) ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">⚠️</div>
             <h3 className="text-base font-medium text-gray-900 mb-2">
-              오류가 발생했습니다
+              {t('app.error')}
             </h3>
             <p className="text-gray-500 text-sm mb-4">
-              채팅 목록을 불러올 수 없습니다
+              {t('messages.chatLoadError')}
             </p>
             <Button 
               variant="outline" 
@@ -203,17 +207,17 @@ export default function ChannelList({
               onClick={() => window.location.reload()}
               data-testid="button-retry"
             >
-              다시 시도
+              {t('app.retry')}
             </Button>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">💬</div>
             <h3 className="text-base font-medium text-gray-900 mb-2">
-              채팅방이 없어요
+              {t('messages.noChats')}
             </h3>
             <p className="text-gray-500 text-sm">
-              {activeTab === 'channels' ? '채널을 만들어보세요!' : '대화를 시작해보세요!'}
+              {activeTab === 'channels' ? t('messages.createChannel') : t('messages.startConversation')}
             </p>
           </div>
         ) : (
@@ -241,7 +245,7 @@ export default function ChannelList({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="font-medium text-sm truncate">
-                          {channel.name || `${channel.type} 채널`}
+                          {channel.name || `${channel.type} ${t('navigation.chat')}`}
                         </h4>
                         {channel.lastMessageAt && (
                           <span className="text-xs text-gray-500">
@@ -251,7 +255,7 @@ export default function ChannelList({
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-600 truncate">
-                          {channel.description || '설명 없음'}
+                          {channel.description || t('messages.noDescription')}
                         </p>
                         {(channel.unreadCount || 0) > 0 && (
                           <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
@@ -303,7 +307,7 @@ export default function ChannelList({
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-600 truncate">
-                          마지막 메시지...
+                          {t('messages.lastMessage')}
                         </p>
                         {(conversation.unreadCount || 0) > 0 && (
                           <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
