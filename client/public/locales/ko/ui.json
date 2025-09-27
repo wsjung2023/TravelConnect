@@ -47,5 +47,16 @@
     "restaurant": "음식점",
     "lodging": "숙박",
     "shopping_mall": "쇼핑몰"
+  },
+  "timeline": {
+    "create": "새 타임라인 만들기",
+    "titleLabel": "타임라인 제목 *",
+    "destinationLabel": "여행 목적지 *",
+    "startDateLabel": "시작일 *",
+    "durationLabel": "여행 기간",
+    "descriptionLabel": "여행 설명",
+    "createButton": "타임라인 생성",
+    "destinationHelp": "도시명과 국가명을 함께 입력해주세요 (예: 파리, 프랑스)",
+    "daysUnit": "일"
   }
 }

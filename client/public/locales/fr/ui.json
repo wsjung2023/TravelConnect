@@ -47,5 +47,16 @@
     "restaurant": "Restaurants",
     "lodging": "Hébergement",
     "shopping_mall": "Centres commerciaux"
+  },
+  "timeline": {
+    "create": "Créer une nouvelle chronologie",
+    "titleLabel": "Titre de la chronologie *",
+    "destinationLabel": "Destination du voyage *",
+    "startDateLabel": "Date de début *",
+    "durationLabel": "Durée du voyage",
+    "descriptionLabel": "Description du voyage",
+    "createButton": "Créer la chronologie",
+    "destinationHelp": "Veuillez saisir le nom de la ville et du pays ensemble (ex: Paris, France)",
+    "daysUnit": "jours"
   }
 }

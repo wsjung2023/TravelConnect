@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Calendar, MapPin, FileText } from 'lucide-react';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 
@@ -23,6 +24,7 @@ export default function TimelineCreateModal({
   onSubmit,
   fromFeed = false,
 }: TimelineCreateModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<TimelineFormData>({
     title: '',
     destination: '',
@@ -114,7 +116,7 @@ export default function TimelineCreateModal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-bold text-gray-900">
-            새 타임라인 만들기
+            {t('ui.timeline.create')}
           </h2>
           <button
             onClick={(e) => {
@@ -150,12 +152,12 @@ export default function TimelineCreateModal({
               htmlFor="title"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              타임라인 제목 *
+              {t('ui.timeline.titleLabel')}
             </label>
             <input
               id="title"
               type="text"
-              placeholder="예: 일본 도쿄 여행"
+              placeholder={t('placeholders.destinationExample')}
               value={formData.title}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -170,7 +172,7 @@ export default function TimelineCreateModal({
               htmlFor="destination"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              여행 목적지 *
+              {t('ui.timeline.destinationLabel')}
             </label>
             <div className="relative">
               <MapPin
@@ -180,7 +182,7 @@ export default function TimelineCreateModal({
               <input
                 id="destination"
                 type="text"
-                placeholder="예: 도쿄, 일본 또는 서울, 대한민국"
+                placeholder={t('placeholders.destinationExample')}
                 value={formData.destination}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -236,7 +238,7 @@ export default function TimelineCreateModal({
             )}
 
             <p className="text-xs text-gray-500 mt-1">
-              도시명과 국가명을 함께 입력해주세요 (예: 파리, 프랑스)
+              {t('ui.timeline.destinationHelp')}
             </p>
           </div>
 
@@ -246,7 +248,7 @@ export default function TimelineCreateModal({
                 htmlFor="startDate"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                시작일 *
+                {t('ui.timeline.startDateLabel')}
               </label>
               <div className="relative">
                 <Calendar
@@ -274,7 +276,7 @@ export default function TimelineCreateModal({
                 htmlFor="totalDays"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                여행 기간
+                {t('ui.timeline.durationLabel')}
               </label>
               <input
                 id="totalDays"
@@ -291,7 +293,7 @@ export default function TimelineCreateModal({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                {formData.totalDays}일
+                {formData.totalDays}{t('ui.timeline.daysUnit')}
               </p>
             </div>
           </div>
@@ -301,7 +303,7 @@ export default function TimelineCreateModal({
               htmlFor="description"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              여행 설명
+              {t('ui.timeline.descriptionLabel')}
             </label>
             <div className="relative">
               <FileText
@@ -310,7 +312,7 @@ export default function TimelineCreateModal({
               />
               <textarea
                 id="description"
-                placeholder="이번 여행에 대한 간단한 설명을 적어주세요..."
+                placeholder={t('placeholders.writeReview')}
                 value={formData.description}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -348,7 +350,7 @@ export default function TimelineCreateModal({
                 }
               }}
             >
-              취소
+              {t('app.cancel')}
             </button>
             <button
               type="submit"
@@ -362,7 +364,7 @@ export default function TimelineCreateModal({
                 console.log('타임라인 생성 버튼 클릭');
               }}
             >
-              타임라인 생성
+              {t('ui.timeline.createButton')}
             </button>
           </div>
         </form>
