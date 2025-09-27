@@ -1,4 +1,4 @@
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import { createServer, type Server } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import multer from 'multer';
@@ -41,6 +41,7 @@ import {
   insertPurchaseRequestSchema,
   insertPurchaseQuoteSchema,
   insertPurchaseOrderSchema,
+  insertReviewSchema,
 } from '@shared/schema';
 import {
   LoginSchema,
@@ -179,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       },
       detection: {
         order: ['header', 'querystring'],
-        caches: false,
+        caches: [],
       },
     });
 
