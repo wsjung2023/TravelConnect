@@ -1,0 +1,22 @@
+{
+  "required": "This field is required",
+  "email": {
+    "invalid": "Please enter a valid email address (e.g., name@example.com)",
+    "required": "Email is required"
+  },
+  "password": {
+    "required": "Password is required",
+    "tooShort": "Password must be at least 6 characters",
+    "mismatch": "Passwords do not match"
+  },
+  "purchase": {
+    "productName": "Please enter product name",
+    "price": "Please enter estimated price",
+    "quantity": "Quantity must be at least 1",
+    "address": "Please enter delivery address"
+  },
+  "review": {
+    "content": "Please write your review content",
+    "rating": "Please select a rating"
+  }
+}

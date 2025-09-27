@@ -1,0 +1,24 @@
+{
+  "buttons": {
+    "createPost": "Create Post",
+    "sendMessage": "Send Message",
+    "uploadImage": "Upload Image",
+    "selectLocation": "Select Location",
+    "submitReview": "Submit Review"
+  },
+  "labels": {
+    "title": "Title",
+    "content": "Content",
+    "location": "Location",
+    "rating": "Rating",
+    "price": "Price",
+    "quantity": "Quantity",
+    "deliveryAddress": "Delivery Address"
+  },
+  "placeholders": {
+    "enterTitle": "Enter title...",
+    "enterContent": "Enter content...",
+    "searchLocation": "Search location...",
+    "writeReview": "Write your honest review about this experience..."
+  }
+}

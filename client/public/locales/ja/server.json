@@ -1,0 +1,26 @@
+{
+  "auth": {
+    "emailPasswordRequired": "Email and password are required",
+    "invalidEmailFormat": "Invalid email format",
+    "emailAlreadyExists": "Email already exists",
+    "registrationComplete": "Registration completed",
+    "registrationError": "An error occurred during registration",
+    "loginRequired": "Please enter email and password",
+    "invalidCredentials": "Email or password is incorrect",
+    "loginSuccess": "Login successful",
+    "loginError": "An error occurred during login",
+    "userNotFound": "User not found",
+    "userInfoError": "An error occurred while retrieving user information"
+  },
+  "file": {
+    "invalidFormat": "Invalid file format. Supported formats: {{formats}}",
+    "invalidFileName": "Invalid file name",
+    "fileNotFound": "File not found",
+    "fileAccessError": "File access failed"
+  },
+  "system": {
+    "systemSettingsError": "Failed to fetch system settings",
+    "updateSettingError": "Failed to update system setting",
+    "settingNotFound": "Setting not found"
+  }
+}

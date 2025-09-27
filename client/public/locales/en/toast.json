@@ -1,0 +1,27 @@
+{
+  "success": {
+    "created": "Successfully created!",
+    "updated": "Successfully updated!",
+    "deleted": "Successfully deleted!",
+    "uploaded": "Upload completed",
+    "sent": "Message sent",
+    "registered": "Registration completed",
+    "loggedIn": "Login successful",
+    "reviewSubmitted": "Thank you for your valuable review!"
+  },
+  "error": {
+    "generic": "An error occurred. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "upload": "Upload failed. Please try again.",
+    "validation": "Please check your input.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "tooManyImages": "You can upload up to 5 images."
+  },
+  "info": {
+    "saving": "Saving...",
+    "uploading": "Uploading...",
+    "processing": "Processing...",
+    "loading": "Loading..."
+  }
+}

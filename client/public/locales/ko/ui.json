@@ -1,0 +1,24 @@
+{
+  "buttons": {
+    "createPost": "게시글 작성",
+    "sendMessage": "메시지 보내기",
+    "uploadImage": "이미지 업로드",
+    "selectLocation": "위치 선택",
+    "submitReview": "후기 등록"
+  },
+  "labels": {
+    "title": "제목",
+    "content": "내용",
+    "location": "위치",
+    "rating": "평점",
+    "price": "가격",
+    "quantity": "수량",
+    "deliveryAddress": "배송 주소"
+  },
+  "placeholders": {
+    "enterTitle": "제목을 입력하세요...",
+    "enterContent": "내용을 입력하세요...",
+    "searchLocation": "위치를 검색하세요...",
+    "writeReview": "경험에 대한 솔직한 후기를 작성해주세요..."
+  }
+}
