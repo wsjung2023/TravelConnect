@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 
 // Custom debounce hook for performance optimization
@@ -49,6 +50,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   className = '',
   onCreatePost,
 }) => {
+  const { t } = useTranslation('ui');
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
@@ -1483,15 +1485,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       {/* POI 필터링 토글 */}
       <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg p-3 z-10">
-        <div className="text-xs font-medium text-gray-600 mb-2">POI 필터</div>
+        <div className="text-xs font-medium text-gray-600 mb-2">{t('filters.poi')}</div>
         <div className="space-y-1">
           {[
-            { type: 'tourist_attraction', label: '관광명소', icon: '🏛️' },
-            { type: 'restaurant', label: '맛집', icon: '🍽️' },
-            { type: 'lodging', label: '호텔', icon: '🏨' },
-            { type: 'hospital', label: '병원', icon: '🏥' },
-            { type: 'bank', label: '은행', icon: '🏦' },
-            { type: 'gas_station', label: '주유소', icon: '⛽' },
+            { type: 'tourist_attraction', label: t('filters.tourist_attraction'), icon: '🏛️' },
+            { type: 'restaurant', label: t('filters.restaurant'), icon: '🍽️' },
+            { type: 'lodging', label: t('filters.lodging'), icon: '🏨' },
+            { type: 'hospital', label: t('filters.hospital'), icon: '🏥' },
+            { type: 'bank', label: t('filters.bank'), icon: '🏦' },
+            { type: 'gas_station', label: t('filters.gas_station'), icon: '⛽' },
           ].map((poi) => (
             <label
               key={poi.type}
@@ -1521,7 +1523,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       {/* 하단 체험 정보 */}
       <div className="absolute bottom-0 left-0 right-0 bg-white p-4 border-t">
-        <h3 className="font-semibold text-gray-900">{posts.length}개의 체험</h3>
+        <h3 className="font-semibold text-gray-900">{t('post.experienceCount', { count: posts.length })}</h3>
       </div>
 
       {/* MiniMeet 생성 모달 */}

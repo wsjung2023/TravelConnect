@@ -46,7 +46,10 @@
     "tourist_attraction": "Tourist Attractions",
     "restaurant": "Restaurants",
     "lodging": "Lodging",
-    "shopping_mall": "Shopping Malls"
+    "shopping_mall": "Shopping Malls",
+    "hospital": "Hospitals",
+    "bank": "Banks",
+    "gas_station": "Gas Stations"
   },
   "timeline": {
     "create": "Create New Timeline",
@@ -64,7 +67,8 @@
     "countUnit": "",
     "viewTogether": " view together",
     "moreCount": " more",
-    "minuteUnit": "min"
+    "minuteUnit": "min",
+    "experienceCount": "{{count}} experiences"
   },
   "navigation": {
     "map": "Map",

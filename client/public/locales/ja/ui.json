@@ -1,24 +1,117 @@
 {
   "buttons": {
-    "createPost": "Create Post",
-    "sendMessage": "Send Message",
-    "uploadImage": "Upload Image",
-    "selectLocation": "Select Location",
-    "submitReview": "Submit Review"
+    "createPost": "投稿を作成",
+    "sendMessage": "メッセージを送信",
+    "uploadImage": "画像をアップロード",
+    "selectLocation": "場所を選択",
+    "submitReview": "レビューを投稿"
   },
   "labels": {
-    "title": "Title",
-    "content": "Content",
-    "location": "Location",
-    "rating": "Rating",
-    "price": "Price",
-    "quantity": "Quantity",
-    "deliveryAddress": "Delivery Address"
+    "title": "タイトル",
+    "content": "コンテンツ",
+    "location": "場所",
+    "rating": "評価",
+    "price": "価格",
+    "quantity": "数量",
+    "deliveryAddress": "配送先住所",
+    "destination": "目的地",
+    "duration": "旅行期間",
+    "days": "日"
   },
   "placeholders": {
-    "enterTitle": "Enter title...",
-    "enterContent": "Enter content...",
-    "searchLocation": "Search location...",
-    "writeReview": "Write your honest review about this experience..."
+    "enterTitle": "タイトルを入力...",
+    "enterContent": "内容を入力...",
+    "searchLocation": "場所を検索...",
+    "writeReview": "この体験についての正直なレビューを書いてください...",
+    "destinationExample": "例：東京、日本またはソウル、韓国",
+    "enterMessage": "メッセージを入力..."
+  },
+  "themes": {
+    "restaurant": "レストラン",
+    "tourist_attraction": "観光地",
+    "party": "パーティー",
+    "hotplace": "ホットスポット",
+    "healing": "癒し",
+    "nightview": "夜景",
+    "hiking": "ハイキング",
+    "hotel": "ホテル",
+    "shopping": "ショッピング",
+    "cafe": "カフェ",
+    "emotional": "感動",
+    "landmark": "名所",
+    "activity": "アクティビティ"
+  },
+  "filters": {
+    "poi": "POIフィルター",
+    "tourist_attraction": "観光地",
+    "restaurant": "レストラン",
+    "lodging": "宿泊",
+    "shopping_mall": "ショッピングモール",
+    "hospital": "病院",
+    "bank": "銀行",
+    "gas_station": "ガソリンスタンド"
+  },
+  "timeline": {
+    "create": "新しいタイムラインを作成",
+    "titleLabel": "タイムラインタイトル *",
+    "destinationLabel": "旅行先 *",
+    "startDateLabel": "開始日 *",
+    "durationLabel": "旅行期間",
+    "descriptionLabel": "旅行説明",
+    "createButton": "タイムラインを作成",
+    "destinationHelp": "都市名と国名を一緒に入力してください（例：パリ、フランス）",
+    "daysUnit": "日"
+  },
+  "post": {
+    "noTitle": "タイトルなし",
+    "countUnit": "個",
+    "viewTogether": "個一緒に見る",
+    "moreCount": "個さらに",
+    "minuteUnit": "分間",
+    "experienceCount": "{{count}}件の体験"
+  },
+  "navigation": {
+    "map": "マップ",
+    "feed": "フィード",
+    "timeline": "タイムライン",
+    "chat": "チャット",
+    "profile": "プロフィール"
+  },
+  "dashboard": {
+    "title": "💼 コマースダッシュボード",
+    "subtitle": "旅行体験と予約管理",
+    "tabs": {
+      "overview": "概要",
+      "experiences": "体験管理",
+      "bookings": "予約管理",
+      "payments": "支払い管理"
+    },
+    "cards": {
+      "totalExperiences": "総体験数",
+      "totalBookings": "総予約数",
+      "totalRevenue": "総収益",
+      "activeHosts": "アクティブホスト",
+      "averageRating": "平均評価",
+      "pendingBookings": "保留中の予約",
+      "successfulPayments": "成功した支払い",
+      "failedPayments": "失敗した支払い"
+    },
+    "descriptions": {
+      "registeredExperiences": "登録された旅行体験",
+      "totalBookingsCount": "総予約件数",
+      "cumulativeRevenue": "累計収益",
+      "registeredHosts": "登録ホスト",
+      "outOfFive": "5点満点",
+      "awaitingApproval": "承認待ち",
+      "completedPayments": "完了した支払い",
+      "failedPaymentCount": "失敗した支払い"
+    }
+  },
+  "search": {
+    "location": "場所",
+    "content": "コンテンツ",
+    "locationPlaceholder": "場所、地域、スポット検索...",
+    "contentPlaceholder": "コンテンツ検索...",
+    "searchChannels": "チャンネル検索..."
   }
 }

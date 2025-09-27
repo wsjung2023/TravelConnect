@@ -1,7 +1,19 @@
+import i18n from './i18n';
+
 let promise: Promise<any> | null = null;
+let currentLanguage: string | null = null;
 
 export function loadGoogleMaps() {
-  if (window.google?.maps) return Promise.resolve(window.google);
+  const lang = i18n.language || 'en';
+  
+  // 언어가 변경된 경우 새로 로드
+  if (currentLanguage && currentLanguage !== lang) {
+    resetGoogleMapsPromise();
+  }
+  
+  if (window.google?.maps && currentLanguage === lang) {
+    return Promise.resolve(window.google);
+  }
   if (promise) return promise;
   
   const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -9,8 +21,9 @@ export function loadGoogleMaps() {
     return Promise.reject(new Error('VITE_GOOGLE_MAPS_API_KEY environment variable is not set'));
   }
   
+  currentLanguage = lang;
   const s = document.createElement('script');
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&language=${lang}`;
   s.async = true;
   document.head.appendChild(s);
   
@@ -22,6 +35,12 @@ export function loadGoogleMaps() {
   return promise;
 }
 
+// 언어 변경 시 Google Maps를 다시 로드하기 위해 promise 재설정
+export function resetGoogleMapsPromise() {
+  promise = null;
+  currentLanguage = null;
+}
+
 // Google Maps API가 로드되었는지 확인하는 헬퍼 함수
 export function isGoogleMapsLoaded(): boolean {
   return !!(window.google?.maps);
@@ -30,6 +49,6 @@ export function isGoogleMapsLoaded(): boolean {
 // 타입 선언
 declare global {
   interface Window {
-    google: typeof google;
+    google: any;
   }
 }

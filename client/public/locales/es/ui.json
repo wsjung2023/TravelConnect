@@ -46,7 +46,10 @@
     "tourist_attraction": "Atracciones turísticas",
     "restaurant": "Restaurantes",
     "lodging": "Alojamiento",
-    "shopping_mall": "Centros comerciales"
+    "shopping_mall": "Centros comerciales",
+    "hospital": "Hospitales",
+    "bank": "Bancos",
+    "gas_station": "Gasolineras"
   },
   "search": {
     "location": "Ubicación",
@@ -71,7 +74,8 @@
     "countUnit": "",
     "viewTogether": " ver juntos",
     "moreCount": " más",
-    "minuteUnit": "min"
+    "minuteUnit": "min",
+    "experienceCount": "{{count}} experiencias"
   },
   "navigation": {
     "map": "Mapa",

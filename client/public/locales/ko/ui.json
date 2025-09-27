@@ -46,7 +46,10 @@
     "tourist_attraction": "관광지",
     "restaurant": "음식점",
     "lodging": "숙박",
-    "shopping_mall": "쇼핑몰"
+    "shopping_mall": "쇼핑몰",
+    "hospital": "병원",
+    "bank": "은행",
+    "gas_station": "주유소"
   },
   "timeline": {
     "create": "새 타임라인 만들기",
@@ -64,7 +67,8 @@
     "countUnit": "개",
     "viewTogether": "개 함께보기",
     "moreCount": "개 더",
-    "minuteUnit": "분간"
+    "minuteUnit": "분간",
+    "experienceCount": "{{count}}개의 체험"
   },
   "navigation": {
     "map": "지도",

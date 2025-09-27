@@ -46,7 +46,10 @@
     "tourist_attraction": "Attractions touristiques",
     "restaurant": "Restaurants",
     "lodging": "Hébergement",
-    "shopping_mall": "Centres commerciaux"
+    "shopping_mall": "Centres commerciaux",
+    "hospital": "Hôpitaux",
+    "bank": "Banques",
+    "gas_station": "Stations-service"
   },
   "timeline": {
     "create": "Créer une nouvelle chronologie",
@@ -64,7 +67,8 @@
     "countUnit": "",
     "viewTogether": " voir ensemble",
     "moreCount": " de plus",
-    "minuteUnit": "min"
+    "minuteUnit": "min",
+    "experienceCount": "{{count}} expériences"
   },
   "navigation": {
     "map": "Carte",
@@ -102,5 +106,12 @@
       "completedPayments": "Paiements terminés",
       "failedPaymentCount": "Paiements échoués"
     }
+  },
+  "search": {
+    "location": "Lieu",
+    "content": "Contenu",
+    "locationPlaceholder": "Rechercher lieu, région, place...",
+    "contentPlaceholder": "Rechercher contenu...",
+    "searchChannels": "Rechercher chaînes..."
   }
 }

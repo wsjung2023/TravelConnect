@@ -1,24 +1,117 @@
 {
   "buttons": {
-    "createPost": "Create Post",
-    "sendMessage": "Send Message",
-    "uploadImage": "Upload Image",
-    "selectLocation": "Select Location",
-    "submitReview": "Submit Review"
+    "createPost": "创建帖子",
+    "sendMessage": "发送消息",
+    "uploadImage": "上传图片",
+    "selectLocation": "选择位置",
+    "submitReview": "提交评价"
   },
   "labels": {
-    "title": "Title",
-    "content": "Content",
-    "location": "Location",
-    "rating": "Rating",
-    "price": "Price",
-    "quantity": "Quantity",
-    "deliveryAddress": "Delivery Address"
+    "title": "标题",
+    "content": "内容",
+    "location": "位置",
+    "rating": "评分",
+    "price": "价格",
+    "quantity": "数量",
+    "deliveryAddress": "配送地址",
+    "destination": "目的地",
+    "duration": "旅行时长",
+    "days": "天"
   },
   "placeholders": {
-    "enterTitle": "Enter title...",
-    "enterContent": "Enter content...",
-    "searchLocation": "Search location...",
-    "writeReview": "Write your honest review about this experience..."
+    "enterTitle": "输入标题...",
+    "enterContent": "输入内容...",
+    "searchLocation": "搜索位置...",
+    "writeReview": "请写下您对这次体验的诚实评价...",
+    "destinationExample": "例：东京，日本或首尔，韩国",
+    "enterMessage": "输入您的消息..."
+  },
+  "themes": {
+    "restaurant": "餐厅",
+    "tourist_attraction": "旅游景点",
+    "party": "聚会",
+    "hotplace": "热门地点",
+    "healing": "疗愈",
+    "nightview": "夜景",
+    "hiking": "徒步",
+    "hotel": "酒店",
+    "shopping": "购物",
+    "cafe": "咖啡厅",
+    "emotional": "情感",
+    "landmark": "地标",
+    "activity": "活动"
+  },
+  "filters": {
+    "poi": "兴趣点筛选",
+    "tourist_attraction": "旅游景点",
+    "restaurant": "餐厅",
+    "lodging": "住宿",
+    "shopping_mall": "购物中心",
+    "hospital": "医院",
+    "bank": "银行",
+    "gas_station": "加油站"
+  },
+  "timeline": {
+    "create": "创建新时间线",
+    "titleLabel": "时间线标题 *",
+    "destinationLabel": "旅行目的地 *",
+    "startDateLabel": "开始日期 *",
+    "durationLabel": "旅行时长",
+    "descriptionLabel": "旅行描述",
+    "createButton": "创建时间线",
+    "destinationHelp": "请同时输入城市和国家名称（例：巴黎，法国）",
+    "daysUnit": "天"
+  },
+  "post": {
+    "noTitle": "无标题",
+    "countUnit": "个",
+    "viewTogether": "个一起查看",
+    "moreCount": "个更多",
+    "minuteUnit": "分钟",
+    "experienceCount": "{{count}}个体验"
+  },
+  "navigation": {
+    "map": "地图",
+    "feed": "动态",
+    "timeline": "时间线",
+    "chat": "聊天",
+    "profile": "个人资料"
+  },
+  "dashboard": {
+    "title": "💼 商务仪表板",
+    "subtitle": "旅行体验和预订管理",
+    "tabs": {
+      "overview": "概览",
+      "experiences": "体验管理",
+      "bookings": "预订管理",
+      "payments": "支付管理"
+    },
+    "cards": {
+      "totalExperiences": "总体验数",
+      "totalBookings": "总预订数",
+      "totalRevenue": "总收入",
+      "activeHosts": "活跃主办方",
+      "averageRating": "平均评分",
+      "pendingBookings": "待处理预订",
+      "successfulPayments": "成功支付",
+      "failedPayments": "失败支付"
+    },
+    "descriptions": {
+      "registeredExperiences": "已注册的旅行体验",
+      "totalBookingsCount": "总预订数量",
+      "cumulativeRevenue": "累计收入",
+      "registeredHosts": "已注册主办方",
+      "outOfFive": "满分5分",
+      "awaitingApproval": "等待审批",
+      "completedPayments": "已完成支付",
+      "failedPaymentCount": "失败的支付"
+    }
+  },
+  "search": {
+    "location": "位置",
+    "content": "内容",
+    "locationPlaceholder": "搜索位置、地区、地点...",
+    "contentPlaceholder": "搜索内容...",
+    "searchChannels": "搜索频道..."
   }
 }
