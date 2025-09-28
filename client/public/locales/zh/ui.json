@@ -51,6 +51,46 @@
     "bank": "银行",
     "gas_station": "加油站"
   },
+  "onboarding": {
+    "title": "欢迎来到Tourgether！",
+    "step1Description": "让我们个性化您的体验",
+    "step2Description": "告诉我们您的兴趣和偏好",
+    "step3Description": "快完成了！只需要一些细节",
+    "selectUserType": "什么让您来到Tourgether？",
+    "selectInterests": "您最感兴趣的是什么？",
+    "selectLanguages": "您会说哪些语言？",
+    "selectTimezone": "您的时区是什么？",
+    "summary": "您的档案摘要",
+    "userType": "用户类型",
+    "interests": "兴趣",
+    "languages": "语言",
+    "timezone": "时区",
+    "complete": "完成设置",
+    "successMessage": "欢迎！您的档案已成功设置。",
+    "userTypes": {
+      "traveler": {
+        "title": "旅行者",
+        "description": "探索目的地并获得当地帮助",
+        "feature1": "创建旅行时间线",
+        "feature2": "请求当地协助",
+        "feature3": "与当地人即时连接"
+      },
+      "influencer": {
+        "title": "影响者",
+        "description": "将您的专业知识变现并创建服务包",
+        "feature1": "创建服务模板",
+        "feature2": "建立收入来源",
+        "feature3": "展示您的作品集"
+      },
+      "host": {
+        "title": "本地向导",
+        "description": "分享您的本地知识并管理预订",
+        "feature1": "管理时间段",
+        "feature2": "跟踪您的收入",
+        "feature3": "与客人建立信任"
+      }
+    }
+  },
   "timeline": {
     "create": "创建新时间线",
     "titleLabel": "时间线标题 *",

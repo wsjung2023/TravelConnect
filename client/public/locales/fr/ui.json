@@ -53,6 +53,46 @@
     "bank": "Banques",
     "gas_station": "Stations-service"
   },
+  "onboarding": {
+    "title": "Bienvenue sur Tourgether !",
+    "step1Description": "Personnalisons votre expérience",
+    "step2Description": "Parlez-nous de vos intérêts et préférences",
+    "step3Description": "Presque fini ! Juste quelques détails de plus",
+    "selectUserType": "Qu'est-ce qui vous amène sur Tourgether ?",
+    "selectInterests": "Qu'est-ce qui vous intéresse le plus ?",
+    "selectLanguages": "Quelles langues parlez-vous ?",
+    "selectTimezone": "Quel est votre fuseau horaire ?",
+    "summary": "Résumé de votre profil",
+    "userType": "Type d'utilisateur",
+    "interests": "Intérêts",
+    "languages": "Langues",
+    "timezone": "Fuseau horaire",
+    "complete": "Terminer la configuration",
+    "successMessage": "Bienvenue ! Votre profil a été configuré avec succès.",
+    "userTypes": {
+      "traveler": {
+        "title": "Voyageur",
+        "description": "Explorez les destinations et obtenez de l'aide locale",
+        "feature1": "Créer des chronologies de voyage",
+        "feature2": "Demander une assistance locale",
+        "feature3": "Se connecter instantanément avec les locaux"
+      },
+      "influencer": {
+        "title": "Influenceur",
+        "description": "Monétisez votre expertise et créez des forfaits de services",
+        "feature1": "Créer des modèles de services",
+        "feature2": "Construire des flux de revenus",
+        "feature3": "Présenter votre portfolio"
+      },
+      "host": {
+        "title": "Guide Local",
+        "description": "Partagez vos connaissances locales et gérez les réservations",
+        "feature1": "Gérer les créneaux horaires",
+        "feature2": "Suivre vos revenus",
+        "feature3": "Construire la confiance avec les invités"
+      }
+    }
+  },
   "timeline": {
     "create": "Créer une nouvelle chronologie",
     "title": "Chronologie de voyage",

@@ -51,6 +51,46 @@
     "bank": "Bancos",
     "gas_station": "Gasolineras"
   },
+  "onboarding": {
+    "title": "¡Bienvenido a Tourgether!",
+    "step1Description": "Personalicemos tu experiencia",
+    "step2Description": "Cuéntanos sobre tus intereses y preferencias",
+    "step3Description": "¡Casi terminamos! Solo unos detalles más",
+    "selectUserType": "¿Qué te trae a Tourgether?",
+    "selectInterests": "¿Qué te interesa más?",
+    "selectLanguages": "¿Qué idiomas hablas?",
+    "selectTimezone": "¿Cuál es tu zona horaria?",
+    "summary": "Resumen de tu perfil",
+    "userType": "Tipo de usuario",
+    "interests": "Intereses",
+    "languages": "Idiomas",
+    "timezone": "Zona horaria",
+    "complete": "Completar configuración",
+    "successMessage": "¡Bienvenido! Tu perfil se ha configurado con éxito.",
+    "userTypes": {
+      "traveler": {
+        "title": "Viajero",
+        "description": "Explora destinos y obtén ayuda local",
+        "feature1": "Crear cronogramas de viaje",
+        "feature2": "Solicitar asistencia local",
+        "feature3": "Conectar con locales al instante"
+      },
+      "influencer": {
+        "title": "Influencer",
+        "description": "Monetiza tu experiencia y crea paquetes de servicios",
+        "feature1": "Crear plantillas de servicios",
+        "feature2": "Construir flujos de ingresos",
+        "feature3": "Mostrar tu portafolio"
+      },
+      "host": {
+        "title": "Guía Local",
+        "description": "Comparte tu conocimiento local y gestiona reservas",
+        "feature1": "Gestionar horarios",
+        "feature2": "Rastrear tus ingresos",
+        "feature3": "Construir confianza con huéspedes"
+      }
+    }
+  },
   "search": {
     "location": "Ubicación",
     "content": "Contenido",

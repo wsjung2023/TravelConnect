@@ -51,6 +51,46 @@
     "bank": "銀行",
     "gas_station": "ガソリンスタンド"
   },
+  "onboarding": {
+    "title": "Tourgetherへようこそ！",
+    "step1Description": "あなたの体験をパーソナライズしましょう",
+    "step2Description": "興味や好みを教えてください",
+    "step3Description": "もう少しで完了です！最後の詳細です",
+    "selectUserType": "Tourgetherをどのように使いたいですか？",
+    "selectInterests": "何に最も興味がありますか？",
+    "selectLanguages": "どの言語を話せますか？",
+    "selectTimezone": "タイムゾーンを選択してください",
+    "summary": "プロフィール概要",
+    "userType": "ユーザータイプ",
+    "interests": "興味",
+    "languages": "言語",
+    "timezone": "タイムゾーン",
+    "complete": "設定を完了",
+    "successMessage": "ようこそ！プロフィールが正常に設定されました。",
+    "userTypes": {
+      "traveler": {
+        "title": "旅行者",
+        "description": "目的地を探索し、現地のサポートを受ける",
+        "feature1": "旅行タイムラインを作成",
+        "feature2": "現地の支援を要請",
+        "feature3": "現地の人とすぐに繋がる"
+      },
+      "influencer": {
+        "title": "インフルエンサー",
+        "description": "専門知識を収益化し、サービスパッケージを作成",
+        "feature1": "サービステンプレートを作成",
+        "feature2": "収益源を構築",
+        "feature3": "ポートフォリオを展示"
+      },
+      "host": {
+        "title": "ローカルガイド",
+        "description": "地元の知識を共有し、予約を管理",
+        "feature1": "時間スロットを管理",
+        "feature2": "収益を追跡",
+        "feature3": "ゲストとの信頼を構築"
+      }
+    }
+  },
   "timeline": {
     "create": "新しいタイムラインを作成",
     "titleLabel": "タイムラインタイトル *",

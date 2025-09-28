@@ -53,6 +53,46 @@
     "bank": "Banks",
     "gas_station": "Gas Stations"
   },
+  "onboarding": {
+    "title": "Welcome to Tourgether!",
+    "step1Description": "Let's personalize your experience",
+    "step2Description": "Tell us about your interests and preferences",
+    "step3Description": "Almost done! Just a few more details",
+    "selectUserType": "What brings you to Tourgether?",
+    "selectInterests": "What interests you most?",
+    "selectLanguages": "Which languages do you speak?",
+    "selectTimezone": "What's your timezone?",
+    "summary": "Your Profile Summary",
+    "userType": "User Type",
+    "interests": "Interests",
+    "languages": "Languages",
+    "timezone": "Timezone",
+    "complete": "Complete Setup",
+    "successMessage": "Welcome! Your profile has been set up successfully.",
+    "userTypes": {
+      "traveler": {
+        "title": "Traveler",
+        "description": "Explore destinations and get local help",
+        "feature1": "Create travel timelines",
+        "feature2": "Request local assistance",
+        "feature3": "Connect with locals instantly"
+      },
+      "influencer": {
+        "title": "Influencer",
+        "description": "Monetize your expertise and create service packages",
+        "feature1": "Create service templates",
+        "feature2": "Build revenue streams",
+        "feature3": "Showcase your portfolio"
+      },
+      "host": {
+        "title": "Local Guide",
+        "description": "Share your local knowledge and manage bookings",
+        "feature1": "Manage time slots",
+        "feature2": "Track your revenue",
+        "feature3": "Build trust with guests"
+      }
+    }
+  },
   "timeline": {
     "create": "Create New Timeline",
     "title": "Travel Timeline",

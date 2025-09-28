@@ -53,6 +53,46 @@
     "bank": "은행",
     "gas_station": "주유소"
   },
+  "onboarding": {
+    "title": "투어게더에 오신 것을 환영합니다!",
+    "step1Description": "맞춤형 경험을 위해 설정해보세요",
+    "step2Description": "관심사와 선호도를 알려주세요",
+    "step3Description": "거의 다 끝났어요! 마지막 설정입니다",
+    "selectUserType": "투어게더를 어떻게 이용하고 싶으신가요?",
+    "selectInterests": "어떤 것에 관심이 있으신가요?",
+    "selectLanguages": "어떤 언어를 구사하시나요?",
+    "selectTimezone": "타임존을 선택해주세요",
+    "summary": "프로필 요약",
+    "userType": "사용자 유형",
+    "interests": "관심사",
+    "languages": "언어",
+    "timezone": "타임존",
+    "complete": "설정 완료",
+    "successMessage": "환영합니다! 프로필 설정이 완료되었습니다.",
+    "userTypes": {
+      "traveler": {
+        "title": "여행자",
+        "description": "목적지를 탐험하고 현지 도움을 받으세요",
+        "feature1": "여행 타임라인 생성",
+        "feature2": "현지 도움 요청",
+        "feature3": "현지인과 즉시 연결"
+      },
+      "influencer": {
+        "title": "인플루언서",
+        "description": "전문성을 수익화하고 서비스 패키지를 만드세요",
+        "feature1": "서비스 템플릿 생성",
+        "feature2": "수익 창출",
+        "feature3": "포트폴리오 전시"
+      },
+      "host": {
+        "title": "로컬 가이드",
+        "description": "현지 지식을 공유하고 예약을 관리하세요",
+        "feature1": "시간 슬롯 관리",
+        "feature2": "수익 추적",
+        "feature3": "게스트와 신뢰 구축"
+      }
+    }
+  },
   "timeline": {
     "create": "새 타임라인 만들기",
     "title": "여행 타임라인",

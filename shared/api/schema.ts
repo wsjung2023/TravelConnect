@@ -19,6 +19,13 @@ export const RegisterSchema = z.object({
   lastName: z.string().min(1, '성을 입력해주세요').optional(),
 });
 
+export const OnboardingSchema = z.object({
+  userType: z.enum(['traveler', 'influencer', 'host']),
+  interests: z.array(z.string()).default([]),
+  languages: z.array(z.string()).min(1, '최소 하나의 언어를 선택해주세요'),
+  timezone: z.string().min(1, '타임존을 선택해주세요'),
+});
+
 // 포스트 관련 스키마
 export const CreatePostSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요').max(100, '제목은 100자 이하여야 합니다'),

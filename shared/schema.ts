@@ -11,7 +11,7 @@ import {
   boolean,
   date,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -44,6 +44,14 @@ export const users = pgTable('users', {
   openToMeet: boolean('open_to_meet').default(false),
   regionCode: varchar('region_code'),
   openUntil: timestamp('open_until'), // 자동 만료 시간
+  // 업그레이드용 새 컬럼들
+  userType: varchar('user_type', { length: 20 }).default('traveler'), // 'traveler', 'influencer', 'host'
+  interests: text('interests').array(),
+  languages: text('languages').array().default(sql`'{"ko"}'`),
+  timezone: varchar('timezone', { length: 50 }).default('Asia/Seoul'),
+  publicProfileUrl: varchar('public_profile_url', { length: 200 }), // link-in-bio URL
+  portfolioMode: boolean('portfolio_mode').default(false),
+  onboardingCompleted: boolean('onboarding_completed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -82,6 +90,11 @@ export const experiences = pgTable('experiences', {
   shippingInfo: text('shipping_info'), // 배송 정보
   supportedCountries: text('supported_countries').array(), // 지원 국가들
   processingTime: varchar('processing_time'), // 처리 시간 (예: "1-3 days")
+  // 업그레이드용 새 컬럼들
+  templateType: varchar('template_type', { length: 50 }), // 'custom_planning', 'food_guide', 'photo_companion'
+  isTemplate: boolean('is_template').default(false),
+  deliveryMethod: varchar('delivery_method', { length: 30 }).default('in_person'), // 'in_person', 'digital', 'hybrid'
+  quickBookEnabled: boolean('quick_book_enabled').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -278,6 +291,11 @@ export const reviews = pgTable('reviews', {
     .references(() => users.id),
   rating: integer('rating').notNull(), // 1-5
   comment: text('comment'),
+  // 업그레이드용 새 컬럼들
+  verifiedBooking: boolean('verified_booking').default(false),
+  weightFactor: decimal('weight_factor', { precision: 3, scale: 2 }).default('1.0'),
+  helpfulnessScore: integer('helpfulness_score').default(0),
+  responseFromHost: text('response_from_host'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => [
   index('IDX_reviews_experience_id').on(table.experienceId),
@@ -503,11 +521,9 @@ export const insertTripSchema = createInsertSchema(trips).omit({
 export const insertReviewSchema = createInsertSchema(reviews, {
   rating: z.number().min(1, '평점은 1점 이상이어야 합니다').max(5, '평점은 5점 이하여야 합니다'),
   comment: z.string().min(10, '후기는 최소 10글자 이상 작성해주세요').max(500, '후기는 최대 500글자까지 작성 가능합니다').optional(),
-  images: z.array(z.string()).max(5, '이미지는 최대 5개까지 업로드 가능합니다').optional(),
 }).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 });
 
 // Types
@@ -531,6 +547,148 @@ export type Trip = typeof trips.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
 
+// 새로운 테이블들 - 업그레이드용
+
+// 여행자 도움 요청 시스템
+export const helpRequests = pgTable('help_requests', {
+  id: serial('id').primaryKey(),
+  requesterId: varchar('requester_id').notNull().references(() => users.id),
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description').notNull(),
+  category: varchar('category', { length: 50 }).notNull(), // 'local_tip', 'custom_planning', 'urgent_help', 'product_purchase'
+  location: varchar('location', { length: 200 }),
+  latitude: decimal('latitude', { precision: 10, scale: 8 }),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }),
+  budgetMin: decimal('budget_min', { precision: 10, scale: 2 }),
+  budgetMax: decimal('budget_max', { precision: 10, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  deadline: timestamp('deadline'),
+  urgencyLevel: varchar('urgency_level', { length: 20 }).default('normal'), // 'urgent', 'normal', 'flexible'
+  status: varchar('status', { length: 20 }).default('open'), // 'open', 'assigned', 'completed', 'cancelled'
+  responseCount: integer('response_count').default(0),
+  preferredLanguage: varchar('preferred_language', { length: 10 }).default('ko'),
+  tags: text('tags').array(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 요청에 대한 답변/오퍼
+export const requestResponses = pgTable('request_responses', {
+  id: serial('id').primaryKey(),
+  requestId: integer('request_id').notNull().references(() => helpRequests.id),
+  responderId: varchar('responder_id').notNull().references(() => users.id),
+  message: text('message').notNull(),
+  offeredPrice: decimal('offered_price', { precision: 10, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  estimatedCompletionTime: varchar('estimated_completion_time', { length: 50 }),
+  status: varchar('status', { length: 20 }).default('pending'), // 'pending', 'accepted', 'rejected', 'withdrawn'
+  attachments: text('attachments').array(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 인플루언서 서비스 템플릿
+export const serviceTemplates = pgTable('service_templates', {
+  id: serial('id').primaryKey(),
+  creatorId: varchar('creator_id').notNull().references(() => users.id),
+  templateType: varchar('template_type', { length: 50 }).notNull(), // 'custom_planning', 'food_list', 'photo_companion', 'translation', 'shopping_guide'
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description').notNull(),
+  basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  durationHours: integer('duration_hours'),
+  maxParticipants: integer('max_participants').default(1),
+  includes: text('includes').array(),
+  requirements: text('requirements').array(),
+  sampleDeliverables: text('sample_deliverables').array(),
+  isActive: boolean('is_active').default(true),
+  orderCount: integer('order_count').default(0),
+  rating: decimal('rating', { precision: 3, scale: 2 }).default('0'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 서비스 패키지/번들
+export const servicePackages = pgTable('service_packages', {
+  id: serial('id').primaryKey(),
+  creatorId: varchar('creator_id').notNull().references(() => users.id),
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description').notNull(),
+  totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
+  originalPrice: decimal('original_price', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  discountPercentage: integer('discount_percentage').default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 패키지 구성 요소
+export const packageItems = pgTable('package_items', {
+  id: serial('id').primaryKey(),
+  packageId: integer('package_id').notNull().references(() => servicePackages.id),
+  itemType: varchar('item_type', { length: 20 }).notNull(), // 'experience', 'template'
+  itemId: integer('item_id').notNull(), // references experiences.id or service_templates.id
+  quantity: integer('quantity').default(1),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// 사용자 신뢰도 시스템
+export const userTrustLevels = pgTable('user_trust_levels', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id).unique(),
+  trustLevel: integer('trust_level').default(1), // 1-5 신뢰 단계
+  totalTransactions: integer('total_transactions').default(0),
+  totalRevenue: decimal('total_revenue', { precision: 12, scale: 2 }).default('0'),
+  completionRate: decimal('completion_rate', { precision: 5, scale: 2 }).default('0'), // 완료율 %
+  averageRating: decimal('average_rating', { precision: 3, scale: 2 }).default('0'),
+  kycVerified: boolean('kyc_verified').default(false),
+  phoneVerified: boolean('phone_verified').default(false),
+  idVerified: boolean('id_verified').default(false),
+  lastActiveAt: timestamp('last_active_at').defaultNow(),
+  trustScore: integer('trust_score').default(0), // 종합 신뢰 점수
+  badges: text('badges').array(), // ['verified_host', 'quick_responder', 'top_rated']
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 분쟁 관리 시스템
+export const disputeCases = pgTable('dispute_cases', {
+  id: serial('id').primaryKey(),
+  caseNumber: varchar('case_number', { length: 50 }).notNull().unique(),
+  complainantId: varchar('complainant_id').notNull().references(() => users.id),
+  respondentId: varchar('respondent_id').notNull().references(() => users.id),
+  relatedBookingId: integer('related_booking_id').references(() => bookings.id),
+  relatedRequestId: integer('related_request_id').references(() => helpRequests.id),
+  disputeType: varchar('dispute_type', { length: 50 }).notNull(), // 'payment', 'service_quality', 'no_show', 'refund', 'communication'
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description').notNull(),
+  evidenceFiles: text('evidence_files').array(),
+  status: varchar('status', { length: 30 }).default('open'), // 'open', 'under_review', 'resolved', 'escalated', 'closed'
+  priority: varchar('priority', { length: 20 }).default('normal'), // 'low', 'normal', 'high', 'urgent'
+  assignedAdminId: varchar('assigned_admin_id').references(() => users.id),
+  resolutionSummary: text('resolution_summary'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  resolvedAt: timestamp('resolved_at'),
+});
+
+// 온보딩 진행상황
+export const onboardingProgress = pgTable('onboarding_progress', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id).unique(),
+  completedSteps: text('completed_steps').array().default(sql`'{}'`),
+  currentStep: varchar('current_step', { length: 50 }).default('welcome'),
+  userType: varchar('user_type', { length: 20 }), // 'traveler', 'influencer', 'host'
+  interests: text('interests').array(),
+  preferredDestinations: text('preferred_destinations').array(),
+  travelStyle: varchar('travel_style', { length: 50 }),
+  isCompleted: boolean('is_completed').default(false),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // 시스템 설정값 관리 테이블 - 하드코딩 대신 DB로 관리
 export const systemSettings = pgTable('system_settings', {
   id: varchar('id').primaryKey(),
@@ -552,6 +710,72 @@ export const insertSystemSettingSchema = createInsertSchema(
 
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+
+// 새로운 테이블들의 스키마 및 타입
+export const insertHelpRequestSchema = createInsertSchema(helpRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRequestResponseSchema = createInsertSchema(requestResponses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertServiceTemplateSchema = createInsertSchema(serviceTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertServicePackageSchema = createInsertSchema(servicePackages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPackageItemSchema = createInsertSchema(packageItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserTrustLevelSchema = createInsertSchema(userTrustLevels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDisputeCaseSchema = createInsertSchema(disputeCases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertOnboardingProgressSchema = createInsertSchema(onboardingProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// 타입 정의들
+export type HelpRequest = typeof helpRequests.$inferSelect;
+export type InsertHelpRequest = z.infer<typeof insertHelpRequestSchema>;
+export type RequestResponse = typeof requestResponses.$inferSelect;
+export type InsertRequestResponse = z.infer<typeof insertRequestResponseSchema>;
+export type ServiceTemplate = typeof serviceTemplates.$inferSelect;
+export type InsertServiceTemplate = z.infer<typeof insertServiceTemplateSchema>;
+export type ServicePackage = typeof servicePackages.$inferSelect;
+export type InsertServicePackage = z.infer<typeof insertServicePackageSchema>;
+export type PackageItem = typeof packageItems.$inferSelect;
+export type InsertPackageItem = z.infer<typeof insertPackageItemSchema>;
+export type UserTrustLevel = typeof userTrustLevels.$inferSelect;
+export type InsertUserTrustLevel = z.infer<typeof insertUserTrustLevelSchema>;
+export type DisputeCase = typeof disputeCases.$inferSelect;
+export type InsertDisputeCase = z.infer<typeof insertDisputeCaseSchema>;
+export type OnboardingProgress = typeof onboardingProgress.$inferSelect;
+export type InsertOnboardingProgress = z.infer<typeof insertOnboardingProgressSchema>;
 
 // 알림 시스템
 export const notifications = pgTable('notifications', {

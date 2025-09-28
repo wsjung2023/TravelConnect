@@ -53,6 +53,7 @@ import {
 import {
   LoginSchema,
   RegisterSchema,
+  OnboardingSchema,
   CreatePostSchema,
   CreateTimelineSchema,
   CreateEventSchema,
@@ -791,6 +792,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('토큰 생성 오류:', error);
       res.status(500).json({ message: 'Failed to generate token' });
+    }
+  });
+
+  // 온보딩 완료
+  app.post('/api/auth/onboarding', authenticateHybrid, validateSchema(OnboardingSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { userType, interests, languages, timezone } = req.validatedData as {
+        userType: 'traveler' | 'influencer' | 'host';
+        interests: string[];
+        languages: string[];
+        timezone: string;
+      };
+
+      // 사용자 정보 업데이트
+      const updatedUser = await storage.updateUser(req.user.id, {
+        userType,
+        interests,
+        languages,
+        timezone,
+        onboardingCompleted: true
+      });
+
+      console.log(`[ONBOARDING] 사용자 ${req.user.email} 온보딩 완료: ${userType}`);
+      
+      res.json({
+        message: '온보딩이 완료되었습니다',
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          userType: updatedUser.userType,
+          interests: updatedUser.interests,
+          languages: updatedUser.languages,
+          timezone: updatedUser.timezone,
+          onboardingCompleted: updatedUser.onboardingCompleted
+        }
+      });
+    } catch (error) {
+      console.error('온보딩 오류:', error);
+      res.status(500).json({ message: '온보딩 중 오류가 발생했습니다' });
     }
   });
 
