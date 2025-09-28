@@ -5,7 +5,7 @@ export function useAuth() {
   const token = localStorage.getItem('token');
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/auth/me'],
+    queryKey: ['/api/auth/me', token],
     enabled: true, // 항상 활성화하여 세션 기반 인증도 확인
     retry: false,
     queryFn: async () => {
@@ -36,7 +36,31 @@ export function useAuth() {
         throw new Error('Not authenticated');
       }
 
-      return sessionResponse.json();
+      const userData = await sessionResponse.json();
+      
+      // 세션 인증은 성공했지만 JWT 토큰이 없는 경우, 토큰 생성 요청
+      if (!token && userData) {
+        try {
+          const tokenResponse = await fetch('/api/auth/generate-token', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            localStorage.setItem('token', tokenData.token);
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('JWT 토큰 자동 생성 완료');
+          }
+        } catch (error) {
+          console.warn('JWT 토큰 생성 실패:', error);
+        }
+      }
+
+      return userData;
     },
   });
 

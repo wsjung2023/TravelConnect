@@ -772,6 +772,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // JWT 토큰 생성 엔드포인트 (세션 인증된 사용자용)
+  app.post('/api/auth/generate-token', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      // JWT 토큰 생성
+      const token = generateToken({
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role || 'user'
+      });
+
+      console.log(`[TOKEN-GEN] JWT 토큰 생성: ${req.user.email}`);
+      res.json({ token });
+    } catch (error) {
+      console.error('토큰 생성 오류:', error);
+      res.status(500).json({ message: 'Failed to generate token' });
+    }
+  });
+
   // Experience routes
   app.get('/api/experiences', async (req, res) => {
     try {
