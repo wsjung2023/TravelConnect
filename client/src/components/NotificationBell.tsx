@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Gift,
 } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { useNotifications, type Notification } from '@/hooks/useNotifications';
 
 export default function NotificationBell() {
@@ -15,11 +16,13 @@ export default function NotificationBell() {
     notifications,
     counts,
     hasNewNotifications,
+    markAsRead,
     markAllAsRead,
     clearNotifications,
   } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [, setLocation] = useLocation();
 
   // 새 알림이 올 때 애니메이션 효과
   useEffect(() => {
@@ -29,6 +32,77 @@ export default function NotificationBell() {
       return () => clearTimeout(timer);
     }
   }, [hasNewNotifications]);
+
+  // 알림 클릭 핸들러
+  const handleNotificationClick = (notification: Notification) => {
+    // 알림을 읽음 상태로 표시
+    markAsRead(notification.id);
+    
+    // 알림 패널 닫기
+    setIsOpen(false);
+    
+    // 알림 타입에 따른 네비게이션
+    switch (notification.type) {
+      case 'feed':
+        // 피드 관련 알림 - 피드 페이지로 이동
+        if (notification.relatedPostId) {
+          setLocation(`/feed?postId=${notification.relatedPostId}`);
+        } else {
+          setLocation('/feed');
+        }
+        break;
+        
+      case 'chat':
+        // 채팅 알림 - 채팅 페이지로 이동
+        if (notification.relatedConversationId) {
+          setLocation(`/chat?conversationId=${notification.relatedConversationId}`);
+        } else {
+          setLocation('/chat');
+        }
+        break;
+        
+      case 'follow':
+        // 팔로우 알림 - 프로필 페이지로 이동
+        if (notification.relatedUserId) {
+          setLocation(`/profile?userId=${notification.relatedUserId}`);
+        } else {
+          setLocation('/profile');
+        }
+        break;
+        
+      case 'reaction':
+        // 반응 알림 - 해당 포스트로 이동
+        if (notification.relatedPostId) {
+          setLocation(`/feed?postId=${notification.relatedPostId}`);
+        } else {
+          setLocation('/feed');
+        }
+        break;
+        
+      case 'help':
+        // 도움 요청 알림 - 맵 페이지로 이동 (위치 기반)
+        if (notification.location) {
+          setLocation(`/map?location=${encodeURIComponent(notification.location)}`);
+        } else {
+          setLocation('/map');
+        }
+        break;
+        
+      case 'promotion':
+        // 프로모션 알림 - 해당 포스트나 피드로 이동
+        if (notification.relatedPostId) {
+          setLocation(`/feed?postId=${notification.relatedPostId}`);
+        } else {
+          setLocation('/feed');
+        }
+        break;
+        
+      default:
+        // 기본값 - 피드로 이동
+        setLocation('/feed');
+        break;
+    }
+  };
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -204,6 +278,8 @@ export default function NotificationBell() {
                       p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors
                       ${!notification.isRead ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}
                     `}
+                    onClick={() => handleNotificationClick(notification)}
+                    data-testid={`notification-item-${notification.id}`}
                   >
                     <div className="flex items-start gap-3">
                       {/* 아이콘 */}
