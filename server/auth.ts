@@ -194,13 +194,21 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
       }
     }
     
-    const defaultUser = {
+    // 기존 사용자 정보 사용, 없으면 기본값
+    const userInfo = existingUser || {
       id: userId,
       email: 'test@example.com',
       role: 'user'
     };
     
+    const defaultUser = {
+      id: userInfo.id,
+      email: userInfo.email,
+      role: userInfo.role
+    };
+    
     req.user = defaultUser;
+    console.log(`[AUTH] Setting req.user:`, {id: defaultUser.id, email: defaultUser.email, role: defaultUser.role});
     return next();
   }
 
