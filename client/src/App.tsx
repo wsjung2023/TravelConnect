@@ -59,9 +59,10 @@ const LoadingSpinner = () => (
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
-  // 온보딩 체크
-  const needsOnboarding = isAuthenticated && user && !user.onboardingCompleted;
+  // 온보딩 체크 - 로컬 상태도 고려
+  const needsOnboarding = isAuthenticated && user && !user.onboardingCompleted && !onboardingCompleted;
 
   // OAuth 콜백 파라미터 확인
   const hasOAuthCallback = () => {
@@ -71,6 +72,7 @@ function Router() {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
+    setOnboardingCompleted(true); // 즉시 로컬 상태 업데이트
     // useAuth를 다시 호출하여 사용자 정보를 새로고침
     queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
   };

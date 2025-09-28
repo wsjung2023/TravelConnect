@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -469,7 +469,7 @@ export default function Profile() {
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
+        <TabsList className="grid w-full grid-cols-8 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
           <TabsTrigger value="posts" className="text-xs">
             게시글
           </TabsTrigger>
@@ -497,6 +497,14 @@ export default function Profile() {
               <span>패키지</span>
             </div>
           </TabsTrigger>
+          {(user?.userType === 'local_guide' || user?.isHost) && (
+            <TabsTrigger value="slots" className="text-xs" data-testid="tab-slots">
+              <div className="flex items-center space-x-1">
+                <Clock className="w-3 h-3" />
+                <span>슬롯</span>
+              </div>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="posts" className="mt-4 px-4">
@@ -640,6 +648,25 @@ export default function Profile() {
         <TabsContent value="service-packages" className="mt-4 px-4" data-testid="tab-content-service-packages">
           <ServicePackageList />
         </TabsContent>
+
+        {(user?.userType === 'local_guide' || user?.isHost) && (
+          <TabsContent value="slots" className="mt-4 px-4" data-testid="tab-content-slots">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">슬롯 관리</h3>
+                <Button size="sm" data-testid="button-create-slot">
+                  <Clock className="w-4 h-4 mr-2" />
+                  새 슬롯 생성
+                </Button>
+              </div>
+              <div className="text-center py-8 text-gray-500">
+                <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>슬롯 관리 기능을 준비 중입니다.</p>
+                <p className="text-sm mt-2">시간 슬롯을 생성하고 관리할 수 있습니다.</p>
+              </div>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Help Request Form */}

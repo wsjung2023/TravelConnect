@@ -3341,7 +3341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updated = await storage.updateSlot(slotId, req.body);
       if (updated) {
-        console.log(`[SLOT] User ${req.user.email} updated slot: ${updated.title}`);
+        console.log(`[SLOT] User ${req.user.email || req.user.id} updated slot: ${updated.title}`);
         res.json(updated);
       } else {
         res.status(500).json({ message: 'Failed to update slot' });
@@ -3379,7 +3379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Failed to delete slot' });
       }
       
-      console.log(`[SLOT] User ${req.user.email} deleted slot: ${existingSlot.title}`);
+      console.log(`[SLOT] User ${req.user.email || req.user.id} deleted slot: ${existingSlot.title}`);
       res.json({ message: 'Slot deleted successfully' });
     } catch (error) {
       console.error('Error deleting slot:', error);
@@ -3449,7 +3449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updated = await storage.updateSlotAvailability(slotId, isAvailable, reason);
       
       if (updated) {
-        console.log(`[SLOT] User ${req.user.email} updated slot availability: ${updated.title} -> ${isAvailable ? 'available' : 'unavailable'}`);
+        console.log(`[SLOT] User ${req.user.email || req.user.id} updated slot availability: ${updated.title} -> ${isAvailable ? 'available' : 'unavailable'}`);
         res.json(updated);
       } else {
         res.status(500).json({ message: 'Failed to update slot availability' });
