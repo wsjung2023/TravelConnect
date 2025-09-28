@@ -48,7 +48,7 @@ export default function OpenToMeetToggle({
       refetchOpenStatus();
       toast({
         title: '만남 상태 변경됨',
-        description: (user as any)?.openToMeet 
+        description: (openStatus as any)?.openToMeet 
           ? '만남이 비활성화되었습니다.' 
           : `${hours}시간 동안 ${region}에서 만남이 활성화되었습니다.`,
       });
@@ -83,8 +83,8 @@ export default function OpenToMeetToggle({
 
   // 만료 시간 표시
   const getExpiryText = () => {
-    if (!(user as any)?.openUntil) return null;
-    const expiry = new Date((user as any).openUntil);
+    if (!(openStatus as any)?.openUntil) return null;
+    const expiry = new Date((openStatus as any).openUntil);
     const now = new Date();
     const diff = expiry.getTime() - now.getTime();
     
@@ -105,15 +105,15 @@ export default function OpenToMeetToggle({
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm border">
           <Users 
             size={16} 
-            className={(user as any)?.openToMeet ? 'text-green-600' : 'text-gray-400'} 
+            className={(openStatus as any)?.openToMeet ? 'text-green-600' : 'text-gray-400'} 
           />
           <Switch
-            checked={(user as any)?.openToMeet || false}
+            checked={(openStatus as any)?.openToMeet || false}
             onCheckedChange={handleToggle}
             disabled={toggleMutation.isPending}
             data-testid="compact-toggle-open-to-meet"
           />
-          {(user as any)?.openToMeet && (
+          {(openStatus as any)?.openToMeet && (
             <div className="flex items-center gap-1 text-xs text-green-600">
               <Clock size={12} />
               <span>{getExpiryText()}</span>
@@ -133,13 +133,13 @@ export default function OpenToMeetToggle({
             새로운 만남 열려있음
           </div>
           <div className="text-xs text-gray-500">
-            {(user as any)?.openToMeet && (user as any)?.openUntil
+            {(openStatus as any)?.openToMeet && (openStatus as any)?.openUntil
               ? getExpiryText()
               : '다른 여행자들과 연결됩니다'}
           </div>
         </div>
         <Switch
-          checked={(user as any)?.openToMeet || false}
+          checked={(openStatus as any)?.openToMeet || false}
           onCheckedChange={handleToggle}
           disabled={toggleMutation.isPending}
           data-testid="toggle-open-to-meet"
