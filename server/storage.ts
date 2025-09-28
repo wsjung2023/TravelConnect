@@ -73,6 +73,9 @@ import {
   type InsertServiceTemplate,
   type ServicePackage,
   type InsertServicePackage,
+  slots,
+  type Slot,
+  type InsertSlot,
   type PackageItem,
   type InsertPackageItem,
 } from '@shared/schema';
@@ -281,6 +284,37 @@ export interface IStorage {
   createPackageItem(item: InsertPackageItem): Promise<PackageItem>;
   getPackageItemsByPackage(packageId: number): Promise<PackageItem[]>;
   deletePackageItem(id: number): Promise<boolean>;
+  
+  // ==================== 로컬 가이드 슬롯 관리 Operations ====================
+  // Slot operations
+  createSlot(slot: InsertSlot): Promise<Slot>;
+  getSlotsByHost(hostId: string): Promise<Slot[]>;
+  getSlotById(id: number): Promise<Slot | undefined>;
+  updateSlot(id: number, updates: Partial<InsertSlot>): Promise<Slot | undefined>;
+  deleteSlot(id: number): Promise<boolean>;
+  
+  // Slot search and availability
+  searchSlots(filters: {
+    hostId?: string;
+    startDate?: string;
+    endDate?: string;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    category?: string;
+    serviceType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    availableOnly?: boolean;
+    minParticipants?: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<Slot[]>;
+  updateSlotAvailability(id: number, isAvailable: boolean, reason?: string): Promise<Slot | undefined>;
+  
+  // Bulk operations
+  bulkCreateSlots(template: Omit<InsertSlot, 'date'>, dates: string[]): Promise<Slot[]>;
+  getAvailableSlots(hostId: string, startDate: string, endDate: string): Promise<Slot[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2074,6 +2108,162 @@ export class DatabaseStorage implements IStorage {
       .delete(packageItems)
       .where(eq(packageItems.id, id));
     return result.rowCount > 0;
+  }
+  
+  // ==================== 로컬 가이드 슬롯 관리 Operations ====================
+  // Slot operations
+  async createSlot(slot: InsertSlot): Promise<Slot> {
+    const [created] = await db.insert(slots).values(slot).returning();
+    return created;
+  }
+  
+  async getSlotsByHost(hostId: string): Promise<Slot[]> {
+    return await db
+      .select()
+      .from(slots)
+      .where(eq(slots.hostId, hostId))
+      .orderBy(desc(slots.date));
+  }
+  
+  async getSlotById(id: number): Promise<Slot | undefined> {
+    const [slot] = await db
+      .select()
+      .from(slots)
+      .where(eq(slots.id, id));
+    return slot;
+  }
+  
+  async updateSlot(id: number, updates: Partial<InsertSlot>): Promise<Slot | undefined> {
+    const [updated] = await db
+      .update(slots)
+      .set({ ...updates, updatedAt: sql`now()` })
+      .where(eq(slots.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async deleteSlot(id: number): Promise<boolean> {
+    const result = await db
+      .delete(slots)
+      .where(eq(slots.id, id));
+    return result.rowCount > 0;
+  }
+  
+  // Slot search and availability
+  async searchSlots(filters: {
+    hostId?: string;
+    startDate?: string;
+    endDate?: string;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    category?: string;
+    serviceType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    availableOnly?: boolean;
+    minParticipants?: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<Slot[]> {
+    let query = db.select().from(slots);
+    const conditions = [];
+
+    if (filters.hostId) {
+      conditions.push(eq(slots.hostId, filters.hostId));
+    }
+    
+    if (filters.startDate) {
+      conditions.push(sql`${slots.date} >= ${filters.startDate}`);
+    }
+    
+    if (filters.endDate) {
+      conditions.push(sql`${slots.date} <= ${filters.endDate}`);
+    }
+    
+    if (filters.category) {
+      conditions.push(eq(slots.category, filters.category));
+    }
+    
+    if (filters.serviceType) {
+      conditions.push(eq(slots.serviceType, filters.serviceType));
+    }
+    
+    if (filters.minPrice !== undefined) {
+      conditions.push(sql`${slots.priceAmount}::decimal >= ${filters.minPrice}`);
+    }
+    
+    if (filters.maxPrice !== undefined) {
+      conditions.push(sql`${slots.priceAmount}::decimal <= ${filters.maxPrice}`);
+    }
+    
+    if (filters.availableOnly) {
+      conditions.push(eq(slots.isAvailable, true));
+    }
+    
+    if (filters.minParticipants !== undefined) {
+      conditions.push(sql`${slots.maxParticipants} >= ${filters.minParticipants}`);
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    query = query.orderBy(desc(slots.date));
+    
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    if (filters.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    return await query;
+  }
+  
+  async updateSlotAvailability(id: number, isAvailable: boolean, reason?: string): Promise<Slot | undefined> {
+    const updates: Partial<InsertSlot> = {
+      isAvailable,
+      updatedAt: new Date()
+    };
+    
+    if (reason && !isAvailable) {
+      updates.unavailableReason = reason;
+    }
+    
+    const [updated] = await db
+      .update(slots)
+      .set(updates)
+      .where(eq(slots.id, id))
+      .returning();
+    return updated;
+  }
+  
+  // Bulk operations
+  async bulkCreateSlots(template: Omit<InsertSlot, 'date'>, dates: string[]): Promise<Slot[]> {
+    const slotData = dates.map(date => ({
+      ...template,
+      date
+    }));
+    
+    const created = await db.insert(slots).values(slotData).returning();
+    return created;
+  }
+  
+  async getAvailableSlots(hostId: string, startDate: string, endDate: string): Promise<Slot[]> {
+    return await db
+      .select()
+      .from(slots)
+      .where(
+        and(
+          eq(slots.hostId, hostId),
+          eq(slots.isAvailable, true),
+          sql`${slots.date} >= ${startDate}`,
+          sql`${slots.date} <= ${endDate}`
+        )
+      )
+      .orderBy(slots.date);
   }
 }
 

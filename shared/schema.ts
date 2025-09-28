@@ -1210,4 +1210,95 @@ export const purchaseOrdersRelations = relations(purchaseOrders, ({ one }) => ({
   }),
 }));
 
+// 로컬 가이드 슬롯 관리 테이블
+export const slots = pgTable('slots', {
+  id: serial('id').primaryKey(),
+  hostId: varchar('host_id')
+    .notNull()
+    .references(() => users.id),
+  experienceId: integer('experience_id')
+    .references(() => experiences.id), // 옵션: 특정 경험과 연결된 슬롯
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description'),
+  
+  // 시간 관리
+  date: date('date').notNull(), // 슬롯 날짜
+  startTime: varchar('start_time', { length: 8 }).notNull(), // "09:00" 형식
+  endTime: varchar('end_time', { length: 8 }).notNull(), // "12:00" 형식
+  timezone: varchar('timezone', { length: 50 }).default('Asia/Seoul'),
+  
+  // 가격 관리
+  basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
+  peakPrice: decimal('peak_price', { precision: 10, scale: 2 }), // 피크 시간 가격
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  isPeakSlot: boolean('is_peak_slot').default(false),
+  
+  // 반복 설정
+  isRecurring: boolean('is_recurring').default(false),
+  recurringPattern: varchar('recurring_pattern'), // 'weekly', 'monthly', 'daily'
+  recurringEndDate: date('recurring_end_date'), // 반복 종료일
+  
+  // 예약 관리
+  maxParticipants: integer('max_participants').default(1),
+  currentBookings: integer('current_bookings').default(0),
+  isAvailable: boolean('is_available').default(true),
+  
+  // 위치 정보
+  location: varchar('location'),
+  latitude: decimal('latitude', { precision: 10, scale: 8 }),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }),
+  
+  // 서비스 분류
+  category: varchar('category'), // 'tour', 'food', 'activity', 'consultation', 'custom'
+  serviceType: varchar('service_type'), // 'group', 'private', 'consultation'
+  
+  // 요구사항 및 제약
+  requirements: text('requirements').array(),
+  cancellationPolicy: varchar('cancellation_policy').default('flexible'), // 'flexible', 'moderate', 'strict'
+  minAdvanceBooking: integer('min_advance_booking').default(24), // 최소 예약 시간 (시간 단위)
+  
+  // 상태 관리
+  isActive: boolean('is_active').default(true),
+  notes: text('notes'), // 가이드 전용 메모
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_slots_host_id').on(table.hostId),
+  index('IDX_slots_date').on(table.date),
+  index('IDX_slots_date_time').on(table.date, table.startTime),
+  index('IDX_slots_location').on(table.latitude, table.longitude),
+  index('IDX_slots_active').on(table.isActive, table.isAvailable),
+]);
+
+// 슬롯 관계 설정
+export const slotsRelations = relations(slots, ({ one, many }) => ({
+  host: one(users, {
+    fields: [slots.hostId],
+    references: [users.id],
+  }),
+  experience: one(experiences, {
+    fields: [slots.experienceId],
+    references: [experiences.id],
+  }),
+  bookings: many(bookings), // 향후 bookings에 slotId 필드 추가 시 연결
+}));
+
+// 슬롯 Zod 스키마
+export const insertSlotSchema = createInsertSchema(slots).omit({
+  id: true,
+  currentBookings: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  // 클라이언트 검증 강화
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, '시간 형식이 올바르지 않습니다 (HH:MM)'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, '시간 형식이 올바르지 않습니다 (HH:MM)'),
+  basePrice: z.number().min(0, '가격은 0 이상이어야 합니다'),
+  maxParticipants: z.number().min(1, '최소 1명 이상이어야 합니다'),
+});
+
+export type Slot = typeof slots.$inferSelect;
+export type InsertSlot = z.infer<typeof insertSlotSchema>;
+
 

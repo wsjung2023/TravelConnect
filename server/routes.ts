@@ -53,6 +53,7 @@ import {
   insertRequestResponseSchema,
   insertServiceTemplateSchema,
   insertServicePackageSchema,
+  insertSlotSchema,
 } from '@shared/schema';
 import {
   LoginSchema,
@@ -71,6 +72,11 @@ import {
   CreateMiniMeetSchema,
   JoinMiniMeetSchema,
   GetMiniMeetsSchema,
+  CreateSlotSchema,
+  UpdateSlotSchema,
+  SlotSearchSchema,
+  BulkCreateSlotsSchema,
+  UpdateSlotAvailabilitySchema,
 } from '@shared/api/schema';
 
 // Rate Limit 설정
@@ -3249,6 +3255,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting service template:', error);
       res.status(500).json({ message: 'Failed to delete service template' });
+    }
+  });
+
+  // ==================== 로컬 가이드 슬롯 관리 API ====================
+  // 슬롯 생성
+  app.post('/api/slots/create', authenticateHybrid, validateSchema(CreateSlotSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const slotData = {
+        ...req.body,
+        hostId: req.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const slot = await storage.createSlot(slotData);
+      console.log(`[SLOT] User ${req.user.email} created slot: ${slot.title} on ${slot.date}`);
+      res.status(201).json(slot);
+    } catch (error) {
+      console.error('Error creating slot:', error);
+      res.status(500).json({ message: 'Failed to create slot' });
+    }
+  });
+
+  // 내 슬롯 목록 조회
+  app.get('/api/slots/my', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const slots = await storage.getSlotsByHost(req.user.id);
+      res.json(slots);
+    } catch (error) {
+      console.error('Error fetching user slots:', error);
+      res.status(500).json({ message: 'Failed to fetch slots' });
+    }
+  });
+
+  // 특정 슬롯 조회
+  app.get('/api/slots/:id', async (req, res) => {
+    try {
+      const slotId = parseInt(req.params.id);
+      if (isNaN(slotId)) {
+        return res.status(400).json({ message: 'Valid slot ID is required' });
+      }
+
+      const slot = await storage.getSlotById(slotId);
+      if (!slot) {
+        return res.status(404).json({ message: 'Slot not found' });
+      }
+
+      res.json(slot);
+    } catch (error) {
+      console.error('Error fetching slot:', error);
+      res.status(500).json({ message: 'Failed to fetch slot' });
+    }
+  });
+
+  // 슬롯 업데이트
+  app.put('/api/slots/:id', authenticateHybrid, validateSchema(UpdateSlotSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const slotId = parseInt(req.params.id);
+      if (isNaN(slotId)) {
+        return res.status(400).json({ message: 'Valid slot ID is required' });
+      }
+
+      // 슬롯 소유자 확인
+      const existingSlot = await storage.getSlotById(slotId);
+      if (!existingSlot) {
+        return res.status(404).json({ message: 'Slot not found' });
+      }
+
+      if (existingSlot.hostId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not your slot' });
+      }
+
+      const updated = await storage.updateSlot(slotId, req.body);
+      if (updated) {
+        console.log(`[SLOT] User ${req.user.email} updated slot: ${updated.title}`);
+        res.json(updated);
+      } else {
+        res.status(500).json({ message: 'Failed to update slot' });
+      }
+    } catch (error) {
+      console.error('Error updating slot:', error);
+      res.status(500).json({ message: 'Failed to update slot' });
+    }
+  });
+
+  // 슬롯 삭제
+  app.delete('/api/slots/:id', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const slotId = parseInt(req.params.id);
+      if (isNaN(slotId)) {
+        return res.status(400).json({ message: 'Valid slot ID is required' });
+      }
+
+      // 슬롯 소유자 확인
+      const existingSlot = await storage.getSlotById(slotId);
+      if (!existingSlot) {
+        return res.status(404).json({ message: 'Slot not found' });
+      }
+
+      if (existingSlot.hostId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not your slot' });
+      }
+
+      const deleted = await storage.deleteSlot(slotId);
+      if (!deleted) {
+        return res.status(404).json({ message: 'Failed to delete slot' });
+      }
+      
+      console.log(`[SLOT] User ${req.user.email} deleted slot: ${existingSlot.title}`);
+      res.json({ message: 'Slot deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting slot:', error);
+      res.status(500).json({ message: 'Failed to delete slot' });
+    }
+  });
+
+  // 슬롯 검색
+  app.get('/api/slots/search', validateSchema(SlotSearchSchema), async (req, res) => {
+    try {
+      const filters = req.query as any;
+      const slots = await storage.searchSlots(filters);
+      res.json(slots);
+    } catch (error) {
+      console.error('Error searching slots:', error);
+      res.status(500).json({ message: 'Failed to search slots' });
+    }
+  });
+
+  // 벌크 슬롯 생성
+  app.post('/api/slots/bulk-create', authenticateHybrid, validateSchema(BulkCreateSlotsSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { template, dates } = req.body;
+      const slotTemplate = {
+        ...template,
+        hostId: req.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const slots = await storage.bulkCreateSlots(slotTemplate, dates);
+      console.log(`[SLOT] User ${req.user.email} created ${slots.length} slots in bulk`);
+      res.status(201).json(slots);
+    } catch (error) {
+      console.error('Error creating bulk slots:', error);
+      res.status(500).json({ message: 'Failed to create bulk slots' });
+    }
+  });
+
+  // 슬롯 가용성 업데이트
+  app.patch('/api/slots/:id/availability', authenticateHybrid, validateSchema(UpdateSlotAvailabilitySchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const slotId = parseInt(req.params.id);
+      if (isNaN(slotId)) {
+        return res.status(400).json({ message: 'Valid slot ID is required' });
+      }
+
+      // 슬롯 소유자 확인
+      const existingSlot = await storage.getSlotById(slotId);
+      if (!existingSlot) {
+        return res.status(404).json({ message: 'Slot not found' });
+      }
+
+      if (existingSlot.hostId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not your slot' });
+      }
+
+      const { isAvailable, reason } = req.body;
+      const updated = await storage.updateSlotAvailability(slotId, isAvailable, reason);
+      
+      if (updated) {
+        console.log(`[SLOT] User ${req.user.email} updated slot availability: ${updated.title} -> ${isAvailable ? 'available' : 'unavailable'}`);
+        res.json(updated);
+      } else {
+        res.status(500).json({ message: 'Failed to update slot availability' });
+      }
+    } catch (error) {
+      console.error('Error updating slot availability:', error);
+      res.status(500).json({ message: 'Failed to update slot availability' });
+    }
+  });
+
+  // 가용한 슬롯 조회
+  app.get('/api/slots/available/:hostId', async (req, res) => {
+    try {
+      const { hostId } = req.params;
+      const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: 'Start date and end date are required' });
+      }
+
+      const slots = await storage.getAvailableSlots(hostId, startDate, endDate);
+      res.json(slots);
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+      res.status(500).json({ message: 'Failed to fetch available slots' });
     }
   });
 

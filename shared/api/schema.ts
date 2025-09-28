@@ -202,3 +202,113 @@ export const GetMiniMeetsSchema = z.object({
 export type CreateMiniMeetData = z.infer<typeof CreateMiniMeetSchema>;
 export type JoinMiniMeetData = z.infer<typeof JoinMiniMeetSchema>;
 export type GetMiniMeetsData = z.infer<typeof GetMiniMeetsSchema>;
+
+// 슬롯 관리 스키마
+export const CreateSlotSchema = z.object({
+  title: z.string().min(1, '제목을 입력해주세요').max(200, '제목은 200자 이하여야 합니다'),
+  description: z.string().max(1000, '설명은 1000자 이하여야 합니다').optional(),
+  experienceId: z.number().int().positive().optional(),
+  
+  // 시간 관리
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '날짜 형식이 올바르지 않습니다 (YYYY-MM-DD)'),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, '시간 형식이 올바르지 않습니다 (HH:MM)'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, '시간 형식이 올바르지 않습니다 (HH:MM)'),
+  timezone: z.string().optional().default('Asia/Seoul'),
+  
+  // 가격 관리
+  basePrice: z.number().min(0, '가격은 0 이상이어야 합니다'),
+  peakPrice: z.number().min(0, '피크 가격은 0 이상이어야 합니다').optional(),
+  currency: z.string().length(3, '통화 코드는 3자리여야 합니다').default('KRW'),
+  isPeakSlot: z.boolean().default(false),
+  
+  // 반복 설정
+  isRecurring: z.boolean().default(false),
+  recurringPattern: z.enum(['daily', 'weekly', 'monthly']).optional(),
+  recurringEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '종료 날짜 형식이 올바르지 않습니다').optional(),
+  
+  // 예약 관리
+  maxParticipants: z.number().int().min(1, '최소 1명 이상이어야 합니다').max(50, '최대 50명까지 가능합니다').default(1),
+  
+  // 위치 정보
+  location: z.string().max(200, '위치는 200자 이하여야 합니다').optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  
+  // 서비스 분류
+  category: z.enum(['tour', 'food', 'activity', 'consultation', 'custom']).optional(),
+  serviceType: z.enum(['group', 'private', 'consultation']).optional(),
+  
+  // 요구사항 및 제약
+  requirements: z.array(z.string()).default([]),
+  cancellationPolicy: z.enum(['flexible', 'moderate', 'strict']).default('flexible'),
+  minAdvanceBooking: z.number().int().min(1, '최소 1시간 전 예약 필요').default(24),
+  
+  // 메모
+  notes: z.string().max(500, '메모는 500자 이하여야 합니다').optional(),
+});
+
+export const UpdateSlotSchema = CreateSlotSchema.partial().extend({
+  id: z.number().int().positive('유효하지 않은 슬롯 ID입니다'),
+});
+
+// 벌크 생성 스키마 (반복 패턴 지원)
+export const BulkCreateSlotsSchema = z.object({
+  template: CreateSlotSchema.omit({ date: true, isRecurring: true, recurringPattern: true, recurringEndDate: true }),
+  
+  // 날짜 범위
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '시작 날짜 형식이 올바르지 않습니다'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '종료 날짜 형식이 올바르지 않습니다'),
+  
+  // 반복 패턴
+  pattern: z.enum(['daily', 'weekly', 'monthly']),
+  
+  // 요일 선택 (주간 반복 시)
+  weekDays: z.array(z.number().int().min(0).max(6)).optional(), // 0=일요일, 6=토요일
+  
+  // 제외할 날짜들
+  excludeDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).default([]),
+});
+
+// 슬롯 검색 스키마
+export const SlotSearchSchema = z.object({
+  // 호스트 필터
+  hostId: z.string().optional(),
+  
+  // 날짜 범위
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  
+  // 위치 기반 검색
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  radius: z.number().min(0.1).max(100).optional(), // km 단위
+  
+  // 서비스 필터
+  category: z.enum(['tour', 'food', 'activity', 'consultation', 'custom']).optional(),
+  serviceType: z.enum(['group', 'private', 'consultation']).optional(),
+  
+  // 가격 범위
+  minPrice: z.number().min(0).optional(),
+  maxPrice: z.number().min(0).optional(),
+  
+  // 예약 가능성
+  availableOnly: z.boolean().default(true),
+  minParticipants: z.number().int().min(1).optional(),
+  
+  // 페이지네이션
+  ...PaginationSchema.shape,
+});
+
+// 슬롯 가용성 업데이트 스키마
+export const UpdateSlotAvailabilitySchema = z.object({
+  slotId: z.number().int().positive('유효하지 않은 슬롯 ID입니다'),
+  isAvailable: z.boolean(),
+  reason: z.string().max(200, '사유는 200자 이하여야 합니다').optional(),
+});
+
+// Type inference for Slot schemas
+export type CreateSlotData = z.infer<typeof CreateSlotSchema>;
+export type UpdateSlotData = z.infer<typeof UpdateSlotSchema>;
+export type BulkCreateSlotsData = z.infer<typeof BulkCreateSlotsSchema>;
+export type SlotSearchData = z.infer<typeof SlotSearchSchema>;
+export type UpdateSlotAvailabilityData = z.infer<typeof UpdateSlotAvailabilitySchema>;
