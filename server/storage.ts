@@ -21,6 +21,8 @@ import {
   purchaseRequests,
   purchaseQuotes,
   purchaseOrders,
+  helpRequests,
+  requestResponses,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -60,6 +62,10 @@ import {
   type InsertPurchaseQuote,
   type PurchaseOrder,
   type InsertPurchaseOrder,
+  type HelpRequest,
+  type InsertHelpRequest,
+  type RequestResponse,
+  type InsertRequestResponse,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -234,6 +240,16 @@ export interface IStorage {
   
   // 구매대행 서비스 검색 (shopping 카테고리 경험들)
   getShoppingServices(): Promise<Experience[]>;
+
+  // 여행자 도움 요청 시스템
+  createHelpRequest(request: InsertHelpRequest): Promise<HelpRequest>;
+  getHelpRequestById(id: number): Promise<HelpRequest | undefined>;
+  getHelpRequestsByRequester(requesterId: string): Promise<HelpRequest[]>;
+  updateHelpRequestStatus(id: number, status: string): Promise<HelpRequest | undefined>;
+  
+  createHelpResponse(response: InsertRequestResponse): Promise<RequestResponse>;
+  getHelpResponsesByRequest(requestId: number): Promise<RequestResponse[]>;
+  updateHelpResponseStatus(id: number, status: string): Promise<RequestResponse | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1839,6 +1855,77 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(experiences.rating), desc(experiences.createdAt));
     return services;
+  }
+
+  // 여행자 도움 요청 시스템 구현
+  async createHelpRequest(request: InsertHelpRequest): Promise<HelpRequest> {
+    const [newRequest] = await db
+      .insert(helpRequests)
+      .values(request)
+      .returning();
+    return newRequest;
+  }
+
+  async getHelpRequestById(id: number): Promise<HelpRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(helpRequests)
+      .where(eq(helpRequests.id, id));
+    return request;
+  }
+
+  async getHelpRequestsByRequester(requesterId: string): Promise<HelpRequest[]> {
+    const requests = await db
+      .select()
+      .from(helpRequests)
+      .where(eq(helpRequests.requesterId, requesterId))
+      .orderBy(desc(helpRequests.createdAt));
+    return requests;
+  }
+
+  async updateHelpRequestStatus(id: number, status: string): Promise<HelpRequest | undefined> {
+    const [updated] = await db
+      .update(helpRequests)
+      .set({ status, updatedAt: sql`now()` })
+      .where(eq(helpRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async createHelpResponse(response: InsertRequestResponse): Promise<RequestResponse> {
+    const [newResponse] = await db
+      .insert(requestResponses)
+      .values(response)
+      .returning();
+    
+    // 응답 개수 업데이트
+    await db
+      .update(helpRequests)
+      .set({ 
+        responseCount: sql`${helpRequests.responseCount} + 1`,
+        updatedAt: sql`now()` 
+      })
+      .where(eq(helpRequests.id, response.requestId));
+    
+    return newResponse;
+  }
+
+  async getHelpResponsesByRequest(requestId: number): Promise<RequestResponse[]> {
+    const responses = await db
+      .select()
+      .from(requestResponses)
+      .where(eq(requestResponses.requestId, requestId))
+      .orderBy(desc(requestResponses.createdAt));
+    return responses;
+  }
+
+  async updateHelpResponseStatus(id: number, status: string): Promise<RequestResponse | undefined> {
+    const [updated] = await db
+      .update(requestResponses)
+      .set({ status, updatedAt: sql`now()` })
+      .where(eq(requestResponses.id, id))
+      .returning();
+    return updated;
   }
 }
 

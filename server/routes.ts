@@ -49,6 +49,8 @@ import {
   insertPurchaseQuoteSchema,
   insertPurchaseOrderSchema,
   insertReviewSchema,
+  insertHelpRequestSchema,
+  insertRequestResponseSchema,
 } from '@shared/schema';
 import {
   LoginSchema,
@@ -2738,6 +2740,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating purchase order status:', error);
       res.status(500).json({ message: 'Failed to update purchase order status' });
+    }
+  });
+
+  // ==================== 여행자 도움 요청 시스템 API ====================
+
+  // 도움 요청 생성
+  app.post('/api/requests/create', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const requestData = insertHelpRequestSchema.parse({
+        ...req.body,
+        requesterId: req.user.id,
+      });
+
+      const helpRequest = await storage.createHelpRequest(requestData);
+      
+      console.log(`[HELP-REQUEST] User ${req.user.email} created help request: ${helpRequest.title}`);
+      res.json(helpRequest);
+    } catch (error) {
+      console.error('Error creating help request:', error);
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ message: 'Invalid request data', error: error.message });
+      } else {
+        res.status(500).json({ message: 'Failed to create help request' });
+      }
+    }
+  });
+
+  // 내가 생성한 도움 요청들 조회
+  app.get('/api/requests/my', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const requests = await storage.getHelpRequestsByRequester(req.user.id);
+      res.json(requests);
+    } catch (error) {
+      console.error('Error fetching user help requests:', error);
+      res.status(500).json({ message: 'Failed to fetch help requests' });
+    }
+  });
+
+  // 특정 도움 요청에 대한 응답들 조회
+  app.get('/api/requests/:id/responses', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const requestIdParam = req.params.id;
+      if (!requestIdParam) {
+        return res.status(400).json({ message: 'Request ID is required' });
+      }
+      
+      const requestId = parseInt(requestIdParam);
+      if (isNaN(requestId)) {
+        return res.status(400).json({ message: 'Valid request ID is required' });
+      }
+
+      // 요청이 존재하는지 확인하고 접근 권한 체크
+      const request = await storage.getHelpRequestById(requestId);
+      if (!request) {
+        return res.status(404).json({ message: 'Help request not found' });
+      }
+
+      // 요청 작성자만 응답을 조회할 수 있도록 제한 (나중에 필요시 확장)
+      if (request.requesterId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const responses = await storage.getHelpResponsesByRequest(requestId);
+      res.json(responses);
+    } catch (error) {
+      console.error('Error fetching help request responses:', error);
+      res.status(500).json({ message: 'Failed to fetch responses' });
+    }
+  });
+
+  // 도움 요청에 응답하기
+  app.post('/api/requests/:id/respond', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const requestIdParam = req.params.id;
+      if (!requestIdParam) {
+        return res.status(400).json({ message: 'Request ID is required' });
+      }
+      
+      const requestId = parseInt(requestIdParam);
+      if (isNaN(requestId)) {
+        return res.status(400).json({ message: 'Valid request ID is required' });
+      }
+
+      // 요청이 존재하는지 확인
+      const request = await storage.getHelpRequestById(requestId);
+      if (!request) {
+        return res.status(404).json({ message: 'Help request not found' });
+      }
+
+      // 자신의 요청에는 응답할 수 없도록 제한
+      if (request.requesterId === req.user.id) {
+        return res.status(400).json({ message: 'Cannot respond to your own request' });
+      }
+
+      const responseData = insertRequestResponseSchema.parse({
+        ...req.body,
+        requestId: requestId,
+        responderId: req.user.id,
+      });
+
+      const response = await storage.createHelpResponse(responseData);
+      
+      console.log(`[HELP-RESPONSE] User ${req.user.email} responded to request ${requestId}`);
+      res.json(response);
+    } catch (error) {
+      console.error('Error creating help response:', error);
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ message: 'Invalid response data', error: error.message });
+      } else {
+        res.status(500).json({ message: 'Failed to create response' });
+      }
     }
   });
 
