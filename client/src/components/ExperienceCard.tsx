@@ -1,6 +1,7 @@
 import { Star, MapPin, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 import type { Experience } from '@shared/schema';
 
 interface ExperienceCardProps {
@@ -14,6 +15,7 @@ export default function ExperienceCard({
   onBook,
   compact = false,
 }: ExperienceCardProps) {
+  const { t } = useTranslation(['ui']);
   const getCategoryColor = (category: string) => {
     const colors = {
       tour: 'bg-primary/10 text-primary',
@@ -74,8 +76,9 @@ export default function ExperienceCard({
                 size="sm"
                 onClick={onBook}
                 className="text-xs px-2 py-1 h-auto"
+                data-testid="book-experience-button"
               >
-                예약
+                {t('ui:buttons.book')}
               </Button>
             </div>
           </div>
@@ -121,13 +124,13 @@ export default function ExperienceCard({
           {experience.duration && (
             <div className="flex items-center gap-1">
               <Clock size={12} />
-              <span>{Math.floor(experience.duration / 60)}시간</span>
+              <span>{t('ui:experiences.hours', { count: Math.floor(experience.duration / 60) })}</span>
             </div>
           )}
           {experience.maxParticipants && (
             <div className="flex items-center gap-1">
               <Users size={12} />
-              <span>최대 {experience.maxParticipants}명</span>
+              <span>{t('ui:experiences.maxParticipants', { count: experience.maxParticipants })}</span>
             </div>
           )}
         </div>
@@ -137,10 +140,10 @@ export default function ExperienceCard({
             <span className="text-lg font-bold text-gray-900">
               ₩{Number(experience.price).toLocaleString()}
             </span>
-            <span className="text-sm text-gray-500 ml-1">/ 인</span>
+            <span className="text-sm text-gray-500 ml-1">{t('ui:experiences.perPerson')}</span>
           </div>
-          <Button onClick={onBook} className="travel-button">
-            예약하기
+          <Button onClick={onBook} className="travel-button" data-testid="book-experience-button">
+            {t('ui:buttons.bookExperience')}
           </Button>
         </div>
       </div>

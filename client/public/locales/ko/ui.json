@@ -4,7 +4,9 @@
     "sendMessage": "메시지 보내기",
     "uploadImage": "이미지 업로드",
     "selectLocation": "위치 선택",
-    "submitReview": "후기 등록"
+    "submitReview": "후기 등록",
+    "book": "예약",
+    "bookExperience": "예약하기"
   },
   "labels": {
     "title": "제목",
@@ -53,6 +55,10 @@
   },
   "timeline": {
     "create": "새 타임라인 만들기",
+    "title": "여행 타임라인",
+    "noTimelines": "아직 타임라인이 없어요",
+    "createFirst": "첫 번째 여행 타임라인을 만들어 여행 계획을 시작해보세요!",
+    "createModalPlaceholder": "타임라인 생성 기능이 곧 출시될 예정입니다!",
     "titleLabel": "타임라인 제목 *",
     "destinationLabel": "여행 목적지 *",
     "startDateLabel": "시작일 *",
@@ -69,6 +75,13 @@
     "moreCount": "개 더",
     "minuteUnit": "분간",
     "experienceCount": "{{count}}개의 체험"
+  },
+  "experiences": {
+    "nearbyTitle": "주변 체험",
+    "noExperiences": "이 지역에서 찾을 수 있는 체험이 없습니다",
+    "maxParticipants": "최대 {{count}}명",
+    "hours": "{{count}}시간",
+    "perPerson": "/ 인"
   },
   "navigation": {
     "map": "지도",

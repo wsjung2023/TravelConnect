@@ -4,7 +4,9 @@
     "sendMessage": "Envoyer un message",
     "uploadImage": "Télécharger une image",
     "selectLocation": "Sélectionner un lieu",
-    "submitReview": "Soumettre l'avis"
+    "submitReview": "Soumettre l'avis",
+    "book": "Réserver",
+    "bookExperience": "Réserver l'expérience"
   },
   "labels": {
     "title": "Titre",
@@ -53,6 +55,10 @@
   },
   "timeline": {
     "create": "Créer une nouvelle chronologie",
+    "title": "Chronologie de voyage",
+    "noTimelines": "Aucune chronologie pour le moment",
+    "createFirst": "Créez votre première chronologie de voyage pour commencer à planifier vos voyages!",
+    "createModalPlaceholder": "La fonctionnalité de création de chronologie arrive bientôt!",
     "titleLabel": "Titre de la chronologie *",
     "destinationLabel": "Destination du voyage *",
     "startDateLabel": "Date de début *",
@@ -69,6 +75,13 @@
     "moreCount": " de plus",
     "minuteUnit": "min",
     "experienceCount": "{{count}} expériences"
+  },
+  "experiences": {
+    "nearbyTitle": "Expériences à proximité",
+    "noExperiences": "Aucune expérience trouvée dans cette zone",
+    "maxParticipants": "Max {{count}} personnes",
+    "hours": "{{count}} heures",
+    "perPerson": "/ personne"
   },
   "navigation": {
     "map": "Carte",

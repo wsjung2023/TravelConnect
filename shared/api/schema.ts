@@ -34,11 +34,13 @@ export const UpdatePostSchema = CreatePostSchema.partial();
 
 // 타임라인 관련 스키마
 export const CreateTimelineSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요').max(100, '제목은 100자 이하여야 합니다'),
-  description: z.string().max(500, '설명은 500자 이하여야 합니다').optional(),
-  startDate: z.string().datetime('유효하지 않은 날짜 형식입니다'),
-  endDate: z.string().datetime('유효하지 않은 날짜 형식입니다'),
-  isPublic: z.boolean().optional().default(true),
+  title: z.string().min(1, '타임라인 제목은 필수입니다').max(100, '제목은 최대 100글자입니다'),
+  description: z.string().max(300, '설명은 최대 300글자입니다').optional(),
+  startDate: z.union([z.string(), z.date()]).transform((val) => (typeof val === 'string' ? new Date(val) : val)),
+  endDate: z.union([z.string(), z.date(), z.null()]).transform((val) =>
+    val === null ? null : typeof val === 'string' ? new Date(val) : val
+  ).optional(),
+  totalDays: z.number().min(1).max(999).optional(),
 });
 
 export const UpdateTimelineSchema = CreateTimelineSchema.partial();

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import ExperienceCard from '@/components/ExperienceCard';
 import BookingModal from '@/components/BookingModal';
 import type { Experience } from '@shared/schema';
@@ -13,6 +14,7 @@ declare global {
 }
 
 export default function Map() {
+  const { t } = useTranslation(['ui']);
   const [selectedExperience, setSelectedExperience] =
     useState<Experience | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -187,7 +189,7 @@ export default function Map() {
       {/* Bottom Sheet - Nearby Experiences */}
       <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-4 max-h-80 overflow-y-auto custom-scrollbar slide-up">
         <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-        <h3 className="font-bold text-lg mb-4">Nearby Experiences</h3>
+        <h3 className="font-bold text-lg mb-4">{t('ui:experiences.nearbyTitle')}</h3>
 
         <div className="space-y-3">
           {(experiences as Experience[]).map((experience: Experience) => (
@@ -205,7 +207,7 @@ export default function Map() {
           {(experiences as Experience[]).length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <i className="fas fa-map-marker-alt text-3xl mb-2"></i>
-              <p>No experiences found in this area</p>
+              <p>{t('ui:experiences.noExperiences')}</p>
             </div>
           )}
         </div>

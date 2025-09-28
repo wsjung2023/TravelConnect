@@ -4,7 +4,9 @@
     "sendMessage": "Send Message",
     "uploadImage": "Upload Image",
     "selectLocation": "Select Location",
-    "submitReview": "Submit Review"
+    "submitReview": "Submit Review",
+    "book": "Book",
+    "bookExperience": "Book Experience"
   },
   "labels": {
     "title": "Title",
@@ -53,6 +55,10 @@
   },
   "timeline": {
     "create": "Create New Timeline",
+    "title": "Travel Timeline",
+    "noTimelines": "No timelines yet",
+    "createFirst": "Create your first travel timeline to start planning your trips!",
+    "createModalPlaceholder": "Timeline creation functionality coming soon!",
     "titleLabel": "Timeline Title *",
     "destinationLabel": "Trip Destination *",
     "startDateLabel": "Start Date *",
@@ -69,6 +75,13 @@
     "moreCount": " more",
     "minuteUnit": "min",
     "experienceCount": "{{count}} experiences"
+  },
+  "experiences": {
+    "nearbyTitle": "Nearby Experiences",
+    "noExperiences": "No experiences found in this area",
+    "maxParticipants": "Max {{count}} people",
+    "hours": "{{count}} hours",
+    "perPerson": "/ person"
   },
   "navigation": {
     "map": "Map",
