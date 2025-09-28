@@ -716,6 +716,16 @@ export const insertHelpRequestSchema = createInsertSchema(helpRequests).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // 숫자를 문자열로 변환하여 decimal 타입 호환성 확보
+  budgetMin: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined || val === null) return undefined;
+    return typeof val === 'number' ? val.toString() : val;
+  }),
+  budgetMax: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined || val === null) return undefined;
+    return typeof val === 'number' ? val.toString() : val;
+  }),
 });
 
 export const insertRequestResponseSchema = createInsertSchema(requestResponses).omit({

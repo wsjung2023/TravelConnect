@@ -2786,6 +2786,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 특정 도움 요청 상세 조회
+  app.get('/api/requests/:id', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const requestIdParam = req.params.id;
+      if (!requestIdParam) {
+        return res.status(400).json({ message: 'Request ID is required' });
+      }
+      
+      const requestId = parseInt(requestIdParam);
+      if (isNaN(requestId)) {
+        return res.status(400).json({ message: 'Valid request ID is required' });
+      }
+
+      const request = await storage.getHelpRequestById(requestId);
+      
+      if (!request) {
+        return res.status(404).json({ message: 'Help request not found' });
+      }
+
+      // 요청자만 자신의 요청을 볼 수 있음 (추후 다른 사용자도 볼 수 있도록 확장 가능)
+      if (request.requesterId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      console.log(`[HELP-REQUEST] User ${req.user.email} viewed help request: ${request.title}`);
+      res.json(request);
+    } catch (error) {
+      console.error('Error fetching help request:', error);
+      res.status(500).json({ message: 'Failed to fetch help request' });
+    }
+  });
+
   // 특정 도움 요청에 대한 응답들 조회
   app.get('/api/requests/:id/responses', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
