@@ -151,15 +151,19 @@ export default function Home() {
         className="bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-30"
         style={{ width: '100%' }}
       >
-        <div className="flex items-center gap-3">
+        <button 
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          onClick={() => setActiveTab('map')}
+          data-testid="logo-home-button"
+        >
           <div className="w-8 h-8 travel-gradient rounded-full flex items-center justify-center">
             <i className="fas fa-globe text-white text-sm"></i>
           </div>
-          <div>
+          <div className="text-left">
             <h1 className="font-bold text-dark">Tourgether</h1>
             <p className="text-xs text-gray-500">Explore the world</p>
           </div>
-        </div>
+        </button>
         <div className="flex items-center gap-1 sm:gap-2">
           <NotificationBell />
           <LanguageSwitcher />
