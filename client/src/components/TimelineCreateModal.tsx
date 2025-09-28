@@ -24,7 +24,7 @@ export default function TimelineCreateModal({
   onSubmit,
   fromFeed = false,
 }: TimelineCreateModalProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['ui', 'common']);
   const [formData, setFormData] = useState<TimelineFormData>({
     title: '',
     destination: '',
