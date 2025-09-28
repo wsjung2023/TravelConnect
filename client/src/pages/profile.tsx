@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import HelpRequestForm from '@/components/HelpRequestForm';
+import HelpRequestList from '@/components/HelpRequestList';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -321,7 +322,7 @@ export default function Profile() {
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
+        <TabsList className="grid w-full grid-cols-5 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
           <TabsTrigger value="posts" className="text-xs">
             게시글
           </TabsTrigger>
@@ -333,6 +334,9 @@ export default function Profile() {
           </TabsTrigger>
           <TabsTrigger value="bookings" className="text-xs">
             예약
+          </TabsTrigger>
+          <TabsTrigger value="help-requests" className="text-xs" data-testid="tab-help-requests">
+            도움요청
           </TabsTrigger>
         </TabsList>
 
@@ -464,6 +468,10 @@ export default function Profile() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="help-requests" className="mt-4 px-4" data-testid="tab-content-help-requests">
+          <HelpRequestList />
         </TabsContent>
       </Tabs>
 
