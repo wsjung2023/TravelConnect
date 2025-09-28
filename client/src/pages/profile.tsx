@@ -32,12 +32,23 @@ export default function Profile() {
   
   // Switch 직접 제어를 위한 상태
   const [switchChecked, setSwitchChecked] = useState(false);
+
+  // Portfolio Mode 상태
+  const [portfolioSwitchChecked, setPortfolioSwitchChecked] = useState(false);
+  const [publicProfileUrl, setPublicProfileUrl] = useState('');
   
   // 서버 상태를 Switch에 반영
   useEffect(() => {
     setSwitchChecked(user?.openToMeet || false);
     console.log('[Profile] Switch state updated from server:', user?.openToMeet);
   }, [user?.openToMeet]);
+
+  // Portfolio Mode 서버 상태를 Switch에 반영
+  useEffect(() => {
+    setPortfolioSwitchChecked(user?.portfolioMode || false);
+    setPublicProfileUrl(user?.publicProfileUrl || '');
+    console.log('[Profile] Portfolio mode state updated from server:', user?.portfolioMode);
+  }, [user?.portfolioMode, user?.publicProfileUrl]);
 
   // 호스트 신청 mutation
   const applyHostMutation = useMutation({
@@ -115,6 +126,60 @@ export default function Profile() {
       toast({
         title: '오류',
         description: '설정을 변경하는 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Portfolio Mode 토글 mutation
+  const togglePortfolioModeMutation = useMutation({
+    mutationFn: async ({ portfolioMode, publicProfileUrl }: { portfolioMode: boolean; publicProfileUrl?: string }) => {
+      const result = await api('/api/profile/portfolio-mode', {
+        method: 'PUT',
+        body: { portfolioMode, publicProfileUrl },
+      });
+      return result;
+    },
+    onMutate: async ({ portfolioMode }) => {
+      console.log('[Profile] Portfolio mode mutation starting:', portfolioMode);
+      await queryClient.cancelQueries({ queryKey: ['/api/auth/me'] });
+      
+      const previousUser = queryClient.getQueryData(['/api/auth/me']);
+      
+      // Switch 상태는 이미 즉시 업데이트됨
+      return { previousUser };
+    },
+    onSuccess: (data, variables) => {
+      console.log('[Profile] Portfolio mode mutation success, invalidating queries');
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      // 강제 리페치
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/auth/me'] }).then(() => {
+          console.log('[Profile] Portfolio mode refetch completed');
+        });
+      }, 100);
+      
+      toast({
+        title: '포트폴리오 모드 변경됨',
+        description: variables.portfolioMode
+          ? `포트폴리오 모드가 활성화되었습니다. URL: ${variables.publicProfileUrl}`
+          : '포트폴리오 모드가 비활성화되었습니다.',
+      });
+    },
+    onError: (err, variables, context) => {
+      console.error('[Profile] Portfolio mode mutation error:', err);
+      // 실패 시 Switch를 이전 서버 상태로 롤백
+      setPortfolioSwitchChecked(user?.portfolioMode || false);
+      
+      // 캐시도 롤백
+      if (context?.previousUser) {
+        queryClient.setQueryData(['/api/auth/me'], context.previousUser);
+      }
+      
+      toast({
+        title: '오류',
+        description: '포트폴리오 모드 설정을 변경하는 중 오류가 발생했습니다.',
         variant: 'destructive',
       });
     },
@@ -282,6 +347,86 @@ export default function Profile() {
               </div>
             </div>
           </div>
+
+          {/* Portfolio Mode 토글 - 인플루언서만 */}
+          {user?.userType === 'influencer' && (
+            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <Sparkles size={18} className="text-purple-600" />
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-gray-900">
+                    포트폴리오 모드
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {user?.portfolioMode && user?.publicProfileUrl
+                      ? `공개 프로필: /${user.publicProfileUrl}`
+                      : '당신의 서비스와 패키지를 공개 프로필로 showcase하세요'}
+                  </div>
+                </div>
+                <Switch
+                  checked={portfolioSwitchChecked}
+                  onCheckedChange={(checked) => {
+                    // 즉시 Switch 상태 업데이트
+                    setPortfolioSwitchChecked(checked);
+                    console.log('[Profile] Portfolio mode switch toggled to:', checked);
+                    
+                    if (checked) {
+                      // URL 검증 강화
+                      if (!publicProfileUrl || publicProfileUrl.trim().length < 3) {
+                        setPortfolioSwitchChecked(false);
+                        toast({
+                          title: '프로필 URL 필요',
+                          description: '포트폴리오 모드를 활성화하려면 3자 이상의 프로필 URL을 입력해주세요.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      
+                      // URL 형식 검증
+                      const urlPattern = /^[a-zA-Z0-9_-]+$/;
+                      if (!urlPattern.test(publicProfileUrl.trim())) {
+                        setPortfolioSwitchChecked(false);
+                        toast({
+                          title: '잘못된 URL 형식',
+                          description: '프로필 URL은 영문, 숫자, _, - 만 사용 가능합니다.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      
+                      togglePortfolioModeMutation.mutate({
+                        portfolioMode: true,
+                        publicProfileUrl: publicProfileUrl.trim()
+                      });
+                    } else {
+                      togglePortfolioModeMutation.mutate({ portfolioMode: false });
+                    }
+                  }}
+                  disabled={togglePortfolioModeMutation.isPending}
+                  data-testid="toggle-portfolio-mode"
+                />
+              </div>
+              
+              {/* 프로필 URL 설정 */}
+              <div className="text-xs">
+                <label className="block text-gray-600 mb-1">공개 프로필 URL</label>
+                <div className="flex gap-2">
+                  <span className="text-gray-400 self-center">tourgether.com/</span>
+                  <input
+                    type="text"
+                    value={publicProfileUrl}
+                    onChange={(e) => setPublicProfileUrl(e.target.value)}
+                    placeholder="your-profile-name"
+                    className="flex-1 p-2 rounded border text-xs"
+                    disabled={user?.portfolioMode}
+                    pattern="[a-zA-Z0-9_-]+"
+                    title="영문, 숫자, _, - 만 사용 가능합니다"
+                  />
+                </div>
+                <p className="text-gray-400 mt-1">영문, 숫자, _, - 만 사용 가능 (3-50자)</p>
+              </div>
+            </div>
+          )}
 
           <Button className="travel-button-outline">
             <Edit3 size={16} className="mr-2" />

@@ -145,6 +145,15 @@ export const UpdateProfileOpenSchema = z.object({
   message: "만나요 활성화 시 시간 설정이 필요합니다"
 });
 
+// Portfolio Mode 스키마
+export const PortfolioModeSchema = z.object({
+  portfolioMode: z.boolean(),
+  publicProfileUrl: z.string().min(3, '프로필 URL은 최소 3자 이상이어야 합니다')
+    .max(50, 'URL은 최대 50자까지 가능합니다')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'URL은 영문, 숫자, _, - 만 사용 가능합니다')
+    .optional(),
+});
+
 // Type inference
 export type LoginData = z.infer<typeof LoginSchema>;
 export type RegisterData = z.infer<typeof RegisterSchema>;
@@ -163,6 +172,7 @@ export type UpdateBookingStatusData = z.infer<typeof UpdateBookingStatusSchema>;
 export type CreateNotificationData = z.infer<typeof CreateNotificationSchema>;
 export type AdminActionData = z.infer<typeof AdminActionSchema>;
 export type UpdateProfileOpenData = z.infer<typeof UpdateProfileOpenSchema>;
+export type PortfolioModeData = z.infer<typeof PortfolioModeSchema>;
 export type PaginationData = z.infer<typeof PaginationSchema>;
 
 // MiniMeet Schemas

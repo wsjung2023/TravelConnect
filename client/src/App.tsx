@@ -46,6 +46,7 @@ const ErrorTest = lazy(() => import('@/pages/ErrorTestPage'));
 const Marketplace = lazy(() => import('@/pages/marketplace'));
 const ExperienceDetail = lazy(() => import('@/pages/experience'));
 const GuideProfile = lazy(() => import('@/pages/guide-profile'));
+const PublicPortfolio = lazy(() => import('@/pages/PublicPortfolio'));
 const PurchaseProxy = lazy(() => import('@/pages/purchase-proxy'));
 
 // Simple loading component
@@ -84,6 +85,16 @@ function Router() {
       />
 
       <Switch>
+        {/* 공개 포트폴리오 - 모든 사용자 접근 가능 */}
+        <Route 
+          path="/portfolio/:publicProfileUrl" 
+          component={({ params }: { params: { publicProfileUrl: string } }) => (
+            <Suspense fallback={<LoadingSpinner />}>
+              <PublicPortfolio publicProfileUrl={params.publicProfileUrl} />
+            </Suspense>
+          )}
+        />
+        
         {isLoading || !isAuthenticated || hasOAuthCallback() ? (
           <Route path="/" component={Landing} />
         ) : (

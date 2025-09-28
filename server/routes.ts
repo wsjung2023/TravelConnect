@@ -67,6 +67,7 @@ import {
   UpdateBookingStatusSchema,
   CreateConversationSchema,
   UpdateProfileOpenSchema,
+  PortfolioModeSchema,
   CreateMiniMeetSchema,
   JoinMiniMeetSchema,
   GetMiniMeetsSchema,
@@ -711,6 +712,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('프로필 업데이트 오류:', error);
       res.status(500).json({ message: '프로필 업데이트 중 오류가 발생했습니다' });
+    }
+  });
+
+  // Portfolio Mode 업데이트
+  app.put('/api/profile/portfolio-mode', authenticateHybrid, apiLimiter, validateSchema(PortfolioModeSchema), async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      const { portfolioMode, publicProfileUrl } = req.validatedData as { portfolioMode: boolean; publicProfileUrl?: string };
+
+      console.log(`[PUT /api/profile/portfolio-mode] 사용자 ${userId}: portfolioMode=${portfolioMode}, publicProfileUrl=${publicProfileUrl}`);
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다' });
+      }
+
+      // 인플루언서만 포트폴리오 모드 사용 가능
+      if (user.userType !== 'influencer') {
+        return res.status(403).json({ message: '인플루언서만 포트폴리오 모드를 사용할 수 있습니다' });
+      }
+
+      console.log(`[PUT /api/profile/portfolio-mode] 현재 사용자 상태: portfolioMode=${user.portfolioMode}, publicProfileUrl=${user.publicProfileUrl}`);
+
+      // 포트폴리오 모드 활성화 시 URL 체크
+      if (portfolioMode && !publicProfileUrl) {
+        return res.status(400).json({ message: '포트폴리오 모드 활성화 시 프로필 URL이 필요합니다' });
+      }
+
+      // URL 중복 체크 (다른 사용자가 이미 사용 중인지)
+      if (publicProfileUrl) {
+        const existingUser = await storage.getUserByPublicProfileUrl(publicProfileUrl);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(409).json({ message: '이미 사용 중인 프로필 URL입니다' });
+        }
+      }
+
+      // 프로필 업데이트
+      const updateData: any = {
+        portfolioMode: portfolioMode,
+        publicProfileUrl: portfolioMode ? publicProfileUrl : null,
+      };
+
+      console.log(`[PUT /api/profile/portfolio-mode] 업데이트 데이터:`, updateData);
+
+      const updatedUser = await storage.updateUser(userId, updateData);
+
+      console.log(`[PUT /api/profile/portfolio-mode] 업데이트 완료: portfolioMode=${updatedUser.portfolioMode}, publicProfileUrl=${updatedUser.publicProfileUrl}`);
+
+      res.json({
+        message: '포트폴리오 모드가 업데이트되었습니다',
+        portfolioMode: updatedUser.portfolioMode,
+        publicProfileUrl: updatedUser.publicProfileUrl,
+      });
+    } catch (error) {
+      console.error('포트폴리오 모드 업데이트 오류:', error);
+      res.status(500).json({ message: '포트폴리오 모드 업데이트 중 오류가 발생했습니다' });
     }
   });
 
@@ -1636,6 +1696,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting notification:', error);
       res.status(500).json({ message: 'Failed to delete notification' });
+    }
+  });
+
+  // Portfolio 공개 API 엔드포인트
+  
+  // 공개 포트폴리오 사용자 정보 조회
+  app.get('/api/portfolio/:publicProfileUrl', async (req, res) => {
+    try {
+      const { publicProfileUrl } = req.params;
+      
+      console.log(`[GET /api/portfolio/${publicProfileUrl}] 공개 포트폴리오 조회`);
+      
+      const user = await storage.getUserByPublicProfileUrl(publicProfileUrl);
+      if (!user) {
+        return res.status(404).json({ message: '포트폴리오를 찾을 수 없습니다' });
+      }
+      
+      // 포트폴리오 모드가 활성화되어 있고 인플루언서인지 확인
+      if (!user.portfolioMode || user.userType !== 'influencer') {
+        return res.status(404).json({ message: '포트폴리오를 찾을 수 없습니다' });
+      }
+      
+      // 공개 정보만 반환 (화이트리스트 적용)
+      const publicUserInfo = {
+        id: user.id,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        bio: user.bio || '',
+        profileImageUrl: user.profileImageUrl || null,
+        userType: 'influencer', // 강제로 influencer로 설정
+        portfolioMode: true, // 강제로 true로 설정 (이미 체크했으므로)
+        publicProfileUrl: user.publicProfileUrl,
+      };
+      
+      console.log(`[GET /api/portfolio/${publicProfileUrl}] 성공: 사용자 ${user.id}`);
+      res.json(publicUserInfo);
+    } catch (error) {
+      console.error('공개 포트폴리오 조회 오류:', error);
+      res.status(500).json({ message: '포트폴리오 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 공개 포트폴리오 서비스 템플릿 조회
+  app.get('/api/templates/portfolio/:publicProfileUrl', async (req, res) => {
+    try {
+      const { publicProfileUrl } = req.params;
+      
+      console.log(`[GET /api/templates/portfolio/${publicProfileUrl}] 공개 서비스 템플릿 조회`);
+      
+      const user = await storage.getUserByPublicProfileUrl(publicProfileUrl);
+      if (!user || !user.portfolioMode || user.userType !== 'influencer') {
+        return res.status(404).json({ message: '포트폴리오를 찾을 수 없습니다' });
+      }
+      
+      // 활성화된 서비스 템플릿만 조회 (공개 필드만)
+      const templates = await storage.getServiceTemplatesByUser(user.id);
+      const activeTemplates = templates
+        .filter(template => template.isActive && template.userId === user.id)
+        .map(template => ({
+          id: template.id,
+          title: template.title,
+          description: template.description,
+          price: template.price,
+          duration: template.duration,
+          category: template.category,
+          isActive: template.isActive,
+        }));
+      
+      console.log(`[GET /api/templates/portfolio/${publicProfileUrl}] 성공: ${activeTemplates.length}개 템플릿`);
+      res.json(activeTemplates);
+    } catch (error) {
+      console.error('공개 포트폴리오 템플릿 조회 오류:', error);
+      res.status(500).json({ message: '템플릿 조회 중 오류가 발생했습니다' });
+    }
+  });
+
+  // 공개 포트폴리오 패키지 조회
+  app.get('/api/packages/portfolio/:publicProfileUrl', async (req, res) => {
+    try {
+      const { publicProfileUrl } = req.params;
+      
+      console.log(`[GET /api/packages/portfolio/${publicProfileUrl}] 공개 패키지 조회`);
+      
+      const user = await storage.getUserByPublicProfileUrl(publicProfileUrl);
+      if (!user || !user.portfolioMode || user.userType !== 'influencer') {
+        return res.status(404).json({ message: '포트폴리오를 찾을 수 없습니다' });
+      }
+      
+      // 활성화된 패키지만 조회 (공개 필드만)
+      const packages = await storage.getServicePackagesByUser(user.id);
+      const activePackages = packages
+        .filter(pkg => pkg.isActive && pkg.userId === user.id)
+        .map(pkg => ({
+          id: pkg.id,
+          name: pkg.name,
+          description: pkg.description,
+          totalPrice: pkg.totalPrice,
+          discountPercentage: pkg.discountPercentage,
+          isActive: pkg.isActive,
+          packageItems: pkg.packageItems?.map(item => ({
+            templateId: item.templateId,
+            quantity: item.quantity,
+            template: {
+              id: item.template.id,
+              title: item.template.title,
+              price: item.template.price,
+              duration: item.template.duration,
+              category: item.template.category,
+            }
+          })) || [],
+        }));
+      
+      console.log(`[GET /api/packages/portfolio/${publicProfileUrl}] 성공: ${activePackages.length}개 패키지`);
+      res.json(activePackages);
+    } catch (error) {
+      console.error('공개 포트폴리오 패키지 조회 오류:', error);
+      res.status(500).json({ message: '패키지 조회 중 오류가 발생했습니다' });
     }
   });
 
