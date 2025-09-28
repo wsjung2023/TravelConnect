@@ -21,9 +21,21 @@ export function loadGoogleMaps() {
     return Promise.reject(new Error('VITE_GOOGLE_MAPS_API_KEY environment variable is not set'));
   }
   
+  // 언어별 지역 코드 매핑 (지명 번역 개선용)
+  const regionMap: { [key: string]: string } = {
+    'ko': 'KR',
+    'ja': 'JP', 
+    'zh': 'CN',
+    'fr': 'FR',
+    'es': 'ES',
+    'en': 'US'
+  };
+  
+  const region = regionMap[lang] || 'US';
+  
   currentLanguage = lang;
   const s = document.createElement('script');
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&language=${lang}`;
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&language=${lang}&region=${region}`;
   s.async = true;
   document.head.appendChild(s);
   
