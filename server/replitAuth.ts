@@ -5,6 +5,14 @@ import passport from 'passport';
 import session from 'express-session';
 import type { Express, RequestHandler } from 'express';
 import memoize from 'memoizee';
+
+// 로그아웃된 세션 ID를 추적하는 메모리 저장소
+const loggedOutSessions = new Set<string>();
+// 로그아웃 시간을 추적 (개발 모드에서 짧은 시간 동안 모든 세션을 로그아웃으로 간주)
+let lastLogoutTime = 0;
+// 전역 접근을 위해 global에 저장
+(global as any).loggedOutSessions = loggedOutSessions;
+(global as any).lastLogoutTime = () => lastLogoutTime;
 import connectPg from 'connect-pg-simple';
 import { storage } from './storage';
 
@@ -127,7 +135,19 @@ export async function setupAuth(app: Express) {
   });
 
   app.get('/api/logout', (req, res) => {
+    console.log(`[LOGOUT] Starting logout process`);
+    console.log(`[LOGOUT] Session before logout:`, req.session ? 'EXISTS' : 'NOT EXISTS');
+    
+    // 세션 ID를 로그아웃 세션 목록에 추가 (개발 모드에서 자동 재로그인 방지)
+    if (req.sessionID) {
+      loggedOutSessions.add(req.sessionID);
+      lastLogoutTime = Date.now();
+      console.log(`[LOGOUT] Added session ${req.sessionID} to logged out sessions`);
+      console.log(`[LOGOUT] Set logout time to ${lastLogoutTime}`);
+    }
+    
     req.logout(() => {
+      console.log(`[LOGOUT] req.logout() completed, session after:`, req.session ? 'EXISTS' : 'NOT EXISTS');
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,

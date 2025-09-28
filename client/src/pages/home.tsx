@@ -195,9 +195,11 @@ export default function Home() {
           <button
             className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full flex items-center justify-center"
             onClick={() => {
+              // localStorage 지우기
               localStorage.removeItem('token');
               localStorage.removeItem('user');
-              window.location.reload();
+              // 서버 로그아웃 API 호출
+              window.location.href = '/api/logout';
             }}
             title="로그아웃"
             data-testid="button-logout"
