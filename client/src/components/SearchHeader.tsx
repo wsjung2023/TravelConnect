@@ -149,7 +149,7 @@ export default function SearchHeader({
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 marginTop: '4px',
                 overflow: 'hidden',
-                zIndex: 1000,
+                zIndex: 10000, // Google Maps 마커들보다 높은 z-index
               }}
             >
               <button
@@ -219,7 +219,7 @@ export default function SearchHeader({
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 999,
+            zIndex: 9999, // 드롭다운보다 낮지만 맵보다는 높은 z-index
           }}
           onClick={() => setIsDropdownOpen(false)}
         />
