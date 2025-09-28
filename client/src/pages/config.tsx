@@ -409,37 +409,37 @@ export default function ConfigPage() {
             <div className="grid gap-3">
               {[
                 {
-                  href: '/legal/privacy',
+                  href: '/legal/privacy?admin=true',
                   icon: Shield,
                   title: '개인정보 처리방침',
                   desc: '개인정보 수집, 이용, 처리에 관한 정책'
                 },
                 {
-                  href: '/legal/terms',
+                  href: '/legal/terms?admin=true',
                   icon: FileText,
                   title: '서비스 이용약관',
                   desc: '서비스 이용에 관한 약관 및 조건'
                 },
                 {
-                  href: '/legal/location',
+                  href: '/legal/location?admin=true',
                   icon: MapPin,
                   title: '위치기반서비스 이용약관',
                   desc: '위치정보 수집 및 이용에 관한 약관'
                 },
                 {
-                  href: '/legal/cookies',
+                  href: '/legal/cookies?admin=true',
                   icon: Cookie,
                   title: '쿠키 및 트래킹 공지',
                   desc: '쿠키 및 트래킹 기술 사용에 관한 공지'
                 },
                 {
-                  href: '/legal/oss',
+                  href: '/legal/oss?admin=true',
                   icon: Code,
                   title: '오픈소스 라이선스',
                   desc: '사용된 오픈소스 라이브러리의 라이선스'
                 }
               ].map(({ href, icon: Icon, title, desc }) => (
-                <Link key={href} href={href} className="block">
+                <Link key={href} href={href} className="block" data-testid={`link-legal-${href.split('/')[2].split('?')[0]}`}>
                   <div className="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
