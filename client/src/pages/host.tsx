@@ -99,7 +99,7 @@ export default function HostDashboard() {
   // 내 예약 조회
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ['/api/host/bookings'],
-    enabled: !!user && user.isHost && selectedTab === 'bookings',
+    enabled: !!user && user.isHost,
   });
 
   const formatPrice = (price: string, currency: string) => {
