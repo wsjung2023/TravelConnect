@@ -57,10 +57,16 @@ const LoadingSpinner = () => (
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // OAuth 콜백 파라미터 확인
+  const hasOAuthCallback = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.has('token') || urlParams.has('error');
+  };
+
   return (
     <div className="mobile-full">
       <Switch>
-        {isLoading || !isAuthenticated ? (
+        {isLoading || !isAuthenticated || hasOAuthCallback() ? (
           <Route path="/" component={Landing} />
         ) : (
           <>
