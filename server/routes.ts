@@ -1,4 +1,12 @@
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
+
+// Add Express session type declarations
+declare module 'express-serve-static-core' {
+  interface Request {
+    session?: any;
+    sessionID?: string;
+  }
+}
 import { createServer, type Server } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import multer from 'multer';
@@ -418,11 +426,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'User not authenticated' });
       }
       
-      const bookingId = parseInt(req.params.id);
+      const bookingIdParam = req.params.id;
+      if (!bookingIdParam) {
+        return res.status(400).json({ error: 'Booking ID is required' });
+      }
+      
+      const bookingId = parseInt(bookingIdParam);
       const { status } = req.body;
       
-      if (!bookingId || !status) {
-        return res.status(400).json({ error: 'Booking ID and status are required' });
+      if (isNaN(bookingId) || !status) {
+        return res.status(400).json({ error: 'Valid booking ID and status are required' });
       }
 
       if (!['confirmed', 'cancelled'].includes(status)) {
@@ -729,13 +742,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!global.loggedOutSessions) {
         global.loggedOutSessions = new Set();
       }
-      global.loggedOutSessions.add(sessionId);
+      if (sessionId) {
+        global.loggedOutSessions.add(sessionId);
+      }
       
       // 마지막 로그아웃 시간 업데이트
       global.lastLogoutTime = Date.now();
       console.log(`[LOGOUT] Updated lastLogoutTime: ${global.lastLogoutTime}`);
       
-      req.session.destroy((err) => {
+      req.session.destroy((err: any) => {
         if (err) {
           console.error(`[LOGOUT] Session destruction error:`, err);
           return res.status(500).json({ message: 'Logout failed' });
@@ -1334,6 +1349,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/system-settings/:id', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ message: 'Setting ID is required' });
+      }
       const updates = req.body;
       const setting = await storage.updateSystemSetting(id, updates);
       if (!setting) {
@@ -2400,7 +2418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const review = await storage.createReview(reviewData);
       
-      console.log(`[REVIEW] User ${req.user.email} created review for experience ${reviewData.experienceId}`);
+      console.log(`[REVIEW] User ${req.user.email} created review for experience ${(reviewData as any).experienceId}`);
       res.json(review);
     } catch (error) {
       console.error('Error creating review:', error);
@@ -2492,7 +2510,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const requestId = parseInt(req.params.id);
+      const requestIdParam = req.params.id;
+      if (!requestIdParam) {
+        return res.status(400).json({ message: 'Request ID is required' });
+      }
+      
+      const requestId = parseInt(requestIdParam);
+      if (isNaN(requestId)) {
+        return res.status(400).json({ message: 'Valid request ID is required' });
+      }
+      
       const request = await storage.getPurchaseRequestById(requestId);
       
       if (!request) {
@@ -2540,7 +2567,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const requestId = parseInt(req.params.id);
+      const requestIdParam = req.params.id;
+      if (!requestIdParam) {
+        return res.status(400).json({ message: 'Request ID is required' });
+      }
+      
+      const requestId = parseInt(requestIdParam);
+      if (isNaN(requestId)) {
+        return res.status(400).json({ message: 'Valid request ID is required' });
+      }
+      
       const quotes = await storage.getPurchaseQuotesByRequest(requestId);
       res.json(quotes);
     } catch (error) {
@@ -2609,7 +2645,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const orderId = parseInt(req.params.id);
+      const orderIdParam = req.params.id;
+      if (!orderIdParam) {
+        return res.status(400).json({ message: 'Order ID is required' });
+      }
+      
+      const orderId = parseInt(orderIdParam);
+      if (isNaN(orderId)) {
+        return res.status(400).json({ message: 'Valid order ID is required' });
+      }
+      
       const { status } = req.body;
 
       if (!status) {
