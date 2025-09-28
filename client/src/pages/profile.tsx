@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
+import HelpRequestForm from '@/components/HelpRequestForm';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -18,6 +19,9 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Help Request Form 상태
+  const [showHelpRequestForm, setShowHelpRequestForm] = useState(false);
 
   // 만남 상태 토글 mutation
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
@@ -196,6 +200,15 @@ export default function Profile() {
               {applyHostMutation.isPending ? '신청 중...' : '호스트 되기'}
             </Button>
           )}
+
+          <Button
+            onClick={() => setShowHelpRequestForm(true)}
+            className="mb-4 bg-blue-600 hover:bg-blue-700 text-white"
+            data-testid="button-open-help-request"
+          >
+            <HelpCircle className="w-4 h-4 mr-2" />
+            도움 요청하기
+          </Button>
 
           {/* 만남 상태 토글 */}
           <div className="mb-4 p-4 bg-white/50 rounded-lg border backdrop-blur-sm">
@@ -453,6 +466,12 @@ export default function Profile() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Help Request Form */}
+      <HelpRequestForm
+        isOpen={showHelpRequestForm}
+        onClose={() => setShowHelpRequestForm(false)}
+      />
     </div>
   );
 }

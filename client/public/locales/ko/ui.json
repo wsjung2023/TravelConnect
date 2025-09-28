@@ -166,5 +166,61 @@
     "locationPlaceholder": "장소, 지역, 위치 검색...",
     "contentPlaceholder": "컨텐츠 검색...",
     "searchChannels": "채널 검색..."
+  },
+  "helpRequest": {
+    "form": {
+      "title": "도움 요청하기",
+      "category": "카테고리",
+      "requestTitle": "제목",
+      "titlePlaceholder": "어떤 도움이 필요한가요?",
+      "description": "상세 설명",
+      "descriptionPlaceholder": "구체적으로 어떤 도움이 필요한지 설명해주세요",
+      "location": "위치",
+      "locationPlaceholder": "어디에서 도움이 필요한가요?",
+      "budget": "예산",
+      "showBudget": "예산 설정",
+      "hideBudget": "예산 숨기기",
+      "minBudget": "최소 예산",
+      "maxBudget": "최대 예산",
+      "urgency": "긴급도",
+      "deadline": "마감일",
+      "tags": "태그",
+      "tagsPlaceholder": "태그 추가...",
+      "addTag": "추가",
+      "creating": "요청 생성 중...",
+      "createRequest": "도움 요청 생성"
+    },
+    "categories": {
+      "localTip": "현지 팁",
+      "localTipDesc": "현지인만 아는 정보가 필요해요",
+      "customPlanning": "맞춤 계획",
+      "customPlanningDesc": "나만의 여행 계획을 세우고 싶어요",
+      "urgentHelp": "긴급 도움",
+      "urgentHelpDesc": "지금 당장 도움이 필요해요",
+      "productPurchase": "제품 구매",
+      "productPurchaseDesc": "현지에서 구매하고 싶은 제품이 있어요"
+    },
+    "urgency": {
+      "flexible": "여유롭게",
+      "normal": "보통",
+      "urgent": "긴급"
+    },
+    "validation": {
+      "titleRequired": "제목을 입력해주세요",
+      "descriptionRequired": "설명을 입력해주세요",
+      "invalidBudgetRange": "최대 예산은 최소 예산보다 커야 합니다"
+    },
+    "created": {
+      "title": "도움 요청 생성 완료",
+      "description": "도움 요청이 성공적으로 생성되었습니다"
+    },
+    "error": {
+      "title": "요청 생성 실패",
+      "description": "도움 요청을 생성하는 중 오류가 발생했습니다"
+    }
+  },
+  "auth": {
+    "required": "로그인 필요",
+    "loginFirst": "먼저 로그인해주세요"
   }
 }
