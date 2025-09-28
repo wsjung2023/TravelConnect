@@ -8,7 +8,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import { JourneyCreateModal } from '@/components/JourneyCreateModal';
 import CreatePostModal from '@/components/CreatePostModal';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 
 // Direct import MapComponent to fix hook errors, keep others lazy
 import MapComponent from '@/components/MapComponent';
@@ -189,7 +189,7 @@ export default function Home() {
           )}
 
           <button
-            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
+            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full flex items-center justify-center"
             onClick={() => {
               localStorage.removeItem('token');
               localStorage.removeItem('user');
@@ -198,7 +198,7 @@ export default function Home() {
             title="로그아웃"
             data-testid="button-logout"
           >
-            <i className="fas fa-sign-out-alt text-gray-600 text-sm"></i>
+            <LogOut className="h-4 w-4 text-gray-600" />
           </button>
         </div>
       </header>
