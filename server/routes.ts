@@ -51,6 +51,8 @@ import {
   insertReviewSchema,
   insertHelpRequestSchema,
   insertRequestResponseSchema,
+  insertServiceTemplateSchema,
+  insertServicePackageSchema,
 } from '@shared/schema';
 import {
   LoginSchema,
@@ -2903,6 +2905,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: 'Failed to create response' });
       }
+    }
+  });
+
+  // ==================== 인플루언서 서비스 템플릿 API ====================
+
+  // 서비스 템플릿 생성
+  app.post('/api/templates/create', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const templateData = insertServiceTemplateSchema.parse({
+        ...req.body,
+        creatorId: req.user.id,
+      });
+
+      const template = await storage.createServiceTemplate(templateData);
+      
+      console.log(`[SERVICE-TEMPLATE] User ${req.user.email} created template: ${template.title}`);
+      res.json(template);
+    } catch (error) {
+      console.error('Error creating service template:', error);
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ message: 'Invalid template data', error: error.message });
+      } else {
+        res.status(500).json({ message: 'Failed to create service template' });
+      }
+    }
+  });
+
+  // 내가 생성한 서비스 템플릿들 조회
+  app.get('/api/templates/my', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const templates = await storage.getServiceTemplatesByCreator(req.user.id);
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching user templates:', error);
+      res.status(500).json({ message: 'Failed to fetch service templates' });
+    }
+  });
+
+  // 활성 서비스 템플릿들 조회 (공개 목록)
+  app.get('/api/templates', async (req, res) => {
+    try {
+      const templateType = req.query.type as string | undefined;
+      const templates = await storage.getActiveServiceTemplates(templateType);
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching active templates:', error);
+      res.status(500).json({ message: 'Failed to fetch service templates' });
+    }
+  });
+
+  // 특정 서비스 템플릿 상세 조회
+  app.get('/api/templates/:id', async (req, res) => {
+    try {
+      const templateIdParam = req.params.id;
+      if (!templateIdParam) {
+        return res.status(400).json({ message: 'Template ID is required' });
+      }
+      
+      const templateId = parseInt(templateIdParam);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: 'Valid template ID is required' });
+      }
+
+      const template = await storage.getServiceTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: 'Service template not found' });
+      }
+
+      res.json(template);
+    } catch (error) {
+      console.error('Error fetching service template:', error);
+      res.status(500).json({ message: 'Failed to fetch service template' });
+    }
+  });
+
+  // 서비스 템플릿 업데이트
+  app.put('/api/templates/:id', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const templateIdParam = req.params.id;
+      if (!templateIdParam) {
+        return res.status(400).json({ message: 'Template ID is required' });
+      }
+      
+      const templateId = parseInt(templateIdParam);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: 'Valid template ID is required' });
+      }
+
+      // 템플릿 소유자 확인
+      const existingTemplate = await storage.getServiceTemplateById(templateId);
+      if (!existingTemplate) {
+        return res.status(404).json({ message: 'Service template not found' });
+      }
+
+      if (existingTemplate.creatorId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not your template' });
+      }
+
+      const updateData = insertServiceTemplateSchema.partial().parse(req.body);
+      const updatedTemplate = await storage.updateServiceTemplate(templateId, updateData);
+
+      if (!updatedTemplate) {
+        return res.status(404).json({ message: 'Failed to update template' });
+      }
+      
+      console.log(`[SERVICE-TEMPLATE] User ${req.user.email} updated template: ${updatedTemplate.title}`);
+      res.json(updatedTemplate);
+    } catch (error) {
+      console.error('Error updating service template:', error);
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ message: 'Invalid template data', error: error.message });
+      } else {
+        res.status(500).json({ message: 'Failed to update service template' });
+      }
+    }
+  });
+
+  // 서비스 템플릿 삭제
+  app.delete('/api/templates/:id', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const templateIdParam = req.params.id;
+      if (!templateIdParam) {
+        return res.status(400).json({ message: 'Template ID is required' });
+      }
+      
+      const templateId = parseInt(templateIdParam);
+      if (isNaN(templateId)) {
+        return res.status(400).json({ message: 'Valid template ID is required' });
+      }
+
+      // 템플릿 소유자 확인
+      const existingTemplate = await storage.getServiceTemplateById(templateId);
+      if (!existingTemplate) {
+        return res.status(404).json({ message: 'Service template not found' });
+      }
+
+      if (existingTemplate.creatorId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not your template' });
+      }
+
+      const deleted = await storage.deleteServiceTemplate(templateId);
+      if (!deleted) {
+        return res.status(404).json({ message: 'Failed to delete template' });
+      }
+      
+      console.log(`[SERVICE-TEMPLATE] User ${req.user.email} deleted template: ${existingTemplate.title}`);
+      res.json({ message: 'Service template deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting service template:', error);
+      res.status(500).json({ message: 'Failed to delete service template' });
     }
   });
 
