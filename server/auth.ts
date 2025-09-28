@@ -16,6 +16,10 @@ declare global {
       validatedData?: unknown;
     }
   }
+  
+  // 글로벌 변수 타입 선언
+  var loggedOutSessions: Set<string> | undefined;
+  var lastLogoutTime: number;
 }
 
 export type AuthRequest = Request; // 호환성을 위한 타입 별칭
@@ -136,28 +140,39 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   // 3. 개발 환경에서 기본 사용자 생성 (테스트용)
   if (process.env.NODE_ENV === 'development') {
     console.log(`[AUTH] Development mode - checking session:`, req.session ? 'EXISTS' : 'NOT EXISTS');
-    console.log(`[AUTH] Session ID:`, req.sessionID);
+    console.log(`[AUTH] Session ID:`, req.sessionID || 'undefined');
     
-    // 로그아웃된 세션 ID 확인 - import 추가 필요
-    const loggedOutSessions = (global as any).loggedOutSessions;
-    const getLastLogoutTime = (global as any).lastLogoutTime;
-    const lastLogoutTime = getLastLogoutTime ? getLastLogoutTime() : 0;
+    // 로그아웃된 세션 ID 확인
+    const loggedOutSessions = global.loggedOutSessions;
+    const lastLogoutTime = global.lastLogoutTime || 0;
     
     console.log(`[AUTH] loggedOutSessions:`, loggedOutSessions ? `Set with ${loggedOutSessions.size} items` : 'NOT AVAILABLE');
     console.log(`[AUTH] lastLogoutTime:`, lastLogoutTime, 'current:', Date.now());
     
-    if (loggedOutSessions && req.sessionID) {
+    // 로그아웃 상태 확인 - 세션 ID가 있으면 개별 세션 확인, 없으면 전역 시간 확인
+    let shouldSkipAutoLogin = false;
+    
+    if (req.sessionID && loggedOutSessions) {
       const isLoggedOut = loggedOutSessions.has(req.sessionID);
       console.log(`[AUTH] Session ${req.sessionID} logged out check:`, isLoggedOut);
-      
-      // 세션 ID가 일치하거나, 최근 30초 이내에 로그아웃이 발생했다면 로그아웃 상태로 간주
-      const recentLogout = lastLogoutTime > 0 && (Date.now() - lastLogoutTime) < 30000; // 30초
-      console.log(`[AUTH] Recent logout check (within 30s):`, recentLogout);
-      
-      if (isLoggedOut || recentLogout) {
-        console.log(`[AUTH] User explicitly logged out - skipping auto login (direct: ${isLoggedOut}, recent: ${recentLogout})`);
-        return res.status(401).json({ message: 'User logged out' });
+      if (isLoggedOut) {
+        shouldSkipAutoLogin = true;
+        console.log(`[AUTH] Specific session logged out`);
       }
+    }
+    
+    // 최근 30초 이내에 로그아웃이 발생했다면 로그아웃 상태로 간주 (세션이 없어도)
+    const recentLogout = lastLogoutTime > 0 && (Date.now() - lastLogoutTime) < 30000; // 30초
+    console.log(`[AUTH] Recent logout check (within 30s):`, recentLogout);
+    
+    if (recentLogout) {
+      shouldSkipAutoLogin = true;
+      console.log(`[AUTH] Recent logout detected`);
+    }
+    
+    if (shouldSkipAutoLogin) {
+      console.log(`[AUTH] User explicitly logged out - skipping auto login`);
+      return res.status(401).json({ message: 'User logged out' });
     }
     
     console.log(`[AUTH] Development mode - creating default user`);

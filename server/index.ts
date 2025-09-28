@@ -5,6 +5,10 @@ import * as Sentry from '@sentry/node';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 
+// 글로벌 변수 초기화 (로그아웃 추적용)
+global.loggedOutSessions = new Set<string>();
+global.lastLogoutTime = 0;
+
 // Initialize Sentry for error tracking
 if (process.env.SENTRY_DSN) {
   Sentry.init({

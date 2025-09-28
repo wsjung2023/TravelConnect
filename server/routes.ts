@@ -12,9 +12,8 @@ import * as i18nMiddleware from 'i18next-http-middleware';
 import i18nFsBackend from 'i18next-fs-backend';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
-import { setupAuth } from './replitAuth';
 //import { authenticateToken } from "./auth";
-// import { setupGoogleAuth } from './googleAuth'; // 모듈 없음 - 주석 처리
+import { setupGoogleAuth } from './googleAuth';
 import passport from 'passport';
 import {
   authenticateToken,
@@ -204,11 +203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Content Security Policy: 다양한 공격 방지
     res.setHeader('Content-Security-Policy', [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.replit.dev *.googleapis.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com",
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
       "font-src 'self' fonts.gstatic.com data:",
       "img-src 'self' data: https: *.unsplash.com *.googleusercontent.com",
-      "connect-src 'self' wss: ws: *.replit.dev *.googleapis.com",
+      "connect-src 'self' wss: ws: *.googleapis.com",
       "media-src 'self' data: blob:",
       "object-src 'none'",
       "frame-src 'none'"
@@ -452,19 +451,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 조건부 인증 설정
-  if (process.env.REPLIT_DOMAINS) {
-    // Replit 환경에서만 OIDC 인증 설정
-    console.log('🔐 Replit 환경 감지 - OIDC 인증 활성화');
-    await setupAuth(app);
-  } else {
-    console.log('💡 일반 환경 - JWT 인증만 사용');
-  }
+  console.log('💡 Google OAuth 인증 사용 중');
 
   // Passport 초기화 (Google OAuth용)
   app.use(passport.initialize());
 
-  // Google OAuth 설정 - 모듈 없음으로 주석 처리
-  // setupGoogleAuth(app);
+  // Google OAuth 설정
+  setupGoogleAuth(app);
 
   // 이메일/비밀번호 회원가입
   app.post('/api/auth/register', authLimiter, validateSchema(RegisterSchema), async (req: any, res) => {
@@ -704,7 +697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  // Replit Auth 사용자 조회 (호환성 유지)
+  // 사용자 조회
   app.get('/api/auth/user', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user!.id;
@@ -713,6 +706,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching user:', error);
       res.status(500).json({ message: 'Failed to fetch user' });
+    }
+  });
+
+  // 구글 로그인 시작 엔드포인트
+  app.get('/api/login', (req, res) => {
+    console.log(`[LOGIN] Google OAuth login initiated`);
+    // Google OAuth flow 시작 - /auth/google로 리다이렉트
+    res.redirect('/auth/google');
+  });
+
+  // 로그아웃 엔드포인트
+  app.get('/api/logout', (req, res) => {
+    console.log(`[LOGOUT] Logout request received`);
+    
+    // 세션이 있으면 파기
+    if (req.session) {
+      const sessionId = req.sessionID;
+      console.log(`[LOGOUT] Destroying session: ${sessionId}`);
+      
+      // 글로벌 로그아웃 추적에 세션 ID 추가
+      if (!global.loggedOutSessions) {
+        global.loggedOutSessions = new Set();
+      }
+      global.loggedOutSessions.add(sessionId);
+      
+      // 마지막 로그아웃 시간 업데이트
+      global.lastLogoutTime = Date.now();
+      console.log(`[LOGOUT] Updated lastLogoutTime: ${global.lastLogoutTime}`);
+      
+      req.session.destroy((err) => {
+        if (err) {
+          console.error(`[LOGOUT] Session destruction error:`, err);
+          return res.status(500).json({ message: 'Logout failed' });
+        }
+        
+        // 세션 쿠키 제거
+        res.clearCookie('connect.sid', { path: '/' });
+        console.log(`[LOGOUT] Session destroyed and cookie cleared`);
+        
+        // 홈페이지로 리다이렉트
+        res.redirect('/');
+      });
+    } else {
+      console.log(`[LOGOUT] No session to destroy`);
+      // 마지막 로그아웃 시간만 업데이트
+      global.lastLogoutTime = Date.now();
+      console.log(`[LOGOUT] Updated lastLogoutTime: ${global.lastLogoutTime}`);
+      res.redirect('/');
     }
   });
 

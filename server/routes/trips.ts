@@ -4,7 +4,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import exifr from 'exifr';
-import { isAuthenticated } from '../replitAuth';
+import { authenticateHybrid } from '../auth';
 import { storage } from '../storage';
 import { insertPostSchema } from '@shared/schema';
 
@@ -133,9 +133,9 @@ function groupByDay(files: Array<{
 }
 
 // POST /api/trips/import-media - 미디어 파일 가져오기
-router.post('/import-media', isAuthenticated, upload.array('files', 100), async (req: any, res) => {
+router.post('/import-media', authenticateHybrid, upload.array('files', 100), async (req: any, res) => {
   try {
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     const files = req.files as Express.Multer.File[];
     
     if (!files || files.length === 0) {
