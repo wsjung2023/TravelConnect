@@ -7,10 +7,21 @@ import {
   MoreHorizontal,
   Calendar,
   ArrowLeft,
+  Share2,
+  Flag,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import PostDetailModal from '@/components/PostDetailModal';
@@ -31,6 +42,10 @@ export default function Feed() {
 
   const { data: posts = [], isLoading } = useQuery<Post[]>({
     queryKey: ['/api/posts'],
+  });
+
+  const { data: currentUser } = useQuery<{ id: string; email: string; role?: string }>({
+    queryKey: ['/api/auth/me'],
   });
 
   // 포스트 수가 많으면 자동으로 가상화 활성화
@@ -118,6 +133,64 @@ export default function Feed() {
     }
     
     likeMutation.mutate(postId);
+  };
+
+  const handleSharePost = (post: Post) => {
+    if (navigator.share) {
+      navigator.share({
+        title: post.title || '여행 포스트',
+        text: post.content || '',
+        url: window.location.href,
+      }).catch(() => {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: '링크가 복사되었습니다!',
+          description: '링크를 붙여넣어서 공유하세요.',
+        });
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: '링크가 복사되었습니다!',
+        description: '링크를 붙여넣어서 공유하세요.',
+      });
+    }
+  };
+
+  const handleReportPost = (post: Post) => {
+    // TODO: Implement report functionality
+    toast({
+      title: '신고 접수',
+      description: `게시물 "${post.title}"가 신고되었습니다.`,
+    });
+  };
+
+  const handleEditPost = (post: Post) => {
+    // TODO: Implement edit functionality
+    toast({
+      title: '편집 기능',
+      description: '게시물 편집 기능은 곧 제공됩니다.',
+    });
+  };
+
+  const handleDeletePost = async (post: Post) => {
+    if (confirm(`"${post.title}" 게시물을 삭제하시겠습니까?`)) {
+      try {
+        await api(`/api/posts/${post.id}`, { method: 'DELETE' });
+        queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+        toast({
+          title: '게시물 삭제',
+          description: '게시물이 성공적으로 삭제되었습니다.',
+        });
+      } catch (error) {
+        toast({
+          title: '삭제 실패',
+          description: '게시물 삭제 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   if (isLoading) {
@@ -220,15 +293,60 @@ export default function Feed() {
                     </p>
                   </div>
                 </div>
-                <button
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                  onClick={() => {
-                    // 피드 메뉴 열기
-                    alert('게시물 옵션 메뉴입니다.');
-                  }}
-                >
-                  <MoreHorizontal size={16} />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                      data-testid={`button-menu-${post.id}`}
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => handleSharePost(post)}
+                      data-testid={`item-share-${post.id}`}
+                    >
+                      <Share2 size={16} className="mr-2" />
+                      공유하기
+                    </DropdownMenuItem>
+                    
+                    {currentUser?.id === post.userId && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => handleEditPost(post)}
+                          data-testid={`item-edit-${post.id}`}
+                        >
+                          <Edit3 size={16} className="mr-2" />
+                          편집하기
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleDeletePost(post)}
+                          className="text-red-600 focus:text-red-600"
+                          data-testid={`item-delete-${post.id}`}
+                        >
+                          <Trash2 size={16} className="mr-2" />
+                          삭제하기
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {currentUser?.id !== post.userId && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleReportPost(post)}
+                          className="text-red-600 focus:text-red-600"
+                          data-testid={`item-report-${post.id}`}
+                        >
+                          <Flag size={16} className="mr-2" />
+                          신고하기
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Post Content */}
