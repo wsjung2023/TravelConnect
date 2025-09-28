@@ -1127,6 +1127,7 @@ export type InsertPurchaseQuote = z.infer<typeof insertPurchaseQuoteSchema>;
 export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
 export type InsertPurchaseOrder = z.infer<typeof insertPurchaseOrderSchema>;
 
+
 // MiniMeet 관계 설정
 export const miniMeetsRelations = relations(miniMeets, ({ one, many }) => ({
   host: one(users, {
@@ -1198,3 +1199,4 @@ export const purchaseOrdersRelations = relations(purchaseOrders, ({ one }) => ({
     relationName: 'purchaseOrderSeller',
   }),
 }));
+
