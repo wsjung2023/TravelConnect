@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { api } from '@/lib/api';
 import HelpRequestForm from '@/components/HelpRequestForm';
 import HelpRequestList from '@/components/HelpRequestList';
 import ServiceTemplateList from '@/components/ServiceTemplateList';
+import ServicePackageList from '@/components/ServicePackageList';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -323,7 +324,7 @@ export default function Profile() {
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
+        <TabsList className="grid w-full grid-cols-7 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
           <TabsTrigger value="posts" className="text-xs">
             게시글
           </TabsTrigger>
@@ -343,6 +344,12 @@ export default function Profile() {
             <div className="flex items-center space-x-1">
               <Sparkles className="w-3 h-3" />
               <span>템플릿</span>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="service-packages" className="text-xs" data-testid="tab-service-packages">
+            <div className="flex items-center space-x-1">
+              <ShoppingBag className="w-3 h-3" />
+              <span>패키지</span>
             </div>
           </TabsTrigger>
         </TabsList>
@@ -483,6 +490,10 @@ export default function Profile() {
 
         <TabsContent value="service-templates" className="mt-4 px-4" data-testid="tab-content-service-templates">
           <ServiceTemplateList />
+        </TabsContent>
+
+        <TabsContent value="service-packages" className="mt-4 px-4" data-testid="tab-content-service-packages">
+          <ServicePackageList />
         </TabsContent>
       </Tabs>
 
