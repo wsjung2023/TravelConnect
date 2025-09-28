@@ -44,14 +44,26 @@ const legalDocuments = {
 type DocumentType = keyof typeof legalDocuments;
 
 function LegalDocumentList() {
+  const { user } = useAuth();
+  
+  // URL에서 admin 파라미터 확인
+  const urlParams = new URLSearchParams(window.location.search);
+  const isAdminMode = urlParams.get('admin') === 'true';
+  const isAdmin = user?.role === 'admin';
+  
+  // 돌아갈 위치와 버튼 텍스트 결정
+  const shouldGoToConfig = isAdmin && isAdminMode;
+  const backHref = shouldGoToConfig ? "/config" : "/";
+  const backText = shouldGoToConfig ? "설정으로 돌아가기" : "홈으로 돌아가기";
+  
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/config">
-            <Button variant="ghost" size="sm" className="gap-2">
+          <Link href={backHref}>
+            <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back-from-legal">
               <ArrowLeft className="w-4 h-4" />
-              설정으로 돌아가기
+              {backText}
             </Button>
           </Link>
         </div>
