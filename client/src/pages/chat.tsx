@@ -195,14 +195,19 @@ export default function Chat() {
     if (!newChannelName.trim()) return;
     
     try {
-      const newChannel = await apiRequest('/api/channels', {
+      const response = await apiRequest('/api/channels', {
         method: 'POST',
-        body: {
+        body: JSON.stringify({
           name: newChannelName.trim(),
           type: 'topic',
           description: ''
+        }),
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
+      
+      const newChannel = await response.json();
       
       // 채널 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ['/api/channels'] });
@@ -212,7 +217,7 @@ export default function Chat() {
       setNewChannelName('');
       
       // 새로 생성된 채널 선택
-      if (newChannel) {
+      if (newChannel && newChannel.id) {
         setSelectedChannel(newChannel);
         setSelectedConversation(null);
       }
