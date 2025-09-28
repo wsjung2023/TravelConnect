@@ -648,7 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 프로필 만남 상태 업데이트
-  app.patch('/api/profile/open', authenticateToken, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: AuthRequest, res) => {
+  app.patch('/api/profile/open', authenticateHybrid, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: AuthRequest, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -1209,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // "Open to meet" API endpoints
-  app.get('/api/profile/open', authenticateToken, async (req: AuthRequest, res) => {
+  app.get('/api/profile/open', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
