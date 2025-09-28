@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Heart,
@@ -30,8 +30,39 @@ import { groupSimilarPosts } from '@/utils/postGrouping';
 import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
 
+// localStorage 키 상수
+const LIKED_POSTS_KEY = 'likedPosts';
+
+// localStorage 헬퍼 함수들
+const getLikedPostsFromStorage = (userId?: string): Set<number> => {
+  if (!userId) return new Set();
+  
+  try {
+    const key = `${LIKED_POSTS_KEY}_${userId}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const likedIds = JSON.parse(stored);
+      return new Set(likedIds);
+    }
+  } catch (error) {
+    console.warn('Failed to load liked posts from localStorage:', error);
+  }
+  return new Set();
+};
+
+const saveLikedPostsToStorage = (likedPosts: Set<number>, userId?: string) => {
+  if (!userId) return;
+  
+  try {
+    const key = `${LIKED_POSTS_KEY}_${userId}`;
+    const likedIds = Array.from(likedPosts);
+    localStorage.setItem(key, JSON.stringify(likedIds));
+  } catch (error) {
+    console.warn('Failed to save liked posts to localStorage:', error);
+  }
+};
+
 export default function Feed() {
-  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [failedImages, setFailedImages] = useState(new Set<number>());
@@ -47,6 +78,26 @@ export default function Feed() {
   const { data: currentUser } = useQuery<{ id: string; email: string; role?: string }>({
     queryKey: ['/api/auth/me'],
   });
+
+  // 좋아요 상태 - localStorage에서 초기화
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(() => 
+    getLikedPostsFromStorage(currentUser?.id)
+  );
+
+  // 사용자가 로그인하면 localStorage에서 좋아요 상태 로드
+  useEffect(() => {
+    if (currentUser?.id) {
+      const storedLikes = getLikedPostsFromStorage(currentUser.id);
+      setLikedPosts(storedLikes);
+    }
+  }, [currentUser?.id]);
+
+  // 좋아요 상태가 변경될 때마다 localStorage에 저장
+  useEffect(() => {
+    if (currentUser?.id) {
+      saveLikedPostsToStorage(likedPosts, currentUser.id);
+    }
+  }, [likedPosts, currentUser?.id]);
 
   // 포스트 수가 많으면 자동으로 가상화 활성화
   const shouldUseVirtualization = posts.length > 50 || useVirtualization;
