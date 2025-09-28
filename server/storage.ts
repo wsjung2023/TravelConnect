@@ -23,6 +23,9 @@ import {
   purchaseOrders,
   helpRequests,
   requestResponses,
+  serviceTemplates,
+  servicePackages,
+  packageItems,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -66,6 +69,12 @@ import {
   type InsertHelpRequest,
   type RequestResponse,
   type InsertRequestResponse,
+  type ServiceTemplate,
+  type InsertServiceTemplate,
+  type ServicePackage,
+  type InsertServicePackage,
+  type PackageItem,
+  type InsertPackageItem,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like } from 'drizzle-orm';
@@ -250,6 +259,27 @@ export interface IStorage {
   createHelpResponse(response: InsertRequestResponse): Promise<RequestResponse>;
   getHelpResponsesByRequest(requestId: number): Promise<RequestResponse[]>;
   updateHelpResponseStatus(id: number, status: string): Promise<RequestResponse | undefined>;
+  
+  // ==================== 인플루언서 기능 Operations ====================
+  // Service Template operations
+  createServiceTemplate(template: InsertServiceTemplate): Promise<ServiceTemplate>;
+  getServiceTemplatesByCreator(creatorId: string): Promise<ServiceTemplate[]>;
+  getServiceTemplateById(id: number): Promise<ServiceTemplate | undefined>;
+  updateServiceTemplate(id: number, updates: Partial<InsertServiceTemplate>): Promise<ServiceTemplate | undefined>;
+  deleteServiceTemplate(id: number): Promise<boolean>;
+  getActiveServiceTemplates(templateType?: string): Promise<ServiceTemplate[]>;
+  
+  // Service Package operations
+  createServicePackage(packageData: InsertServicePackage): Promise<ServicePackage>;
+  getServicePackagesByCreator(creatorId: string): Promise<ServicePackage[]>;
+  getServicePackageById(id: number): Promise<ServicePackage | undefined>;
+  updateServicePackage(id: number, updates: Partial<InsertServicePackage>): Promise<ServicePackage | undefined>;
+  deleteServicePackage(id: number): Promise<boolean>;
+  
+  // Package Item operations
+  createPackageItem(item: InsertPackageItem): Promise<PackageItem>;
+  getPackageItemsByPackage(packageId: number): Promise<PackageItem[]>;
+  deletePackageItem(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1926,6 +1956,118 @@ export class DatabaseStorage implements IStorage {
       .where(eq(requestResponses.id, id))
       .returning();
     return updated;
+  }
+  
+  // ==================== 인플루언서 기능 Implementations ====================
+  
+  // Service Template operations
+  async createServiceTemplate(template: InsertServiceTemplate): Promise<ServiceTemplate> {
+    const [created] = await db.insert(serviceTemplates).values(template).returning();
+    return created;
+  }
+  
+  async getServiceTemplatesByCreator(creatorId: string): Promise<ServiceTemplate[]> {
+    return await db
+      .select()
+      .from(serviceTemplates)
+      .where(eq(serviceTemplates.creatorId, creatorId))
+      .orderBy(desc(serviceTemplates.createdAt));
+  }
+  
+  async getServiceTemplateById(id: number): Promise<ServiceTemplate | undefined> {
+    const [template] = await db
+      .select()
+      .from(serviceTemplates)
+      .where(eq(serviceTemplates.id, id));
+    return template;
+  }
+  
+  async updateServiceTemplate(id: number, updates: Partial<InsertServiceTemplate>): Promise<ServiceTemplate | undefined> {
+    const [updated] = await db
+      .update(serviceTemplates)
+      .set({ ...updates, updatedAt: sql`now()` })
+      .where(eq(serviceTemplates.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async deleteServiceTemplate(id: number): Promise<boolean> {
+    const result = await db
+      .delete(serviceTemplates)
+      .where(eq(serviceTemplates.id, id));
+    return result.rowCount > 0;
+  }
+  
+  async getActiveServiceTemplates(templateType?: string): Promise<ServiceTemplate[]> {
+    let query = db
+      .select()
+      .from(serviceTemplates)
+      .where(eq(serviceTemplates.isActive, true));
+    
+    if (templateType) {
+      query = query.where(eq(serviceTemplates.templateType, templateType));
+    }
+    
+    return await query.orderBy(desc(serviceTemplates.createdAt));
+  }
+  
+  // Service Package operations
+  async createServicePackage(packageData: InsertServicePackage): Promise<ServicePackage> {
+    const [created] = await db.insert(servicePackages).values(packageData).returning();
+    return created;
+  }
+  
+  async getServicePackagesByCreator(creatorId: string): Promise<ServicePackage[]> {
+    return await db
+      .select()
+      .from(servicePackages)
+      .where(eq(servicePackages.creatorId, creatorId))
+      .orderBy(desc(servicePackages.createdAt));
+  }
+  
+  async getServicePackageById(id: number): Promise<ServicePackage | undefined> {
+    const [pkg] = await db
+      .select()
+      .from(servicePackages)
+      .where(eq(servicePackages.id, id));
+    return pkg;
+  }
+  
+  async updateServicePackage(id: number, updates: Partial<InsertServicePackage>): Promise<ServicePackage | undefined> {
+    const [updated] = await db
+      .update(servicePackages)
+      .set({ ...updates, updatedAt: sql`now()` })
+      .where(eq(servicePackages.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async deleteServicePackage(id: number): Promise<boolean> {
+    const result = await db
+      .delete(servicePackages)
+      .where(eq(servicePackages.id, id));
+    return result.rowCount > 0;
+  }
+  
+  // Package Item operations
+  async createPackageItem(item: InsertPackageItem): Promise<PackageItem> {
+    const [created] = await db.insert(packageItems).values(item).returning();
+    return created;
+  }
+  
+  async getPackageItemsByPackage(packageId: number): Promise<PackageItem[]> {
+    return await db
+      .select()
+      .from(packageItems)
+      .where(eq(packageItems.packageId, packageId))
+      .orderBy(desc(packageItems.createdAt));
+  }
+  
+  async deletePackageItem(id: number): Promise<boolean> {
+    const result = await db
+      .delete(packageItems)
+      .where(eq(packageItems.id, id));
+    return result.rowCount > 0;
   }
 }
 
