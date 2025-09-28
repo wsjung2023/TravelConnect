@@ -580,29 +580,26 @@ export default function TimelinePage() {
               startDate: new Date(data.startDate),
             };
 
-            const response = await fetch('/api/timelines', {
+            const { api } = await import('@/lib/api');
+            const result = await api('/api/timelines', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(timelineData),
+              body: timelineData,
             });
 
-            if (response.ok) {
-              console.log('타임라인 생성 성공!');
-              setShowCreateModal(false);
+            console.log('타임라인 생성 성공!', result);
+            setShowCreateModal(false);
 
-              // 피드로 돌아가기 (임시저장된 피드 내용이 있다면 복원됨)
-              window.postMessage(
-                { type: 'timeline-created-return-to-feed' },
-                '*'
-              );
-            } else {
-              const error = await response.json();
-              console.error('타임라인 생성 실패:', error);
-              alert('타임라인 생성에 실패했습니다: ' + error.message);
-            }
+            // 타임라인 목록 새로고침
+            queryClient.invalidateQueries({ queryKey: ['/api/timelines'] });
+
+            // 피드로 돌아가기 (임시저장된 피드 내용이 있다면 복원됨)
+            window.postMessage(
+              { type: 'timeline-created-return-to-feed' },
+              '*'
+            );
           } catch (error) {
             console.error('타임라인 생성 오류:', error);
-            alert('타임라인 생성 중 오류가 발생했습니다.');
+            alert('타임라인 생성 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
           }
         }}
       />
