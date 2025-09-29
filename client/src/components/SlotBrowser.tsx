@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Slot } from '@shared/schema';
+import SlotBookingModal from './SlotBookingModal';
 
 export default function SlotBrowser() {
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
   // 슬롯 검색 API 호출 (기본 fetcher 사용)
   const { data: slots = [], isLoading, error } = useQuery<Slot[]>({
     queryKey: ['/api/slots/search?availableOnly=true&limit=20']
@@ -119,6 +124,10 @@ export default function SlotBrowser() {
                     <button 
                       className="w-full mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors disabled:bg-gray-300"
                       disabled={!slot.isAvailable || remainingSeats <= 0}
+                      onClick={() => {
+                        setSelectedSlot(slot);
+                        setIsBookingModalOpen(true);
+                      }}
                       data-testid={`button-book-${slot.id}`}
                     >
                       {!slot.isAvailable ? '예약불가' : 
