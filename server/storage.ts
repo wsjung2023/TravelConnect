@@ -26,6 +26,7 @@ import {
   serviceTemplates,
   servicePackages,
   packageItems,
+  slots,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -73,7 +74,6 @@ import {
   type InsertServiceTemplate,
   type ServicePackage,
   type InsertServicePackage,
-  slots,
   type Slot,
   type InsertSlot,
   type PackageItem,
@@ -315,6 +315,30 @@ export interface IStorage {
   // Bulk operations
   bulkCreateSlots(template: Omit<InsertSlot, 'date'>, dates: string[]): Promise<Slot[]>;
   getAvailableSlots(hostId: string, startDate: string, endDate: string): Promise<Slot[]>;
+  
+  // ==================== 예약 관리 Operations ====================
+  // Booking operations
+  createBooking(booking: InsertBooking): Promise<Booking>;
+  getBookingById(id: number): Promise<Booking | undefined>;
+  getBookingsByUser(userId: string, role: 'guest' | 'host'): Promise<Booking[]>;
+  getBookingsBySlot(slotId: number): Promise<Booking[]>;
+  updateBookingStatus(id: number, status: string, cancelReason?: string): Promise<Booking | undefined>;
+  
+  // Booking search and availability
+  searchBookings(filters: {
+    userId?: string;
+    role?: 'guest' | 'host';
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Booking[]>;
+  checkSlotAvailability(slotId: number, participants: number): Promise<{
+    available: boolean;
+    remainingCapacity: number;
+    conflicts?: string[];
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2264,6 +2288,195 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(slots.date);
+  }
+  
+  // ==================== 예약 관리 Operations ====================
+  // Booking operations
+  async createBooking(booking: InsertBooking): Promise<Booking> {
+    // 슬롯 정보 가져오기
+    const slot = await this.getSlotById(booking.slotId!);
+    if (!slot) {
+      throw new Error('슬롯을 찾을 수 없습니다');
+    }
+    
+    // 예약 가능성 확인
+    const availability = await this.checkSlotAvailability(booking.slotId!, booking.participants);
+    if (!availability.available) {
+      throw new Error('선택한 슬롯에 충분한 자리가 없습니다');
+    }
+    
+    // experienceId 설정 (슬롯에서 가져오기)
+    const bookingData = {
+      ...booking,
+      experienceId: slot.experienceId,
+      hostId: slot.hostId,
+      date: slot.date,
+      totalPrice: (parseFloat(slot.priceAmount) * booking.participants).toString()
+    };
+    
+    const [created] = await db.insert(bookings).values(bookingData).returning();
+    
+    // 슬롯의 currentBookings 업데이트
+    await db
+      .update(slots)
+      .set({ 
+        currentBookings: sql`${slots.currentBookings} + ${booking.participants}`,
+        updatedAt: sql`now()`
+      })
+      .where(eq(slots.id, booking.slotId!));
+    
+    return created;
+  }
+  
+  async getBookingById(id: number): Promise<Booking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id));
+    return booking;
+  }
+  
+  async getBookingsByUser(userId: string, role: 'guest' | 'host'): Promise<Booking[]> {
+    const column = role === 'guest' ? bookings.guestId : bookings.hostId;
+    return await db
+      .select()
+      .from(bookings)
+      .where(eq(column, userId))
+      .orderBy(desc(bookings.date));
+  }
+  
+  async getBookingsBySlot(slotId: number): Promise<Booking[]> {
+    return await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.slotId, slotId))
+      .orderBy(desc(bookings.createdAt));
+  }
+  
+  async updateBookingStatus(id: number, status: string, cancelReason?: string): Promise<Booking | undefined> {
+    const updates: Partial<InsertBooking> = {
+      status,
+      updatedAt: new Date()
+    };
+    
+    // 상태별 타임스탬프 설정
+    if (status === 'confirmed') {
+      updates.confirmedAt = new Date();
+    } else if (status === 'declined') {
+      updates.declinedAt = new Date();
+    } else if (status === 'cancelled') {
+      updates.cancelledAt = new Date();
+      if (cancelReason) {
+        updates.cancelReason = cancelReason;
+      }
+    } else if (status === 'completed') {
+      updates.completedAt = new Date();
+    }
+    
+    const [updated] = await db
+      .update(bookings)
+      .set(updates)
+      .where(eq(bookings.id, id))
+      .returning();
+      
+    // 취소된 경우 슬롯의 currentBookings 감소
+    if (status === 'cancelled' && updated) {
+      await db
+        .update(slots)
+        .set({ 
+          currentBookings: sql`${slots.currentBookings} - ${updated.participants}`,
+          updatedAt: sql`now()`
+        })
+        .where(eq(slots.id, updated.slotId!));
+    }
+    
+    return updated;
+  }
+  
+  // Booking search and availability
+  async searchBookings(filters: {
+    userId?: string;
+    role?: 'guest' | 'host';
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Booking[]> {
+    let query = db.select().from(bookings);
+    const conditions = [];
+    
+    if (filters.userId && filters.role) {
+      const column = filters.role === 'guest' ? bookings.guestId : bookings.hostId;
+      conditions.push(eq(column, filters.userId));
+    }
+    
+    if (filters.status) {
+      conditions.push(eq(bookings.status, filters.status));
+    }
+    
+    if (filters.startDate) {
+      conditions.push(sql`${bookings.date} >= ${filters.startDate}`);
+    }
+    
+    if (filters.endDate) {
+      conditions.push(sql`${bookings.date} <= ${filters.endDate}`);
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    query = query.orderBy(desc(bookings.date));
+    
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    if (filters.offset) {
+      query = query.offset(filters.offset);
+    }
+    
+    return await query;
+  }
+  
+  async checkSlotAvailability(slotId: number, participants: number): Promise<{
+    available: boolean;
+    remainingCapacity: number;
+    conflicts?: string[];
+  }> {
+    const slot = await this.getSlotById(slotId);
+    if (!slot) {
+      return {
+        available: false,
+        remainingCapacity: 0,
+        conflicts: ['슬롯을 찾을 수 없습니다']
+      };
+    }
+    
+    if (!slot.isAvailable) {
+      return {
+        available: false,
+        remainingCapacity: 0,
+        conflicts: ['슬롯이 비활성화되었습니다']
+      };
+    }
+    
+    const currentBookings = slot.currentBookings || 0;
+    const remainingCapacity = slot.maxParticipants - currentBookings;
+    
+    if (remainingCapacity < participants) {
+      return {
+        available: false,
+        remainingCapacity,
+        conflicts: [`요청한 참가자 수(${participants}명)가 남은 자리(${remainingCapacity}명)를 초과합니다`]
+      };
+    }
+    
+    return {
+      available: true,
+      remainingCapacity
+    };
   }
 }
 

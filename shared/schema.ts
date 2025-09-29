@@ -129,8 +129,9 @@ export const posts = pgTable('posts', {
 export const bookings = pgTable('bookings', {
   id: serial('id').primaryKey(),
   experienceId: integer('experience_id')
-    .notNull()
     .references(() => experiences.id),
+  slotId: integer('slot_id')
+    .references(() => slots.id),
   guestId: varchar('guest_id')
     .notNull()
     .references(() => users.id),
@@ -140,19 +141,29 @@ export const bookings = pgTable('bookings', {
   date: timestamp('date').notNull(),
   participants: integer('participants').notNull(),
   totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
-  status: varchar('status').default('pending'), // pending, confirmed, completed, cancelled
+  status: varchar('status').default('pending'), // pending, confirmed, completed, cancelled, declined
   specialRequests: text('special_requests'),
   // 커머스 확장 필드
-  // slotId: integer('slot_id').references(() => experienceSlots.id), // 주석처리 - DB에 컬럼 없음
   paymentStatus: varchar('payment_status').default('pending'), // pending, paid, failed, refunded
   expiresAt: timestamp('expires_at'), // 결제 대기 만료 시간
   cancelReason: text('cancel_reason'),
   cancelledAt: timestamp('cancelled_at'),
   confirmedAt: timestamp('confirmed_at'),
   completedAt: timestamp('completed_at'),
+  declinedAt: timestamp('declined_at'),
+  // 추가 필드
+  guestName: varchar('guest_name'), // 예약자 이름 (비회원 예약 지원)
+  guestEmail: varchar('guest_email'), // 예약자 이메일
+  guestPhone: varchar('guest_phone'), // 예약자 연락처
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  index('IDX_bookings_slot_id').on(table.slotId),
+  index('IDX_bookings_guest_id').on(table.guestId),
+  index('IDX_bookings_host_id').on(table.hostId),
+  index('IDX_bookings_status').on(table.status),
+  index('IDX_bookings_date').on(table.date),
+]);
 
 // 커머스 테이블들
 
@@ -888,18 +899,20 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
     fields: [bookings.experienceId],
     references: [experiences.id],
   }),
+  slot: one(slots, {
+    fields: [bookings.slotId],
+    references: [slots.id],
+  }),
   guest: one(users, {
     fields: [bookings.guestId],
     references: [users.id],
+    relationName: 'bookingGuest',
   }),
   host: one(users, {
     fields: [bookings.hostId],
     references: [users.id],
+    relationName: 'bookingHost',
   }),
-  // slot: one(experienceSlots, {
-  //   fields: [bookings.slotId],
-  //   references: [experienceSlots.id],
-  // }), // 주석처리 - slotId 필드가 DB에 없음
   payments: many(payments),
   reviews: many(reviews),
   channels: many(channels),
@@ -1281,7 +1294,7 @@ export const slotsRelations = relations(slots, ({ one, many }) => ({
     fields: [slots.experienceId],
     references: [experiences.id],
   }),
-  bookings: many(bookings), // 향후 bookings에 slotId 필드 추가 시 연결
+  bookings: many(bookings),
 }));
 
 // 슬롯 Zod 스키마

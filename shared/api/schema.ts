@@ -88,18 +88,46 @@ export const CreateEventSchema = z.object({
 
 export const UpdateEventSchema = CreateEventSchema.partial();
 
-// 예약 관련 스키마
+// 예약 관련 스키마 (슬롯 기반)
 export const CreateBookingSchema = z.object({
-  experienceId: z.number().int().positive('유효하지 않은 체험 ID입니다'),
+  slotId: z.number().int().positive('유효하지 않은 슬롯 ID입니다'),
   participants: z.number().int().min(1, '참가자 수는 최소 1명 이상이어야 합니다'),
-  bookingDate: z.string().datetime('유효하지 않은 날짜 형식입니다'),
-  notes: z.string().max(500, '메모는 500자 이하여야 합니다').optional(),
+  specialRequests: z.string().max(500, '특별 요청은 500자 이하여야 합니다').optional(),
+  
+  // 예약자 정보 (비회원 예약 지원)
+  guestName: z.string().min(1, '예약자 이름을 입력해주세요').max(50, '이름은 50자 이하여야 합니다').optional(),
+  guestEmail: z.string().email('올바른 이메일 주소를 입력해주세요').optional(),
+  guestPhone: z.string().max(20, '연락처는 20자 이하여야 합니다').optional(),
 });
 
 export const UpdateBookingStatusSchema = z.object({
-  status: z.enum(['pending', 'confirmed', 'cancelled', 'completed'], {
-    errorMap: () => ({ message: '유효하지 않은 예약 상태입니다' })
+  bookingId: z.number().int().positive('유효하지 않은 예약 ID입니다'),
+  status: z.enum(['confirmed', 'declined', 'cancelled', 'completed'], {
+    required_error: '예약 상태를 선택해주세요',
   }),
+  cancelReason: z.string().max(200, '취소 사유는 200자 이하여야 합니다').optional(),
+});
+
+// 예약 검색 스키마
+export const BookingSearchSchema = z.object({
+  // 기간 필터
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  
+  // 상태 필터
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'declined']).optional(),
+  
+  // 역할별 필터
+  role: z.enum(['guest', 'host']).optional(), // 요청자가 게스트인지 호스트인지
+  
+  // 페이지네이션
+  ...PaginationSchema.shape,
+});
+
+// 슬롯 예약 가능성 확인 스키마
+export const CheckSlotAvailabilitySchema = z.object({
+  slotId: z.number().int().positive('유효하지 않은 슬롯 ID입니다'),
+  participants: z.number().int().min(1, '최소 1명 이상이어야 합니다'),
 });
 
 // 파일 업로드 검증 스키마
@@ -312,3 +340,10 @@ export type UpdateSlotData = z.infer<typeof UpdateSlotSchema>;
 export type BulkCreateSlotsData = z.infer<typeof BulkCreateSlotsSchema>;
 export type SlotSearchData = z.infer<typeof SlotSearchSchema>;
 export type UpdateSlotAvailabilityData = z.infer<typeof UpdateSlotAvailabilitySchema>;
+
+// 예약 관련 타입 정의
+export type CreateBookingData = z.infer<typeof CreateBookingSchema>;
+export type UpdateBookingStatusData = z.infer<typeof UpdateBookingStatusSchema>;
+export type BookingSearchData = z.infer<typeof BookingSearchSchema>;
+export type CheckSlotAvailabilityData = z.infer<typeof CheckSlotAvailabilitySchema>;
+
