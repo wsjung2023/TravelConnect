@@ -61,7 +61,7 @@ export default function SlotBrowser() {
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
-  // 슬롯 검색
+  // 슬롯 검색 (실시간 가용성 업데이트)
   const { data: slots = [], isLoading, error } = useQuery<Slot[]>({
     queryKey: ['/api/slots/search', filters, searchKeyword],
     queryFn: () => {
@@ -81,6 +81,12 @@ export default function SlotBrowser() {
 
       return apiRequest(`/api/slots/search?${searchParams.toString()}`);
     },
+    // 실시간 가용성 업데이트를 위한 자동 새로고침 (30초마다)
+    refetchInterval: 30000,
+    // 포커스 시 자동 새로고침
+    refetchOnWindowFocus: true,
+    // 마운트 시 항상 최신 데이터 가져오기
+    refetchOnMount: 'always',
   });
 
   const handleFilterChange = (key: keyof SlotSearchFilters, value: any) => {

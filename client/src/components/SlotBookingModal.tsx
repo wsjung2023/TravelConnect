@@ -62,11 +62,17 @@ export default function SlotBookingModal({
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // 슬롯 가용성 확인
+  // 슬롯 가용성 확인 (실시간 업데이트)
   const { data: availability, isLoading: availabilityLoading } = useQuery<SlotAvailability>({
     queryKey: [`/api/slots/${slot.id}/availability`, participants],
     queryFn: () => apiRequest(`/api/slots/${slot.id}/availability?participants=${participants}`),
     enabled: isOpen && participants > 0,
+    // 실시간 가용성 체크 (15초마다)
+    refetchInterval: 15000,
+    // 포커스 시 즉시 체크
+    refetchOnWindowFocus: true,
+    // 수동 새로고침 가능
+    refetchIntervalInBackground: false,
   });
 
   // 예약 생성 mutation
@@ -82,8 +88,20 @@ export default function SlotBookingModal({
         title: '예약 요청 완료',
         description: '예약 요청이 전송되었습니다. 호스트의 승인을 기다려주세요.',
       });
+      
+      // 예약 관련 모든 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+      
+      // 해당 슬롯의 가용성 정보 무효화
       queryClient.invalidateQueries({ queryKey: [`/api/slots/${slot.id}/availability`] });
+      
+      // 슬롯 목록 및 검색 결과 무효화 (실시간 가용성 반영)
+      queryClient.invalidateQueries({ queryKey: ['/api/slots'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/slots/search'] });
+      
+      // 호스트의 슬롯 관리 캐시도 무효화
+      queryClient.invalidateQueries({ queryKey: ['/api/slots/host'] });
+      
       onClose();
       resetForm();
     },
