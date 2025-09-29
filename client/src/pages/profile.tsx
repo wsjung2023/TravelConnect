@@ -14,6 +14,7 @@ import HelpRequestForm from '@/components/HelpRequestForm';
 import HelpRequestList from '@/components/HelpRequestList';
 import ServiceTemplateList from '@/components/ServiceTemplateList';
 import ServicePackageList from '@/components/ServicePackageList';
+import { SlotManagement } from '@/components/SlotManagement';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -651,20 +652,7 @@ export default function Profile() {
 
         {(user?.userType === 'local_guide' || user?.isHost) && (
           <TabsContent value="slots" className="mt-4 px-4" data-testid="tab-content-slots">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">슬롯 관리</h3>
-                <Button size="sm" data-testid="button-create-slot">
-                  <Clock className="w-4 h-4 mr-2" />
-                  새 슬롯 생성
-                </Button>
-              </div>
-              <div className="text-center py-8 text-gray-500">
-                <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>슬롯 관리 기능을 준비 중입니다.</p>
-                <p className="text-sm mt-2">시간 슬롯을 생성하고 관리할 수 있습니다.</p>
-              </div>
-            </div>
+            <SlotManagement />
           </TabsContent>
         )}
       </Tabs>
