@@ -77,6 +77,8 @@ import {
   SlotSearchSchema,
   BulkCreateSlotsSchema,
   UpdateSlotAvailabilitySchema,
+  BookingSearchSchema,
+  CheckSlotAvailabilitySchema,
 } from '@shared/api/schema';
 
 // Rate Limit 설정
@@ -3297,6 +3299,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 슬롯 검색 (더 구체적인 라우트를 먼저 배치)
+  app.get('/api/slots/search', validateSchema(SlotSearchSchema), async (req, res) => {
+    try {
+      const filters = req.query as any;
+      const slots = await storage.searchSlots(filters);
+      res.json(slots);
+    } catch (error) {
+      console.error('Error searching slots:', error);
+      res.status(500).json({ message: 'Failed to search slots' });
+    }
+  });
+
   // 특정 슬롯 조회
   app.get('/api/slots/:id', async (req, res) => {
     try {
@@ -3387,17 +3401,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 슬롯 검색
-  app.get('/api/slots/search', validateSchema(SlotSearchSchema), async (req, res) => {
-    try {
-      const filters = req.query as any;
-      const slots = await storage.searchSlots(filters);
-      res.json(slots);
-    } catch (error) {
-      console.error('Error searching slots:', error);
-      res.status(500).json({ message: 'Failed to search slots' });
-    }
-  });
 
   // 벌크 슬롯 생성
   app.post('/api/slots/bulk-create', authenticateHybrid, validateSchema(BulkCreateSlotsSchema), async (req: AuthRequest, res) => {
@@ -3475,6 +3478,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching available slots:', error);
       res.status(500).json({ message: 'Failed to fetch available slots' });
+    }
+  });
+
+  // ==================== 예약 관리 API ====================
+  
+  // 새 예약 생성
+  app.post('/api/bookings', authenticateHybrid, validateSchema(CreateBookingSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const bookingData = {
+        ...req.body,
+        guestId: req.user.id
+      };
+
+      const booking = await storage.createBooking(bookingData);
+      res.status(201).json(booking);
+    } catch (error: any) {
+      console.error('Error creating booking:', error);
+      if (error.message.includes('슬롯을 찾을 수 없습니다') || error.message.includes('충분한 자리가 없습니다')) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: 'Failed to create booking' });
+    }
+  });
+
+  // 특정 예약 조회
+  app.get('/api/bookings/:id', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const bookingId = parseInt(req.params.id);
+      if (isNaN(bookingId)) {
+        return res.status(400).json({ message: 'Valid booking ID is required' });
+      }
+
+      const booking = await storage.getBookingById(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+
+      // 접근 권한 확인 (예약자 또는 호스트만)
+      if (booking.guestId !== req.user.id && booking.hostId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      res.json(booking);
+    } catch (error) {
+      console.error('Error fetching booking:', error);
+      res.status(500).json({ message: 'Failed to fetch booking' });
+    }
+  });
+
+  // 사용자 예약 목록 조회 (게스트 또는 호스트 역할별)
+  app.get('/api/bookings', authenticateHybrid, validateSchema(BookingSearchSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const filters = {
+        ...req.query,
+        userId: req.user.id
+      } as any;
+
+      const bookings = await storage.searchBookings(filters);
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error searching bookings:', error);
+      res.status(500).json({ message: 'Failed to search bookings' });
+    }
+  });
+
+  // 예약 상태 업데이트 (호스트 전용)
+  app.patch('/api/bookings/:id/status', authenticateHybrid, validateSchema(UpdateBookingStatusSchema), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const bookingId = parseInt(req.params.id);
+      if (isNaN(bookingId)) {
+        return res.status(400).json({ message: 'Valid booking ID is required' });
+      }
+
+      // 예약 존재 및 권한 확인
+      const existingBooking = await storage.getBookingById(bookingId);
+      if (!existingBooking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+
+      // 호스트만 상태 변경 가능 (게스트는 취소만 가능)
+      const { status, cancelReason } = req.body;
+      if (status === 'cancelled' && existingBooking.guestId === req.user.id) {
+        // 게스트가 취소하는 경우
+      } else if (existingBooking.hostId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - only host can update booking status' });
+      }
+
+      const updatedBooking = await storage.updateBookingStatus(bookingId, status, cancelReason);
+      res.json(updatedBooking);
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      res.status(500).json({ message: 'Failed to update booking status' });
+    }
+  });
+
+  // 슬롯 예약 가능성 확인
+  app.get('/api/slots/:id/availability', validateSchema(CheckSlotAvailabilitySchema), async (req, res) => {
+    try {
+      const slotId = parseInt(req.params.id);
+      if (isNaN(slotId)) {
+        return res.status(400).json({ message: 'Valid slot ID is required' });
+      }
+
+      const { participants } = req.query as any;
+      const participantCount = parseInt(participants) || 1;
+
+      const availability = await storage.checkSlotAvailability(slotId, participantCount);
+      res.json(availability);
+    } catch (error) {
+      console.error('Error checking slot availability:', error);
+      res.status(500).json({ message: 'Failed to check slot availability' });
+    }
+  });
+
+  // 특정 슬롯의 예약 목록 조회 (호스트 전용)
+  app.get('/api/slots/:id/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const slotId = parseInt(req.params.id);
+      if (isNaN(slotId)) {
+        return res.status(400).json({ message: 'Valid slot ID is required' });
+      }
+
+      // 슬롯 소유자 확인
+      const slot = await storage.getSlotById(slotId);
+      if (!slot) {
+        return res.status(404).json({ message: 'Slot not found' });
+      }
+
+      if (slot.hostId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not your slot' });
+      }
+
+      const bookings = await storage.getBookingsBySlot(slotId);
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error fetching slot bookings:', error);
+      res.status(500).json({ message: 'Failed to fetch slot bookings' });
     }
   });
 

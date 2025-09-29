@@ -15,6 +15,7 @@ import HelpRequestList from '@/components/HelpRequestList';
 import ServiceTemplateList from '@/components/ServiceTemplateList';
 import ServicePackageList from '@/components/ServicePackageList';
 import { SlotManagement } from '@/components/SlotManagement';
+import BookingList from '@/components/BookingList';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -483,6 +484,14 @@ export default function Profile() {
           <TabsTrigger value="bookings" className="text-xs">
             예약
           </TabsTrigger>
+          {(user?.userType === 'local_guide' || user?.isHost) && (
+            <TabsTrigger value="host-bookings" className="text-xs" data-testid="tab-host-bookings">
+              <div className="flex items-center space-x-1">
+                <Calendar className="w-3 h-3" />
+                <span>받은예약</span>
+              </div>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="help-requests" className="text-xs" data-testid="tab-help-requests">
             도움요청
           </TabsTrigger>
@@ -597,46 +606,16 @@ export default function Profile() {
           )}
         </TabsContent>
 
-        <TabsContent value="bookings" className="mt-4 px-4">
-          {bookings.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-3">📅</div>
-              <p className="text-gray-500 text-sm">예약한 체험이 없어요</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {bookings.map((booking: any) => (
-                <div key={booking.id} className="travel-card p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium">체험 제목</h3>
-                    <Badge
-                      className={
-                        booking.status === 'confirmed'
-                          ? 'bg-green-100 text-green-800'
-                          : booking.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                      }
-                    >
-                      {booking.status === 'confirmed'
-                        ? '확정'
-                        : booking.status === 'pending'
-                          ? '대기'
-                          : '취소'}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-gray-600 mb-2">
-                    {new Date(booking.date).toLocaleDateString('ko-KR')} ·{' '}
-                    {booking.participants}명
-                  </div>
-                  <div className="text-sm font-medium text-primary">
-                    ₩{Number(booking.totalPrice).toLocaleString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <TabsContent value="bookings" className="mt-4 px-4" data-testid="tab-content-bookings">
+          <BookingList role="guest" />
         </TabsContent>
+
+        {/* 호스트용 예약 관리 탭 */}
+        {(user?.userType === 'local_guide' || user?.isHost) && (
+          <TabsContent value="host-bookings" className="mt-4 px-4" data-testid="tab-content-host-bookings">
+            <BookingList role="host" />
+          </TabsContent>
+        )}
 
         <TabsContent value="help-requests" className="mt-4 px-4" data-testid="tab-content-help-requests">
           <HelpRequestList />
