@@ -3638,5 +3638,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 예약 시스템 자동화 작업 API (내부 시스템 전용 - 인증 필요)
+  app.post('/api/admin/process-expired-bookings', authenticateToken, async (req: any, res) => {
+    // 관리자 권한 확인
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    try {
+      const processedCount = await storage.processExpiredBookings();
+      res.json({ 
+        message: `Processed ${processedCount} expired bookings`,
+        processedCount 
+      });
+    } catch (error) {
+      console.error('Error processing expired bookings:', error);
+      res.status(500).json({ message: 'Failed to process expired bookings' });
+    }
+  });
+
+  app.post('/api/admin/process-completed-experiences', authenticateToken, async (req: any, res) => {
+    // 관리자 권한 확인
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    try {
+      const processedCount = await storage.processCompletedExperiences();
+      res.json({ 
+        message: `Processed ${processedCount} completed experiences`,
+        processedCount 
+      });
+    } catch (error) {
+      console.error('Error processing completed experiences:', error);
+      res.status(500).json({ message: 'Failed to process completed experiences' });
+    }
+  });
+
+  app.post('/api/admin/recalculate-slot-availability', authenticateToken, async (req: any, res) => {
+    // 관리자 권한 확인
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    try {
+      const { slotId } = req.body;
+      await storage.recalculateSlotAvailability(slotId);
+      res.json({ 
+        message: slotId 
+          ? `Recalculated availability for slot ${slotId}`
+          : 'Recalculated availability for all slots'
+      });
+    } catch (error) {
+      console.error('Error recalculating slot availability:', error);
+      res.status(500).json({ message: 'Failed to recalculate slot availability' });
+    }
+  });
+
   return httpServer;
 }

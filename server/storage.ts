@@ -120,7 +120,12 @@ export interface IStorage {
   getBookingById(id: number): Promise<Booking | undefined>;
   getBookingsByGuest(guestId: string): Promise<Booking[]>;
   getBookingsByHost(hostId: string): Promise<Booking[]>;
-  updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
+  updateBookingStatus(id: number, status: string, cancelReason?: string): Promise<Booking | undefined>;
+  
+  // 자동화 비즈니스 로직 메서드들
+  processExpiredBookings(): Promise<number>;
+  processCompletedExperiences(): Promise<number>;
+  recalculateSlotAvailability(slotId?: number): Promise<void>;
 
   // Chat operations
   getOrCreateConversation(
@@ -2354,6 +2359,12 @@ export class DatabaseStorage implements IStorage {
   }
   
   async updateBookingStatus(id: number, status: string, cancelReason?: string): Promise<Booking | undefined> {
+    // 기존 예약 정보 조회 (상태 변경 전 확인용)
+    const existingBooking = await this.getBookingById(id);
+    if (!existingBooking) {
+      throw new Error('Booking not found');
+    }
+
     const updates: Partial<InsertBooking> = {
       status,
       updatedAt: new Date()
@@ -2379,18 +2390,151 @@ export class DatabaseStorage implements IStorage {
       .where(eq(bookings.id, id))
       .returning();
       
-    // 취소된 경우 슬롯의 currentBookings 감소
-    if (status === 'cancelled' && updated) {
-      await db
-        .update(slots)
-        .set({ 
-          currentBookings: sql`${slots.currentBookings} - ${updated.participants}`,
-          updatedAt: sql`now()`
-        })
-        .where(eq(slots.id, updated.slotId!));
+    // 슬롯 가용성 업데이트 (비즈니스 로직)
+    if (updated && updated.slotId) {
+      const previousStatus = existingBooking.status;
+      
+      // 승인 시: currentBookings 증가
+      if (status === 'confirmed' && previousStatus === 'pending') {
+        await db
+          .update(slots)
+          .set({ 
+            currentBookings: sql`${slots.currentBookings} + ${updated.participants}`,
+            updatedAt: sql`now()`
+          })
+          .where(eq(slots.id, updated.slotId));
+      }
+      
+      // 취소/거절 시: currentBookings 감소 (이미 confirmed된 경우만)
+      else if ((status === 'cancelled' || status === 'declined') && previousStatus === 'confirmed') {
+        await db
+          .update(slots)
+          .set({ 
+            currentBookings: sql`${slots.currentBookings} - ${updated.participants}`,
+            updatedAt: sql`now()`
+          })
+          .where(eq(slots.id, updated.slotId));
+      }
+      
+      // pending에서 바로 취소/거절인 경우: currentBookings 변경 없음 (아직 반영되지 않았으므로)
     }
     
     return updated;
+  }
+
+  // 자동 결제 만료 처리 (비즈니스 로직)
+  async processExpiredBookings(): Promise<number> {
+    const now = new Date();
+    
+    // 만료된 pending 예약들 찾기
+    const expiredBookings = await db
+      .select()
+      .from(bookings)
+      .where(
+        and(
+          eq(bookings.status, 'pending'),
+          eq(bookings.paymentStatus, 'pending'),
+          sql`${bookings.expiresAt} < ${now}`
+        )
+      );
+
+    let processedCount = 0;
+    
+    // 만료된 예약들을 자동 취소
+    for (const booking of expiredBookings) {
+      try {
+        await this.updateBookingStatus(booking.id, 'cancelled', '결제 시간 만료로 인한 자동 취소');
+        
+        // 결제 상태도 업데이트
+        await db
+          .update(bookings)
+          .set({ 
+            paymentStatus: 'failed',
+            updatedAt: new Date()
+          })
+          .where(eq(bookings.id, booking.id));
+          
+        processedCount++;
+      } catch (error) {
+        console.error(`Failed to expire booking ${booking.id}:`, error);
+      }
+    }
+    
+    return processedCount;
+  }
+
+  // 체험 완료 후 자동 상태 업데이트 (비즈니스 로직)
+  async processCompletedExperiences(): Promise<number> {
+    const now = new Date();
+    
+    // 체험 시간이 지난 confirmed 예약들 찾기 (슬롯 정보와 조인)
+    const completableBookings = await db
+      .select({
+        booking: bookings,
+        slot: slots
+      })
+      .from(bookings)
+      .innerJoin(slots, eq(bookings.slotId, slots.id))
+      .where(
+        and(
+          eq(bookings.status, 'confirmed'),
+          sql`CONCAT(${slots.date}, ' ', ${slots.endTime})::timestamp < ${now}`
+        )
+      );
+
+    let processedCount = 0;
+    
+    // 완료된 체험들을 자동으로 completed 상태로 변경
+    for (const { booking } of completableBookings) {
+      try {
+        await this.updateBookingStatus(booking.id, 'completed');
+        processedCount++;
+      } catch (error) {
+        console.error(`Failed to complete booking ${booking.id}:`, error);
+      }
+    }
+    
+    return processedCount;
+  }
+
+  // 슬롯 가용성 재계산 (데이터 정합성 복구)
+  async recalculateSlotAvailability(slotId?: number): Promise<void> {
+    const condition = slotId ? eq(slots.id, slotId) : undefined;
+    
+    const slotsToUpdate = await db
+      .select()
+      .from(slots)
+      .where(condition);
+
+    for (const slot of slotsToUpdate) {
+      // confirmed 상태인 예약들의 총 인원 수 계산
+      const [result] = await db
+        .select({
+          totalBookings: sql`COALESCE(SUM(${bookings.participants}), 0)`
+        })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.slotId, slot.id),
+            eq(bookings.status, 'confirmed')
+          )
+        );
+
+      const actualBookings = parseInt(result.totalBookings as string) || 0;
+      
+      // 실제 계산된 값으로 업데이트
+      if (actualBookings !== slot.currentBookings) {
+        await db
+          .update(slots)
+          .set({ 
+            currentBookings: actualBookings,
+            updatedAt: new Date()
+          })
+          .where(eq(slots.id, slot.id));
+          
+        console.log(`Slot ${slot.id} booking count corrected: ${slot.currentBookings} → ${actualBookings}`);
+      }
+    }
   }
   
   // Booking search and availability

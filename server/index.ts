@@ -4,6 +4,96 @@ import rateLimit from 'express-rate-limit';
 import * as Sentry from '@sentry/node';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
+import { storage } from './storage';
+
+// 예약 시스템 자동화 스케줄러 (보안 강화 및 성능 개선)
+function startBookingScheduler(storageInstance: typeof storage) {
+  console.log('🔄 Starting booking system scheduler...');
+  
+  // 중복 실행 방지 플래그
+  let isProcessingExpired = false;
+  let isProcessingCompleted = false;
+  let isProcessingRecalculation = false;
+  
+  // 결제 만료 처리 - 5분마다 실행
+  setInterval(async () => {
+    if (isProcessingExpired) return;
+    isProcessingExpired = true;
+    
+    try {
+      console.log('⏰ Processing expired bookings...');
+      const processedCount = await storageInstance.processExpiredBookings();
+      if (processedCount > 0) {
+        console.log(`✅ Processed ${processedCount} expired bookings`);
+      }
+    } catch (error) {
+      console.error('❌ Error processing expired bookings:', error);
+    } finally {
+      isProcessingExpired = false;
+    }
+  }, 5 * 60 * 1000); // 5분
+
+  // 체험 완료 처리 - 1시간마다 실행
+  setInterval(async () => {
+    if (isProcessingCompleted) return;
+    isProcessingCompleted = true;
+    
+    try {
+      console.log('⏰ Processing completed experiences...');
+      const processedCount = await storageInstance.processCompletedExperiences();
+      if (processedCount > 0) {
+        console.log(`✅ Processed ${processedCount} completed experiences`);
+      }
+    } catch (error) {
+      console.error('❌ Error processing completed experiences:', error);
+    } finally {
+      isProcessingCompleted = false;
+    }
+  }, 60 * 60 * 1000); // 1시간
+
+  // 슬롯 가용성 재계산 - 매일 새벽 3시 (수정된 로직)
+  const scheduleDaily = () => {
+    const now = new Date();
+    const next3AM = new Date();
+    
+    // 오늘 새벽 3시
+    next3AM.setHours(3, 0, 0, 0);
+    
+    // 현재 시간이 새벽 3시를 지났다면 내일 새벽 3시로 설정
+    if (now >= next3AM) {
+      next3AM.setDate(next3AM.getDate() + 1);
+    }
+    
+    const timeUntil3AM = next3AM.getTime() - now.getTime();
+    console.log(`📅 Next slot availability recalculation scheduled at: ${next3AM.toISOString()}`);
+    
+    setTimeout(async () => {
+      const dailyRecalculation = async () => {
+        if (isProcessingRecalculation) return;
+        isProcessingRecalculation = true;
+        
+        try {
+          console.log('⏰ Daily recalculating slot availability...');
+          await storageInstance.recalculateSlotAvailability();
+          console.log('✅ Daily slot availability recalculated');
+        } catch (error) {
+          console.error('❌ Error in daily slot availability recalculation:', error);
+        } finally {
+          isProcessingRecalculation = false;
+        }
+      };
+      
+      // 첫 실행
+      await dailyRecalculation();
+      
+      // 24시간마다 반복
+      setInterval(dailyRecalculation, 24 * 60 * 60 * 1000);
+    }, timeUntil3AM);
+  };
+  
+  scheduleDaily();
+  console.log('✅ Booking system scheduler started successfully');
+}
 
 // 글로벌 변수 초기화 (로그아웃 추적용)
 global.loggedOutSessions = new Set<string>();
@@ -31,6 +121,9 @@ const app = express();
 
 // Security headers with helmet
 app.use(helmet({ contentSecurityPolicy: false }));
+
+// Trust proxy for Replit environment (fixes rate limiting warnings)
+app.set('trust proxy', true);
 
 // Rate limiting
 app.use('/api/', rateLimit({ windowMs: 60_000, max: 120 })); // 1분 120회
@@ -90,6 +183,9 @@ if (process.env.NODE_ENV === 'production') {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // 예약 시스템 자동화 스케줄러 시작
+  startBookingScheduler(storage);
 
   // Global error handler with Sentry integration
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

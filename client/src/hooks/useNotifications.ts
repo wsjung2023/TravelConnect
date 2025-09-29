@@ -58,20 +58,25 @@ export function useNotifications() {
     if (!user) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.hostname;
-    const port = '5000'; // 명시적으로 포트 설정
-    const wsUrl = `${protocol}//${host}:${port}/ws`;
+    const host = window.location.host; // hostname:port를 포함
+    const wsUrl = `${protocol}//${host}/ws`;
     
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
       console.log('WebSocket 연결됨');
-      // 사용자 인증
-      ws.send(JSON.stringify({
-        type: 'auth',
-        userId: user.id
-      }));
+      // JWT 토큰으로 인증 (useWebSocket과 동일한 방식)
+      const token = localStorage.getItem('token');
+      if (token) {
+        ws.send(JSON.stringify({
+          type: 'auth',
+          token: token
+        }));
+      } else {
+        console.error('JWT 토큰이 없어 WebSocket 인증 실패');
+        ws.close();
+      }
     };
 
     ws.onmessage = (event) => {
