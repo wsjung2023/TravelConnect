@@ -140,6 +140,18 @@ export default function SlotBrowser() {
           )}
         </div>
       )}
+
+      {/* 예약 모달 */}
+      {selectedSlot && (
+        <SlotBookingModal
+          slot={selectedSlot}
+          isOpen={isBookingModalOpen}
+          onClose={() => {
+            setIsBookingModalOpen(false);
+            setSelectedSlot(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -12,31 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-
-// Slot type (matching backend)
-interface Slot {
-  id: number;
-  hostId: string;
-  title: string;
-  description: string | null;
-  date: string;
-  startTime: string;
-  endTime: string;
-  timezone: string;
-  location: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  category: string;
-  serviceType: string;
-  maxParticipants: number;
-  currentBookings: number;
-  basePrice: string;
-  currency: string;
-  isAvailable: boolean;
-  cancellationPolicy: string | null;
-  createdAt: string;
-  updatedAt: string | null;
-}
+import type { Slot } from '@shared/schema';
 
 interface SlotAvailability {
   available: boolean;
@@ -65,7 +41,6 @@ export default function SlotBookingModal({
   // 슬롯 가용성 확인 (실시간 업데이트)
   const { data: availability, isLoading: availabilityLoading } = useQuery<SlotAvailability>({
     queryKey: [`/api/slots/${slot.id}/availability`, participants],
-    queryFn: () => apiRequest(`/api/slots/${slot.id}/availability?participants=${participants}`),
     enabled: isOpen && participants > 0,
     // 실시간 가용성 체크 (15초마다)
     refetchInterval: 15000,
@@ -153,9 +128,10 @@ export default function SlotBookingModal({
   };
 
   const totalPrice = parseFloat(slot.basePrice) * participants;
-  const slotDateTime = new Date(`${slot.date}T${slot.startTime}`);
+  const slotDateTime = new Date(`${slot.date}T${slot.startTime || '00:00'}`);
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | null) => {
+    if (!category) return 'bg-gray-100 text-gray-700';
     const colors = {
       tour: 'bg-blue-100 text-blue-700',
       food: 'bg-orange-100 text-orange-700',
@@ -166,7 +142,8 @@ export default function SlotBookingModal({
     return colors[category as keyof typeof colors] || colors.custom;
   };
 
-  const getCategoryLabel = (category: string) => {
+  const getCategoryLabel = (category: string | null) => {
+    if (!category) return '기타';
     const labels = {
       tour: '투어',
       food: '음식',
@@ -273,7 +250,7 @@ export default function SlotBookingModal({
               <Input
                 type="number"
                 min={1}
-                max={slot.maxParticipants}
+                max={slot.maxParticipants || undefined}
                 value={participants}
                 onChange={(e) => setParticipants(Math.max(1, parseInt(e.target.value) || 1))}
                 data-testid="input-participants"
