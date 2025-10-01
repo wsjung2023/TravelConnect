@@ -626,6 +626,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: user.role,
         isHost: user.isHost || false,
         profileImage: user.profileImageUrl || null,
+        userType: user.userType || 'traveler',
+        onboardingCompleted: user.onboardingCompleted || false,
+        interests: user.interests || [],
+        languages: user.languages || [],
+        timezone: user.timezone || 'Asia/Seoul',
       });
     } catch (error) {
       console.error('사용자 정보 조회 오류:', error);
@@ -875,22 +880,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { userType, interests, languages, timezone } = req.validatedData as {
-        userType: 'traveler' | 'influencer' | 'host';
+        userType?: 'traveler' | 'influencer' | 'host';
         interests: string[];
         languages: string[];
         timezone: string;
       };
 
+      // userType이 없으면 기본값 'traveler' 사용
+      const finalUserType = userType || 'traveler';
+
       // 사용자 정보 업데이트
       const updatedUser = await storage.updateUser(req.user.id, {
-        userType,
+        userType: finalUserType,
         interests,
         languages,
         timezone,
         onboardingCompleted: true
       });
 
-      console.log(`[ONBOARDING] 사용자 ${req.user.email} 온보딩 완료: ${userType}`);
+      console.log(`[ONBOARDING] 사용자 ${req.user.email} 온보딩 완료: ${finalUserType}`);
       
       res.json({
         message: '온보딩이 완료되었습니다',

@@ -20,10 +20,10 @@ export const RegisterSchema = z.object({
 });
 
 export const OnboardingSchema = z.object({
-  userType: z.enum(['traveler', 'influencer', 'host']),
+  userType: z.enum(['traveler', 'influencer', 'host']).optional(),
   interests: z.array(z.string()).default([]),
-  languages: z.array(z.string()).min(1, '최소 하나의 언어를 선택해주세요'),
-  timezone: z.string().min(1, '타임존을 선택해주세요'),
+  languages: z.array(z.string()).default(['ko']),
+  timezone: z.string().default('Asia/Seoul'),
 });
 
 // 포스트 관련 스키마

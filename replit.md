@@ -8,6 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Onboarding Simplification (October 1, 2025)
+- **Simplified Onboarding Flow**: Removed userType selection step - all users start as 'traveler' by default
+- **Action-based Role System**: Users automatically become providers when creating services/slots
+- **Skippable Onboarding**: Added skip button for quick access - onboarding can be completed later
+- **Optional Profile Setup**: Interest and language selection made optional with sensible defaults
+- **API Enhancement**: /api/auth/me now returns onboardingCompleted, userType, interests, languages, and timezone fields
+
 ### Phase B - Code Quality Improvements (September 21, 2025)
 - **Thread Real-time Updates**: Implemented WebSocket-based real-time synchronization for threaded comments with optimistic UI updates
 - **Responsive Enhancement**: Added useMediaQuery hook for real-time window resize detection and responsive behavior
