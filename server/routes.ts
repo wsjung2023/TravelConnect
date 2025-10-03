@@ -1845,27 +1845,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 활성화된 패키지만 조회 (공개 필드만)
       const packages = await storage.getServicePackagesByCreator(user.id);
-      const activePackages = packages
-        .filter((pkg: any) => pkg.isActive && pkg.creatorId === user.id)
-        .map((pkg: any) => ({
-          id: pkg.id,
-          name: pkg.name,
-          description: pkg.description,
-          totalPrice: pkg.totalPrice,
-          discountPercentage: pkg.discountPercentage,
-          isActive: pkg.isActive,
-          packageItems: pkg.packageItems?.map(item => ({
-            templateId: item.templateId,
-            quantity: item.quantity,
-            template: {
-              id: item.template.id,
-              title: item.template.title,
-              price: item.template.price,
-              duration: item.template.duration,
-              category: item.template.category,
-            }
-          })) || [],
-        }));
+      const activePackagesData = packages.filter((pkg: any) => pkg.isActive && pkg.creatorId === user.id);
+      
+      const activePackages = await Promise.all(
+        activePackagesData.map(async (pkg: any) => {
+          const items = await storage.getPackageItemsByPackage(pkg.id);
+          const itemsWithTemplates = await Promise.all(
+            items.map(async (item: any) => {
+              if (item.itemType === 'template') {
+                const template = await storage.getServiceTemplateById(item.itemId);
+                return {
+                  templateId: item.itemId,
+                  quantity: item.quantity,
+                  template: template ? {
+                    id: template.id,
+                    title: template.title,
+                    price: template.price,
+                    duration: template.duration,
+                    category: template.category,
+                  } : null,
+                };
+              }
+              return null;
+            })
+          );
+          return {
+            id: pkg.id,
+            name: pkg.name,
+            description: pkg.description,
+            totalPrice: pkg.totalPrice,
+            discountPercentage: pkg.discountPercentage,
+            isActive: pkg.isActive,
+            packageItems: itemsWithTemplates.filter(item => item !== null),
+          };
+        })
+      );
       
       console.log(`[GET /api/packages/portfolio/${publicProfileUrl}] 성공: ${activePackages.length}개 패키지`);
       res.json(activePackages);

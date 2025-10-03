@@ -158,5 +158,57 @@
     "all": "すべて",
     "channels": "チャンネル",
     "dm": "DM"
+  },
+  "helpRequest": {
+    "form": {
+      "title": "ヘルプをリクエスト",
+      "category": "カテゴリー",
+      "requestTitle": "タイトル",
+      "titlePlaceholder": "どのようなヘルプが必要ですか？",
+      "description": "詳細説明",
+      "descriptionPlaceholder": "具体的にどのようなヘルプが必要か説明してください",
+      "location": "場所",
+      "locationPlaceholder": "どこでヘルプが必要ですか？",
+      "budget": "予算",
+      "showBudget": "予算を設定",
+      "hideBudget": "予算を隠す",
+      "minBudget": "最小予算",
+      "maxBudget": "最大予算",
+      "urgency": "緊急度",
+      "deadline": "締め切り",
+      "tags": "タグ",
+      "tagsPlaceholder": "タグを追加...",
+      "addTag": "追加",
+      "creating": "リクエスト作成中...",
+      "createRequest": "ヘルプリクエストを作成"
+    },
+    "categories": {
+      "localTip": "現地情報",
+      "localTipDesc": "現地の人だけが知っている情報が必要です",
+      "customPlanning": "カスタムプランニング",
+      "customPlanningDesc": "自分だけの旅行プランを作りたいです",
+      "urgentHelp": "緊急ヘルプ",
+      "urgentHelpDesc": "今すぐヘルプが必要です",
+      "productPurchase": "商品購入",
+      "productPurchaseDesc": "現地で購入したい商品があります"
+    },
+    "urgency": {
+      "flexible": "余裕あり",
+      "normal": "普通",
+      "urgent": "緊急"
+    },
+    "validation": {
+      "titleRequired": "タイトルを入力してください",
+      "descriptionRequired": "説明を入力してください",
+      "invalidBudgetRange": "最大予算は最小予算より大きくする必要があります"
+    },
+    "created": {
+      "title": "ヘルプリクエスト作成完了",
+      "description": "ヘルプリクエストが正常に作成されました"
+    },
+    "error": {
+      "title": "リクエスト作成失敗",
+      "description": "ヘルプリクエストの作成中にエラーが発生しました"
+    }
   }
 }

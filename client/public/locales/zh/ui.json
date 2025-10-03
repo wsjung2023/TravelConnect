@@ -158,5 +158,57 @@
     "all": "全部",
     "channels": "频道",
     "dm": "私信"
+  },
+  "helpRequest": {
+    "form": {
+      "title": "请求帮助",
+      "category": "类别",
+      "requestTitle": "标题",
+      "titlePlaceholder": "您需要什么帮助？",
+      "description": "详细说明",
+      "descriptionPlaceholder": "请具体描述您需要什么样的帮助",
+      "location": "位置",
+      "locationPlaceholder": "您在哪里需要帮助？",
+      "budget": "预算",
+      "showBudget": "设置预算",
+      "hideBudget": "隐藏预算",
+      "minBudget": "最低预算",
+      "maxBudget": "最高预算",
+      "urgency": "紧急程度",
+      "deadline": "截止日期",
+      "tags": "标签",
+      "tagsPlaceholder": "添加标签...",
+      "addTag": "添加",
+      "creating": "正在创建请求...",
+      "createRequest": "创建帮助请求"
+    },
+    "categories": {
+      "localTip": "当地信息",
+      "localTipDesc": "我需要只有当地人知道的信息",
+      "customPlanning": "定制规划",
+      "customPlanningDesc": "我想制定自己的旅行计划",
+      "urgentHelp": "紧急帮助",
+      "urgentHelpDesc": "我现在就需要帮助",
+      "productPurchase": "产品购买",
+      "productPurchaseDesc": "我想在当地购买产品"
+    },
+    "urgency": {
+      "flexible": "宽裕",
+      "normal": "普通",
+      "urgent": "紧急"
+    },
+    "validation": {
+      "titleRequired": "请输入标题",
+      "descriptionRequired": "请输入说明",
+      "invalidBudgetRange": "最高预算必须大于最低预算"
+    },
+    "created": {
+      "title": "帮助请求创建完成",
+      "description": "您的帮助请求已成功创建"
+    },
+    "error": {
+      "title": "请求创建失败",
+      "description": "创建帮助请求时发生错误"
+    }
   }
 }

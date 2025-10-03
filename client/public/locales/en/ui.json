@@ -171,5 +171,57 @@
     "all": "All",
     "channels": "Channels",
     "dm": "DMs"
+  },
+  "helpRequest": {
+    "form": {
+      "title": "Request Help",
+      "category": "Category",
+      "requestTitle": "Title",
+      "titlePlaceholder": "What help do you need?",
+      "description": "Detailed Description",
+      "descriptionPlaceholder": "Please describe specifically what kind of help you need",
+      "location": "Location",
+      "locationPlaceholder": "Where do you need help?",
+      "budget": "Budget",
+      "showBudget": "Set Budget",
+      "hideBudget": "Hide Budget",
+      "minBudget": "Minimum Budget",
+      "maxBudget": "Maximum Budget",
+      "urgency": "Urgency",
+      "deadline": "Deadline",
+      "tags": "Tags",
+      "tagsPlaceholder": "Add tags...",
+      "addTag": "Add",
+      "creating": "Creating request...",
+      "createRequest": "Create Help Request"
+    },
+    "categories": {
+      "localTip": "Local Tips",
+      "localTipDesc": "I need information only locals know",
+      "customPlanning": "Custom Planning",
+      "customPlanningDesc": "I want to create my own travel plan",
+      "urgentHelp": "Urgent Help",
+      "urgentHelpDesc": "I need help right now",
+      "productPurchase": "Product Purchase",
+      "productPurchaseDesc": "I want to buy products locally"
+    },
+    "urgency": {
+      "flexible": "Flexible",
+      "normal": "Normal",
+      "urgent": "Urgent"
+    },
+    "validation": {
+      "titleRequired": "Please enter a title",
+      "descriptionRequired": "Please enter a description",
+      "invalidBudgetRange": "Maximum budget must be greater than minimum budget"
+    },
+    "created": {
+      "title": "Help Request Created",
+      "description": "Your help request has been created successfully"
+    },
+    "error": {
+      "title": "Request Creation Failed",
+      "description": "An error occurred while creating your help request"
+    }
   }
 }

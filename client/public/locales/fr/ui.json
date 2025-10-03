@@ -171,5 +171,57 @@
     "all": "Tout",
     "channels": "Chaînes",
     "dm": "DM"
+  },
+  "helpRequest": {
+    "form": {
+      "title": "Demander de l'aide",
+      "category": "Catégorie",
+      "requestTitle": "Titre",
+      "titlePlaceholder": "De quelle aide avez-vous besoin?",
+      "description": "Description détaillée",
+      "descriptionPlaceholder": "Veuillez décrire précisément l'aide dont vous avez besoin",
+      "location": "Lieu",
+      "locationPlaceholder": "Où avez-vous besoin d'aide?",
+      "budget": "Budget",
+      "showBudget": "Définir le budget",
+      "hideBudget": "Masquer le budget",
+      "minBudget": "Budget minimum",
+      "maxBudget": "Budget maximum",
+      "urgency": "Urgence",
+      "deadline": "Date limite",
+      "tags": "Tags",
+      "tagsPlaceholder": "Ajouter des tags...",
+      "addTag": "Ajouter",
+      "creating": "Création de la demande...",
+      "createRequest": "Créer une demande d'aide"
+    },
+    "categories": {
+      "localTip": "Conseils locaux",
+      "localTipDesc": "J'ai besoin d'informations que seuls les locaux connaissent",
+      "customPlanning": "Planification personnalisée",
+      "customPlanningDesc": "Je veux créer mon propre plan de voyage",
+      "urgentHelp": "Aide urgente",
+      "urgentHelpDesc": "J'ai besoin d'aide immédiatement",
+      "productPurchase": "Achat de produit",
+      "productPurchaseDesc": "Je veux acheter des produits sur place"
+    },
+    "urgency": {
+      "flexible": "Flexible",
+      "normal": "Normal",
+      "urgent": "Urgent"
+    },
+    "validation": {
+      "titleRequired": "Veuillez saisir un titre",
+      "descriptionRequired": "Veuillez saisir une description",
+      "invalidBudgetRange": "Le budget maximum doit être supérieur au budget minimum"
+    },
+    "created": {
+      "title": "Demande d'aide créée",
+      "description": "Votre demande d'aide a été créée avec succès"
+    },
+    "error": {
+      "title": "Échec de la création de la demande",
+      "description": "Une erreur s'est produite lors de la création de votre demande d'aide"
+    }
   }
 }

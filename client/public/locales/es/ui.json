@@ -158,5 +158,57 @@
       "completedPayments": "Pagos completados",
       "failedPaymentCount": "Pagos fallidos"
     }
+  },
+  "helpRequest": {
+    "form": {
+      "title": "Solicitar ayuda",
+      "category": "Categoría",
+      "requestTitle": "Título",
+      "titlePlaceholder": "¿Qué ayuda necesitas?",
+      "description": "Descripción detallada",
+      "descriptionPlaceholder": "Por favor describe específicamente qué tipo de ayuda necesitas",
+      "location": "Ubicación",
+      "locationPlaceholder": "¿Dónde necesitas ayuda?",
+      "budget": "Presupuesto",
+      "showBudget": "Establecer presupuesto",
+      "hideBudget": "Ocultar presupuesto",
+      "minBudget": "Presupuesto mínimo",
+      "maxBudget": "Presupuesto máximo",
+      "urgency": "Urgencia",
+      "deadline": "Fecha límite",
+      "tags": "Etiquetas",
+      "tagsPlaceholder": "Añadir etiquetas...",
+      "addTag": "Añadir",
+      "creating": "Creando solicitud...",
+      "createRequest": "Crear solicitud de ayuda"
+    },
+    "categories": {
+      "localTip": "Consejos locales",
+      "localTipDesc": "Necesito información que solo los locales conocen",
+      "customPlanning": "Planificación personalizada",
+      "customPlanningDesc": "Quiero crear mi propio plan de viaje",
+      "urgentHelp": "Ayuda urgente",
+      "urgentHelpDesc": "Necesito ayuda ahora mismo",
+      "productPurchase": "Compra de producto",
+      "productPurchaseDesc": "Quiero comprar productos localmente"
+    },
+    "urgency": {
+      "flexible": "Flexible",
+      "normal": "Normal",
+      "urgent": "Urgente"
+    },
+    "validation": {
+      "titleRequired": "Por favor ingresa un título",
+      "descriptionRequired": "Por favor ingresa una descripción",
+      "invalidBudgetRange": "El presupuesto máximo debe ser mayor que el presupuesto mínimo"
+    },
+    "created": {
+      "title": "Solicitud de ayuda creada",
+      "description": "Tu solicitud de ayuda ha sido creada exitosamente"
+    },
+    "error": {
+      "title": "Fallo al crear la solicitud",
+      "description": "Ocurrió un error al crear tu solicitud de ayuda"
+    }
   }
 }
