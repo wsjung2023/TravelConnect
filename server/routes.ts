@@ -1196,6 +1196,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // 프로필 이미지 업로드 전용 엔드포인트
+  app.post(
+    '/api/upload/image',
+    authenticateToken,
+    uploadLimiter,
+    (req, res, next) => {
+      upload.single('image')(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+              message: '파일 크기가 15MB를 초과합니다.',
+              code: 'FILE_TOO_LARGE'
+            });
+          }
+          return res.status(400).json({ 
+            message: '파일 업로드 오류: ' + err.message,
+            code: 'UPLOAD_ERROR'
+          });
+        }
+        if (err) {
+          return res.status(400).json({ 
+            message: err.message,
+            code: 'INVALID_FILE_TYPE'
+          });
+        }
+        next();
+      });
+    },
+    async (req: any, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ 
+            message: '업로드된 이미지가 없습니다.',
+            code: 'NO_FILE'
+          });
+        }
+
+        const imageUrl = `/api/files/${req.file.filename}`;
+        
+        console.log('[Upload Image] 이미지 업로드 성공:', {
+          filename: req.file.filename,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          url: imageUrl
+        });
+
+        res.json({ 
+          success: true,
+          imageUrl: imageUrl,
+          filename: req.file.filename
+        });
+      } catch (error) {
+        console.error('[Upload Image] 이미지 업로드 오류:', error);
+        res.status(500).json({ 
+          message: '이미지 업로드에 실패했습니다.',
+          code: 'INTERNAL_ERROR'
+        });
+      }
+    }
+  );
+
   // Like/Unlike post
   app.post('/api/posts/:id/like', authenticateToken, async (req: any, res) => {
     try {
