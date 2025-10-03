@@ -1643,31 +1643,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         languages 
       } = req.body;
 
-      const existingUser = await storage.getUser(userId);
-      if (existingUser) {
-        const updateData: any = {
-          id: userId,
-          email: existingUser.email || 'unknown@example.com',
-        };
+      console.log(`[PATCH /api/user/profile] User ${userId} updating profile with:`, {
+        firstName,
+        lastName,
+        bio: bio?.substring(0, 50),
+        location,
+        isHost,
+        profileImageUrl: profileImageUrl?.substring(0, 50),
+        interests,
+        languages,
+      });
 
-        // 값이 제공된 필드만 업데이트
-        if (firstName !== undefined) updateData.firstName = firstName;
-        if (lastName !== undefined) updateData.lastName = lastName;
-        if (bio !== undefined) updateData.bio = bio;
-        if (location !== undefined) updateData.location = location;
-        if (isHost !== undefined) updateData.isHost = isHost;
-        if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
-        if (interests !== undefined) updateData.interests = interests;
-        if (languages !== undefined) updateData.languages = languages;
-
-        const user = await storage.upsertUser(updateData);
-        res.json(user);
-      } else {
-        res.status(404).json({ message: 'User not found' });
+      // 배열 필드 검증
+      if (interests && !Array.isArray(interests)) {
+        console.error(`[PATCH /api/user/profile] Invalid interests format:`, interests);
+        return res.status(400).json({ message: 'Interests must be an array' });
       }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      res.status(500).json({ message: 'Failed to update profile' });
+      
+      if (languages && !Array.isArray(languages)) {
+        console.error(`[PATCH /api/user/profile] Invalid languages format:`, languages);
+        return res.status(400).json({ message: 'Languages must be an array' });
+      }
+
+      // bio 길이 검증
+      if (bio && bio.length > 500) {
+        console.error(`[PATCH /api/user/profile] Bio too long:`, bio.length);
+        return res.status(400).json({ message: 'Bio must be 500 characters or less' });
+      }
+
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        console.error(`[PATCH /api/user/profile] User ${userId} not found`);
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const updateData: any = {
+        id: userId,
+        email: existingUser.email || 'unknown@example.com',
+      };
+
+      // 값이 제공된 필드만 업데이트
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (bio !== undefined) updateData.bio = bio;
+      if (location !== undefined) updateData.location = location;
+      if (isHost !== undefined) updateData.isHost = isHost;
+      if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
+      if (interests !== undefined) updateData.interests = interests;
+      if (languages !== undefined) updateData.languages = languages;
+
+      console.log(`[PATCH /api/user/profile] Updating user ${userId} with:`, updateData);
+
+      const user = await storage.upsertUser(updateData);
+      
+      console.log(`[PATCH /api/user/profile] Successfully updated user ${userId}`);
+      res.json(user);
+    } catch (error: any) {
+      console.error('[PATCH /api/user/profile] Error updating profile:', {
+        error: error.message,
+        stack: error.stack,
+        userId: req.user?.id,
+        body: req.body,
+      });
+      
+      res.status(500).json({ 
+        message: 'Failed to update profile',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      });
     }
   });
 
