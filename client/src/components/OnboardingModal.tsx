@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Star, Languages, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { apiRequest } from '@/lib/queryClient';
+import { INTEREST_OPTIONS, LANGUAGE_OPTIONS } from '@shared/constants';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -18,20 +19,6 @@ interface OnboardingData {
   languages: string[];
   timezone: string;
 }
-
-const INTEREST_OPTIONS = [
-  'food', 'shopping', 'culture', 'nightlife', 'nature', 'adventure',
-  'photography', 'history', 'art', 'music', 'sports', 'wellness'
-];
-
-const LANGUAGE_OPTIONS = [
-  { code: 'ko', name: '한국어' },
-  { code: 'en', name: 'English' },
-  { code: 'ja', name: '日本語' },
-  { code: 'zh', name: '中文' },
-  { code: 'fr', name: 'Français' },
-  { code: 'es', name: 'Español' }
-];
 
 export function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModalProps) {
   const { t } = useTranslation(['ui', 'common']);
