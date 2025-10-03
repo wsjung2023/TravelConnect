@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Profile Edit Enhancement (October 3, 2025)
+- **Complete ProfileEditModal Redesign**: Rebuilt with proper UI controls and comprehensive i18n support
+- **Multi-Select Components**: Implemented reusable MultiSelect for languages (en, ko, ja, zh, fr, es) and interests (12 predefined options)
+- **Google Places Integration**: Added LocationSearchInput with autocomplete and current location detection
+- **Enhanced Server Validation**: Improved /api/user/profile endpoint with detailed logging and array field validation
+- **Shared Constants**: Extracted INTEREST_OPTIONS and LANGUAGE_OPTIONS to shared/constants.ts for reusability
+- **Full Internationalization**: All profile edit labels, placeholders, and buttons translated to 6 languages
+
 ### Onboarding Simplification (October 1, 2025)
 - **Simplified Onboarding Flow**: Removed userType selection step - all users start as 'traveler' by default
 - **Action-based Role System**: Users automatically become providers when creating services/slots
