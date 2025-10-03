@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Upload, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -22,17 +23,20 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
+import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
+import { INTEREST_OPTIONS, LANGUAGE_OPTIONS } from '@shared/constants';
 import type { User } from '@shared/schema';
 
 const profileEditSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  bio: z.string().max(500, '자기소개는 500자 이내로 작성해주세요').optional(),
+  bio: z.string().max(500).optional(),
   location: z.string().optional(),
-  interests: z.string().optional(), // 쉼표로 구분된 문자열
-  languages: z.string().optional(), // 쉼표로 구분된 문자열
+  interests: z.array(z.string()).optional(),
+  languages: z.array(z.string()).optional(),
 });
 
 type ProfileEditFormData = z.infer<typeof profileEditSchema>;
@@ -48,6 +52,7 @@ export default function ProfileEditModal({
   onOpenChange,
   user,
 }: ProfileEditModalProps) {
+  const { t } = useTranslation(['ui', 'common']);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -61,8 +66,8 @@ export default function ProfileEditModal({
       lastName: user.lastName || '',
       bio: user.bio || '',
       location: user.location || '',
-      interests: user.interests?.join(', ') || '',
-      languages: user.languages?.join(', ') || '',
+      interests: user.interests || [],
+      languages: user.languages || [],
     },
   });
 
@@ -74,10 +79,9 @@ export default function ProfileEditModal({
         lastName: user.lastName || '',
         bio: user.bio || '',
         location: user.location || '',
-        interests: user.interests?.join(', ') || '',
-        languages: user.languages?.join(', ') || '',
+        interests: user.interests || [],
+        languages: user.languages || [],
       });
-      // 이미지 프리뷰도 초기화
       setImageFile(null);
       setImagePreview(null);
     }
@@ -88,8 +92,8 @@ export default function ProfileEditModal({
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         toast({
-          title: '파일 크기 초과',
-          description: '이미지는 5MB 이하로 업로드해주세요.',
+          title: t('ui:profileEdit.fileSizeError'),
+          description: t('ui:profileEdit.fileSizeErrorDesc'),
           variant: 'destructive',
         });
         return;
@@ -114,56 +118,70 @@ export default function ProfileEditModal({
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        const uploadRes = await fetch('/api/upload/image', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        try {
+          const uploadRes = await fetch('/api/upload/image', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          });
 
-        if (!uploadRes.ok) {
-          throw new Error('이미지 업로드 실패');
+          if (!uploadRes.ok) {
+            const errorText = await uploadRes.text();
+            console.error('Image upload failed:', errorText);
+            throw new Error(t('ui:profileEdit.imageUploadError'));
+          }
+
+          const uploadData = await uploadRes.json();
+          profileImageUrl = uploadData.imageUrl;
+        } catch (error) {
+          console.error('Image upload error:', error);
+          throw error;
+        } finally {
+          setIsUploadingImage(false);
         }
-
-        const uploadData = await uploadRes.json();
-        profileImageUrl = uploadData.imageUrl;
-        setIsUploadingImage(false);
       }
 
       // 프로필 정보 업데이트
-      return api('/api/user/profile', {
-        method: 'PATCH',
-        body: {
-          firstName: data.firstName || null,
-          lastName: data.lastName || null,
-          bio: data.bio || null,
-          location: data.location || null,
-          interests: data.interests
-            ? data.interests.split(',').map((i) => i.trim()).filter(Boolean)
-            : [],
-          languages: data.languages
-            ? data.languages.split(',').map((l) => l.trim()).filter(Boolean)
-            : [],
-          profileImageUrl,
-        },
-      });
+      const updateData = {
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
+        bio: data.bio || null,
+        location: data.location || null,
+        interests: data.interests || [],
+        languages: data.languages || [],
+        profileImageUrl,
+      };
+
+      console.log('Sending profile update:', updateData);
+
+      try {
+        const result = await api('/api/user/profile', {
+          method: 'PATCH',
+          body: updateData,
+        });
+        return result;
+      } catch (error: any) {
+        console.error('Profile update failed:', error);
+        throw new Error(error.message || t('ui:profileEdit.updateFailedDesc'));
+      }
     },
     onSuccess: () => {
       toast({
-        title: '프로필 업데이트 완료',
-        description: '프로필 정보가 성공적으로 업데이트되었습니다.',
+        title: t('ui:profileEdit.updated'),
+        description: t('ui:profileEdit.updatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       onOpenChange(false);
       setImageFile(null);
       setImagePreview(null);
     },
-    onError: (error) => {
-      console.error('프로필 업데이트 오류:', error);
+    onError: (error: Error) => {
+      console.error('Profile update error:', error);
       toast({
-        title: '업데이트 실패',
-        description: '프로필 업데이트 중 오류가 발생했습니다.',
+        title: t('ui:profileEdit.updateFailed'),
+        description: error.message || t('ui:profileEdit.updateFailedDesc'),
         variant: 'destructive',
       });
       setIsUploadingImage(false);
@@ -174,11 +192,25 @@ export default function ProfileEditModal({
     updateProfileMutation.mutate(data);
   };
 
+  // 관심사 옵션 변환
+  const interestOptions: MultiSelectOption[] = INTEREST_OPTIONS.map((interest) => ({
+    value: interest,
+    label: t(`ui:interests.${interest}`),
+  }));
+
+  // 언어 옵션 변환
+  const languageOptions: MultiSelectOption[] = LANGUAGE_OPTIONS.map((lang) => ({
+    value: lang.code,
+    label: lang.name,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">프로필 편집</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {t('ui:profileEdit.title')}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -188,7 +220,7 @@ export default function ProfileEditModal({
               <Avatar className="w-24 h-24">
                 <AvatarImage
                   src={imagePreview || user.profileImageUrl || ''}
-                  alt="프로필 사진"
+                  alt={t('ui:profileEdit.profileImage')}
                 />
                 <AvatarFallback className="text-2xl">
                   {user.firstName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
@@ -212,7 +244,7 @@ export default function ProfileEditModal({
                     data-testid="button-upload-image"
                   >
                     <Upload size={16} className="mr-2" />
-                    사진 변경
+                    {t('ui:profileEdit.changeImage')}
                   </Button>
                 </label>
               </div>
@@ -225,10 +257,10 @@ export default function ProfileEditModal({
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>이름</FormLabel>
+                    <FormLabel>{t('ui:profileEdit.firstName')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="이름을 입력하세요"
+                        placeholder={t('ui:profileEdit.firstNamePlaceholder')}
                         {...field}
                         data-testid="input-first-name"
                       />
@@ -242,10 +274,10 @@ export default function ProfileEditModal({
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>성</FormLabel>
+                    <FormLabel>{t('ui:profileEdit.lastName')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="성을 입력하세요"
+                        placeholder={t('ui:profileEdit.lastNamePlaceholder')}
                         {...field}
                         data-testid="input-last-name"
                       />
@@ -262,10 +294,10 @@ export default function ProfileEditModal({
               name="bio"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>자기소개</FormLabel>
+                  <FormLabel>{t('ui:profileEdit.bio')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="자신을 소개해주세요..."
+                      placeholder={t('ui:profileEdit.bioPlaceholder')}
                       className="min-h-[100px] resize-none"
                       {...field}
                       data-testid="input-bio"
@@ -282,11 +314,13 @@ export default function ProfileEditModal({
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>위치</FormLabel>
+                  <FormLabel>{t('ui:profileEdit.location')}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="예: 서울, 대한민국"
-                      {...field}
+                    <LocationSearchInput
+                      value={field.value || ''}
+                      onChange={(value) => field.onChange(value)}
+                      placeholder={t('ui:profileEdit.locationPlaceholder')}
+                      useCurrentLocationText={t('ui:profileEdit.useCurrentLocation')}
                       data-testid="input-location"
                     />
                   </FormControl>
@@ -301,12 +335,16 @@ export default function ProfileEditModal({
               name="interests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>관심사</FormLabel>
+                  <FormLabel>{t('ui:profileEdit.interests')}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="여행, 사진, 맛집 (쉼표로 구분)"
-                      {...field}
-                      data-testid="input-interests"
+                    <MultiSelect
+                      options={interestOptions}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder={t('ui:profileEdit.interestsPlaceholder')}
+                      emptyText={t('ui:profileEdit.noInterestsSelected')}
+                      searchPlaceholder={t('ui:profileEdit.searchLocation')}
+                      data-testid="select-interests"
                     />
                   </FormControl>
                   <FormMessage />
@@ -320,12 +358,16 @@ export default function ProfileEditModal({
               name="languages"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>사용 가능한 언어</FormLabel>
+                  <FormLabel>{t('ui:profileEdit.languages')}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="한국어, 영어, 일본어 (쉼표로 구분)"
-                      {...field}
-                      data-testid="input-languages"
+                    <MultiSelect
+                      options={languageOptions}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder={t('ui:profileEdit.languagesPlaceholder')}
+                      emptyText={t('ui:profileEdit.noLanguagesSelected')}
+                      searchPlaceholder={t('ui:profileEdit.searchLocation')}
+                      data-testid="select-languages"
                     />
                   </FormControl>
                   <FormMessage />
@@ -342,7 +384,7 @@ export default function ProfileEditModal({
                 disabled={updateProfileMutation.isPending || isUploadingImage}
                 data-testid="button-cancel"
               >
-                취소
+                {t('common:app.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -352,10 +394,10 @@ export default function ProfileEditModal({
                 {updateProfileMutation.isPending || isUploadingImage ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isUploadingImage ? '이미지 업로드 중...' : '저장 중...'}
+                    {isUploadingImage ? t('ui:profileEdit.uploading') : t('ui:profileEdit.saving')}
                   </>
                 ) : (
-                  '저장'
+                  t('common:app.save')
                 )}
               </Button>
             </div>
