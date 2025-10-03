@@ -1628,17 +1628,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/user/profile', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user!.id;
-      const { bio, location, isHost } = req.body;
+      const { 
+        firstName, 
+        lastName, 
+        bio, 
+        location, 
+        isHost, 
+        profileImageUrl,
+        interests,
+        languages 
+      } = req.body;
 
       const existingUser = await storage.getUser(userId);
       if (existingUser) {
-        const user = await storage.upsertUser({
+        const updateData: any = {
           id: userId,
           email: existingUser.email || 'unknown@example.com',
-          bio,
-          location,
-          isHost,
-        });
+        };
+
+        // 값이 제공된 필드만 업데이트
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
+        if (bio !== undefined) updateData.bio = bio;
+        if (location !== undefined) updateData.location = location;
+        if (isHost !== undefined) updateData.isHost = isHost;
+        if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
+        if (interests !== undefined) updateData.interests = interests;
+        if (languages !== undefined) updateData.languages = languages;
+
+        const user = await storage.upsertUser(updateData);
         res.json(user);
       } else {
         res.status(404).json({ message: 'User not found' });
