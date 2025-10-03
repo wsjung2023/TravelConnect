@@ -623,14 +623,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        bio: user.bio,
+        location: user.location,
         role: user.role,
         isHost: user.isHost || false,
-        profileImage: user.profileImageUrl || null,
+        profileImageUrl: user.profileImageUrl,
         userType: user.userType || 'traveler',
         onboardingCompleted: user.onboardingCompleted || false,
         interests: user.interests || [],
         languages: user.languages || [],
         timezone: user.timezone || 'Asia/Seoul',
+        portfolioMode: user.portfolioMode || false,
+        publicProfileUrl: user.publicProfileUrl,
       });
     } catch (error) {
       console.error('사용자 정보 조회 오류:', error);
