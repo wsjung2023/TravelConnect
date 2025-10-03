@@ -272,10 +272,9 @@ export default function Feed() {
       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              window.postMessage({ type: 'navigate-home' }, '*');
-            }}
+            onClick={() => setLocation('/')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            data-testid="button-back"
           >
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
