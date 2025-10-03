@@ -228,7 +228,7 @@ export default function Profile() {
   });
 
   const { data: experiences = [] } = useQuery<any[]>({
-    queryKey: ['/api/experiences', 'user'],
+    queryKey: ['/api/host/experiences'],
   });
 
   const { data: bookings = [] } = useQuery<any[]>({

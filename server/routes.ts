@@ -1767,10 +1767,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // 활성화된 서비스 템플릿만 조회 (공개 필드만)
-      const templates = await storage.getServiceTemplatesByUser(user.id);
+      const templates = await storage.getServiceTemplatesByCreator(user.id);
       const activeTemplates = templates
-        .filter(template => template.isActive && template.userId === user.id)
-        .map(template => ({
+        .filter((template: any) => template.isActive && template.creatorId === user.id)
+        .map((template: any) => ({
           id: template.id,
           title: template.title,
           description: template.description,
@@ -1788,6 +1788,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 사용자의 패키지 목록 조회 (인증 필요)
+  app.get('/api/packages/my', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
+      console.log(`[GET /api/packages/my] 사용자 ${req.user.id}의 패키지 조회`);
+      
+      const packages = await storage.getServicePackagesByCreator(req.user.id);
+      
+      // 패키지 아이템 정보를 포함하여 반환
+      const packagesWithDetails = await Promise.all(
+        packages.map(async (pkg: any) => {
+          const items = await storage.getPackageItemsByPackage(pkg.id);
+          const itemsWithTemplates = await Promise.all(
+            items.map(async (item: any) => {
+              // itemType이 'template'인 경우 템플릿 정보를 가져옴
+              if (item.itemType === 'template') {
+                const template = await storage.getServiceTemplateById(item.itemId);
+                return {
+                  ...item,
+                  template,
+                };
+              }
+              return item;
+            })
+          );
+          return {
+            ...pkg,
+            packageItems: itemsWithTemplates,
+          };
+        })
+      );
+      
+      console.log(`[GET /api/packages/my] 성공: ${packagesWithDetails.length}개 패키지`);
+      res.json(packagesWithDetails);
+    } catch (error) {
+      console.error('[GET /api/packages/my] 오류:', error);
+      res.status(500).json({ message: '패키지 조회 중 오류가 발생했습니다' });
+    }
+  });
+
   // 공개 포트폴리오 패키지 조회
   app.get('/api/packages/portfolio/:publicProfileUrl', async (req, res) => {
     try {
@@ -1801,10 +1844,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // 활성화된 패키지만 조회 (공개 필드만)
-      const packages = await storage.getServicePackagesByUser(user.id);
+      const packages = await storage.getServicePackagesByCreator(user.id);
       const activePackages = packages
-        .filter(pkg => pkg.isActive && pkg.userId === user.id)
-        .map(pkg => ({
+        .filter((pkg: any) => pkg.isActive && pkg.creatorId === user.id)
+        .map((pkg: any) => ({
           id: pkg.id,
           name: pkg.name,
           description: pkg.description,
