@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import { SlotManagement } from '@/components/SlotManagement';
 import BookingList from '@/components/BookingList';
 import CreateExperienceModal from '@/components/CreateExperienceModal';
 import TimelineCreateModal from '@/components/TimelineCreateModal';
+import ProfileEditModal from '@/components/ProfileEditModal';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -33,6 +34,9 @@ export default function Profile() {
   // Experience & Timeline Modal 상태
   const [showCreateExperienceModal, setShowCreateExperienceModal] = useState(false);
   const [showTimelineCreateModal, setShowTimelineCreateModal] = useState(false);
+  
+  // Profile Edit Modal 상태
+  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
 
   // 만남 상태 토글 mutation
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
@@ -253,16 +257,33 @@ export default function Profile() {
     <div className="mobile-content bg-white custom-scrollbar">
       {/* Profile Header */}
       <div className="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-6">
-        <div className="absolute top-4 right-4">
+        {/* 홈 버튼 (왼쪽 상단) */}
+        <div className="absolute top-4 left-4">
           <Button 
             variant="ghost" 
             size="sm" 
             className="p-2"
-            onClick={() => setLocation('/config')}
+            onClick={() => setLocation('/')}
+            data-testid="button-home"
           >
-            <Settings size={20} />
+            <Home size={20} />
           </Button>
         </div>
+
+        {/* 설정 아이콘 (관리자 전용, 오른쪽 상단) */}
+        {user?.role === 'admin' && (
+          <div className="absolute top-4 right-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-2"
+              onClick={() => setLocation('/config')}
+              data-testid="button-settings"
+            >
+              <Settings size={20} />
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col items-center text-center">
           <Avatar className="w-24 h-24 mb-4 border-4 border-white shadow-lg">
@@ -464,7 +485,7 @@ export default function Profile() {
 
           <Button 
             className="travel-button-outline"
-            onClick={() => setLocation('/config')}
+            onClick={() => setShowProfileEditModal(true)}
             data-testid="button-edit-profile"
           >
             <Edit3 size={16} className="mr-2" />
@@ -700,6 +721,15 @@ export default function Profile() {
         onClose={() => setShowTimelineCreateModal(false)}
         onSubmit={(tripData) => createTripMutation.mutate(tripData)}
       />
+      
+      {/* Profile Edit Modal */}
+      {user && (
+        <ProfileEditModal
+          open={showProfileEditModal}
+          onOpenChange={setShowProfileEditModal}
+          user={user}
+        />
+      )}
     </div>
   );
 }

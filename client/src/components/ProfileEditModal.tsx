@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -65,6 +65,23 @@ export default function ProfileEditModal({
       languages: user.languages?.join(', ') || '',
     },
   });
+
+  // user가 변경되거나 모달이 열릴 때 폼 초기화
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        interests: user.interests?.join(', ') || '',
+        languages: user.languages?.join(', ') || '',
+      });
+      // 이미지 프리뷰도 초기화
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  }, [open, user, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
