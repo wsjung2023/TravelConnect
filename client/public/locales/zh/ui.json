@@ -153,5 +153,10 @@
     "locationPlaceholder": "搜索位置、地区、地点...",
     "contentPlaceholder": "搜索内容...",
     "searchChannels": "搜索频道..."
+  },
+  "tabs": {
+    "all": "全部",
+    "channels": "频道",
+    "dm": "私信"
   }
 }

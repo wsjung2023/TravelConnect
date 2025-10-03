@@ -167,6 +167,11 @@
     "contentPlaceholder": "컨텐츠 검색...",
     "searchChannels": "채널 검색..."
   },
+  "tabs": {
+    "all": "전체",
+    "channels": "채널",
+    "dm": "DM"
+  },
   "helpRequest": {
     "form": {
       "title": "도움 요청하기",

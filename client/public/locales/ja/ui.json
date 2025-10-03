@@ -153,5 +153,10 @@
     "locationPlaceholder": "場所、地域、スポット検索...",
     "contentPlaceholder": "コンテンツ検索...",
     "searchChannels": "チャンネル検索..."
+  },
+  "tabs": {
+    "all": "すべて",
+    "channels": "チャンネル",
+    "dm": "DM"
   }
 }

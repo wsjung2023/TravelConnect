@@ -1,9 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2 } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { Message, Conversation, Channel } from '@shared/schema';
 
 interface EnhancedChatWindowProps {
@@ -175,9 +182,39 @@ export default function EnhancedChatWindow({
               </Button>
             </>
           )}
-          <Button variant="ghost" size="sm" className="p-2">
-            <MoreVertical size={18} />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-2" data-testid="button-menu">
+                <MoreVertical size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {headerInfo.isChannel ? (
+                <>
+                  <DropdownMenuItem>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    <span>멤버 초대</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>채널 설정</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>채널 나가기</span>
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>대화 설정</span>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

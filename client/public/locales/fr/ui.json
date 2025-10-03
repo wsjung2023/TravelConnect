@@ -166,5 +166,10 @@
     "locationPlaceholder": "Rechercher lieu, région, place...",
     "contentPlaceholder": "Rechercher contenu...",
     "searchChannels": "Rechercher chaînes..."
+  },
+  "tabs": {
+    "all": "Tout",
+    "channels": "Chaînes",
+    "dm": "DM"
   }
 }

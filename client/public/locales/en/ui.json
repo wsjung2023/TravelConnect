@@ -166,5 +166,10 @@
     "locationPlaceholder": "Search location, region, place...",
     "contentPlaceholder": "Search content...",
     "searchChannels": "Search channels..."
+  },
+  "tabs": {
+    "all": "All",
+    "channels": "Channels",
+    "dm": "DMs"
   }
 }

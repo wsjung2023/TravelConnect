@@ -98,6 +98,11 @@
     "contentPlaceholder": "Buscar contenido...",
     "searchChannels": "Buscar canales..."
   },
+  "tabs": {
+    "all": "Todos",
+    "channels": "Canales",
+    "dm": "MD"
+  },
   "timeline": {
     "create": "Crear nueva cronología",
     "titleLabel": "Título de la cronología *",
