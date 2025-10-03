@@ -135,11 +135,10 @@ export default function ProfileEditModal({
 
           const uploadData = await uploadRes.json();
           profileImageUrl = uploadData.imageUrl;
-        } catch (error) {
-          console.error('Image upload error:', error);
-          throw error;
-        } finally {
+        } catch (error: any) {
+          console.error('Image upload error:', error?.message || error);
           setIsUploadingImage(false);
+          throw error;
         }
       }
 
@@ -163,8 +162,8 @@ export default function ProfileEditModal({
         });
         return result;
       } catch (error: any) {
-        console.error('Profile update failed:', error);
-        throw new Error(error.message || t('ui:profileEdit.updateFailedDesc'));
+        console.error('Profile update failed:', error?.message || error);
+        throw new Error(error?.message || t('ui:profileEdit.updateFailedDesc'));
       }
     },
     onSuccess: () => {
@@ -177,11 +176,11 @@ export default function ProfileEditModal({
       setImageFile(null);
       setImagePreview(null);
     },
-    onError: (error: Error) => {
-      console.error('Profile update error:', error);
+    onError: (error: any) => {
+      console.error('Profile update error:', error?.message || error?.toString() || error);
       toast({
         title: t('ui:profileEdit.updateFailed'),
-        description: error.message || t('ui:profileEdit.updateFailedDesc'),
+        description: error?.message || t('ui:profileEdit.updateFailedDesc'),
         variant: 'destructive',
       });
       setIsUploadingImage(false);
@@ -321,7 +320,6 @@ export default function ProfileEditModal({
                       onChange={(value) => field.onChange(value)}
                       placeholder={t('ui:profileEdit.locationPlaceholder')}
                       useCurrentLocationText={t('ui:profileEdit.useCurrentLocation')}
-                      data-testid="input-location"
                     />
                   </FormControl>
                   <FormMessage />
@@ -344,7 +342,6 @@ export default function ProfileEditModal({
                       placeholder={t('ui:profileEdit.interestsPlaceholder')}
                       emptyText={t('ui:profileEdit.noInterestsSelected')}
                       searchPlaceholder={t('ui:profileEdit.searchLocation')}
-                      data-testid="select-interests"
                     />
                   </FormControl>
                   <FormMessage />
@@ -367,7 +364,6 @@ export default function ProfileEditModal({
                       placeholder={t('ui:profileEdit.languagesPlaceholder')}
                       emptyText={t('ui:profileEdit.noLanguagesSelected')}
                       searchPlaceholder={t('ui:profileEdit.searchLocation')}
-                      data-testid="select-languages"
                     />
                   </FormControl>
                   <FormMessage />
