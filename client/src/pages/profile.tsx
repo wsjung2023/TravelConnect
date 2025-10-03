@@ -16,6 +16,8 @@ import ServiceTemplateList from '@/components/ServiceTemplateList';
 import ServicePackageList from '@/components/ServicePackageList';
 import { SlotManagement } from '@/components/SlotManagement';
 import BookingList from '@/components/BookingList';
+import CreateExperienceModal from '@/components/CreateExperienceModal';
+import TimelineCreateModal from '@/components/TimelineCreateModal';
 import type { Post, Trip, Experience } from '@shared/schema';
 
 export default function Profile() {
@@ -27,6 +29,10 @@ export default function Profile() {
 
   // Help Request Form 상태
   const [showHelpRequestForm, setShowHelpRequestForm] = useState(false);
+  
+  // Experience & Timeline Modal 상태
+  const [showCreateExperienceModal, setShowCreateExperienceModal] = useState(false);
+  const [showTimelineCreateModal, setShowTimelineCreateModal] = useState(false);
 
   // 만남 상태 토글 mutation
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
@@ -71,6 +77,32 @@ export default function Profile() {
       toast({
         title: '신청 실패',
         description: '호스트 신청 중 오류가 발생했습니다. 다시 시도해주세요.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // 여행 생성 mutation
+  const createTripMutation = useMutation({
+    mutationFn: async (tripData: any) => {
+      return api('/api/trips', {
+        method: 'POST',
+        body: tripData,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: '여행 계획 생성 완료',
+        description: '새로운 여행 계획이 성공적으로 생성되었습니다!',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
+      setShowTimelineCreateModal(false);
+    },
+    onError: (error) => {
+      console.error('Trip creation error:', error);
+      toast({
+        title: '생성 실패',
+        description: '여행 계획 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
         variant: 'destructive',
       });
     },
@@ -430,7 +462,11 @@ export default function Profile() {
             </div>
           )}
 
-          <Button className="travel-button-outline">
+          <Button 
+            className="travel-button-outline"
+            onClick={() => setLocation('/config')}
+            data-testid="button-edit-profile"
+          >
             <Edit3 size={16} className="mr-2" />
             프로필 편집
           </Button>
@@ -542,7 +578,11 @@ export default function Profile() {
             <div className="text-center py-8">
               <div className="text-4xl mb-3">✈️</div>
               <p className="text-gray-500 text-sm">계획된 여행이 없어요</p>
-              <Button className="travel-button mt-3">
+              <Button 
+                className="travel-button mt-3"
+                onClick={() => setShowTimelineCreateModal(true)}
+                data-testid="button-plan-trip"
+              >
                 <Calendar size={16} className="mr-2" />
                 여행 계획하기
               </Button>
@@ -571,7 +611,13 @@ export default function Profile() {
             <div className="text-center py-8">
               <div className="text-4xl mb-3">🗺️</div>
               <p className="text-gray-500 text-sm">등록한 체험이 없어요</p>
-              <Button className="travel-button mt-3">체험 등록하기</Button>
+              <Button 
+                className="travel-button mt-3"
+                onClick={() => setShowCreateExperienceModal(true)}
+                data-testid="button-create-experience"
+              >
+                체험 등록하기
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -640,6 +686,19 @@ export default function Profile() {
       <HelpRequestForm
         isOpen={showHelpRequestForm}
         onClose={() => setShowHelpRequestForm(false)}
+      />
+      
+      {/* Create Experience Modal */}
+      <CreateExperienceModal
+        isOpen={showCreateExperienceModal}
+        onClose={() => setShowCreateExperienceModal(false)}
+      />
+      
+      {/* Timeline Create Modal */}
+      <TimelineCreateModal
+        isOpen={showTimelineCreateModal}
+        onClose={() => setShowTimelineCreateModal(false)}
+        onSubmit={(tripData) => createTripMutation.mutate(tripData)}
       />
     </div>
   );
