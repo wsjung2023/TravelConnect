@@ -20,6 +20,7 @@ import CreateExperienceModal from '@/components/CreateExperienceModal';
 import TimelineCreateModal from '@/components/TimelineCreateModal';
 import ProfileEditModal from '@/components/ProfileEditModal';
 import type { Post, Trip, Experience } from '@shared/schema';
+import { Seo } from '@/components/Seo';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -255,6 +256,12 @@ export default function Profile() {
 
   return (
     <div className="mobile-content bg-white custom-scrollbar">
+      <Seo 
+        title={user?.firstName && user?.lastName 
+          ? `${user.firstName} ${user.lastName}` 
+          : user?.email?.split('@')[0] || 'Profile'}
+        desc={user?.bio || 'Tourgether user profile - Connect with travelers and local hosts'}
+      />
       {/* Profile Header */}
       <div className="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-6">
         {/* 홈 버튼 (왼쪽 상단) */}

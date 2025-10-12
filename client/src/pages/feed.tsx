@@ -30,6 +30,7 @@ import { groupSimilarPosts } from '@/utils/postGrouping';
 import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
 import SmartImage from '@/components/SmartImage';
+import { Seo } from '@/components/Seo';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -248,6 +249,10 @@ export default function Feed() {
   if (isLoading) {
     return (
       <div className="mobile-content p-4">
+        <Seo 
+          title="여행 피드"
+          desc="Share and discover authentic travel experiences from local hosts and travelers"
+        />
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="travel-card p-4 animate-pulse">
@@ -269,6 +274,10 @@ export default function Feed() {
 
   return (
     <div className="mobile-content" ref={containerRef} style={{ height: '100vh', overflow: 'auto' }}>
+      <Seo 
+        title="여행 피드"
+        desc="Share and discover authentic travel experiences from local hosts and travelers"
+      />
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center gap-3">

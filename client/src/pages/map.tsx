@@ -5,6 +5,7 @@ import ExperienceCard from '@/components/ExperienceCard';
 import BookingModal from '@/components/BookingModal';
 import type { Experience } from '@shared/schema';
 import MapCluster from '@/components/MapCluster'; // ★ 추가
+import { Seo } from '@/components/Seo';
 
 // Declare Google Maps types
 declare global {
@@ -164,6 +165,10 @@ export default function Map() {
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
+        <Seo 
+          title={t('ui:navigation.map', 'Map')}
+          desc="Discover local experiences and travel destinations on an interactive map"
+        />
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -171,6 +176,10 @@ export default function Map() {
 
   return (
     <div className="relative h-screen">
+      <Seo 
+        title={t('ui:navigation.map', 'Map')}
+        desc="Discover local experiences and travel destinations on an interactive map"
+      />
       {/* Map Container */}
       <div id="map" className="w-full h-full"></div>
 
