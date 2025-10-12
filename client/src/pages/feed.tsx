@@ -29,6 +29,7 @@ import { VirtualizedFeed, FeedStats } from '@/components/VirtualizedFeed';
 import { groupSimilarPosts } from '@/utils/postGrouping';
 import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
+import SmartImage from '@/components/SmartImage';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -478,16 +479,19 @@ export default function Feed() {
                       className="w-full h-64 bg-gradient-to-br flex items-center justify-center" 
                     />
                   ) : (
-                    <img
-                      src={post.images?.[0] ? `/api/files/${post.images[0]}` : ''}
-                      alt={post.title ?? ''}
-                      className={`w-full h-64 object-cover ${
-                        post.shape === 'heart' ? 'clip-path-heart' : ''
-                      }`}
-                      onError={() => {
-                        setFailedImages(prev => new Set(prev).add(post.id));
-                      }}
-                    />
+                  <SmartImage
+                          alt={post.title ?? ''}
+                          className={`w-full h-64 object-cover ${
+                            post.shape === 'heart' ? 'clip-path-heart' : ''
+                          }`}
+                          widthHint={720} // 카드 영역 폭 기준
+                          // 서버가 썸네일/카드/풀을 아직 안 주더라도 OK (src로 자동 fallback)
+                          src={post.images?.[0] ? `/api/files/${post.images[0]}` : ''}
+                          // variants가 있다면 여기에 붙이세요(없으면 생략): variants={post.imageVariants}
+                          onError={() => {
+                            setFailedImages(prev => new Set(prev).add(post.id));
+                          }}
+                        />
                   )}
                 </div>
               )}

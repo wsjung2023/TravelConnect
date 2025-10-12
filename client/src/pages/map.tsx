@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ExperienceCard from '@/components/ExperienceCard';
 import BookingModal from '@/components/BookingModal';
 import type { Experience } from '@shared/schema';
+import MapCluster from '@/components/MapCluster'; // ★ 추가
 
 // Declare Google Maps types
 declare global {
@@ -14,6 +15,8 @@ declare global {
 }
 
 export default function Map() {
+  const [zoom, setZoom] = useState(13);
+  const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
   const { t } = useTranslation(['ui']);
   const [selectedExperience, setSelectedExperience] =
     useState<Experience | null>(null);
@@ -86,6 +89,9 @@ export default function Map() {
     );
 
     setMap(mapInstance);
+    
+    mapInstance.addListener('zoom_changed', () => setZoom(mapInstance.getZoom() ?? 13));
+    mapInstance.addListener('bounds_changed', () => setBounds(mapInstance.getBounds() ?? null));
 
     // Add user location marker
     new window.google.maps.Marker({
@@ -104,6 +110,7 @@ export default function Map() {
   };
 
   // Add experience markers when experiences load
+  /* 
   useEffect(() => {
     if (map && (experiences as Experience[]).length > 0) {
       (experiences as Experience[]).forEach((experience: Experience) => {
@@ -132,6 +139,14 @@ export default function Map() {
       });
     }
   }, [map, experiences]);
+*/
+  const points = (experiences as Experience[])
+  .filter((e) => e.latitude && e.longitude)
+  .map((e, idx) => ({
+    id: String(e.id ?? idx),
+    lat: parseFloat(e.latitude as any),
+    lng: parseFloat(e.longitude as any),
+  }));
 
   const getMarkerColor = (category: string) => {
     switch (category) {
@@ -158,6 +173,20 @@ export default function Map() {
     <div className="relative h-screen">
       {/* Map Container */}
       <div id="map" className="w-full h-full"></div>
+
+      {/* Clustered markers */}
+      <MapCluster
+        map={map}
+        points={points}
+        zoom={zoom}
+        bounds={bounds}
+        onPointClick={(id) => {
+          const exp = (experiences as Experience[]).find(
+            (e, i) => String(e.id ?? i) === id
+          );
+          if (exp) setSelectedExperience(exp);
+        }}
+      />
 
       {/* Map Controls */}
       <div className="absolute top-4 right-4 space-y-2">

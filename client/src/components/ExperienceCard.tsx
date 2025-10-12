@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import type { Experience } from '@shared/schema';
+import SmartImage from '@/components/SmartImage'; // ★ 추가
 
 interface ExperienceCardProps {
   experience: Experience;
@@ -16,6 +17,20 @@ export default function ExperienceCard({
   compact = false,
 }: ExperienceCardProps) {
   const { t } = useTranslation(['ui']);
+
+  // 서버 필드명이 달라도 최대한 커버: imageUrl / coverImage / images[0].url
+  const imageSrc =
+    (experience as any).imageUrl ||
+    (experience as any).coverImage ||
+    (experience as any).images?.[0]?.url ||
+    null;
+
+  // 나중에 썸네일/카드/풀 변형본이 오면 자동 사용
+  const imageVariants =
+    (experience as any).imageVariants ||
+    (experience as any).images?.[0]?.variants ||
+    undefined;
+
   const getCategoryColor = (category: string) => {
     const colors = {
       tour: 'bg-primary/10 text-primary',
@@ -40,9 +55,23 @@ export default function ExperienceCard({
     return (
       <div className="travel-card p-3">
         <div className="flex gap-3">
-          <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl">
-            {getCategoryIcon(experience.category)}
+          {/* 썸네일(작게) — 이미지 있으면 이미지, 없으면 이모지 */}
+          <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+            {imageSrc ? (
+              <SmartImage
+                alt={experience.title}
+                className="w-full h-full object-cover"
+                widthHint={160} // 컴팩트 썸네일은 작게
+                src={imageSrc}
+                variants={imageVariants}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl">
+                {getCategoryIcon(experience.category)}
+              </div>
+            )}
           </div>
+
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
@@ -89,9 +118,21 @@ export default function ExperienceCard({
 
   return (
     <div className="travel-card overflow-hidden">
-      {/* Image */}
-      <div className="h-48 bg-gray-200 flex items-center justify-center text-4xl">
-        {getCategoryIcon(experience.category)}
+      {/* 메인 이미지 — 있으면 이미지, 없으면 이모지 박스 */}
+      <div className="h-48 bg-gray-200 overflow-hidden flex items-center justify-center">
+        {imageSrc ? (
+          <SmartImage
+            alt={experience.title}
+            className="w-full h-full object-cover"
+            widthHint={720} // 카드 영역 폭 기준
+            src={imageSrc}
+            variants={imageVariants} // 변형본이 있으면 자동 사용
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl">
+            {getCategoryIcon(experience.category)}
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -124,13 +165,21 @@ export default function ExperienceCard({
           {experience.duration && (
             <div className="flex items-center gap-1">
               <Clock size={12} />
-              <span>{t('ui:experiences.hours', { count: Math.floor(experience.duration / 60) })}</span>
+              <span>
+                {t('ui:experiences.hours', {
+                  count: Math.floor(experience.duration / 60),
+                })}
+              </span>
             </div>
           )}
           {experience.maxParticipants && (
             <div className="flex items-center gap-1">
               <Users size={12} />
-              <span>{t('ui:experiences.maxParticipants', { count: experience.maxParticipants })}</span>
+              <span>
+                {t('ui:experiences.maxParticipants', {
+                  count: experience.maxParticipants,
+                })}
+              </span>
             </div>
           )}
         </div>
@@ -140,9 +189,15 @@ export default function ExperienceCard({
             <span className="text-lg font-bold text-gray-900">
               ₩{Number(experience.price).toLocaleString()}
             </span>
-            <span className="text-sm text-gray-500 ml-1">{t('ui:experiences.perPerson')}</span>
+            <span className="text-sm text-gray-500 ml-1">
+              {t('ui:experiences.perPerson')}
+            </span>
           </div>
-          <Button onClick={onBook} className="travel-button" data-testid="book-experience-button">
+          <Button
+            onClick={onBook}
+            className="travel-button"
+            data-testid="book-experience-button"
+          >
             {t('ui:buttons.bookExperience')}
           </Button>
         </div>
