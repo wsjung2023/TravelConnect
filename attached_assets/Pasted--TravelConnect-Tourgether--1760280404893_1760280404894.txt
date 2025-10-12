@@ -1,0 +1,123 @@
+내 프로젝트(TravelConnect/Tourgether)에 대해 아래 “전면 수리 + 최적화” 작업을 자동으로 수행하고, 
+각 단계가 끝날 때마다 수정 파일/라인 요약과 빌드 결과를 출력해줘.
+파일이 없으면 건너뛰되, 유사 경로/이름을 자동 탐색해서 적용해.
+모든 변경은 보수적(안전 롤백 용이)이고, 기존 기능을 망가뜨리지 않도록 해.
+
+────────────────────────────────────────────────────────
+[0] 공통 규칙
+- 경로 기준: client/…(프런트), server/…(백엔드). 경로가 다르면 유사 경로로 대체 후 보고.
+- “없으면 생성, 있으면 최소 변경(삽입/보강)” 원칙.
+- TypeScript/ESLint 오류 0, Vite 빌드 성공이 최종 기준.
+- 변경 후 항상: tsc --noEmit → vite build → (선택) vite preview 헬스체크.
+- 파일 수정 시, 무엇을 왜 바꿨는지 한 줄 요약과 diff 조각을 출력.
+- 문제 있으면 자동으로 롤백 포인트(백업 파일) 만들어서 재시도.
+
+────────────────────────────────────────────────────────
+[1] PWA 세팅 (서비스워커/오프라인/아이콘)
+1-1. 의존성 확인/추가:
+  - vite-plugin-pwa (dev)
+1-2. client/public/icons/ 가 없으면 생성하고 icon-192.png, icon-512.png 2개를 임시로 생성(단색 PNG 가능).
+1-3. vite.config.ts(또는 .js)를 아래 요구로 보강:
+  - react 플러그인 유지
+  - VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icons/icon-192.png','icons/icon-512.png'],
+      manifest: client/public/manifest.json 를 그대로 사용(없으면 기본 manifest 생성),
+      workbox.runtimeCaching: 이미지/폰트는 StaleWhileRevalidate
+    })
+  - Replit 개발용 플러그인(runtime-error-overlay/cartographer)은 prod에서 비활성
+1-4. 빌드 후 DevTools Application → Service Workers 활성화될 것(검증 로그 출력)
+
+────────────────────────────────────────────────────────
+[2] SEO/메타: HelmetProvider + 재사용 Seo 컴포넌트 + JSON-LD
+2-1. 의존성 확인/추가:
+  - react-helmet-async
+2-2. client/src/main.tsx(or App entry)에 <HelmetProvider>로 <App/> 감싸기. 기존 i18n import 순서는 유지.
+2-3. client/src/components/Seo.tsx 파일 생성:
+  - props: {title, description?, image?, url?, jsonLd?}
+  - <Helmet>로 title/description/og/twitter/canonical 세팅
+  - jsonLd가 있으면 <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+2-4. 다음 페이지에 최소 한 번씩 <Seo …/> 삽입:
+  - client/src/pages/map.tsx : title="내 주변 지도"
+  - client/src/pages/feed.tsx : title="여행 피드"
+  - 프로필/상세 페이지가 있으면 Person/Place/Event JSON-LD 예제 삽입(데이터 있는 경우에만)
+
+────────────────────────────────────────────────────────
+[3] 지도 퍼포먼스: 마커 클러스터링(Supercluster) + 타입 안정화
+3-1. 의존성 확인/추가: supercluster
+3-2. client/src/lib/markerSvg.ts 생성: makePinSVG(text?, fill?) → data URI 반환
+3-3. client/src/components/MapCluster.tsx 생성:
+  - props: {map, points:[{id,lat,lng}], zoom, bounds, onClusterClick?, onPointClick?}
+  - supercluster로 현재 bounds+zoom에서 getClusters → 구글 마커로 렌더
+  - 클러스터 클릭 시 expansionZoom 이동
+3-4. client/src/pages/map.tsx 를 “최소 삽입 방식”으로 보강:
+  - import MapCluster 추가
+  - state: zoom, bounds 추가 (google.maps.LatLngBounds 타입 문제 시 any로 완화)
+  - map 생성 직후: zoom_changed, bounds_changed 리스너 등록
+  - 기존 개별 마커 루프(useEffect) 있으면 주석 처리(중복 방지)
+  - experiences → points 매핑 추가
+  - <div id="map" …/> 바로 아래에 <MapCluster …/> 1덩어리 삽입
+3-5. 타입 문제 처리:
+  - devDep: @types/google.maps 설치 시도
+  - 실패/인식불가면 client/src/types/googlemaps.d.ts에 /// <reference types="@types/google.maps" />
+  - 그래도 안 잡히면 bounds를 useState<any>(null)로 임시 완화
+
+────────────────────────────────────────────────────────
+[4] 이미지 최적화: SmartImage 통일 + 실패 폴백 유지
+4-1. client/src/lib/pickImage.ts 생성:
+  - pickImage({variants?,src?}, widthHint) → thumb/card/full 선택, fallback src
+  - buildSrcSet(variants) → srcset 문자열
+4-2. client/src/components/SmartImage.tsx 생성/보강:
+  - props: {alt, className?, widthHint=720, src?, variants?, onError?}
+  - <img loading="lazy" decoding="async" src, srcSet, sizes 적용
+4-3. 카드/피드에 적용:
+  - client/src/components/ExperienceCard.tsx:
+    - 메인/썸네일 이미지 자리에 SmartImage 사용(이미지 없으면 기존 이모지 유지)
+  - client/src/pages/feed.tsx:
+    - “Post Image with Shape” 블록에서 <img> → <SmartImage>로 교체
+    - onError에서 failedImages 핸들러 유지
+  - 기타 <img>는 전역 검색으로 단계적으로 교체(아바타/아이콘 제외)
+
+────────────────────────────────────────────────────────
+[5] 이미지 업로드 파이프라인(sharp) + 캐시 헤더
+5-1. 의존성 확인/추가: sharp
+5-2. server/image/variants.ts 생성:
+  - makeVariants(buf): 320/720/1600 WebP로 변환(rotate, quality 70/75/80)
+5-3. 업로드 라우트(server/routes/upload.ts 또는 유사 파일) 보강:
+  - 이미지 MIME 화이트리스트 검사
+  - makeVariants 호출 → dist/public/uploads 에 저장
+  - JSON으로 {thumb, card, full} 경로 반환
+5-4. server/index.ts(정적 서빙) 캐시 헤더:
+  - app.use('/uploads', express.static(..., { setHeaders: Cache-Control: public, max-age=31536000, immutable }))
+
+────────────────────────────────────────────────────────
+[6] 사소하지만 체감 큰 최적화들
+6-1. client/src/lib/disableConsoleInProd.ts 생성:
+  - import.meta.env.PROD 이면 console.log/info/debug 무음 처리
+  - client/src/main.tsx 최상단에서 import
+6-2. 이미지/폰트 preconnect, manifest 링크 점검 (index.html or template)
+6-3. Vite dev 서버 경고/에러 정리(ESLint/Prettier 포맷)
+
+────────────────────────────────────────────────────────
+[7] 타입/설정 보정
+7-1. tsconfig.json:
+  - "resolveJsonModule": true 확인(없으면 추가)
+  - "types": ["google.maps"] 시도(인식 불가면 생략)
+7-2. 라우팅/환경변수:
+  - window/DOM 접근부는 typeof window 보호
+  - import.meta.env.VITE_GOOGLE_MAPS_API_KEY 미설정 시 경고만 출력
+
+────────────────────────────────────────────────────────
+[8] 테스트 & 검증(필수)
+- tsc --noEmit 로 타입 검사, 오류 0
+- vite build 성공
+- 앱 미리보기 뛰워서 수동 체크:
+  1) 지도 이동/줌 시 마커 클러스터 숫자 보임, 클릭 시 확대
+  2) 피드/카드 이미지 lazy 로딩, 실패 시 ImageFallback 노출
+  3) Application → Manifest 에 아이콘 노출
+  4) Application → Service Workers 에 workbox-*.js activated
+- 변경된 파일 리스트와 핵심 diff 조각, 그리고 
+  “남은 TODO/가정/스킵한 파일(없어서)” 를 요약해서 출력.
+
+끝으로, 문제가 된 파일을 발견하면, 
+"무엇을 왜 고쳤는지"를 한 문장으로 적고, 원복할 수 있는 백업(.bak)도 남겨줘.

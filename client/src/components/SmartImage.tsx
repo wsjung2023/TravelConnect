@@ -17,8 +17,12 @@ export default function SmartImage({
   className,
   src,
   variants,
+  onError,
 }: Props) {
-  const url = pickImage({ variants, src }, widthHint);
+  const url = pickImage({ 
+    ...(variants && { variants }), 
+    ...(src && { src }) 
+  }, widthHint);
   const srcSet = buildSrcSet(variants);
 
   return (
