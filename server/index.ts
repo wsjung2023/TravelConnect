@@ -122,8 +122,8 @@ const app = express();
 // Security headers with helmet
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// Trust proxy for Replit environment (fixes rate limiting warnings)
-app.set('trust proxy', true);
+// Trust proxy for Replit environment (only trust first proxy for security)
+app.set('trust proxy', 1);
 
 // Rate limiting
 app.use('/api/', rateLimit({ windowMs: 60_000, max: 120 })); // 1분 120회
