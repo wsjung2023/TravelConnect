@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, MapPin, Clock, Users, Camera, Phone, Info } from 'lucide-react';
+import { X, Clock, Users, Camera, Phone, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
@@ -221,17 +222,12 @@ export default function CreateExperienceModal({
               <label className="block text-sm font-medium mb-2">
                 위치 <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="서울시 강남구"
-                  className="pl-10"
-                  required
-                  data-testid="input-experience-location"
-                />
-              </div>
+              <LocationSearchInput
+                value={location}
+                onChange={(value) => setLocation(value)}
+                placeholder="도시, 국가를 검색하세요"
+                useCurrentLocationText="현재 위치 사용"
+              />
             </div>
           </div>
 

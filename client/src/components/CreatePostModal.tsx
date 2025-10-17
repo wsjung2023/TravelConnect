@@ -54,12 +54,14 @@ export default function CreatePostModal({
         description: '새로운 여행 스토리가 공유되었습니다!',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
-      onClose();
       setTitle('');
       setContent('');
       setLocation('');
       setTheme('');
       setImages([]);
+      setImageFiles([]);
+      setExifData([]);
+      onClose();
     },
     onError: (error) => {
       toast({
@@ -126,7 +128,7 @@ export default function CreatePostModal({
     setExifData([...exifData, ...newExifData]);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -173,12 +175,38 @@ export default function CreatePostModal({
       }
     }
 
+    // 이미지 파일 업로드
+    let uploadedImageUrls: string[] = [];
+    if (imageFiles.length > 0) {
+      try {
+        const formData = new FormData();
+        imageFiles.forEach(file => {
+          formData.append('files', file);
+        });
+
+        const uploadResponse = await api('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        uploadedImageUrls = uploadResponse.files.map((file: any) => file.url);
+      } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        toast({
+          title: '이미지 업로드 실패',
+          description: '이미지 업로드 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const post = {
       title,
       content,
       location: location || undefined,
       theme,
-      images: images.length > 0 ? images : undefined,
+      images: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
       takenAt: earliestTakenAt || undefined,
       latitude: bestLatitude?.toString(),
       longitude: bestLongitude?.toString(),
@@ -287,9 +315,11 @@ export default function CreatePostModal({
                   />
                   <button
                     type="button"
-                    onClick={() =>
-                      setImages(images.filter((_, i) => i !== index))
-                    }
+                    onClick={() => {
+                      setImages(images.filter((_, i) => i !== index));
+                      setImageFiles(imageFiles.filter((_, i) => i !== index));
+                      setExifData(exifData.filter((_, i) => i !== index));
+                    }}
                     className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
                   >
                     ×

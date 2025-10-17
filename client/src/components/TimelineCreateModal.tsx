@@ -91,21 +91,7 @@ export default function TimelineCreateModal({
       className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          console.log(
-            '타임라인 생성 모달 배경 클릭으로 닫기',
-            fromFeed ? '- 피드로 돌아가기' : '- 뒤로 가기'
-          );
           onClose();
-          if (fromFeed) {
-            // 피드에서 온 경우 피드로 돌아가기
-            window.postMessage(
-              { type: 'timeline-created-return-to-feed' },
-              '*'
-            );
-          } else {
-            // 타임라인에서 온 경우 뒤로 가기
-            window.history.back();
-          }
         }
       }}
     >
@@ -116,30 +102,13 @@ export default function TimelineCreateModal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-xl font-bold text-gray-900">
-            {t('ui.timeline.create')}
+            {t('ui:timeline.create')}
           </h2>
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log(
-                '타임라인 생성 모달 X 버튼 클릭',
-                fromFeed ? '- 피드로 돌아가기' : '- 뒤로 가기'
-              );
-              onClose();
-              if (fromFeed) {
-                // 피드에서 온 경우 피드로 돌아가기
-                window.postMessage(
-                  { type: 'timeline-created-return-to-feed' },
-                  '*'
-                );
-              } else {
-                // 타임라인에서 온 경우 뒤로 가기
-                window.history.back();
-              }
-            }}
+            onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full"
             type="button"
+            data-testid="button-close-modal"
           >
             <X size={20} />
           </button>
@@ -152,12 +121,12 @@ export default function TimelineCreateModal({
               htmlFor="title"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              {t('ui.timeline.titleLabel')}
+              {t('ui:timeline.titleLabel')}
             </label>
             <input
               id="title"
               type="text"
-              placeholder={t('placeholders.destinationExample')}
+              placeholder={t('ui:placeholders.destinationExample')}
               value={formData.title}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -172,7 +141,7 @@ export default function TimelineCreateModal({
               htmlFor="destination"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              {t('ui.timeline.destinationLabel')}
+              {t('ui:timeline.destinationLabel')}
             </label>
             <div className="relative">
               <MapPin
@@ -182,7 +151,7 @@ export default function TimelineCreateModal({
               <input
                 id="destination"
                 type="text"
-                placeholder={t('placeholders.destinationExample')}
+                placeholder={t('ui:placeholders.destinationExample')}
                 value={formData.destination}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -238,7 +207,7 @@ export default function TimelineCreateModal({
             )}
 
             <p className="text-xs text-gray-500 mt-1">
-              {t('ui.timeline.destinationHelp')}
+              {t('ui:timeline.destinationHelp')}
             </p>
           </div>
 
@@ -248,7 +217,7 @@ export default function TimelineCreateModal({
                 htmlFor="startDate"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                {t('ui.timeline.startDateLabel')}
+                {t('ui:timeline.startDateLabel')}
               </label>
               <div className="relative">
                 <Calendar
@@ -276,7 +245,7 @@ export default function TimelineCreateModal({
                 htmlFor="totalDays"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                {t('ui.timeline.durationLabel')}
+                {t('ui:timeline.durationLabel')}
               </label>
               <input
                 id="totalDays"
@@ -293,7 +262,7 @@ export default function TimelineCreateModal({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                {formData.totalDays}{t('ui.timeline.daysUnit')}
+                {formData.totalDays}{t('ui:timeline.daysUnit')}
               </p>
             </div>
           </div>
@@ -303,7 +272,7 @@ export default function TimelineCreateModal({
               htmlFor="description"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              {t('ui.timeline.descriptionLabel')}
+              {t('ui:timeline.descriptionLabel')}
             </label>
             <div className="relative">
               <FileText
@@ -312,7 +281,7 @@ export default function TimelineCreateModal({
               />
               <textarea
                 id="description"
-                placeholder={t('placeholders.writeReview')}
+                placeholder={t('ui:placeholders.writeReview')}
                 value={formData.description}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -330,27 +299,10 @@ export default function TimelineCreateModal({
             <button
               type="button"
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(
-                  '타임라인 생성 모달 취소',
-                  fromFeed ? '- 피드로 돌아가기' : '- 뒤로 가기'
-                );
-                onClose();
-                if (fromFeed) {
-                  // 피드에서 온 경우 피드로 돌아가기
-                  window.postMessage(
-                    { type: 'timeline-created-return-to-feed' },
-                    '*'
-                  );
-                } else {
-                  // 타임라인에서 온 경우 뒤로 가기
-                  window.history.back();
-                }
-              }}
+              onClick={onClose}
+              data-testid="button-cancel"
             >
-              {t('app.cancel')}
+              {t('common:app.cancel')}
             </button>
             <button
               type="submit"
@@ -360,11 +312,9 @@ export default function TimelineCreateModal({
                 !formData.destination.trim() ||
                 !formData.startDate
               }
-              onClick={(e) => {
-                console.log('타임라인 생성 버튼 클릭');
-              }}
+              data-testid="button-create-timeline"
             >
-              {t('ui.timeline.createButton')}
+              {t('ui:timeline.createButton')}
             </button>
           </div>
         </form>
