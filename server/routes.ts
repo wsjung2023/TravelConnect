@@ -1677,14 +1677,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/trips', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user!.id;
+      const { startDate, totalDays = 1, ...rest } = req.body;
+      
+      // startDate를 Date로 변환
+      const start = new Date(startDate);
+      
+      // endDate 계산 (totalDays가 3이면 startDate부터 3일간)
+      const end = new Date(start);
+      end.setDate(end.getDate() + (totalDays - 1));
+      
       const tripData = insertTripSchema.parse({
-        ...req.body,
+        ...rest,
         userId,
+        startDate: start,
+        endDate: end,
+        totalDays,
       });
+      
       const trip = await storage.createTrip(tripData);
       res.status(201).json(trip);
     } catch (error) {
       console.error('Error creating trip:', error);
+      if (error instanceof Error) {
+        console.error('Trip creation error details:', error.message);
+      }
       res.status(500).json({ message: 'Failed to create trip' });
     }
   });
