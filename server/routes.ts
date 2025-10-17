@@ -2085,6 +2085,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 전역 알림 전송 함수를 앱 객체에 추가
   (app as any).sendNotificationToUser = sendNotificationToUser;
+  // wsClients Map을 app 객체에 추가 (채널 메시지 전송용)
+  (app as any).wsClients = clients;
 
   wss.on('connection', (ws: WebSocket, req) => {
     let userId: string | null = null;
@@ -2123,13 +2125,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (message.type === 'chat_message' && userId) {
-          const { conversationId, content, recipientId } = message;
+          const { conversationId, content, recipientId, parentMessageId } = message;
 
           // Save message to database
           const newMessage = await storage.createMessage({
             conversationId,
             senderId: userId,
             content,
+            parentMessageId: parentMessageId || null,
           } as any);
 
           // Send to recipient if online
@@ -2151,6 +2154,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           );
         }
+
+        if (message.type === 'channel_message' && userId) {
+          const { channelId, content, parentMessageId } = message;
+
+          console.log(`[WebSocket] 채널 메시지 수신 - Channel ${channelId}, User ${userId}`);
+
+          // 보안: 채널 멤버십 확인
+          const isMember = await storage.isChannelMember(userId, channelId);
+          if (!isMember) {
+            console.warn(`[WebSocket] 권한 없음 - User ${userId} is not a member of channel ${channelId}`);
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: '채널 멤버만 메시지를 보낼 수 있습니다.'
+            }));
+            return;
+          }
+
+          // Save message to database
+          const newMessage = await storage.createChannelMessage({
+            channelId,
+            senderId: userId,
+            content,
+            parentMessageId: parentMessageId || null,
+          } as any);
+
+          // Get channel members
+          const members = await storage.getChannelMembers(channelId);
+
+          // Broadcast to all channel members except sender
+          for (const member of members) {
+            if (member.userId !== userId) {
+              const memberWs = clients.get(member.userId);
+              if (memberWs && memberWs.readyState === WebSocket.OPEN) {
+                memberWs.send(JSON.stringify({
+                  type: 'channel_message',
+                  channelId,
+                  message: newMessage,
+                }));
+              }
+            }
+          }
+
+          // Confirm to sender
+          ws.send(JSON.stringify({
+            type: 'channel_message',
+            channelId,
+            message: newMessage,
+          }));
+
+          console.log(`[WebSocket] 채널 메시지 전송 완료 - Message ID ${newMessage.id}`);
+        }
       } catch (error) {
         console.error('WebSocket error:', error);
       }
@@ -2159,6 +2213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('close', () => {
       if (userId) {
         clients.delete(userId);
+        console.log(`WebSocket: User ${userId} disconnected`);
       }
     });
   });
