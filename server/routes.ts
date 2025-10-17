@@ -2333,13 +2333,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // MiniMeet 관련 API
-  // 모임 생성
-  app.post('/api/mini-meets', authenticateToken, apiLimiter, validateSchema(CreateMiniMeetSchema), async (req: any, res) => {
+  // 모임 생성 (별칭: /api/meets)
+  const createMeetHandler = async (req: any, res: any) => {
     try {
       const userId = req.user!.id;
       
       const meetData = {
         ...req.validatedData,
+        latitude: req.validatedData.latitude.toString(),
+        longitude: req.validatedData.longitude.toString(),
         hostId: userId,
         startAt: new Date(req.validatedData.startAt),
       };
@@ -2358,39 +2360,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: (error as Error).message,
       });
     }
-  });
+  };
+  
+  app.post('/api/mini-meets', authenticateToken, apiLimiter, validateSchema(CreateMiniMeetSchema), createMeetHandler);
+  app.post('/api/meets', authenticateToken, apiLimiter, validateSchema(CreateMiniMeetSchema), createMeetHandler);
 
-  // 근처 모임 조회
-  app.get('/api/mini-meets', async (req, res) => {
+  // 근처 모임 조회 (별칭: /api/meets와 /api/meets/nearby)
+  const getNearbyMeetsHandler = async (req: any, res: any) => {
     try {
-      const { lat, lng, radius = 5 } = req.query;
+      const { lat, lng, latitude, longitude, radius = 5 } = req.query;
       
-      if (!lat || !lng) {
+      // latitude/longitude 또는 lat/lng 모두 지원 (nullish coalescing 사용)
+      const finalLat = lat ?? latitude;
+      const finalLng = lng ?? longitude;
+      
+      if (finalLat == null || finalLng == null) {
         return res.status(400).json({ 
           message: '위도와 경도는 필수 입니다' 
         });
       }
 
-      const latitude = parseFloat(lat as string);
-      const longitude = parseFloat(lng as string);
-      const searchRadius = parseFloat(radius as string);
+      const latNum = parseFloat(String(finalLat));
+      const lngNum = parseFloat(String(finalLng));
+      const searchRadius = parseFloat(String(radius));
 
-      if (isNaN(latitude) || isNaN(longitude) || isNaN(searchRadius)) {
+      if (isNaN(latNum) || isNaN(lngNum) || isNaN(searchRadius)) {
         return res.status(400).json({ 
           message: '올바른 숫자 값을 입력해주세요' 
         });
       }
 
-      const miniMeets = await storage.getMiniMeetsNearby(latitude, longitude, searchRadius);
+      const miniMeets = await storage.getMiniMeetsNearby(latNum, lngNum, searchRadius);
       res.json(miniMeets);
     } catch (error) {
       console.error('근처 모임 조회 오류:', error);
       res.status(500).json({ message: '근처 모임 조회에 실패했습니다' });
     }
-  });
+  };
+  
+  app.get('/api/mini-meets', getNearbyMeetsHandler);
+  app.get('/api/meets', getNearbyMeetsHandler);
+  app.get('/api/meets/nearby', getNearbyMeetsHandler);
 
-  // 모임 상세 조회
-  app.get('/api/mini-meets/:id', async (req, res) => {
+  // 모임 상세 조회 (별칭: /api/meets/:id)
+  const getMeetByIdHandler = async (req: any, res: any) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -2409,10 +2422,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('모임 상세 조회 오류:', error);
       res.status(500).json({ message: '모임 상세 조회에 실패했습니다' });
     }
-  });
+  };
+  
+  app.get('/api/mini-meets/:id', getMeetByIdHandler);
+  app.get('/api/meets/:id', getMeetByIdHandler);
 
-  // 모임 참여
-  app.post('/api/mini-meets/:id/join', authenticateToken, apiLimiter, async (req: any, res) => {
+  // 모임 참여 (별칭: /api/meets/:id/join)
+  const joinMeetHandler = async (req: any, res: any) => {
     try {
       const userId = req.user!.id;
       const meetId = parseInt(req.params.id);
@@ -2478,10 +2494,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(500).json({ message: '모임 참여에 실패했습니다' });
     }
-  });
+  };
+  
+  app.post('/api/mini-meets/:id/join', authenticateToken, apiLimiter, joinMeetHandler);
+  app.post('/api/meets/:id/join', authenticateToken, apiLimiter, joinMeetHandler);
 
-  // 모임 나가기
-  app.delete('/api/mini-meets/:id/leave', authenticateToken, apiLimiter, async (req: any, res) => {
+  // 모임 나가기 (별칭: /api/meets/:id/leave)
+  const leaveMeetHandler = async (req: any, res: any) => {
     try {
       const userId = req.user!.id;
       const meetId = parseInt(req.params.id);
@@ -2497,7 +2516,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('모임 나가기 오류:', error);
       res.status(500).json({ message: '모임 나가기에 실패했습니다' });
     }
-  });
+  };
+  
+  app.delete('/api/mini-meets/:id/leave', authenticateToken, apiLimiter, leaveMeetHandler);
+  app.delete('/api/meets/:id/leave', authenticateToken, apiLimiter, leaveMeetHandler);
 
   // 여행 일정 복제 API
   app.post('/api/trips/:id/clone', authenticateToken, apiLimiter, async (req: any, res) => {

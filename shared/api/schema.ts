@@ -207,12 +207,12 @@ export type PaginationData = z.infer<typeof PaginationSchema>;
 export const CreateMiniMeetSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요').max(50, '제목은 50자 이하로 입력해주세요'),
   placeName: z.string().min(1, '장소명을 입력해주세요').max(100, '장소명은 100자 이하로 입력해주세요'),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  latitude: z.coerce.number().min(-90).max(90),
+  longitude: z.coerce.number().min(-180).max(180),
   startAt: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: '올바른 날짜 형식이 아닙니다',
   }),
-  maxPeople: z.number().min(2).max(10).default(6),
+  maxPeople: z.coerce.number().min(2).max(10).default(6),
   visibility: z.enum(['public', 'friends']).default('public'),
 });
 
