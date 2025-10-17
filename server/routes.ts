@@ -463,6 +463,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // 해당 예약의 경험이 현재 호스트의 것인지 확인
+      if (!booking.experienceId) {
+        return res.status(400).json({ error: 'Invalid booking data' });
+      }
       const experience = await storage.getExperienceById(booking.experienceId);
       if (!experience || experience.hostId !== req.user.id) {
         return res.status(403).json({ error: 'Not authorized to update this booking' });
@@ -2001,9 +2004,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   template: template ? {
                     id: template.id,
                     title: template.title,
-                    price: template.price,
-                    duration: template.duration,
-                    category: template.category,
+                    basePrice: template.basePrice,
+                    templateType: template.templateType,
                   } : null,
                 };
               }
@@ -3408,7 +3410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updateData = insertServiceTemplateSchema.partial().parse(req.body);
-      const updatedTemplate = await storage.updateServiceTemplate(templateId, updateData);
+      const updatedTemplate = await storage.updateServiceTemplate(templateId, updateData as any);
 
       if (!updatedTemplate) {
         return res.status(404).json({ message: 'Failed to update template' });
