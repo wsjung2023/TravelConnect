@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
+import { api } from '@/lib/api';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -1588,12 +1589,9 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/mini-meets', {
+      await api('/api/mini-meets', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
           title: title.trim(),
           placeName: location.name,
           latitude: location.lat,
@@ -1601,18 +1599,13 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
           startAt: startTime,
           maxPeople,
           visibility: 'public',
-        }),
+        },
       });
 
-      if (response.ok) {
-        onSuccess();
-        console.log('모임 생성 성공');
-      } else {
-        const error = await response.json();
-        console.error('모임 생성 실패:', error.message);
-      }
+      onSuccess();
+      console.log('모임 생성 성공');
     } catch (error) {
-      console.error('모임 생성 오류:', error);
+      console.error('모임 생성 실패:', error);
     } finally {
       setIsLoading(false);
     }
@@ -1748,25 +1741,15 @@ const MiniMeetDetailModal: React.FC<MiniMeetDetailModalProps> = ({
   const handleJoin = async () => {
     setIsJoining(true);
     try {
-      const response = await fetch(`/api/mini-meets/${meet.id}/join`, {
+      const result = await api(`/api/mini-meets/${meet.id}/join`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('모임 참여 성공:', result.message);
-        onJoin();
-      } else {
-        const error = await response.json();
-        console.error('모임 참여 실패:', error.message);
-        alert(error.message);
-      }
-    } catch (error) {
-      console.error('모임 참여 오류:', error);
-      alert('모임 참여 중 오류가 발생했습니다.');
+      console.log('모임 참여 성공:', result.message);
+      onJoin();
+    } catch (error: any) {
+      console.error('모임 참여 실패:', error);
+      alert(error.message || '모임 참여 중 오류가 발생했습니다.');
     } finally {
       setIsJoining(false);
     }
