@@ -118,6 +118,7 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
     mutationFn: async (data: ServiceTemplateFormData) => {
       const payload = {
         ...data,
+        basePrice: data.basePrice.toString(),
         includes: includesTags,
         requirements: requirementsTags,
         sampleDeliverables: sampleTags,
@@ -126,12 +127,12 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
       if (template) {
         return apiRequest(`/api/templates/${template.id}`, {
           method: 'PUT',
-          body: JSON.stringify(payload),
+          body: payload as any,
         });
       } else {
         return apiRequest('/api/templates/create', {
           method: 'POST',
-          body: JSON.stringify(payload),
+          body: payload as any,
         });
       }
     },
@@ -195,7 +196,7 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>템플릿 종류</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-template-type">
                         <SelectValue placeholder="제공하고 싶은 서비스 종류를 선택하세요" />
