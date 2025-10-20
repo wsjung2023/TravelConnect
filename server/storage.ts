@@ -1614,6 +1614,21 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  async isChannelMember(userId: string, channelId: number): Promise<boolean> {
+    const member = await db
+      .select()
+      .from(channelMembers)
+      .where(
+        and(
+          eq(channelMembers.userId, userId),
+          eq(channelMembers.channelId, channelId)
+        )
+      )
+      .limit(1);
+    
+    return member.length > 0;
+  }
+
   // Message operations (채널 지원)
   async createChannelMessage(message: Omit<InsertMessage, 'conversationId'> & { channelId: number }): Promise<Message> {
     const [newMessage] = await db.insert(messages).values(message).returning();

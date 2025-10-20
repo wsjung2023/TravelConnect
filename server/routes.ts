@@ -225,11 +225,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Content Security Policy: 다양한 공격 방지
     res.setHeader('Content-Security-Policy', [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com",
-      "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-      "font-src 'self' fonts.gstatic.com data:",
-      "img-src 'self' data: https: *.unsplash.com *.googleusercontent.com",
-      "connect-src 'self' wss: ws: *.googleapis.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com *.gstatic.com",
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com",
+      "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com data:",
+      "img-src 'self' data: blob: https: *.unsplash.com *.googleusercontent.com",
+      "connect-src 'self' wss: ws: *.googleapis.com *.replit.app *.replit.dev",
       "media-src 'self' data: blob:",
       "object-src 'none'",
       "frame-src 'none'"
@@ -290,8 +290,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // JWT 토큰 검증
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as any;
-      if (!decoded.role || decoded.role !== 'admin') {
+      const decoded = verifyToken(token);
+      if (!decoded || decoded.role !== 'admin') {
         return res.status(403).json({ message: 'Admin access required' });
       }
 
