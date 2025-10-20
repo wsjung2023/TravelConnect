@@ -50,7 +50,7 @@ export default function TimelineCreate() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     const validFiles = files.filter(file => {
-      const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
+      const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
       const isValidSize = file.size <= 15 * 1024 * 1024; // 15MB
       
       if (!isValidType) {
