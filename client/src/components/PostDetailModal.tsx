@@ -121,7 +121,7 @@ export default function PostDetailModal({
                     <ImageFallback className="w-full h-80 bg-gradient-to-br flex items-center justify-center" />
                   ) : (
                     <img
-                      src={`/api/files/${allMedia[currentMediaIndex].src}`}
+                      src={allMedia[currentMediaIndex].src}
                       alt={post.title ?? ''}
                       className="w-full h-80 object-cover"
                       onError={() => {
@@ -137,7 +137,7 @@ export default function PostDetailModal({
                     />
                   ) : (
                     <video
-                      src={`/api/files/${allMedia[currentMediaIndex].src}`}
+                      src={allMedia[currentMediaIndex].src}
                       controls
                       className="w-full h-80 object-cover"
                       onError={() => {

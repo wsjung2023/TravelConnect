@@ -495,7 +495,7 @@ export default function Feed() {
                           }`}
                           widthHint={720} // 카드 영역 폭 기준
                           // 서버가 썸네일/카드/풀을 아직 안 주더라도 OK (src로 자동 fallback)
-                          src={post.images?.[0] ? `/api/files/${post.images[0]}` : ''}
+                          src={post.images?.[0] || ''}
                           // variants가 있다면 여기에 붙이세요(없으면 생략): variants={post.imageVariants}
                           onError={() => {
                             setFailedImages(prev => new Set(prev).add(post.id));

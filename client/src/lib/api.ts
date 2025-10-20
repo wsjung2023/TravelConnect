@@ -1,8 +1,17 @@
 export async function api(url: string, opts: { method?: string; body?: any; auth?: boolean } = {}) {
   const { method = "GET", body, auth = true } = opts;
   const token = localStorage.getItem('token');
-  const headers: HeadersInit = { "Content-Type": "application/json" };
-  if (auth && token) headers["Authorization"] = `Bearer ${token}`;
+  
+  const isFormData = body instanceof FormData;
+  const headers: HeadersInit = {};
+  
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  if (auth && token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   
   const fetchOptions: RequestInit = { 
     method, 
@@ -11,7 +20,7 @@ export async function api(url: string, opts: { method?: string; body?: any; auth
   };
   
   if (body) {
-    fetchOptions.body = JSON.stringify(body);
+    fetchOptions.body = isFormData ? body : JSON.stringify(body);
   }
   
   const res = await fetch(url, fetchOptions);
