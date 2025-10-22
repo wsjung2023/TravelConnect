@@ -309,15 +309,6 @@
     "sports": "运动",
     "wellness": "健康"
   },
-  "miniMeet": {
-    "create": "在此创建迷你聚会",
-    "titleLabel": "🎯 聚会标题",
-    "maxPeopleLabel": "👥 最多人数（包括您）",
-    "creating": "创建中...",
-    "createButton": "创建聚会",
-    "joining": "加入中...",
-    "joinButton": "🤝 加入聚会"
-  },
   "common": {
     "cancel": "取消",
     "save": "保存",
@@ -356,6 +347,15 @@
     "failedDesc": "提交评价时发生错误。请重试。",
     "tooManyImages": "图片过多",
     "tooManyImagesDesc": "最多可上传5张图片。"
+  },
+  "miniMeet": {
+    "create": "在此创建迷你聚会",
+    "titleLabel": "🎯 聚会标题",
+    "maxPeopleLabel": "👥 最多人数（包括您）",
+    "creating": "创建中...",
+    "createButton": "创建聚会",
+    "joining": "加入中...",
+    "joinButton": "🤝 加入聚会"
   },
   "profile": {
     "user": "用户",
@@ -488,7 +488,7 @@
     "checkDetails": "查看您最近的体验和预订",
     "noExperiences": "还没有注册的体验。",
     "createFirstExperience": "创建第一个体验",
-    "viewDetails": "在"体验管理"和"预订管理"标签中查看详情。",
+    "viewDetails": "在'体验管理'和'预订管理'标签中查看详情。",
     "manageExperiences": "体验管理",
     "addExperienceDesc": "管理已注册的体验并添加新体验",
     "addExperience": "添加新体验",
@@ -602,10 +602,10 @@
     "linkCopied": "链接已复制！",
     "linkCopiedDesc": "粘贴链接以分享。",
     "reported": "举报已提交",
-    "reportedDesc": "帖子"{{title}}"已被举报。",
+    "reportedDesc": "帖子'{{title}}'已被举报。",
     "editFeature": "编辑功能",
     "editFeatureDesc": "帖子编辑功能即将推出。",
-    "confirmDelete": "确定要删除"{{title}}"吗？",
+    "confirmDelete": "确定要删除'{{title}}'吗？",
     "deleteSuccess": "帖子已删除",
     "deleteSuccessDesc": "帖子已成功删除。",
     "deleteFailed": "删除失败",
