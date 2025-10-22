@@ -4,6 +4,7 @@ import { X, Camera, MapPin, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { InsertPost } from '@shared/schema';
@@ -34,6 +35,9 @@ export default function CreatePostModal({
         ? `${initialLocation.lat.toFixed(4)}, ${initialLocation.lng.toFixed(4)}`
         : '')
   );
+  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(
+    initialLocation ? { lat: initialLocation.lat, lng: initialLocation.lng } : null
+  );
   const [theme, setTheme] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -57,6 +61,7 @@ export default function CreatePostModal({
       setTitle('');
       setContent('');
       setLocation('');
+      setLocationCoords(null);
       setTheme('');
       setImages([]);
       setImageFiles([]);
@@ -208,8 +213,8 @@ export default function CreatePostModal({
       theme,
       images: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
       takenAt: earliestTakenAt || undefined,
-      latitude: bestLatitude?.toString(),
-      longitude: bestLongitude?.toString(),
+      latitude: locationCoords?.lat?.toString() || bestLatitude?.toString(),
+      longitude: locationCoords?.lng?.toString() || bestLongitude?.toString(),
     };
 
     console.log('게시글 생성 데이터:', post);
@@ -281,9 +286,20 @@ export default function CreatePostModal({
               <MapPin size={16} />
               <span>위치 추가</span>
             </div>
-            <Input
+            <LocationSearchInput
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(placeData) => {
+                if (placeData) {
+                  setLocation(placeData.description);
+                  setLocationCoords({
+                    lat: placeData.coordinates.lat,
+                    lng: placeData.coordinates.lng,
+                  });
+                } else {
+                  setLocation('');
+                  setLocationCoords(null);
+                }
+              }}
               placeholder="어디에서의 이야기인가요?"
               className="border-gray-200"
             />
