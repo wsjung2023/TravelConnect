@@ -112,7 +112,11 @@
     "descriptionLabel": "Descripción del viaje",
     "createButton": "Crear cronología",
     "destinationHelp": "Por favor ingresa el nombre de la ciudad y el país juntos (ej: París, Francia)",
-    "daysUnit": "días"
+    "daysUnit": "días",
+    "createSuccess": "Plan de viaje creado",
+    "createSuccessDesc": "¡Tu nuevo plan de viaje ha sido creado exitosamente!",
+    "createError": "Error de creación",
+    "createErrorDesc": "Ocurrió un error al crear el plan de viaje. Por favor intenta de nuevo."
   },
   "post": {
     "noTitle": "Sin título",
@@ -120,7 +124,19 @@
     "viewTogether": " ver juntos",
     "moreCount": " más",
     "minuteUnit": "min",
-    "experienceCount": "{{count}} experiencias"
+    "experienceCount": "{{count}} experiencias",
+    "createSuccess": "Publicación creada",
+    "createSuccessDesc": "¡Tu historia de viaje ha sido compartida!",
+    "createError": "Error al crear publicación",
+    "createErrorDesc": "Ocurrió un error al crear la publicación.",
+    "titleRequired": "Título requerido",
+    "titleRequiredDesc": "Por favor ingresa un título para la publicación.",
+    "titlePlaceholder": "Ingresa el título del viaje",
+    "contentPlaceholder": "¿Qué historia de viaje quieres compartir?",
+    "locationPlaceholder": "¿De dónde es esta historia?",
+    "addPhoto": "Añadir foto",
+    "posting": "Publicando...",
+    "publish": "Publicar"
   },
   "navigation": {
     "map": "Mapa",
@@ -256,5 +272,23 @@
     "music": "Música",
     "sports": "Deportes",
     "wellness": "Bienestar"
+  },
+  "common": {
+    "cancel": "Cancelar"
+  },
+  "miniMeet": {
+    "create": "Crear mini encuentro aquí",
+    "titleLabel": "🎯 Título del encuentro",
+    "maxPeopleLabel": "👥 Máximo de personas (incluido tú)",
+    "creating": "Creando...",
+    "createButton": "Crear encuentro",
+    "joining": "Uniéndose...",
+    "joinButton": "🤝 Unirse al encuentro"
+  },
+  "profile": {
+    "hostApplySuccess": "Solicitud de anfitrión completada",
+    "hostApplySuccessDesc": "¡Felicidades! Ahora puedes operar como anfitrión.",
+    "hostApplyError": "Solicitud fallida",
+    "hostApplyErrorDesc": "Ocurrió un error durante la solicitud de anfitrión. Por favor intenta de nuevo."
   }
 }

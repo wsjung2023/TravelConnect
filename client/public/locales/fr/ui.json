@@ -106,7 +106,11 @@
     "descriptionLabel": "Description du voyage",
     "createButton": "Créer la chronologie",
     "destinationHelp": "Veuillez saisir le nom de la ville et du pays ensemble (ex: Paris, France)",
-    "daysUnit": "jours"
+    "daysUnit": "jours",
+    "createSuccess": "Plan de voyage créé",
+    "createSuccessDesc": "Votre nouveau plan de voyage a été créé avec succès !",
+    "createError": "Échec de la création",
+    "createErrorDesc": "Une erreur s'est produite lors de la création du plan de voyage. Veuillez réessayer."
   },
   "post": {
     "noTitle": "Sans titre",
@@ -114,7 +118,19 @@
     "viewTogether": " voir ensemble",
     "moreCount": " de plus",
     "minuteUnit": "min",
-    "experienceCount": "{{count}} expériences"
+    "experienceCount": "{{count}} expériences",
+    "createSuccess": "Publication créée",
+    "createSuccessDesc": "Votre histoire de voyage a été partagée !",
+    "createError": "Échec de la création",
+    "createErrorDesc": "Une erreur s'est produite lors de la création de la publication.",
+    "titleRequired": "Titre requis",
+    "titleRequiredDesc": "Veuillez saisir un titre pour la publication.",
+    "titlePlaceholder": "Entrez le titre du voyage",
+    "contentPlaceholder": "Quelle histoire de voyage souhaitez-vous partager ?",
+    "locationPlaceholder": "D'où vient cette histoire ?",
+    "addPhoto": "Ajouter une photo",
+    "posting": "Publication en cours...",
+    "publish": "Publier"
   },
   "experiences": {
     "nearbyTitle": "Expériences à proximité",
@@ -269,5 +285,23 @@
     "music": "Musique",
     "sports": "Sports",
     "wellness": "Bien-être"
+  },
+  "common": {
+    "cancel": "Annuler"
+  },
+  "miniMeet": {
+    "create": "Créer un mini-meet ici",
+    "titleLabel": "🎯 Titre de la rencontre",
+    "maxPeopleLabel": "👥 Maximum de personnes (vous compris)",
+    "creating": "Création...",
+    "createButton": "Créer la rencontre",
+    "joining": "Rejoindre...",
+    "joinButton": "🤝 Rejoindre la rencontre"
+  },
+  "profile": {
+    "hostApplySuccess": "Candidature hôte complétée",
+    "hostApplySuccessDesc": "Félicitations ! Vous pouvez maintenant opérer en tant qu'hôte.",
+    "hostApplyError": "Échec de la candidature",
+    "hostApplyErrorDesc": "Une erreur s'est produite lors de la candidature hôte. Veuillez réessayer."
   }
 }

@@ -100,7 +100,11 @@
     "descriptionLabel": "旅行描述",
     "createButton": "创建时间线",
     "destinationHelp": "请同时输入城市和国家名称（例：巴黎，法国）",
-    "daysUnit": "天"
+    "daysUnit": "天",
+    "createSuccess": "旅行计划创建成功",
+    "createSuccessDesc": "您的新旅行计划已成功创建！",
+    "createError": "创建失败",
+    "createErrorDesc": "创建旅行计划时发生错误。请重试。"
   },
   "post": {
     "noTitle": "无标题",
@@ -108,7 +112,19 @@
     "viewTogether": "个一起查看",
     "moreCount": "个更多",
     "minuteUnit": "分钟",
-    "experienceCount": "{{count}}个体验"
+    "experienceCount": "{{count}}个体验",
+    "createSuccess": "发布成功",
+    "createSuccessDesc": "您的旅行故事已分享！",
+    "createError": "发布失败",
+    "createErrorDesc": "发布时发生错误。",
+    "titleRequired": "需要标题",
+    "titleRequiredDesc": "请输入帖子标题。",
+    "titlePlaceholder": "输入旅行标题",
+    "contentPlaceholder": "想分享什么旅行故事？",
+    "locationPlaceholder": "这个故事来自哪里？",
+    "addPhoto": "添加照片",
+    "posting": "发布中...",
+    "publish": "发布"
   },
   "navigation": {
     "map": "地图",
@@ -256,5 +272,23 @@
     "music": "音乐",
     "sports": "运动",
     "wellness": "健康"
+  },
+  "common": {
+    "cancel": "取消"
+  },
+  "miniMeet": {
+    "create": "在此创建迷你聚会",
+    "titleLabel": "🎯 聚会标题",
+    "maxPeopleLabel": "👥 最多人数（包括您）",
+    "creating": "创建中...",
+    "createButton": "创建聚会",
+    "joining": "加入中...",
+    "joinButton": "🤝 加入聚会"
+  },
+  "profile": {
+    "hostApplySuccess": "主办方申请完成",
+    "hostApplySuccessDesc": "恭喜！您现在可以作为主办方运营。",
+    "hostApplyError": "申请失败",
+    "hostApplyErrorDesc": "主办方申请过程中发生错误。请重试。"
   }
 }

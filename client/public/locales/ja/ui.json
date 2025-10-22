@@ -100,7 +100,11 @@
     "descriptionLabel": "旅行説明",
     "createButton": "タイムラインを作成",
     "destinationHelp": "都市名と国名を一緒に入力してください（例：パリ、フランス）",
-    "daysUnit": "日"
+    "daysUnit": "日",
+    "createSuccess": "旅行プラン作成完了",
+    "createSuccessDesc": "新しい旅行プランが正常に作成されました！",
+    "createError": "作成失敗",
+    "createErrorDesc": "旅行プランの作成中にエラーが発生しました。もう一度お試しください。"
   },
   "post": {
     "noTitle": "タイトルなし",
@@ -108,7 +112,19 @@
     "viewTogether": "個一緒に見る",
     "moreCount": "個さらに",
     "minuteUnit": "分間",
-    "experienceCount": "{{count}}件の体験"
+    "experienceCount": "{{count}}件の体験",
+    "createSuccess": "投稿作成完了",
+    "createSuccessDesc": "新しい旅行ストーリーが共有されました！",
+    "createError": "投稿作成失敗",
+    "createErrorDesc": "投稿の作成中にエラーが発生しました。",
+    "titleRequired": "タイトル入力",
+    "titleRequiredDesc": "投稿タイトルを入力してください。",
+    "titlePlaceholder": "旅行タイトルを入力",
+    "contentPlaceholder": "どんな旅行ストーリーを共有したいですか？",
+    "locationPlaceholder": "どこでのストーリーですか？",
+    "addPhoto": "写真を追加",
+    "posting": "投稿中...",
+    "publish": "公開"
   },
   "navigation": {
     "map": "マップ",
@@ -256,5 +272,23 @@
     "music": "音楽",
     "sports": "スポーツ",
     "wellness": "ウェルネス"
+  },
+  "common": {
+    "cancel": "キャンセル"
+  },
+  "miniMeet": {
+    "create": "ここでミニミートを作成",
+    "titleLabel": "🎯 ミーティングタイトル",
+    "maxPeopleLabel": "👥 最大人数（本人含む）",
+    "creating": "作成中...",
+    "createButton": "ミーティングを作成",
+    "joining": "参加中...",
+    "joinButton": "🤝 ミーティングに参加"
+  },
+  "profile": {
+    "hostApplySuccess": "ホスト申請完了",
+    "hostApplySuccessDesc": "おめでとうございます！ホストとして活動できるようになりました。",
+    "hostApplyError": "申請失敗",
+    "hostApplyErrorDesc": "ホスト申請中にエラーが発生しました。もう一度お試しください。"
   }
 }
