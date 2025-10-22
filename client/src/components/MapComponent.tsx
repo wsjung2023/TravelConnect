@@ -111,7 +111,19 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [miniMeetMarkers, setMiniMeetMarkers] = useState<any[]>([]);
   const [selectedMiniMeet, setSelectedMiniMeet] = useState<any>(null);
+  const [mapMode, setMapMode] = useState<'PAN' | 'POST'>('PAN');
+  const [showModeToast, setShowModeToast] = useState(false);
 
+  // POST 모드 전환시 안내 토스트 표시 (1회)
+  useEffect(() => {
+    if (mapMode === 'POST' && !showModeToast) {
+      setShowModeToast(true);
+      const timer = setTimeout(() => {
+        setShowModeToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [mapMode]);
 
   // MiniMeet 마커 업데이트 함수 (임시 비활성화)
   // const updateMiniMeetMarkers = useCallback(() => {
@@ -809,6 +821,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
         // 지도 클릭 이벤트 - 피드 생성 모달 열기
         // 롱탭을 위한 마우스다운 이벤트
         newMap.addListener('mousedown', (event: any) => {
+          // POST 모드에서만 롱탭 활성화
+          if (mapMode !== 'POST') return;
+          
           longPressRef.current = window.setTimeout(() => {
             // 롱탭 시 MiniMeet 생성 모달 열기
             const clickedLat = event.latLng.lat();
@@ -846,6 +861,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
         });
 
         newMap.addListener('click', (event: any) => {
+          // POST 모드에서만 클릭 활성화
+          if (mapMode !== 'POST') return;
+          
           // 롱탭이 진행 중이면 일반 클릭 무시
           if (longPressRef.current) {
             clearTimeout(longPressRef.current);
@@ -1537,6 +1555,38 @@ const MapComponent: React.FC<MapComponentProps> = ({
           </div>
         )}
       </div>
+
+      {/* 지도 모드 토글 버튼 (우하단) */}
+      <div className="absolute bottom-20 right-4 z-10">
+        <button
+          onClick={() => setMapMode(mapMode === 'PAN' ? 'POST' : 'PAN')}
+          className={`px-4 py-3 rounded-full shadow-lg font-medium text-sm transition-all ${
+            mapMode === 'PAN'
+              ? 'bg-white text-gray-700 hover:bg-gray-50'
+              : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
+          }`}
+          data-testid="button-toggle-map-mode"
+        >
+          {mapMode === 'PAN' ? '🖐️ 탐색' : '📌 작성'}
+        </button>
+      </div>
+
+      {/* POST 모드 십자선 (중앙) */}
+      {mapMode === 'POST' && (
+        <div className="absolute inset-0 pointer-events-none z-[5] flex items-center justify-center">
+          <div className="relative">
+            <div className="absolute w-8 h-0.5 bg-pink-500/60 -translate-x-1/2"></div>
+            <div className="absolute h-8 w-0.5 bg-pink-500/60 -translate-y-1/2"></div>
+          </div>
+        </div>
+      )}
+
+      {/* POST 모드 안내 토스트 (상단) */}
+      {mapMode === 'POST' && showModeToast && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 bg-black/80 text-white px-4 py-2 rounded-lg text-sm animate-fade-in">
+          지도를 움직여 위치를 선택하고 탭하세요
+        </div>
+      )}
 
       {/* 하단 체험 정보 */}
       <div className="absolute bottom-0 left-0 right-0 bg-white p-4 border-t">
