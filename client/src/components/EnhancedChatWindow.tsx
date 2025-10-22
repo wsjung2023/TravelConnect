@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ export default function EnhancedChatWindow({
   onStartThread,
   currentUserId,
 }: EnhancedChatWindowProps) {
+  const { t, i18n } = useTranslation('ui');
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +59,12 @@ export default function EnhancedChatWindow({
   };
 
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('ko-KR', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : 
+                   i18n.language === 'ja' ? 'ja-JP' :
+                   i18n.language === 'zh' ? 'zh-CN' :
+                   i18n.language === 'fr' ? 'fr-FR' :
+                   i18n.language === 'es' ? 'es-ES' : 'en-US';
+    return new Date(date).toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -75,11 +82,16 @@ export default function EnhancedChatWindow({
     );
 
     if (messageDay.getTime() === today.getTime()) {
-      return null; // 오늘은 날짜 표시 안함
+      return null;
     } else if (messageDay.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
-      return '어제';
+      return t('chat.yesterday');
     } else {
-      return messageDate.toLocaleDateString('ko-KR', {
+      const locale = i18n.language === 'ko' ? 'ko-KR' : 
+                     i18n.language === 'ja' ? 'ja-JP' :
+                     i18n.language === 'zh' ? 'zh-CN' :
+                     i18n.language === 'fr' ? 'fr-FR' :
+                     i18n.language === 'es' ? 'es-ES' : 'en-US';
+      return messageDate.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
       });
@@ -90,8 +102,8 @@ export default function EnhancedChatWindow({
   const getHeaderInfo = () => {
     if (channel) {
       return {
-        title: channel.name || `${channel.type} 채널`,
-        subtitle: channel.description || `${channel.type} 채널`,
+        title: channel.name || `${channel.type} ${t('chat.channel')}`,
+        subtitle: channel.description || `${channel.type} ${t('chat.channel')}`,
         isChannel: true,
       };
     } else if (conversation) {
@@ -101,11 +113,11 @@ export default function EnhancedChatWindow({
           : conversation.participant1Id;
       return {
         title: otherParticipant,
-        subtitle: '온라인',
+        subtitle: t('chat.online'),
         isChannel: false,
       };
     }
-    return { title: '채팅', subtitle: '', isChannel: false };
+    return { title: t('chat.chat'), subtitle: '', isChannel: false };
   };
 
   const headerInfo = getHeaderInfo();
@@ -117,7 +129,7 @@ export default function EnhancedChatWindow({
     let currentGroup: Message[] = [];
 
     messages.forEach((message) => {
-      const messageDate = formatDate(message.createdAt!) || '오늘';
+      const messageDate = formatDate(message.createdAt!) || t('chat.today');
       
       if (messageDate !== currentDate) {
         if (currentGroup.length > 0) {
@@ -193,23 +205,23 @@ export default function EnhancedChatWindow({
                 <>
                   <DropdownMenuItem>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    <span>멤버 초대</span>
+                    <span>{t('chat.inviteMember')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>채널 설정</span>
+                    <span>{t('chat.channelSettings')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>채널 나가기</span>
+                    <span>{t('chat.leaveChannel')}</span>
                   </DropdownMenuItem>
                 </>
               ) : (
                 <>
                   <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>대화 설정</span>
+                    <span>{t('chat.conversationSettings')}</span>
                   </DropdownMenuItem>
                 </>
               )}
@@ -223,31 +235,31 @@ export default function EnhancedChatWindow({
         {messagesLoading ? (
           <div className="text-center text-gray-500 mt-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>메시지를 불러오는 중...</p>
+            <p>{t('chat.loadingMessages')}</p>
           </div>
         ) : messagesError ? (
           <div className="text-center text-gray-500 mt-8">
             <div className="text-4xl mb-4">⚠️</div>
-            <p className="mb-4">메시지를 불러올 수 없습니다</p>
+            <p className="mb-4">{t('chat.cannotLoadMessages')}</p>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => window.location.reload()}
             >
-              다시 시도
+              {t('chat.retry')}
             </Button>
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             <div className="text-4xl mb-4">💬</div>
-            <p>대화를 시작해보세요!</p>
+            <p>{t('chat.startConversation')}</p>
           </div>
         ) : (
           <div className="p-4">
             {messageGroups.map((group, groupIndex) => (
               <div key={groupIndex}>
                 {/* Date Separator */}
-                {group.date !== '오늘' && (
+                {group.date !== t('chat.today') && (
                   <div className="flex items-center justify-center my-6">
                     <div className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">
                       {group.date}
@@ -288,7 +300,7 @@ export default function EnhancedChatWindow({
                               <div className="flex items-center gap-1 mt-2 pt-2 border-t border-white/20">
                                 <MessageSquare size={12} />
                                 <span className="text-xs opacity-80">
-                                  {messages.filter(m => m.parentMessageId === message.id).length}개 댓글
+                                  {t('chat.repliesCount', { count: messages.filter(m => m.parentMessageId === message.id).length })}
                                 </span>
                               </div>
                             )}
@@ -330,7 +342,7 @@ export default function EnhancedChatWindow({
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="메시지를 입력하세요..."
+            placeholder={t('chat.enterMessage')}
             className="flex-1 rounded-full border-gray-200"
             data-testid="input-message"
           />

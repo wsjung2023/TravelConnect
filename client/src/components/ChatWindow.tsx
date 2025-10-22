@@ -19,7 +19,7 @@ export default function ChatWindow({
   onSendMessage,
   currentUserId,
 }: ChatWindowProps) {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation('ui');
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +65,7 @@ export default function ChatWindow({
           </Avatar>
           <div>
             <h3 className="font-medium">{otherParticipant}</h3>
-            <p className="text-xs text-green-500">온라인</p>
+            <p className="text-xs text-green-500">{t('chat.online')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export default function ChatWindow({
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
-            <p>대화를 시작해보세요!</p>
+            <p>{t('chat.startConversation')}</p>
           </div>
         ) : (
           messages.map((message) => {
@@ -128,7 +128,7 @@ export default function ChatWindow({
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder={t('placeholders.enterMessage')}
+            placeholder={t('chat.enterMessage')}
             className="flex-1 rounded-full border-gray-200"
           />
           <Button

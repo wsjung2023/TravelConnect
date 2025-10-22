@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { X, Send, MessageSquare, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function ThreadPanel({
   onSendReply,
   currentUserId,
 }: ThreadPanelProps) {
+  const { t, i18n } = useTranslation('ui');
   const [replyText, setReplyText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -67,7 +69,12 @@ export default function ThreadPanel({
   };
 
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('ko-KR', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : 
+                   i18n.language === 'ja' ? 'ja-JP' :
+                   i18n.language === 'zh' ? 'zh-CN' :
+                   i18n.language === 'fr' ? 'fr-FR' :
+                   i18n.language === 'es' ? 'es-ES' : 'en-US';
+    return new Date(date).toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -85,11 +92,16 @@ export default function ThreadPanel({
     );
 
     if (messageDay.getTime() === today.getTime()) {
-      return '오늘';
+      return t('chat.today');
     } else if (messageDay.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
-      return '어제';
+      return t('chat.yesterday');
     } else {
-      return messageDate.toLocaleDateString('ko-KR', {
+      const locale = i18n.language === 'ko' ? 'ko-KR' : 
+                     i18n.language === 'ja' ? 'ja-JP' :
+                     i18n.language === 'zh' ? 'zh-CN' :
+                     i18n.language === 'fr' ? 'fr-FR' :
+                     i18n.language === 'es' ? 'es-ES' : 'en-US';
+      return messageDate.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
       });
@@ -107,7 +119,7 @@ export default function ThreadPanel({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare size={18} className="text-gray-500" />
-            <h3 className="font-semibold text-gray-900">스레드</h3>
+            <h3 className="font-semibold text-gray-900">{t('chat.thread')}</h3>
           </div>
           <Button
             variant="ghost"
@@ -151,28 +163,28 @@ export default function ThreadPanel({
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-3"></div>
             <p className="text-sm text-gray-500">
-              댓글을 불러오는 중...
+              {t('chat.loadingReplies')}
             </p>
           </div>
         ) : threadError ? (
           <div className="text-center py-8">
             <div className="text-3xl mb-3">⚠️</div>
             <p className="text-sm text-gray-500 mb-3">
-              댓글을 불러올 수 없습니다
+              {t('chat.cannotLoadReplies')}
             </p>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => window.location.reload()}
             >
-              다시 시도
+              {t('chat.retry')}
             </Button>
           </div>
         ) : threadMessages.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-3xl mb-3">💬</div>
             <p className="text-sm text-gray-500">
-              첫 댓글을 남겨보세요!
+              {t('chat.firstReply')}
             </p>
           </div>
         ) : (
@@ -224,7 +236,7 @@ export default function ThreadPanel({
           <Input
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            placeholder="댓글을 입력하세요..."
+            placeholder={t('chat.enterReply')}
             className="flex-1 rounded-lg border-gray-200"
             data-testid="input-thread-reply"
           />
@@ -238,7 +250,7 @@ export default function ThreadPanel({
           </Button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Enter로 전송, Shift+Enter로 줄바꿈
+          {t('chat.sendHint')}
         </p>
       </form>
     </div>

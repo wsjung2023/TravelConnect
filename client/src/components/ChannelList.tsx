@@ -255,7 +255,7 @@ export default function ChannelList({
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-600 truncate">
-                          {channel.description || t('messages.noDescription')}
+                          {channel.description || t('chat.noDescription')}
                         </p>
                         {(channel.unreadCount || 0) > 0 && (
                           <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
@@ -307,7 +307,7 @@ export default function ChannelList({
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-600 truncate">
-                          {t('messages.lastMessage')}
+                          {t('chat.lastMessage')}
                         </p>
                         {(conversation.unreadCount || 0) > 0 && (
                           <Badge variant="destructive" className="text-xs h-5 min-w-5 px-1">
