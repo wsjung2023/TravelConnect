@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import ChannelList from '@/components/ChannelList';
 import EnhancedChatWindow from '@/components/EnhancedChatWindow';
 import ThreadPanel from '@/components/ThreadPanel';
@@ -16,6 +17,7 @@ import type { Conversation, Message, Channel } from '@shared/schema';
 type ChatMode = 'list' | 'chat' | 'thread';
 
 export default function Chat() {
+  const { t } = useTranslation('ui');
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [selectedThreadMessage, setSelectedThreadMessage] = useState<Message | null>(null);
@@ -260,10 +262,10 @@ export default function Chat() {
               <div className="text-center">
                 <div className="text-6xl mb-4">💬</div>
                 <h3 className="text-xl font-medium text-gray-900 mb-2">
-                  채팅을 선택하세요
+                  {t('chatPage.selectChat')}
                 </h3>
                 <p className="text-gray-500">
-                  왼쪽에서 채널이나 대화를 선택해서 채팅을 시작하세요
+                  {t('chatPage.selectChatDesc')}
                 </p>
               </div>
             </div>
@@ -284,22 +286,22 @@ export default function Chat() {
         <Dialog open={isCreateChannelOpen} onOpenChange={setIsCreateChannelOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>새 채널 만들기</DialogTitle>
+              <DialogTitle>{t('chatPage.createChannel')}</DialogTitle>
               <DialogDescription>
-                새로운 채널을 만들어 팀원들과 소통해보세요.
+                {t('chatPage.createChannelDesc')}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="channel-name" className="text-right">
-                  채널명
+                  {t('chatPage.channelName')}
                 </Label>
                 <Input
                   id="channel-name"
                   data-testid="input-channel-name"
                   value={newChannelName}
                   onChange={(e) => setNewChannelName(e.target.value)}
-                  placeholder="예: 일반, 공지사항"
+                  placeholder={t('chatPage.channelPlaceholder')}
                   className="col-span-3"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -317,14 +319,14 @@ export default function Chat() {
                   setNewChannelName('');
                 }}
               >
-                취소
+                {t('chatPage.cancel')}
               </Button>
               <Button 
                 onClick={handleCreateChannelSubmit}
                 disabled={!newChannelName.trim()}
                 data-testid="button-create-channel-submit"
               >
-                만들기
+                {t('chatPage.create')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -383,22 +385,22 @@ export default function Chat() {
       <Dialog open={isCreateChannelOpen} onOpenChange={setIsCreateChannelOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>새 채널 만들기</DialogTitle>
+            <DialogTitle>{t('chatPage.createChannel')}</DialogTitle>
             <DialogDescription>
-              새로운 채널을 만들어 팀원들과 소통해보세요.
+              {t('chatPage.createChannelDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="channel-name" className="text-right">
-                채널명
+                {t('chatPage.channelName')}
               </Label>
               <Input
                 id="channel-name"
                 data-testid="input-channel-name"
                 value={newChannelName}
                 onChange={(e) => setNewChannelName(e.target.value)}
-                placeholder="예: 일반, 공지사항"
+                placeholder={t('chatPage.channelPlaceholder')}
                 className="col-span-3"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -416,14 +418,14 @@ export default function Chat() {
                 setNewChannelName('');
               }}
             >
-              취소
+              {t('chatPage.cancel')}
             </Button>
             <Button 
               onClick={handleCreateChannelSubmit}
               disabled={!newChannelName.trim()}
               data-testid="button-create-channel-submit"
             >
-              만들기
+              {t('chatPage.create')}
             </Button>
           </DialogFooter>
         </DialogContent>

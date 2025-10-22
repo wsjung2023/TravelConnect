@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +45,7 @@ interface Booking {
 }
 
 export default function HostDashboard() {
+  const { t } = useTranslation('ui');
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'experiences' | 'bookings'>('overview');
@@ -71,9 +73,9 @@ export default function HostDashboard() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">접근 권한 없음</CardTitle>
+            <CardTitle className="text-2xl">{t('host.accessDenied')}</CardTitle>
             <CardDescription>
-              호스트 계정만 이 페이지에 접근할 수 있습니다.
+              {t('host.accessDeniedDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -82,7 +84,7 @@ export default function HostDashboard() {
               className="w-full"
               data-testid="button-back-home"
             >
-              홈으로 돌아가기
+              {t('host.backHome')}
             </Button>
           </CardContent>
         </Card>
@@ -146,16 +148,16 @@ export default function HostDashboard() {
 
       // 성공 메시지
       toast({
-        title: newStatus === 'confirmed' ? '예약이 승인되었습니다' : '예약이 거절되었습니다',
-        description: `예약 #${bookingId}의 상태가 업데이트되었습니다.`,
+        title: newStatus === 'confirmed' ? t('toast:success.bookingApproved') : t('toast:success.bookingRejected'),
+        description: t('toast:success.bookingStatusUpdated', { id: bookingId }),
       });
 
       // 예약 목록 다시 불러오기
       queryClient.invalidateQueries({ queryKey: ['/api/host/bookings'] });
     } catch (error) {
       toast({
-        title: '오류 발생',
-        description: '예약 상태 변경 중 오류가 발생했습니다.',
+        title: t('toast:error.title'),
+        description: t('toast:error.bookingStatusFailed'),
         variant: 'destructive',
       });
       console.error('예약 상태 변경 오류:', error);
@@ -177,10 +179,10 @@ export default function HostDashboard() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold" data-testid="text-host-dashboard-title">
-              호스트 대시보드
+              {t('host.dashboard')}
             </h1>
             <p className="text-muted-foreground mt-2">
-              안녕하세요, {user.firstName} {user.lastName}님
+              {t('host.welcome', { name: `${user.firstName} ${user.lastName}` })}
             </p>
           </div>
           <Button 
@@ -189,7 +191,7 @@ export default function HostDashboard() {
             data-testid="button-add-experience"
           >
             <PlusCircle className="w-4 h-4 mr-2" />
-            새 경험 등록
+            {t('host.createExperience')}
           </Button>
         </div>
 
@@ -197,7 +199,7 @@ export default function HostDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">활성 경험</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('host.activeExperiences')}</CardTitle>
               <Eye className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -205,14 +207,14 @@ export default function HostDashboard() {
                 {activeExperiences}
               </div>
               <p className="text-xs text-muted-foreground">
-                총 {experiences.length}개 중
+                {t('host.total')} {experiences.length}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">전체 예약</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('host.totalBookings')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -220,14 +222,14 @@ export default function HostDashboard() {
                 {totalBookings}
               </div>
               <p className="text-xs text-muted-foreground">
-                대기 중: {pendingBookings}개
+                {t('host.pendingBookings')}: {pendingBookings}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">총 수익</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('host.totalRevenue')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -235,14 +237,14 @@ export default function HostDashboard() {
                 {totalRevenue.toLocaleString()}원
               </div>
               <p className="text-xs text-muted-foreground">
-                결제 완료 기준
+                {t('host.paidOnly')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">평균 평점</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('host.averageRating')}</CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -253,7 +255,7 @@ export default function HostDashboard() {
                 }
               </div>
               <p className="text-xs text-muted-foreground">
-                총 {experiences.reduce((sum, exp) => sum + exp.reviewCount, 0)}개 리뷰
+                {t('host.totalReviews', { count: experiences.reduce((sum, exp) => sum + exp.reviewCount, 0) })}
               </p>
             </CardContent>
           </Card>
@@ -262,34 +264,34 @@ export default function HostDashboard() {
         {/* Main Content */}
         <Tabs value={selectedTab} onValueChange={(value: any) => setSelectedTab(value)}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview" data-testid="tab-overview">개요</TabsTrigger>
-            <TabsTrigger value="experiences" data-testid="tab-experiences">내 경험</TabsTrigger>
-            <TabsTrigger value="bookings" data-testid="tab-bookings">예약 관리</TabsTrigger>
+            <TabsTrigger value="overview" data-testid="tab-overview">{t('host.overview')}</TabsTrigger>
+            <TabsTrigger value="experiences" data-testid="tab-experiences">{t('host.myExperiences')}</TabsTrigger>
+            <TabsTrigger value="bookings" data-testid="tab-bookings">{t('host.bookingManagement')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>최근 활동</CardTitle>
+                <CardTitle>{t('host.recentActivity')}</CardTitle>
                 <CardDescription>
-                  최근 등록한 경험과 예약 현황을 확인하세요
+                  {t('host.checkDetails')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {experiences.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground mb-4">
-                      아직 등록된 경험이 없습니다.
+                      {t('host.noExperiences')}
                     </p>
                     <Button data-testid="button-create-first-experience">
                       <PlusCircle className="w-4 h-4 mr-2" />
-                      첫 번째 경험 만들기
+                      {t('host.createFirstExperience')}
                     </Button>
                   </div>
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground">
-                      상세한 정보는 '내 경험'과 '예약 관리' 탭에서 확인하세요.
+                      {t('host.viewDetails')}
                     </p>
                   </div>
                 )}
@@ -301,14 +303,14 @@ export default function HostDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>내 경험 관리</CardTitle>
+                  <CardTitle>{t('host.manageExperiences')}</CardTitle>
                   <CardDescription>
-                    등록한 경험을 관리하고 새로운 경험을 추가하세요
+                    {t('host.addExperienceDesc')}
                   </CardDescription>
                 </div>
                 <Button size="sm" data-testid="button-add-new-experience">
                   <PlusCircle className="w-4 h-4 mr-2" />
-                  새 경험 추가
+                  {t('host.addExperience')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -319,24 +321,24 @@ export default function HostDashboard() {
                 ) : experiences.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground mb-4">
-                      등록된 경험이 없습니다.
+                      {t('host.noExperiences')}
                     </p>
                     <Button data-testid="button-create-experience">
                       <PlusCircle className="w-4 h-4 mr-2" />
-                      경험 등록하기
+                      {t('host.createExperience')}
                     </Button>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>제목</TableHead>
-                        <TableHead>카테고리</TableHead>
-                        <TableHead>위치</TableHead>
-                        <TableHead>가격</TableHead>
-                        <TableHead>평점</TableHead>
-                        <TableHead>상태</TableHead>
-                        <TableHead>관리</TableHead>
+                        <TableHead>{t('host.title')}</TableHead>
+                        <TableHead>{t('host.category')}</TableHead>
+                        <TableHead>{t('host.location')}</TableHead>
+                        <TableHead>{t('host.price')}</TableHead>
+                        <TableHead>{t('host.rating')}</TableHead>
+                        <TableHead>{t('host.status')}</TableHead>
+                        <TableHead>{t('host.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -378,7 +380,7 @@ export default function HostDashboard() {
                               variant={experience.isActive ? "default" : "secondary"}
                               data-testid={`status-experience-${experience.id}`}
                             >
-                              {experience.isActive ? '활성' : '비활성'}
+                              {experience.isActive ? t('host.active') : t('host.inactive')}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -404,9 +406,9 @@ export default function HostDashboard() {
           <TabsContent value="bookings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>예약 관리</CardTitle>
+                <CardTitle>{t('host.bookingManagement')}</CardTitle>
                 <CardDescription>
-                  고객의 예약을 확인하고 상태를 관리하세요
+                  {t('host.checkDetails')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -417,21 +419,21 @@ export default function HostDashboard() {
                 ) : bookings.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">
-                      아직 예약이 없습니다.
+                      {t('host.noBookings')}
                     </p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>경험</TableHead>
-                        <TableHead>고객</TableHead>
-                        <TableHead>날짜</TableHead>
-                        <TableHead>인원</TableHead>
-                        <TableHead>총액</TableHead>
-                        <TableHead>예약 상태</TableHead>
-                        <TableHead>결제 상태</TableHead>
-                        <TableHead>관리</TableHead>
+                        <TableHead>{t('host.experience')}</TableHead>
+                        <TableHead>{t('host.guest')}</TableHead>
+                        <TableHead>{t('host.date')}</TableHead>
+                        <TableHead>{t('host.participants')}</TableHead>
+                        <TableHead>{t('host.total')}</TableHead>
+                        <TableHead>{t('host.bookingStatus')}</TableHead>
+                        <TableHead>{t('host.paymentStatus')}</TableHead>
+                        <TableHead>{t('host.manage')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -444,7 +446,7 @@ export default function HostDashboard() {
                           <TableCell>
                             {new Date(booking.date).toLocaleDateString('ko-KR')}
                           </TableCell>
-                          <TableCell>{booking.participants}명</TableCell>
+                          <TableCell>{booking.participants}{t('experiencePage.people')}</TableCell>
                           <TableCell>
                             {formatPrice(booking.totalPrice, 'KRW')}
                           </TableCell>
@@ -467,7 +469,7 @@ export default function HostDashboard() {
                                   data-testid={`button-review-${booking.id}`}
                                 >
                                   <MessageSquare className="w-4 h-4 mr-2" />
-                                  후기 작성
+                                  {t('host.writeReview')}
                                 </Button>
                               </CreateReviewModal>
                             ) : booking.status === 'pending' ? (
@@ -479,7 +481,7 @@ export default function HostDashboard() {
                                   data-testid={`button-approve-${booking.id}`}
                                 >
                                   <CheckCircle className="w-4 h-4 mr-1" />
-                                  승인
+                                  {t('host.approve')}
                                 </Button>
                                 <Button 
                                   variant="destructive" 
@@ -488,7 +490,7 @@ export default function HostDashboard() {
                                   data-testid={`button-reject-${booking.id}`}
                                 >
                                   <XCircle className="w-4 h-4 mr-1" />
-                                  거절
+                                  {t('host.reject')}
                                 </Button>
                               </div>
                             ) : (
@@ -497,7 +499,7 @@ export default function HostDashboard() {
                                 size="sm"
                                 data-testid={`button-manage-${booking.id}`}
                               >
-                                관리
+                                {t('host.manage')}
                               </Button>
                             )}
                           </TableCell>

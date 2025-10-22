@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,27 +36,28 @@ interface Experience {
   };
 }
 
-const CATEGORIES = [
-  { value: 'all', label: '전체' },
-  { value: 'tour', label: '투어' },
-  { value: 'food', label: '음식' },
-  { value: 'activity', label: '액티비티' },
-  { value: 'tip', label: '팁' },
-];
-
-const PRICE_RANGES = [
-  { value: 'all', label: '전체 가격' },
-  { value: '0-50000', label: '5만원 이하' },
-  { value: '50000-100000', label: '5-10만원' },
-  { value: '100000-200000', label: '10-20만원' },
-  { value: '200000+', label: '20만원 이상' },
-];
-
 export default function Marketplace() {
+  const { t } = useTranslation('ui');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [priceFilter, setPriceFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
+
+  const CATEGORIES = [
+    { value: 'all', label: t('marketplace.categoryAll') },
+    { value: 'tour', label: t('marketplace.categoryTour') },
+    { value: 'food', label: t('marketplace.categoryFood') },
+    { value: 'activity', label: t('marketplace.categoryActivity') },
+    { value: 'tip', label: t('marketplace.categoryTip') },
+  ];
+
+  const PRICE_RANGES = [
+    { value: 'all', label: t('marketplace.priceAll') },
+    { value: '0-50000', label: t('marketplace.priceRange1') },
+    { value: '50000-100000', label: t('marketplace.priceRange2') },
+    { value: '100000-200000', label: t('marketplace.priceRange3') },
+    { value: '200000+', label: t('marketplace.priceRange4') },
+  ];
 
   const { data: experiences = [], isLoading } = useQuery<Experience[]>({
     queryKey: ['/api/experiences', searchQuery, categoryFilter, priceFilter, sortBy],
@@ -75,14 +77,14 @@ export default function Marketplace() {
 
   const formatPrice = (price: string, currency: string) => {
     const numPrice = parseInt(price);
-    return `${numPrice.toLocaleString()}${currency === 'KRW' ? '원' : ' ' + currency}`;
+    return `${numPrice.toLocaleString()}${currency === 'KRW' ? t('marketplace.currency') : ' ' + currency}`;
   };
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}분`;
+    if (minutes < 60) return `${minutes}${t('marketplace.minutes')}`;
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+    return remainingMinutes > 0 ? `${hours}${t('marketplace.hours')} ${remainingMinutes}${t('marketplace.minutes')}` : `${hours}${t('marketplace.hours')}`;
   };
 
   const getCategoryLabel = (category: string) => {
@@ -105,7 +107,7 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">여행 경험을 찾고 있어요...</p>
+            <p className="text-muted-foreground">{t('marketplace.loading')}</p>
           </div>
         </div>
       </div>
@@ -117,8 +119,8 @@ export default function Marketplace() {
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">🌟 여행 마켓플레이스</h1>
-          <p className="text-muted-foreground">현지인과 함께하는 특별한 여행 경험을 발견하세요</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">🌟 {t('marketplace.title')}</h1>
+          <p className="text-muted-foreground">{t('marketplace.subtitle')}</p>
         </div>
       </div>
 
@@ -128,7 +130,7 @@ export default function Marketplace() {
           <div className="flex-1">
             <Input
               data-testid="input-search"
-              placeholder="어떤 경험을 찾으시나요? (예: 한식 요리, 한강 투어)"
+              placeholder={t('marketplace.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full"
@@ -138,7 +140,7 @@ export default function Marketplace() {
           <div className="flex flex-wrap gap-2">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger data-testid="select-category" className="w-32">
-                <SelectValue placeholder="카테고리" />
+                <SelectValue placeholder={t('marketplace.category')} />
               </SelectTrigger>
               <SelectContent>
                 {CATEGORIES.map((category) => (
@@ -151,7 +153,7 @@ export default function Marketplace() {
 
             <Select value={priceFilter} onValueChange={setPriceFilter}>
               <SelectTrigger data-testid="select-price" className="w-32">
-                <SelectValue placeholder="가격대" />
+                <SelectValue placeholder={t('marketplace.priceRange')} />
               </SelectTrigger>
               <SelectContent>
                 {PRICE_RANGES.map((range) => (
@@ -164,13 +166,13 @@ export default function Marketplace() {
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger data-testid="select-sort" className="w-32">
-                <SelectValue placeholder="정렬" />
+                <SelectValue placeholder={t('marketplace.sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rating">평점순</SelectItem>
-                <SelectItem value="price">가격순</SelectItem>
-                <SelectItem value="reviewCount">리뷰순</SelectItem>
-                <SelectItem value="createdAt">최신순</SelectItem>
+                <SelectItem value="rating">{t('marketplace.sortByRating')}</SelectItem>
+                <SelectItem value="price">{t('marketplace.sortByPrice')}</SelectItem>
+                <SelectItem value="reviewCount">{t('marketplace.sortByReviews')}</SelectItem>
+                <SelectItem value="createdAt">{t('marketplace.sortByNewest')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -179,7 +181,7 @@ export default function Marketplace() {
         {/* Results */}
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
-            총 <span className="font-semibold text-foreground">{experiences.length}</span>개의 경험
+            {t('marketplace.totalExperiences', { count: experiences.length })}
           </p>
         </div>
 
@@ -187,8 +189,8 @@ export default function Marketplace() {
         {experiences.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-semibold mb-2">검색 결과가 없어요</h3>
-            <p className="text-muted-foreground mb-4">다른 검색어나 필터를 시도해보세요</p>
+            <h3 className="text-lg font-semibold mb-2">{t('marketplace.noResults')}</h3>
+            <p className="text-muted-foreground mb-4">{t('marketplace.tryDifferentFilters')}</p>
             <Button 
               data-testid="button-reset-filters"
               variant="outline" 
@@ -199,7 +201,7 @@ export default function Marketplace() {
                 setSortBy('rating');
               }}
             >
-              필터 초기화
+              {t('marketplace.resetFilters')}
             </Button>
           </div>
         ) : (
@@ -269,7 +271,7 @@ export default function Marketplace() {
                     <div className="flex items-center gap-1">
                       <Users className="w-3 h-3" />
                       <span data-testid={`text-participants-${experience.id}`}>
-                        최대 {experience.maxParticipants}명
+                        {t('marketplace.maxParticipants', { count: experience.maxParticipants })}
                       </span>
                     </div>
                   </div>
@@ -289,7 +291,7 @@ export default function Marketplace() {
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
                             {experience.host.firstName} {experience.host.lastName}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">가이드 프로필 보기</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('marketplace.viewGuideProfile')}</p>
                         </div>
                         <div className="text-xs text-blue-600 dark:text-blue-400">→</div>
                       </Link>
@@ -311,7 +313,7 @@ export default function Marketplace() {
                       <p className="text-lg font-bold text-primary" data-testid={`text-price-${experience.id}`}>
                         {formatPrice(experience.price, experience.currency)}
                       </p>
-                      <p className="text-xs text-muted-foreground">1인당</p>
+                      <p className="text-xs text-muted-foreground">{t('marketplace.perPerson')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -323,7 +325,7 @@ export default function Marketplace() {
                       className="w-full" 
                       size="sm"
                     >
-                      자세히 보기
+                      {t('marketplace.viewDetails')}
                     </Button>
                   </Link>
                 </CardFooter>

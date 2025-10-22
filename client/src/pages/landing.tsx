@@ -1,5 +1,6 @@
 import { MapPin, Users, MessageCircle, Star, PlayCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LoginModal } from '@/components/LoginModal';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +8,7 @@ import Footer from '@/components/Footer';
 
 export default function Landing() {
   const { toast } = useToast();
+  const { t } = useTranslation(['ui']);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
 
@@ -33,16 +35,15 @@ export default function Landing() {
       localStorage.setItem('user', JSON.stringify(data.user));
 
       toast({
-        title: '데모 로그인 성공',
-        description:
-          'TEST 계정으로 로그인되었습니다. 플랫폼을 자유롭게 둘러보세요!',
+        title: t('ui:landingPage.demoLoginSuccess'),
+        description: t('ui:landingPage.demoLoginSuccessDesc'),
       });
 
       // 홈으로 리다이렉트
       window.location.href = '/';
     } catch (error: any) {
       toast({
-        title: '데모 로그인 실패',
+        title: t('ui:landingPage.demoLoginFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -99,23 +100,23 @@ export default function Landing() {
   const features = [
     {
       icon: MapPin,
-      title: '현지 체험 발견',
-      description: '지도에서 독특한 여행 체험을 찾아보세요',
+      title: t('ui:landingPage.feature1Title'),
+      description: t('ui:landingPage.feature1Desc'),
     },
     {
       icon: Users,
-      title: '현지 호스트 연결',
-      description: '신뢰할 수 있는 현지 호스트와 만나세요',
+      title: t('ui:landingPage.feature2Title'),
+      description: t('ui:landingPage.feature2Desc'),
     },
     {
       icon: MessageCircle,
-      title: '실시간 채팅',
-      description: '호스트와 바로 대화하고 계획하세요',
+      title: t('ui:landingPage.feature3Title'),
+      description: t('ui:landingPage.feature3Desc'),
     },
     {
       icon: Star,
-      title: '여행 스토리 공유',
-      description: '특별한 여행 경험을 공유하세요',
+      title: t('ui:landingPage.feature4Title'),
+      description: t('ui:landingPage.feature4Desc'),
     },
   ];
 
@@ -128,24 +129,22 @@ export default function Landing() {
           <div className="w-20 h-20 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
             <div className="text-3xl">🌍</div>
           </div>
-          <h1 className="text-3xl font-bold mb-4">Tourgether</h1>
-          <p className="text-lg opacity-90 mb-8 leading-relaxed">
-            현지인과 함께하는
-            <br />
-            특별한 여행 경험
+          <h1 className="text-3xl font-bold mb-4">{t('ui:landingPage.appName')}</h1>
+          <p className="text-lg opacity-90 mb-8 leading-relaxed whitespace-pre-line">
+            {t('ui:landingPage.subtitle')}
           </p>
           <div className="flex items-center justify-center gap-2 text-sm opacity-80">
             <div className="w-2 h-2 bg-white rounded-full"></div>
-            <span>전 세계 여행자들과 연결</span>
+            <span>{t('ui:landingPage.connectTravelers')}</span>
           </div>
         </div>
       </div>
 
       {/* Features */}
       <div className="px-6 py-12">
-        <h2 className="text-2xl font-bold text-center mb-2">Tourgether로</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">{t('ui:landingPage.startWith')}</h2>
         <p className="text-gray-600 text-center mb-8">
-          새로운 여행을 시작하세요
+          {t('ui:landingPage.startJourney')}
         </p>
 
         <div className="space-y-6">
@@ -175,16 +174,16 @@ export default function Landing() {
         <div className="travel-card p-6">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-primary mb-1">1000+</div>
-              <div className="text-xs text-gray-500">현지 체험</div>
+              <div className="text-2xl font-bold text-primary mb-1">{t('ui:landingPage.experiencesCount')}</div>
+              <div className="text-xs text-gray-500">{t('ui:landingPage.localExperiences')}</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-secondary mb-1">500+</div>
-              <div className="text-xs text-gray-500">인증 호스트</div>
+              <div className="text-2xl font-bold text-secondary mb-1">{t('ui:landingPage.hostsCount')}</div>
+              <div className="text-xs text-gray-500">{t('ui:landingPage.verifiedHosts')}</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-accent mb-1">50+</div>
-              <div className="text-xs text-gray-500">도시</div>
+              <div className="text-2xl font-bold text-accent mb-1">{t('ui:landingPage.citiesCount')}</div>
+              <div className="text-xs text-gray-500">{t('ui:landingPage.cities')}</div>
             </div>
           </div>
         </div>
@@ -192,23 +191,23 @@ export default function Landing() {
 
       {/* Reviews */}
       <div className="px-6 mb-12">
-        <h3 className="font-semibold text-center mb-6">여행자들의 후기</h3>
+        <h3 className="font-semibold text-center mb-6">{t('ui:landingPage.reviews')}</h3>
         <div className="space-y-4">
           {[
             {
-              name: '김민수',
+              name: t('ui:landingPage.review1Name'),
               rating: 5,
-              comment: '현지인 추천으로 숨겨진 맛집을 발견했어요!',
+              comment: t('ui:landingPage.review1Text'),
             },
             {
-              name: '이서연',
+              name: t('ui:landingPage.review2Name'),
               rating: 5,
-              comment: '혼자 여행도 안전하고 재미있게 할 수 있었어요',
+              comment: t('ui:landingPage.review2Text'),
             },
             {
-              name: '박준혁',
+              name: t('ui:landingPage.review3Name'),
               rating: 5,
-              comment: '가이드북에 없는 특별한 경험을 할 수 있었습니다',
+              comment: t('ui:landingPage.review3Text'),
             },
           ].map((review, index) => (
             <div key={index} className="travel-card p-4">
@@ -244,9 +243,9 @@ export default function Landing() {
       {/* Login Options */}
       <div className="px-6 pb-8">
         <div className="text-center">
-          <h3 className="text-xl font-bold mb-2">지금 시작하세요</h3>
+          <h3 className="text-xl font-bold mb-2">{t('ui:landingPage.getStarted')}</h3>
           <p className="text-gray-600 text-sm mb-6">
-            무료 회원가입으로 특별한 여행을 계획해보세요
+            {t('ui:landingPage.getStartedDesc')}
           </p>
 
           {/* 데모 체험하기 버튼 */}
@@ -257,7 +256,7 @@ export default function Landing() {
             data-testid="button-demo-login"
           >
             <PlayCircle className="w-5 h-5 mr-2" />
-            {isDemoLoading ? '로그인 중...' : '데모로 체험해보기'}
+            {isDemoLoading ? t('ui:landingPage.tryingDemo') : t('ui:landingPage.tryDemo')}
           </Button>
 
           {/* Login Button */}
@@ -266,11 +265,11 @@ export default function Landing() {
             className="travel-button w-full h-12 text-lg"
             data-testid="button-login"
           >
-            로그인 / 회원가입
+            {t('ui:landingPage.login')}
           </Button>
 
           <p className="text-xs text-gray-500 mt-4 leading-relaxed">
-            구글 계정 또는 이메일/비밀번호로 간편하게 시작하세요
+            {t('ui:landingPage.loginDesc')}
           </p>
         </div>
       </div>

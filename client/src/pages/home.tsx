@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
+import { useTranslation } from 'react-i18next';
 import SearchHeader from '@/components/SearchHeader';
 import NotificationBell from '@/components/NotificationBell';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -22,6 +23,7 @@ const Profile = lazy(() => import('@/pages/profile'));
 export default function Home() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const { t } = useTranslation(['ui']);
   const [activeTab, setActiveTab] = useState<
     'map' | 'feed' | 'chat' | 'profile' | 'timeline'
   >('map');
@@ -160,8 +162,8 @@ export default function Home() {
             <i className="fas fa-globe text-white text-sm"></i>
           </div>
           <div className="text-left">
-            <h1 className="font-bold text-dark">Tourgether</h1>
-            <p className="text-xs text-gray-500">Explore the world</p>
+            <h1 className="font-bold text-dark">{t('ui:homePage.appName')}</h1>
+            <p className="text-xs text-gray-500">{t('ui:homePage.exploreWorld')}</p>
           </div>
         </button>
         <div className="flex items-center gap-1 sm:gap-2">
@@ -176,7 +178,7 @@ export default function Home() {
                 size="sm"
                 onClick={() => navigate('/config')}
                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
-                title="Configuration Panel"
+                title={t('ui:homePage.configPanel')}
                 data-testid="button-config-panel"
               >
                 <Settings className="h-4 w-4 text-gray-600" />
@@ -184,7 +186,7 @@ export default function Home() {
               <button
                 onClick={() => window.open('/db-admin', '_blank')}
                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
-                title="DB Admin 도구"
+                title={t('ui:homePage.dbAdmin')}
                 data-testid="button-db-admin"
               >
                 <i className="fas fa-database text-gray-600 text-sm"></i>
@@ -201,7 +203,7 @@ export default function Home() {
               // 서버 로그아웃 API 호출
               window.location.href = '/api/logout';
             }}
-            title="로그아웃"
+            title={t('ui:homePage.logout')}
             data-testid="button-logout"
           >
             <LogOut className="h-4 w-4 text-gray-600" />

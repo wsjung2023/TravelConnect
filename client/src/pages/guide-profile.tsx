@@ -1,6 +1,7 @@
 import { useRoute, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +61,7 @@ interface Review {
 }
 
 export default function GuideProfile() {
+  const { t } = useTranslation('ui');
   const [, params] = useRoute('/guide/:id');
   const guideId = params?.id;
   const [activeTab, setActiveTab] = useState('experiences');
@@ -90,22 +92,22 @@ export default function GuideProfile() {
 
   const formatPrice = (price: string, currency: string) => {
     const numPrice = parseInt(price);
-    return `${numPrice.toLocaleString()}${currency === 'KRW' ? '원' : ' ' + currency}`;
+    return `${numPrice.toLocaleString()}${currency === 'KRW' ? t('guide.currency') : ' ' + currency}`;
   };
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}분`;
+    if (minutes < 60) return `${minutes}${t('guide.minutes')}`;
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+    return remainingMinutes > 0 ? `${hours}${t('guide.hours')} ${remainingMinutes}${t('guide.minutes')}` : `${hours}${t('guide.hours')}`;
   };
 
   const getCategoryLabel = (category: string) => {
     const categoryMap: Record<string, string> = {
-      tour: '투어',
-      food: '음식',
-      activity: '액티비티',
-      tip: '팁',
+      tour: t('guide.categoryTour'),
+      food: t('guide.categoryFood'),
+      activity: t('guide.categoryActivity'),
+      tip: t('guide.categoryTip'),
     };
     return categoryMap[category] || category;
   };
@@ -145,8 +147,8 @@ export default function GuideProfile() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">가이드를 찾을 수 없습니다</h2>
-          <p className="text-gray-600 dark:text-gray-400">요청하신 가이드 정보가 존재하지 않습니다.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('guide.notFound')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('guide.notFoundDesc')}</p>
         </div>
       </div>
     );
@@ -168,7 +170,7 @@ export default function GuideProfile() {
                 </Avatar>
                 <Button data-testid="button-contact-guide" className="w-full md:w-auto">
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  메시지 보내기
+                  {t('guide.sendMessage')}
                 </Button>
               </div>
               
@@ -179,7 +181,7 @@ export default function GuideProfile() {
                   </h1>
                   {guide.isHost && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                      인증 가이드
+                      {t('guide.verifiedGuide')}
                     </Badge>
                   )}
                 </div>
@@ -200,7 +202,7 @@ export default function GuideProfile() {
                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
                       {guide.totalExperiences}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">경험</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t('guide.experiences')}</div>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1">
@@ -209,19 +211,19 @@ export default function GuideProfile() {
                         {guide.averageRating.toFixed(1)}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{guide.totalReviews}개 후기</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t('guide.reviewsCount', { count: guide.totalReviews })}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
                       {guide.responseRate}%
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">응답률</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t('guide.responseRate')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
                       {new Date(guide.joinedAt).getFullYear()}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">가입년도</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t('guide.joinedYear')}</div>
                   </div>
                 </div>
               </div>
@@ -233,13 +235,13 @@ export default function GuideProfile() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="experiences" data-testid="tab-guide-experiences">
-              경험 ({guide.totalExperiences})
+              {t('guide.experiencesTab', { count: guide.totalExperiences })}
             </TabsTrigger>
             <TabsTrigger value="posts" data-testid="tab-guide-posts">
-              여행 스토리
+              {t('guide.storiesTab')}
             </TabsTrigger>
             <TabsTrigger value="reviews" data-testid="tab-guide-reviews">
-              후기 ({guide.totalReviews})
+              {t('guide.reviewsTab', { count: guide.totalReviews })}
             </TabsTrigger>
           </TabsList>
 
@@ -297,7 +299,7 @@ export default function GuideProfile() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />
-                          최대 {experience.maxParticipants}명
+                          {t('guide.maxParticipants', { count: experience.maxParticipants })}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
@@ -306,7 +308,7 @@ export default function GuideProfile() {
                         </div>
                         <Link to={`/experience/${experience.id}`}>
                           <Button size="sm" data-testid={`button-view-experience-${experience.id}`}>
-                            자세히 보기
+                            {t('guide.viewDetails')}
                           </Button>
                         </Link>
                       </div>

@@ -1,6 +1,7 @@
 import { useRoute, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +34,7 @@ interface Experience {
 }
 
 export default function ExperienceDetailPage() {
+  const { t } = useTranslation('ui');
   const [, params] = useRoute('/experience/:id');
   const { user } = useAuth();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -54,18 +56,20 @@ export default function ExperienceDetailPage() {
   };
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}분`;
+    if (minutes < 60) return t('experiencePage.minutes', { count: minutes });
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+    return remainingMinutes > 0 
+      ? t('experiencePage.hoursMinutes', { hours, minutes: remainingMinutes })
+      : t('experiencePage.hours', { count: hours });
   };
 
   const getCategoryLabel = (category: string) => {
     const categoryMap: Record<string, string> = {
-      tour: '투어',
-      food: '음식',
-      activity: '액티비티',
-      tip: '팁',
+      tour: t('experiencePage.tour'),
+      food: t('experiencePage.food'),
+      activity: t('experiencePage.activityCat'),
+      tip: t('experiencePage.tip'),
     };
     return categoryMap[category] || category;
   };
@@ -86,7 +90,7 @@ export default function ExperienceDetailPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center py-12">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">경험 정보를 불러오고 있어요...</p>
+            <p className="text-muted-foreground">{t('experiencePage.loading')}</p>
           </div>
         </div>
       </div>
@@ -98,10 +102,10 @@ export default function ExperienceDetailPage() {
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-foreground mb-4">경험을 찾을 수 없어요</h2>
-            <p className="text-muted-foreground mb-6">요청하신 경험이 존재하지 않거나 삭제되었습니다.</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">{t('experiencePage.notFound')}</h2>
+            <p className="text-muted-foreground mb-6">{t('experiencePage.notFoundDesc')}</p>
             <Button onClick={() => window.history.back()} data-testid="button-back">
-              돌아가기
+              {t('experiencePage.back')}
             </Button>
           </div>
         </div>
@@ -120,7 +124,7 @@ export default function ExperienceDetailPage() {
             className="mb-4"
             data-testid="button-back"
           >
-            ← 뒤로가기
+            ← {t('experiencePage.back')}
           </Button>
           
           <div className="flex items-start justify-between gap-4">
@@ -151,7 +155,7 @@ export default function ExperienceDetailPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
-                  <span className="text-sm">최대 {experience.maxParticipants}명</span>
+                  <span className="text-sm">{t('experiencePage.max')} {experience.maxParticipants}{t('experiencePage.people')}</span>
                 </div>
               </div>
             </div>
@@ -168,7 +172,7 @@ export default function ExperienceDetailPage() {
             {/* Description */}
             <Card>
               <CardHeader>
-                <CardTitle>경험 소개</CardTitle>
+                <CardTitle>{t('experiencePage.description')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-foreground leading-relaxed" data-testid="text-description">
@@ -180,7 +184,7 @@ export default function ExperienceDetailPage() {
             {/* Host Information */}
             <Card>
               <CardHeader>
-                <CardTitle>가이드 정보</CardTitle>
+                <CardTitle>{t('experiencePage.guideInfo')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Link 
@@ -196,11 +200,11 @@ export default function ExperienceDetailPage() {
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       {experience.host?.firstName && experience.host?.lastName 
                         ? `${experience.host.firstName} ${experience.host.lastName}`
-                        : '가이드'
+                        : t('experiencePage.guide')
                       }
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      가이드 프로필 보기 →
+                      {t('experiencePage.viewGuideProfile')}
                     </p>
                   </div>
                   <div className="text-blue-600 dark:text-blue-400">
@@ -214,7 +218,7 @@ export default function ExperienceDetailPage() {
             {experience.included && experience.included.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>포함사항</CardTitle>
+                  <CardTitle>{t('experiencePage.includes')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
@@ -233,7 +237,7 @@ export default function ExperienceDetailPage() {
             {experience.requirements && experience.requirements.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>준비사항</CardTitle>
+                  <CardTitle>{t('experiencePage.requirements')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
@@ -257,7 +261,7 @@ export default function ExperienceDetailPage() {
                   <div className="text-3xl font-bold text-foreground" data-testid="text-price">
                     {formatPrice(experience.price, experience.currency)}
                   </div>
-                  <div className="text-sm text-muted-foreground">1인당</div>
+                  <div className="text-sm text-muted-foreground">{t('experiencePage.perPerson')}</div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -267,17 +271,17 @@ export default function ExperienceDetailPage() {
                   disabled={!user}
                   data-testid="button-book"
                 >
-                  {user ? '예약하기' : '로그인 후 예약 가능'}
+                  {user ? t('experiencePage.bookNow') : t('experiencePage.loginToBook')}
                 </Button>
                 
                 <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                   <div className="flex justify-between">
-                    <span>취소 정책</span>
+                    <span>{t('experiencePage.cancelPolicy')}</span>
                     <span className="capitalize">{experience.cancelPolicy}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>최대 인원</span>
-                    <span>{experience.maxParticipants}명</span>
+                    <span>{t('experiencePage.maxParticipants')}</span>
+                    <span>{experience.maxParticipants}{t('experiencePage.people')}</span>
                   </div>
                 </div>
               </CardContent>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   Heart,
   MessageCircle,
@@ -65,6 +66,7 @@ const saveLikedPostsToStorage = (likedPosts: Set<number>, userId?: string) => {
 };
 
 export default function Feed() {
+  const { t } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [failedImages, setFailedImages] = useState(new Set<number>());
@@ -191,22 +193,22 @@ export default function Feed() {
   const handleSharePost = (post: Post) => {
     if (navigator.share) {
       navigator.share({
-        title: post.title || '여행 포스트',
+        title: post.title || t('feedPage.title'),
         text: post.content || '',
         url: window.location.href,
       }).catch(() => {
         // Fallback to clipboard
         navigator.clipboard.writeText(window.location.href);
         toast({
-          title: '링크가 복사되었습니다!',
-          description: '링크를 붙여넣어서 공유하세요.',
+          title: t('feedPage.linkCopied'),
+          description: t('feedPage.linkCopiedDesc'),
         });
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
       toast({
-        title: '링크가 복사되었습니다!',
-        description: '링크를 붙여넣어서 공유하세요.',
+        title: t('feedPage.linkCopied'),
+        description: t('feedPage.linkCopiedDesc'),
       });
     }
   };
@@ -214,32 +216,32 @@ export default function Feed() {
   const handleReportPost = (post: Post) => {
     // TODO: Implement report functionality
     toast({
-      title: '신고 접수',
-      description: `게시물 "${post.title}"가 신고되었습니다.`,
+      title: t('feedPage.reported'),
+      description: t('feedPage.reportedDesc', { title: post.title }),
     });
   };
 
   const handleEditPost = (post: Post) => {
     // TODO: Implement edit functionality
     toast({
-      title: '편집 기능',
-      description: '게시물 편집 기능은 곧 제공됩니다.',
+      title: t('feedPage.editFeature'),
+      description: t('feedPage.editFeatureDesc'),
     });
   };
 
   const handleDeletePost = async (post: Post) => {
-    if (confirm(`"${post.title}" 게시물을 삭제하시겠습니까?`)) {
+    if (confirm(t('feedPage.confirmDelete', { title: post.title }))) {
       try {
         await api(`/api/posts/${post.id}`, { method: 'DELETE' });
         queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
         toast({
-          title: '게시물 삭제',
-          description: '게시물이 성공적으로 삭제되었습니다.',
+          title: t('feedPage.deleteSuccess'),
+          description: t('feedPage.deleteSuccessDesc'),
         });
       } catch (error) {
         toast({
-          title: '삭제 실패',
-          description: '게시물 삭제 중 오류가 발생했습니다.',
+          title: t('feedPage.deleteFailed'),
+          description: t('feedPage.deleteFailedDesc'),
           variant: 'destructive',
         });
       }
@@ -250,7 +252,7 @@ export default function Feed() {
     return (
       <div className="mobile-content p-4">
         <Seo 
-          title="여행 피드"
+          title={t('feedPage.title')}
           desc="Share and discover authentic travel experiences from local hosts and travelers"
         />
         <div className="space-y-4">
@@ -275,7 +277,7 @@ export default function Feed() {
   return (
     <div className="mobile-content" ref={containerRef} style={{ height: '100vh', overflow: 'auto' }}>
       <Seo 
-        title="여행 피드"
+        title={t('feedPage.title')}
         desc="Share and discover authentic travel experiences from local hosts and travelers"
       />
       {/* Header */}
@@ -288,7 +290,7 @@ export default function Feed() {
           >
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
-          <h1 className="text-xl font-bold text-gray-800">여행 피드</h1>
+          <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
         </div>
         <div className="flex items-center gap-2">
           {/* 가상화 토글 */}
@@ -300,7 +302,7 @@ export default function Feed() {
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {shouldUseVirtualization ? '가상화 ON' : '가상화 OFF'}
+            {shouldUseVirtualization ? t('feedPage.virtualizationOn') : t('feedPage.virtualizationOff')}
           </button>
           <Link href="/timeline">
             <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
@@ -323,7 +325,7 @@ export default function Feed() {
       {/* Posts */}
       {posts.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          아직 피드가 없습니다.
+          {t('feedPage.noFeed')}
         </div>
       ) : shouldUseVirtualization ? (
         <VirtualizedFeed
@@ -368,7 +370,7 @@ export default function Feed() {
                       data-testid={`item-share-${post.id}`}
                     >
                       <Share2 size={16} className="mr-2" />
-                      공유하기
+                      {t('feedPage.share')}
                     </DropdownMenuItem>
                     
                     {currentUser?.id === post.userId && (
@@ -378,7 +380,7 @@ export default function Feed() {
                           data-testid={`item-edit-${post.id}`}
                         >
                           <Edit3 size={16} className="mr-2" />
-                          편집하기
+                          {t('feedPage.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -387,7 +389,7 @@ export default function Feed() {
                           data-testid={`item-delete-${post.id}`}
                         >
                           <Trash2 size={16} className="mr-2" />
-                          삭제하기
+                          {t('feedPage.delete')}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -401,7 +403,7 @@ export default function Feed() {
                           data-testid={`item-report-${post.id}`}
                         >
                           <Flag size={16} className="mr-2" />
-                          신고하기
+                          {t('feedPage.report')}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -538,7 +540,7 @@ export default function Feed() {
                     onClick={() => setSelectedPost(post)}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
                   >
-                    피드 상세보기
+                    {t('feedPage.viewDetails')}
                   </button>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -50,6 +51,7 @@ interface DatabasePost {
 }
 
 export default function AdminPage() {
+  const { t } = useTranslation('ui');
   const { user, isLoading: userLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTheme, setFilterTheme] = useState('all');
@@ -123,7 +125,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-lg">사용자 정보 확인 중...</div>
+          <div className="text-lg">{t('chatPage.userInfoLoading')}</div>
         </div>
       </div>
     );
@@ -135,13 +137,13 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">🚫</div>
-          <h1 className="text-2xl font-bold mb-2">접근 권한이 없습니다</h1>
+          <h1 className="text-2xl font-bold mb-2">{t('host.accessDenied')}</h1>
           <p className="text-gray-600 mb-6">
-            이 페이지는 관리자만 접근할 수 있습니다.
+            {t('host.accessDeniedDesc')}
           </p>
           <Button onClick={() => (window.location.href = '/')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            홈으로 돌아가기
+            {t('admin.backHome')}
           </Button>
         </div>
       </div>
@@ -152,8 +154,8 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">데이터베이스 피드 관리</h1>
-          <div className="text-center">데이터 로딩 중...</div>
+          <h1 className="text-2xl font-bold mb-6">{t('admin.databaseManagement')}</h1>
+          <div className="text-center">{t('admin.loading')}</div>
         </div>
       </div>
     );
@@ -173,7 +175,7 @@ export default function AdminPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">🛠️ 관리자 패널</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('admin.panel')}</h1>
           </div>
           <Badge variant="secondary" className="text-sm">
             <Shield className="w-3 h-3 mr-1" />
@@ -184,9 +186,9 @@ export default function AdminPage() {
         {/* Tabs */}
         <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6">
           {[
-            { id: 'commerce', label: '커머스 대시보드', icon: BarChart3 },
-            { id: 'posts', label: '포스트 관리', icon: FileText },
-            { id: 'system', label: '시스템 관리', icon: Database },
+            { id: 'commerce', label: t('admin.commerceDashboard'), icon: BarChart3 },
+            { id: 'posts', label: t('admin.postManagement'), icon: FileText },
+            { id: 'system', label: t('admin.systemManagement'), icon: Database },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -215,7 +217,7 @@ export default function AdminPage() {
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="제목, 내용, 위치로 검색..."
+                    placeholder={t('admin.searchPosts')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -224,22 +226,22 @@ export default function AdminPage() {
                 </div>
                 <Select value={filterTheme} onValueChange={setFilterTheme}>
                   <SelectTrigger className="w-full sm:w-48" data-testid="select-theme-filter">
-                    <SelectValue placeholder="테마 선택" />
+                    <SelectValue placeholder={t('admin.selectTheme')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">모든 테마</SelectItem>
-                    <SelectItem value="맛집">맛집</SelectItem>
-                    <SelectItem value="명소">명소</SelectItem>
-                    <SelectItem value="파티타임">파티타임</SelectItem>
-                    <SelectItem value="핫플레이스">핫플레이스</SelectItem>
-                    <SelectItem value="힐링">힐링</SelectItem>
-                    <SelectItem value="감성">감성</SelectItem>
+                    <SelectItem value="all">{t('admin.allThemes')}</SelectItem>
+                    <SelectItem value="맛집">{t('themes.restaurant')}</SelectItem>
+                    <SelectItem value="명소">{t('themes.tourist_attraction')}</SelectItem>
+                    <SelectItem value="파티타임">{t('themes.party')}</SelectItem>
+                    <SelectItem value="핫플레이스">{t('themes.hotplace')}</SelectItem>
+                    <SelectItem value="힐링">{t('themes.healing')}</SelectItem>
+                    <SelectItem value="감성">{t('themes.emotional')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="mt-4 text-right">
                 <div className="text-sm text-muted-foreground">
-                  {filteredPosts.length} / {posts?.length || 0}개 포스트
+                  {filteredPosts.length} / {posts?.length || 0} {t('admin.posts')}
                 </div>
               </div>
             </div>
@@ -253,7 +255,7 @@ export default function AdminPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-semibold">
-                          {post.title || '제목 없음'}
+                          {post.title || t('admin.noTitle')}
                         </h3>
                         <div className="flex gap-2">
                           {post.theme && (
@@ -295,7 +297,7 @@ export default function AdminPage() {
 
                     <div className="flex items-center gap-1">
                       <Heart size={14} />
-                      <span>{post.likesCount || 0}개 좋아요</span>
+                      <span>{post.likesCount || 0} {t('admin.likes')}</span>
                     </div>
 
                     <div className="flex items-center gap-1">
@@ -311,7 +313,7 @@ export default function AdminPage() {
                   {/* 좌표 정보 */}
                   {post.latitude && post.longitude && (
                     <div className="text-sm text-gray-500 font-mono mb-3 bg-gray-50 px-3 py-2 rounded">
-                      좌표: {parseFloat(post.latitude).toFixed(6)},{' '}
+                      {t('admin.coordinates')}: {parseFloat(post.latitude).toFixed(6)},{' '}
                       {parseFloat(post.longitude).toFixed(6)}
                     </div>
                   )}
@@ -332,9 +334,9 @@ export default function AdminPage() {
 
                   {/* 메타 정보 */}
                   <div className="text-xs text-gray-400 border-t pt-3 flex justify-between">
-                    <span>ID: {post.id}</span>
+                    <span>{t('admin.idLabel')}: {post.id}</span>
                     <span>
-                      생성일: {new Date(post.createdAt).toLocaleString()}
+                      {t('admin.createdAt')}: {new Date(post.createdAt).toLocaleString()}
                     </span>
                   </div>
                 </CardContent>
@@ -346,13 +348,13 @@ export default function AdminPage() {
                 <div className="text-6xl mb-4">📝</div>
                 <div className="text-xl font-semibold mb-2">
                   {searchTerm || filterTheme !== 'all'
-                    ? '검색 결과가 없습니다'
-                    : '저장된 피드가 없습니다'}
+                    ? t('admin.noResults')
+                    : t('admin.noPostsYet')}
                 </div>
                 <div className="text-gray-500 mb-6">
                   {searchTerm || filterTheme !== 'all'
-                    ? '다른 검색어나 필터를 시도해보세요'
-                    : '첫 번째 피드를 작성해보세요'}
+                    ? t('admin.noResultsDesc')
+                    : t('admin.createFirstPost')}
                 </div>
                 {!searchTerm && filterTheme === 'all' && (
                   <Button
@@ -360,18 +362,16 @@ export default function AdminPage() {
                     variant="outline"
                     data-testid="button-create-post"
                   >
-                    피드 작성하러 가기
+                    {t('admin.goToFeed')}
                   </Button>
                 )}
               </div>
             )}
 
             <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">지도 확인 방법</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">{t('admin.mapGuide')}</h3>
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                위 피드들이 지도에 마커로 표시됩니다. 홈페이지로 돌아가서 지도를
-                확인해보세요. 각 피드의 위치 좌표가 있는 경우 해당 위치에 마커가
-                생성됩니다.
+                {t('admin.mapGuideDesc')}
               </p>
               <Button
                 onClick={() => (window.location.href = '/')}
@@ -379,7 +379,7 @@ export default function AdminPage() {
                 size="sm"
                 data-testid="button-view-map"
               >
-                지도에서 확인하기
+                {t('admin.viewOnMap')}
               </Button>
             </div>
           </>
@@ -392,7 +392,7 @@ export default function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Database className="w-5 h-5" />
-                  데이터베이스 관리
+                  {t('admin.databaseManagement')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -408,10 +408,10 @@ export default function AdminPage() {
                     data-testid="button-db-admin"
                   >
                     <Database className="w-4 h-4 mr-2" />
-                    데이터베이스 관리 도구
+                    {t('admin.databaseTool')}
                   </Button>
                   <p className="text-sm text-muted-foreground">
-                    데이터베이스 직접 조회 및 관리가 가능합니다. (관리자 전용)
+                    {t('admin.databaseToolDesc')}
                   </p>
                 </div>
               </CardContent>
@@ -422,10 +422,10 @@ export default function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
-                  법적 고지 및 정책
+                  {t('admin.legalNotices')}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-2">
-                  시스템 설정을 관리하고 법적 문서를 확인하실 수 있습니다.
+                  {t('admin.legalNoticesDesc')}
                 </p>
               </CardHeader>
               <CardContent>
@@ -441,9 +441,9 @@ export default function AdminPage() {
                         <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1 text-left">
-                        <h3 className="font-semibold">개인정보 처리방침</h3>
+                        <h3 className="font-semibold">{t('admin.privacyPolicy')}</h3>
                         <p className="text-sm text-muted-foreground">
-                          개인정보 수집, 이용, 처리에 관한 정책
+                          {t('admin.privacyPolicyDesc')}
                         </p>
                       </div>
                     </div>
@@ -460,9 +460,9 @@ export default function AdminPage() {
                         <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1 text-left">
-                        <h3 className="font-semibold">서비스 이용약관</h3>
+                        <h3 className="font-semibold">{t('admin.termsOfService')}</h3>
                         <p className="text-sm text-muted-foreground">
-                          서비스 이용에 관한 약관 및 조건
+                          {t('admin.termsDesc')}
                         </p>
                       </div>
                     </div>
@@ -479,9 +479,9 @@ export default function AdminPage() {
                         <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1 text-left">
-                        <h3 className="font-semibold">위치기반서비스 이용약관</h3>
+                        <h3 className="font-semibold">{t('admin.locationTerms')}</h3>
                         <p className="text-sm text-muted-foreground">
-                          위치정보 수집 및 이용에 관한 약관
+                          {t('admin.locationTermsDesc')}
                         </p>
                       </div>
                     </div>
@@ -498,9 +498,9 @@ export default function AdminPage() {
                         <Cookie className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1 text-left">
-                        <h3 className="font-semibold">쿠키 및 트래킹 공지</h3>
+                        <h3 className="font-semibold">{t('admin.cookiePolicy')}</h3>
                         <p className="text-sm text-muted-foreground">
-                          쿠키 및 트래킹 기술 사용에 관한 공지
+                          {t('admin.cookiePolicyDesc')}
                         </p>
                       </div>
                     </div>

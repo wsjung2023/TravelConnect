@@ -227,7 +227,7 @@ export default function Map() {
       {/* Bottom Sheet - Nearby Experiences */}
       <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-4 max-h-80 overflow-y-auto custom-scrollbar slide-up">
         <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-        <h3 className="font-bold text-lg mb-4">{t('ui:experiences.nearbyTitle')}</h3>
+        <h3 className="font-bold text-lg mb-4">{t('ui:mapPage.nearbyExperiences')}</h3>
 
         <div className="space-y-3">
           {(experiences as Experience[]).map((experience: Experience) => (
@@ -245,7 +245,7 @@ export default function Map() {
           {(experiences as Experience[]).length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <i className="fas fa-map-marker-alt text-3xl mb-2"></i>
-              <p>{t('ui:experiences.noExperiences')}</p>
+              <p>{t('ui:mapPage.noExperiences')}</p>
             </div>
           )}
         </div>
