@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
@@ -108,6 +108,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [enabledPOITypes, setEnabledPOITypes] = useState<string[]>([
     'tourist_attraction',
   ]);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [miniMeetMarkers, setMiniMeetMarkers] = useState<any[]>([]);
   const [selectedMiniMeet, setSelectedMiniMeet] = useState<any>(null);
 
@@ -1485,41 +1486,56 @@ const MapComponent: React.FC<MapComponentProps> = ({
       )}
 
       {/* POI 필터링 토글 */}
-      <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg p-3 z-10">
-        <div className="text-xs font-medium text-gray-600 mb-2">{t('filters.poi')}</div>
-        <div className="space-y-1">
-          {[
-            { type: 'tourist_attraction', label: t('filters.tourist_attraction'), icon: '🏛️' },
-            { type: 'restaurant', label: t('filters.restaurant'), icon: '🍽️' },
-            { type: 'lodging', label: t('filters.lodging'), icon: '🏨' },
-            { type: 'hospital', label: t('filters.hospital'), icon: '🏥' },
-            { type: 'bank', label: t('filters.bank'), icon: '🏦' },
-            { type: 'gas_station', label: t('filters.gas_station'), icon: '⛽' },
-          ].map((poi) => (
-            <label
-              key={poi.type}
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={enabledPOITypes.includes(poi.type)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setEnabledPOITypes([...enabledPOITypes, poi.type]);
-                  } else {
-                    setEnabledPOITypes(
-                      enabledPOITypes.filter((t) => t !== poi.type)
-                    );
-                  }
-                }}
-                className="rounded text-teal-500"
-              />
-              <span className="text-xs">
-                {poi.icon} {poi.label}
-              </span>
-            </label>
-          ))}
-        </div>
+      <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg z-10">
+        <button
+          onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+          className="flex items-center justify-between gap-2 w-full p-3 hover:bg-gray-50 rounded-xl transition-colors"
+          data-testid="button-toggle-poi-filters"
+        >
+          <span className="text-xs font-medium text-gray-600">{t('filters.poi')}</span>
+          {isFilterExpanded ? (
+            <ChevronUp className="w-4 h-4 text-gray-600" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-600" />
+          )}
+        </button>
+        
+        {isFilterExpanded && (
+          <div className="px-3 pb-3 space-y-1">
+            {[
+              { type: 'tourist_attraction', label: t('filters.tourist_attraction'), icon: '🏛️' },
+              { type: 'restaurant', label: t('filters.restaurant'), icon: '🍽️' },
+              { type: 'lodging', label: t('filters.lodging'), icon: '🏨' },
+              { type: 'hospital', label: t('filters.hospital'), icon: '🏥' },
+              { type: 'bank', label: t('filters.bank'), icon: '🏦' },
+              { type: 'gas_station', label: t('filters.gas_station'), icon: '⛽' },
+            ].map((poi) => (
+              <label
+                key={poi.type}
+                className="flex items-center gap-2 cursor-pointer"
+                data-testid={`checkbox-poi-${poi.type}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledPOITypes.includes(poi.type)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEnabledPOITypes([...enabledPOITypes, poi.type]);
+                    } else {
+                      setEnabledPOITypes(
+                        enabledPOITypes.filter((t) => t !== poi.type)
+                      );
+                    }
+                  }}
+                  className="rounded text-teal-500"
+                />
+                <span className="text-xs">
+                  {poi.icon} {poi.label}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 하단 체험 정보 */}
