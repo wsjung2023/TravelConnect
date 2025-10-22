@@ -828,7 +828,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         // 롱탭을 위한 마우스다운 이벤트
         newMap.addListener('mousedown', (event: any) => {
           // POST 모드에서만 롱탭 활성화
-          if (mapMode !== 'POST') return;
+          if (mapModeRef.current !== 'POST') return;
           
           longPressRef.current = window.setTimeout(() => {
             // 롱탭 시 MiniMeet 생성 모달 열기
@@ -868,7 +868,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
         newMap.addListener('click', (event: any) => {
           // POST 모드에서만 클릭 활성화
-          if (mapMode !== 'POST') return;
+          if (mapModeRef.current !== 'POST') return;
           
           // 롱탭이 진행 중이면 일반 클릭 무시
           if (longPressRef.current) {
