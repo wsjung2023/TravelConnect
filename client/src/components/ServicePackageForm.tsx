@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import { X, Package, Plus, Trash2, ShoppingBag, MapPin, Sparkles } from 'lucide-react';
 import {
   Dialog,

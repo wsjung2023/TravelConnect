@@ -125,6 +125,16 @@
     "createErrorDesc": "An error occurred while creating the post.",
     "titleRequired": "Title Required",
     "titleRequiredDesc": "Please enter a post title.",
+    "contentRequired": "Content Required",
+    "contentRequiredDesc": "Please enter post content.",
+    "themeRequired": "Theme Required",
+    "themeRequiredDesc": "Please select a theme.",
+    "imageUploadFailed": "Image Upload Failed",
+    "imageUploadFailedDesc": "An error occurred while uploading images.",
+    "newPost": "New Post",
+    "selectTheme": "Select Theme",
+    "selectThemePlaceholder": "Choose a theme",
+    "addLocation": "Add Location",
     "titlePlaceholder": "Enter travel title",
     "contentPlaceholder": "What travel story would you like to share?",
     "locationPlaceholder": "Where is this story from?",
@@ -288,7 +298,42 @@
   },
   "common": {
     "cancel": "Cancel",
-    "error": "Error"
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit",
+    "create": "Create",
+    "update": "Update",
+    "error": "Error",
+    "loginRequired": "Login Required",
+    "loading": "Loading...",
+    "success": "Success"
+  },
+  "experience": {
+    "createSuccess": "Experience Created",
+    "createSuccessDesc": "Your experience has been successfully registered!",
+    "createError": "Registration Failed",
+    "createErrorDesc": "An error occurred while creating the experience. Please try again.",
+    "loginRequiredDesc": "Please login first to register an experience.",
+    "requiredFieldsMissing": "Required Information Missing",
+    "requiredFieldsDesc": "Title, description, price, location, and category are required."
+  },
+  "booking": {
+    "success": "Booking Completed",
+    "successDesc": "Your booking has been successfully completed!",
+    "failed": "Booking Failed",
+    "failedDesc": "An error occurred while booking. Please try again.",
+    "loginRequiredDesc": "Please login first to make a booking.",
+    "selectDate": "Select Date",
+    "selectDateDesc": "Please select a booking date."
+  },
+  "review": {
+    "success": "Review Submitted",
+    "successDesc": "Thank you for sharing your valuable review!",
+    "failed": "Review Submission Failed",
+    "failedDesc": "An error occurred while submitting your review. Please try again.",
+    "tooManyImages": "Too Many Images",
+    "tooManyImagesDesc": "You can upload up to 5 images."
   },
   "miniMeet": {
     "create": "Create Mini Meet Here",

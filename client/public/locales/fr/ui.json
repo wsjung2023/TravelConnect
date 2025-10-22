@@ -125,6 +125,16 @@
     "createErrorDesc": "Une erreur s'est produite lors de la création de la publication.",
     "titleRequired": "Titre requis",
     "titleRequiredDesc": "Veuillez saisir un titre pour la publication.",
+    "contentRequired": "Contenu requis",
+    "contentRequiredDesc": "Veuillez saisir le contenu de la publication.",
+    "themeRequired": "Thème requis",
+    "themeRequiredDesc": "Veuillez sélectionner un thème.",
+    "imageUploadFailed": "Échec du téléchargement d'image",
+    "imageUploadFailedDesc": "Une erreur s'est produite lors du téléchargement des images.",
+    "newPost": "Nouvelle publication",
+    "selectTheme": "Sélectionner un thème",
+    "selectThemePlaceholder": "Choisissez un thème",
+    "addLocation": "Ajouter un lieu",
     "titlePlaceholder": "Entrez le titre du voyage",
     "contentPlaceholder": "Quelle histoire de voyage souhaitez-vous partager ?",
     "locationPlaceholder": "D'où vient cette histoire ?",
@@ -300,7 +310,42 @@
   },
   "common": {
     "cancel": "Annuler",
-    "error": "Erreur"
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "submit": "Soumettre",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "error": "Erreur",
+    "loginRequired": "Connexion requise",
+    "loading": "Chargement...",
+    "success": "Succès"
+  },
+  "experience": {
+    "createSuccess": "Expérience créée",
+    "createSuccessDesc": "Votre expérience a été enregistrée avec succès !",
+    "createError": "Échec de l'enregistrement",
+    "createErrorDesc": "Une erreur s'est produite lors de la création de l'expérience. Veuillez réessayer.",
+    "loginRequiredDesc": "Veuillez vous connecter d'abord pour enregistrer une expérience.",
+    "requiredFieldsMissing": "Informations requises manquantes",
+    "requiredFieldsDesc": "Le titre, la description, le prix, le lieu et la catégorie sont obligatoires."
+  },
+  "booking": {
+    "success": "Réservation confirmée",
+    "successDesc": "Votre réservation a été confirmée avec succès !",
+    "failed": "Échec de la réservation",
+    "failedDesc": "Une erreur s'est produite lors de la réservation. Veuillez réessayer.",
+    "loginRequiredDesc": "Veuillez vous connecter d'abord pour effectuer une réservation.",
+    "selectDate": "Sélectionner une date",
+    "selectDateDesc": "Veuillez sélectionner une date de réservation."
+  },
+  "review": {
+    "success": "Avis soumis",
+    "successDesc": "Merci d'avoir partagé votre avis précieux !",
+    "failed": "Échec de la soumission de l'avis",
+    "failedDesc": "Une erreur s'est produite lors de la soumission de votre avis. Veuillez réessayer.",
+    "tooManyImages": "Trop d'images",
+    "tooManyImagesDesc": "Vous pouvez télécharger jusqu'à 5 images."
   },
   "profile": {
     "user": "Utilisateur",

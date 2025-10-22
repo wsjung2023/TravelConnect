@@ -45,7 +45,7 @@ export default function CreatePostModal({
   const [exifData, setExifData] = useState<ExifData[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
 
   const createPostMutation = useMutation({
     mutationFn: async (post: any) => {
@@ -149,8 +149,8 @@ export default function CreatePostModal({
 
     if (!content.trim()) {
       toast({
-        title: '내용 입력',
-        description: '게시글 내용을 입력해주세요.',
+        title: t('post.contentRequired'),
+        description: t('post.contentRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -158,8 +158,8 @@ export default function CreatePostModal({
 
     if (!theme) {
       toast({
-        title: '테마 선택',
-        description: '게시글 테마를 선택해주세요.',
+        title: t('post.themeRequired'),
+        description: t('post.themeRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -200,8 +200,8 @@ export default function CreatePostModal({
       } catch (error) {
         console.error('이미지 업로드 실패:', error);
         toast({
-          title: '이미지 업로드 실패',
-          description: '이미지 업로드 중 오류가 발생했습니다.',
+          title: t('post.imageUploadFailed'),
+          description: t('post.imageUploadFailedDesc'),
           variant: 'destructive',
         });
         return;
@@ -230,7 +230,7 @@ export default function CreatePostModal({
       <div className="bg-white rounded-t-3xl w-full max-h-[90vh] overflow-y-auto slide-up">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">새 게시글</h2>
+          <h2 className="text-lg font-semibold">{t('post.newPost')}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full"
@@ -255,21 +255,21 @@ export default function CreatePostModal({
           {/* Theme Selection */}
           <div className="mb-4">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <span>테마 선택</span>
+              <span>{t('post.selectTheme')}</span>
             </div>
             <select
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-md"
             >
-              <option value="">테마를 선택하세요</option>
-              <option value="restaurant">맛집</option>
-              <option value="landmark">명소</option>
-              <option value="activity">액티비티</option>
-              <option value="emotional">감성</option>
-              <option value="party">파티</option>
-              <option value="healing">힐링</option>
-              <option value="hotplace">핫플레이스</option>
+              <option value="">{t('post.selectThemePlaceholder')}</option>
+              <option value="restaurant">{t('themes.restaurant')}</option>
+              <option value="landmark">{t('themes.landmark')}</option>
+              <option value="activity">{t('themes.activity')}</option>
+              <option value="emotional">{t('themes.emotional')}</option>
+              <option value="party">{t('themes.party')}</option>
+              <option value="healing">{t('themes.healing')}</option>
+              <option value="hotplace">{t('themes.hotplace')}</option>
             </select>
           </div>
 
@@ -286,7 +286,7 @@ export default function CreatePostModal({
           <div className="mt-4">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
               <MapPin size={16} />
-              <span>위치 추가</span>
+              <span>{t('post.addLocation')}</span>
             </div>
             <LocationSearchInput
               value={location}

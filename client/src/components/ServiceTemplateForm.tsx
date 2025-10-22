@@ -6,6 +6,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { insertServiceTemplateSchema } from '@shared/schema';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,

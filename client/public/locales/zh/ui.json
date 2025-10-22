@@ -119,6 +119,16 @@
     "createErrorDesc": "发布时发生错误。",
     "titleRequired": "需要标题",
     "titleRequiredDesc": "请输入帖子标题。",
+    "contentRequired": "需要内容",
+    "contentRequiredDesc": "请输入帖子内容。",
+    "themeRequired": "需要主题",
+    "themeRequiredDesc": "请选择主题。",
+    "imageUploadFailed": "图片上传失败",
+    "imageUploadFailedDesc": "上传图片时发生错误。",
+    "newPost": "新帖子",
+    "selectTheme": "选择主题",
+    "selectThemePlaceholder": "请选择主题",
+    "addLocation": "添加位置",
     "titlePlaceholder": "输入旅行标题",
     "contentPlaceholder": "想分享什么旅行故事？",
     "locationPlaceholder": "这个故事来自哪里？",
@@ -287,7 +297,42 @@
   },
   "common": {
     "cancel": "取消",
-    "error": "错误"
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "submit": "提交",
+    "create": "创建",
+    "update": "更新",
+    "error": "错误",
+    "loginRequired": "需要登录",
+    "loading": "加载中...",
+    "success": "成功"
+  },
+  "experience": {
+    "createSuccess": "体验注册成功",
+    "createSuccessDesc": "您的新体验已成功注册！",
+    "createError": "注册失败",
+    "createErrorDesc": "注册体验时发生错误。请重试。",
+    "loginRequiredDesc": "注册体验前请先登录。",
+    "requiredFieldsMissing": "缺少必填信息",
+    "requiredFieldsDesc": "标题、描述、价格、位置和类别为必填项。"
+  },
+  "booking": {
+    "success": "预订成功",
+    "successDesc": "您的预订已成功完成！",
+    "failed": "预订失败",
+    "failedDesc": "预订时发生错误。请重试。",
+    "loginRequiredDesc": "预订前请先登录。",
+    "selectDate": "选择日期",
+    "selectDateDesc": "请选择预订日期。"
+  },
+  "review": {
+    "success": "评价提交成功",
+    "successDesc": "感谢您分享宝贵的评价！",
+    "failed": "评价提交失败",
+    "failedDesc": "提交评价时发生错误。请重试。",
+    "tooManyImages": "图片过多",
+    "tooManyImagesDesc": "最多可上传5张图片。"
   },
   "profile": {
     "user": "用户",

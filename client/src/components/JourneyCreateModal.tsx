@@ -27,6 +27,7 @@ import {
 import { api } from '@/lib/api';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface JourneyCreateModalProps {
   isOpen: boolean;

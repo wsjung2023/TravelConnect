@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import type { Experience, InsertBooking } from '@shared/schema';
 
@@ -26,6 +27,7 @@ export default function BookingModal({
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('ui');
 
   const bookingMutation = useMutation({
     mutationFn: async (booking: InsertBooking) => {
@@ -36,16 +38,16 @@ export default function BookingModal({
     },
     onSuccess: () => {
       toast({
-        title: '예약 완료',
-        description: '예약이 성공적으로 완료되었습니다!',
+        title: t('booking.success'),
+        description: t('booking.successDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       onClose();
     },
     onError: (error) => {
       toast({
-        title: '예약 실패',
-        description: '예약 중 오류가 발생했습니다. 다시 시도해주세요.',
+        title: t('booking.failed'),
+        description: t('booking.failedDesc'),
         variant: 'destructive',
       });
     },
@@ -56,8 +58,8 @@ export default function BookingModal({
 
     if (!user) {
       toast({
-        title: '로그인 필요',
-        description: '예약하려면 먼저 로그인해주세요.',
+        title: t('common.loginRequired'),
+        description: t('booking.loginRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -65,8 +67,8 @@ export default function BookingModal({
 
     if (!selectedDate) {
       toast({
-        title: '날짜 선택',
-        description: '예약 날짜를 선택해주세요.',
+        title: t('booking.selectDate'),
+        description: t('booking.selectDateDesc'),
         variant: 'destructive',
       });
       return;

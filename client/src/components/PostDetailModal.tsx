@@ -15,6 +15,7 @@ import CommentForm from '@/components/post/CommentForm';
 import CommentsSection from '@/components/post/CommentsSection';
 import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
+import { useTranslation } from 'react-i18next';
 
 interface PostDetailModalProps {
   post: Post;

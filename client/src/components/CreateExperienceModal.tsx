@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import type { InsertExperience } from '@shared/schema';
 
@@ -38,6 +39,7 @@ export default function CreateExperienceModal({
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('ui');
 
   const experienceMutation = useMutation({
     mutationFn: async (experience: InsertExperience) => {
@@ -48,8 +50,8 @@ export default function CreateExperienceModal({
     },
     onSuccess: () => {
       toast({
-        title: '경험 등록 완료',
-        description: '새로운 경험이 성공적으로 등록되었습니다!',
+        title: t('experience.createSuccess'),
+        description: t('experience.createSuccessDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/host/experiences'] });
       queryClient.invalidateQueries({ queryKey: ['/api/experiences'] });
@@ -59,8 +61,8 @@ export default function CreateExperienceModal({
     onError: (error) => {
       console.error('Experience creation error:', error);
       toast({
-        title: '등록 실패',
-        description: '경험 등록 중 오류가 발생했습니다. 다시 시도해주세요.',
+        title: t('experience.createError'),
+        description: t('experience.createErrorDesc'),
         variant: 'destructive',
       });
     },
@@ -88,8 +90,8 @@ export default function CreateExperienceModal({
 
     if (!user) {
       toast({
-        title: '로그인 필요',
-        description: '경험을 등록하려면 먼저 로그인해주세요.',
+        title: t('common.loginRequired'),
+        description: t('experience.loginRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -97,8 +99,8 @@ export default function CreateExperienceModal({
 
     if (!title || !description || !price || !location || !category) {
       toast({
-        title: '필수 정보 누락',
-        description: '제목, 설명, 가격, 위치, 카테고리는 필수 입력 사항입니다.',
+        title: t('experience.requiredFieldsMissing'),
+        description: t('experience.requiredFieldsDesc'),
         variant: 'destructive',
       });
       return;

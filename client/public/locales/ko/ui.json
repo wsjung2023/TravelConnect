@@ -125,6 +125,16 @@
     "createErrorDesc": "게시글 작성 중 오류가 발생했습니다.",
     "titleRequired": "제목 입력",
     "titleRequiredDesc": "게시글 제목을 입력해주세요.",
+    "contentRequired": "내용 입력",
+    "contentRequiredDesc": "게시글 내용을 입력해주세요.",
+    "themeRequired": "테마 선택",
+    "themeRequiredDesc": "게시글 테마를 선택해주세요.",
+    "imageUploadFailed": "이미지 업로드 실패",
+    "imageUploadFailedDesc": "이미지 업로드 중 오류가 발생했습니다.",
+    "newPost": "새 게시글",
+    "selectTheme": "테마 선택",
+    "selectThemePlaceholder": "테마를 선택하세요",
+    "addLocation": "위치 추가",
     "titlePlaceholder": "여행 제목을 입력하세요",
     "contentPlaceholder": "어떤 여행 이야기를 공유하고 싶나요?",
     "locationPlaceholder": "어디에서의 이야기인가요?",
@@ -292,7 +302,42 @@
   },
   "common": {
     "cancel": "취소",
-    "error": "오류"
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "수정",
+    "submit": "제출",
+    "create": "생성",
+    "update": "업데이트",
+    "error": "오류",
+    "loginRequired": "로그인 필요",
+    "loading": "로딩 중...",
+    "success": "성공"
+  },
+  "experience": {
+    "createSuccess": "경험 등록 완료",
+    "createSuccessDesc": "새로운 경험이 성공적으로 등록되었습니다!",
+    "createError": "등록 실패",
+    "createErrorDesc": "경험 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
+    "loginRequiredDesc": "경험을 등록하려면 먼저 로그인해주세요.",
+    "requiredFieldsMissing": "필수 정보 누락",
+    "requiredFieldsDesc": "제목, 설명, 가격, 위치, 카테고리는 필수 입력 사항입니다."
+  },
+  "booking": {
+    "success": "예약 완료",
+    "successDesc": "예약이 성공적으로 완료되었습니다!",
+    "failed": "예약 실패",
+    "failedDesc": "예약 중 오류가 발생했습니다. 다시 시도해주세요.",
+    "loginRequiredDesc": "예약하려면 먼저 로그인해주세요.",
+    "selectDate": "날짜 선택",
+    "selectDateDesc": "예약 날짜를 선택해주세요."
+  },
+  "review": {
+    "success": "후기 등록 완료",
+    "successDesc": "소중한 후기를 남겨주셔서 감사합니다!",
+    "failed": "후기 등록 실패",
+    "failedDesc": "후기 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
+    "tooManyImages": "이미지 개수 초과",
+    "tooManyImagesDesc": "이미지는 최대 5개까지 업로드 가능합니다."
   },
   "miniMeet": {
     "create": "여기서 미니모임 만들기",

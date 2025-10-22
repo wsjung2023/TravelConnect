@@ -131,6 +131,16 @@
     "createErrorDesc": "Ocurrió un error al crear la publicación.",
     "titleRequired": "Título requerido",
     "titleRequiredDesc": "Por favor ingresa un título para la publicación.",
+    "contentRequired": "Contenido requerido",
+    "contentRequiredDesc": "Por favor ingresa el contenido de la publicación.",
+    "themeRequired": "Tema requerido",
+    "themeRequiredDesc": "Por favor selecciona un tema.",
+    "imageUploadFailed": "Error al subir imagen",
+    "imageUploadFailedDesc": "Ocurrió un error al subir las imágenes.",
+    "newPost": "Nueva publicación",
+    "selectTheme": "Seleccionar tema",
+    "selectThemePlaceholder": "Elige un tema",
+    "addLocation": "Añadir ubicación",
     "titlePlaceholder": "Ingresa el título del viaje",
     "contentPlaceholder": "¿Qué historia de viaje quieres compartir?",
     "locationPlaceholder": "¿De dónde es esta historia?",
@@ -287,7 +297,42 @@
   },
   "common": {
     "cancel": "Cancelar",
-    "error": "Error"
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "submit": "Enviar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "error": "Error",
+    "loginRequired": "Inicio de sesión requerido",
+    "loading": "Cargando...",
+    "success": "Éxito"
+  },
+  "experience": {
+    "createSuccess": "Experiencia creada",
+    "createSuccessDesc": "¡Tu experiencia ha sido registrada exitosamente!",
+    "createError": "Error de registro",
+    "createErrorDesc": "Ocurrió un error al crear la experiencia. Por favor intenta de nuevo.",
+    "loginRequiredDesc": "Por favor inicia sesión primero para registrar una experiencia.",
+    "requiredFieldsMissing": "Falta información requerida",
+    "requiredFieldsDesc": "El título, descripción, precio, ubicación y categoría son obligatorios."
+  },
+  "booking": {
+    "success": "Reserva confirmada",
+    "successDesc": "¡Tu reserva ha sido confirmada exitosamente!",
+    "failed": "Error en la reserva",
+    "failedDesc": "Ocurrió un error al realizar la reserva. Por favor intenta de nuevo.",
+    "loginRequiredDesc": "Por favor inicia sesión primero para hacer una reserva.",
+    "selectDate": "Seleccionar fecha",
+    "selectDateDesc": "Por favor selecciona una fecha de reserva."
+  },
+  "review": {
+    "success": "Reseña enviada",
+    "successDesc": "¡Gracias por compartir tu valiosa reseña!",
+    "failed": "Error al enviar reseña",
+    "failedDesc": "Ocurrió un error al enviar tu reseña. Por favor intenta de nuevo.",
+    "tooManyImages": "Demasiadas imágenes",
+    "tooManyImagesDesc": "Puedes subir hasta 5 imágenes."
   },
   "profile": {
     "user": "Usuario",

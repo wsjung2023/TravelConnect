@@ -119,6 +119,16 @@
     "createErrorDesc": "投稿の作成中にエラーが発生しました。",
     "titleRequired": "タイトル入力",
     "titleRequiredDesc": "投稿タイトルを入力してください。",
+    "contentRequired": "内容入力",
+    "contentRequiredDesc": "投稿内容を入力してください。",
+    "themeRequired": "テーマ選択",
+    "themeRequiredDesc": "テーマを選択してください。",
+    "imageUploadFailed": "画像アップロード失敗",
+    "imageUploadFailedDesc": "画像のアップロード中にエラーが発生しました。",
+    "newPost": "新規投稿",
+    "selectTheme": "テーマ選択",
+    "selectThemePlaceholder": "テーマを選択してください",
+    "addLocation": "場所を追加",
     "titlePlaceholder": "旅行タイトルを入力",
     "contentPlaceholder": "どんな旅行ストーリーを共有したいですか？",
     "locationPlaceholder": "どこでのストーリーですか？",
@@ -287,7 +297,42 @@
   },
   "common": {
     "cancel": "キャンセル",
-    "error": "エラー"
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "submit": "送信",
+    "create": "作成",
+    "update": "更新",
+    "error": "エラー",
+    "loginRequired": "ログインが必要です",
+    "loading": "読み込み中...",
+    "success": "成功"
+  },
+  "experience": {
+    "createSuccess": "体験登録完了",
+    "createSuccessDesc": "新しい体験が正常に登録されました！",
+    "createError": "登録失敗",
+    "createErrorDesc": "体験の登録中にエラーが発生しました。もう一度お試しください。",
+    "loginRequiredDesc": "体験を登録するには、まずログインしてください。",
+    "requiredFieldsMissing": "必須情報が不足しています",
+    "requiredFieldsDesc": "タイトル、説明、価格、場所、カテゴリーは必須項目です。"
+  },
+  "booking": {
+    "success": "予約完了",
+    "successDesc": "予約が正常に完了しました！",
+    "failed": "予約失敗",
+    "failedDesc": "予約中にエラーが発生しました。もう一度お試しください。",
+    "loginRequiredDesc": "予約するには、まずログインしてください。",
+    "selectDate": "日付を選択",
+    "selectDateDesc": "予約日を選択してください。"
+  },
+  "review": {
+    "success": "レビュー投稿完了",
+    "successDesc": "貴重なレビューをありがとうございます！",
+    "failed": "レビュー投稿失敗",
+    "failedDesc": "レビューの投稿中にエラーが発生しました。もう一度お試しください。",
+    "tooManyImages": "画像が多すぎます",
+    "tooManyImagesDesc": "画像は最大5枚までアップロードできます。"
   },
   "profile": {
     "user": "ユーザー",

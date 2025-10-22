@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { Star, Camera, X, MessageSquare } from 'lucide-react';
 import { insertReviewSchema } from '@shared/schema';
 import { api } from '@/lib/api';
@@ -57,6 +58,7 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('ui');
 
   const form = useForm<InsertReview>({
     resolver: zodResolver(insertReviewSchema),
@@ -83,8 +85,8 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
     },
     onSuccess: () => {
       toast({
-        title: '후기 등록 완료',
-        description: '소중한 후기를 남겨주셔서 감사합니다!',
+        title: t('review.success'),
+        description: t('review.successDesc'),
       });
       
       // 관련 쿼리들 갱신
@@ -99,8 +101,8 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
     onError: (error) => {
       console.error('Review creation error:', error);
       toast({
-        title: '후기 등록 실패',
-        description: '후기 등록 중 오류가 발생했습니다. 다시 시도해주세요.',
+        title: t('review.failed'),
+        description: t('review.failedDesc'),
         variant: 'destructive',
       });
     },
@@ -113,8 +115,8 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
     // 최대 5개 이미지 제한
     if (uploadedImages.length + files.length > 5) {
       toast({
-        title: '이미지 개수 초과',
-        description: '이미지는 최대 5개까지 업로드 가능합니다.',
+        title: t('review.tooManyImages'),
+        description: t('review.tooManyImagesDesc'),
         variant: 'destructive',
       });
       return;
