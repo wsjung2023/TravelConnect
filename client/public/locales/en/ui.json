@@ -287,7 +287,8 @@
     "wellness": "Wellness"
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "error": "Error"
   },
   "miniMeet": {
     "create": "Create Mini Meet Here",
@@ -299,6 +300,69 @@
     "joinButton": "🤝 Join Meeting"
   },
   "profile": {
+    "user": "User",
+    "locationNotSet": "Location not set",
+    "verifiedHost": "✨ Verified Host",
+    "applying": "Applying...",
+    "becomeHost": "Become a Host",
+    "requestHelp": "Request Help",
+    "openToNewMeetings": "Open to New Meetings",
+    "activeUntil": "active until",
+    "connectWithTravelers": "Connect with other travelers",
+    "region": "Region",
+    "activeHours": "Active Hours",
+    "hours": "{{count}} hours",
+    "regions": {
+      "gangnam": "Gangnam",
+      "hongdae": "Hongdae/Hapjeong",
+      "myeongdong": "Myeongdong/Jung-gu",
+      "gangbuk": "Gangbuk/Nowon",
+      "seocho": "Seocho",
+      "mapo": "Mapo"
+    },
+    "portfolioMode": "Portfolio Mode",
+    "publicProfile": "Public Profile",
+    "portfolioModeDesc": "Showcase your services and packages on a public profile",
+    "urlRequired": "Profile URL Required",
+    "urlRequiredDesc": "Please enter a profile URL with at least 3 characters to activate portfolio mode.",
+    "invalidUrlFormat": "Invalid URL Format",
+    "invalidUrlFormatDesc": "Profile URL can only contain letters, numbers, _, and -",
+    "publicProfileUrl": "Public Profile URL",
+    "urlPatternHelp": "Only letters, numbers, _, and - are allowed",
+    "urlHint": "Only letters, numbers, _, and - are allowed (3-50 characters)",
+    "stats": {
+      "posts": "Posts",
+      "trips": "Trips",
+      "followers": "Followers",
+      "following": "Following",
+      "experiences": "Experiences"
+    },
+    "tabs": {
+      "posts": "Posts",
+      "trips": "Trips",
+      "experiences": "Experiences",
+      "bookings": "Bookings",
+      "receivedBookings": "Received",
+      "helpRequests": "Help Requests",
+      "templates": "Templates",
+      "packages": "Packages",
+      "slots": "Slots"
+    },
+    "empty": {
+      "noPosts": "No posts yet",
+      "noTrips": "No planned trips yet",
+      "noExperiences": "No registered experiences yet"
+    },
+    "planTrip": "Plan a Trip",
+    "createExperience": "Register Experience",
+    "meetStatusChanged": "Meeting Status Changed",
+    "meetActivated": "Meeting is activated in {{region}} for {{hours}} hours.",
+    "meetDeactivated": "Meeting has been deactivated.",
+    "settingsChangeError": "An error occurred while changing settings.",
+    "portfolioModeChanged": "Portfolio Mode Changed",
+    "portfolioModeActivated": "Portfolio mode activated. URL: {{url}}",
+    "portfolioModeDeactivated": "Portfolio mode deactivated.",
+    "portfolioModeChangeError": "An error occurred while changing portfolio mode settings.",
     "hostApplySuccess": "Host Application Complete",
     "hostApplySuccessDesc": "Congratulations! You can now operate as a host.",
     "hostApplyError": "Application Failed",

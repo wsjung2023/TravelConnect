@@ -291,7 +291,8 @@
     "wellness": "웰니스"
   },
   "common": {
-    "cancel": "취소"
+    "cancel": "취소",
+    "error": "오류"
   },
   "miniMeet": {
     "create": "여기서 미니모임 만들기",
@@ -303,6 +304,69 @@
     "joinButton": "🤝 모임 참여하기"
   },
   "profile": {
+    "user": "사용자",
+    "locationNotSet": "위치 미설정",
+    "verifiedHost": "✨ 인증된 호스트",
+    "applying": "신청 중...",
+    "becomeHost": "호스트 되기",
+    "requestHelp": "도움 요청하기",
+    "openToNewMeetings": "새로운 만남 열려있음",
+    "activeUntil": "까지 활성",
+    "connectWithTravelers": "다른 여행자들과 연결됩니다",
+    "region": "권역",
+    "activeHours": "활성 시간",
+    "hours": "{{count}}시간",
+    "regions": {
+      "gangnam": "강남구",
+      "hongdae": "홍대/합정",
+      "myeongdong": "명동/중구",
+      "gangbuk": "강북/노원",
+      "seocho": "서초구",
+      "mapo": "마포구"
+    },
+    "portfolioMode": "포트폴리오 모드",
+    "publicProfile": "공개 프로필",
+    "portfolioModeDesc": "당신의 서비스와 패키지를 공개 프로필로 showcase하세요",
+    "urlRequired": "프로필 URL 필요",
+    "urlRequiredDesc": "포트폴리오 모드를 활성화하려면 3자 이상의 프로필 URL을 입력해주세요.",
+    "invalidUrlFormat": "잘못된 URL 형식",
+    "invalidUrlFormatDesc": "프로필 URL은 영문, 숫자, _, - 만 사용 가능합니다.",
+    "publicProfileUrl": "공개 프로필 URL",
+    "urlPatternHelp": "영문, 숫자, _, - 만 사용 가능합니다",
+    "urlHint": "영문, 숫자, _, - 만 사용 가능 (3-50자)",
+    "stats": {
+      "posts": "게시글",
+      "trips": "여행",
+      "followers": "팔로워",
+      "following": "팔로잉",
+      "experiences": "체험"
+    },
+    "tabs": {
+      "posts": "게시글",
+      "trips": "여행",
+      "experiences": "체험",
+      "bookings": "예약",
+      "receivedBookings": "받은예약",
+      "helpRequests": "도움요청",
+      "templates": "템플릿",
+      "packages": "패키지",
+      "slots": "슬롯"
+    },
+    "empty": {
+      "noPosts": "아직 게시한 사진이 없어요",
+      "noTrips": "계획된 여행이 없어요",
+      "noExperiences": "등록한 체험이 없어요"
+    },
+    "planTrip": "여행 계획하기",
+    "createExperience": "체험 등록하기",
+    "meetStatusChanged": "만남 상태 변경됨",
+    "meetActivated": "{{hours}}시간 동안 {{region}}에서 만남이 활성화되었습니다.",
+    "meetDeactivated": "만남이 비활성화되었습니다.",
+    "settingsChangeError": "설정을 변경하는 중 오류가 발생했습니다.",
+    "portfolioModeChanged": "포트폴리오 모드 변경됨",
+    "portfolioModeActivated": "포트폴리오 모드가 활성화되었습니다. URL: {{url}}",
+    "portfolioModeDeactivated": "포트폴리오 모드가 비활성화되었습니다.",
+    "portfolioModeChangeError": "포트폴리오 모드 설정을 변경하는 중 오류가 발생했습니다.",
     "hostApplySuccess": "호스트 신청 완료",
     "hostApplySuccessDesc": "축하합니다! 이제 호스트로 활동하실 수 있습니다.",
     "hostApplyError": "신청 실패",

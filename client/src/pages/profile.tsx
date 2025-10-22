@@ -148,10 +148,10 @@ export default function Profile() {
       }, 100);
       
       toast({
-        title: '만남 상태 변경됨',
+        title: t('profile.meetStatusChanged'),
         description: variables.open
-          ? `${openMeetHours}시간 동안 ${openMeetRegion}에서 만남이 활성화되었습니다.`
-          : '만남이 비활성화되었습니다.',
+          ? t('profile.meetActivated', { hours: openMeetHours, region: openMeetRegion })
+          : t('profile.meetDeactivated'),
       });
     },
     onError: (err, variables, context) => {
@@ -165,8 +165,8 @@ export default function Profile() {
       }
       
       toast({
-        title: '오류',
-        description: '설정을 변경하는 중 오류가 발생했습니다.',
+        title: t('common.error'),
+        description: t('profile.settingsChangeError'),
         variant: 'destructive',
       });
     },
@@ -202,10 +202,10 @@ export default function Profile() {
       }, 100);
       
       toast({
-        title: '포트폴리오 모드 변경됨',
+        title: t('profile.portfolioModeChanged'),
         description: variables.portfolioMode
-          ? `포트폴리오 모드가 활성화되었습니다. URL: ${variables.publicProfileUrl}`
-          : '포트폴리오 모드가 비활성화되었습니다.',
+          ? t('profile.portfolioModeActivated', { url: variables.publicProfileUrl })
+          : t('profile.portfolioModeDeactivated'),
       });
     },
     onError: (err, variables, context) => {
@@ -219,8 +219,8 @@ export default function Profile() {
       }
       
       toast({
-        title: '오류',
-        description: '포트폴리오 모드 설정을 변경하는 중 오류가 발생했습니다.',
+        title: t('common.error'),
+        description: t('profile.portfolioModeChangeError'),
         variant: 'destructive',
       });
     },
@@ -305,7 +305,7 @@ export default function Profile() {
           <h2 className="text-xl font-bold text-gray-900 mb-1">
             {user?.firstName && user?.lastName
               ? `${user.firstName} ${user.lastName}`
-              : user?.email?.split('@')[0] || '사용자'}
+              : user?.email?.split('@')[0] || t('profile.user')}
           </h2>
 
           {user?.bio && (
@@ -314,12 +314,12 @@ export default function Profile() {
 
           <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
             <MapPin size={14} />
-            <span>{user?.location || '위치 미설정'}</span>
+            <span>{user?.location || t('profile.locationNotSet')}</span>
           </div>
 
           {user?.isHost ? (
             <Badge className="bg-gradient-to-r from-primary to-secondary text-white mb-4">
-              ✨ 인증된 호스트
+              {t('profile.verifiedHost')}
             </Badge>
           ) : (
             <Button
@@ -329,7 +329,7 @@ export default function Profile() {
               data-testid="button-apply-host"
             >
               <Briefcase className="w-4 h-4 mr-2" />
-              {applyHostMutation.isPending ? '신청 중...' : '호스트 되기'}
+              {applyHostMutation.isPending ? t('profile.applying') : t('profile.becomeHost')}
             </Button>
           )}
 
@@ -339,7 +339,7 @@ export default function Profile() {
             data-testid="button-open-help-request"
           >
             <HelpCircle className="w-4 h-4 mr-2" />
-            도움 요청하기
+            {t('profile.requestHelp')}
           </Button>
 
           {/* 만남 상태 토글 */}
@@ -348,12 +348,12 @@ export default function Profile() {
               <Users size={18} className="text-primary" />
               <div className="flex-1 text-left">
                 <div className="text-sm font-medium text-gray-900">
-                  새로운 만남 열려있음
+                  {t('profile.openToNewMeetings')}
                 </div>
                 <div className="text-xs text-gray-500">
                   {user?.openToMeet && user?.openUntil
-                    ? `${new Date(user.openUntil).toLocaleString()}까지 활성`
-                    : '다른 여행자들과 연결됩니다'}
+                    ? `${new Date(user.openUntil).toLocaleString()} ${t('profile.activeUntil')}`
+                    : t('profile.connectWithTravelers')}
                 </div>
               </div>
               <Switch
@@ -381,32 +381,32 @@ export default function Profile() {
             {/* 권역 및 시간 설정 */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-gray-600 mb-1">권역</label>
+                <label className="block text-gray-600 mb-1">{t('profile.region')}</label>
                 <select
                   value={openMeetRegion}
                   onChange={(e) => setOpenMeetRegion(e.target.value)}
                   className="w-full p-2 rounded border text-xs"
                   disabled={user?.openToMeet}
                 >
-                  <option value="강남구">강남구</option>
-                  <option value="홍대/합정">홍대/합정</option>
-                  <option value="명동/중구">명동/중구</option>
-                  <option value="강북/노원">강북/노원</option>
-                  <option value="서초구">서초구</option>
-                  <option value="마포구">마포구</option>
+                  <option value="강남구">{t('profile.regions.gangnam')}</option>
+                  <option value="홍대/합정">{t('profile.regions.hongdae')}</option>
+                  <option value="명동/중구">{t('profile.regions.myeongdong')}</option>
+                  <option value="강북/노원">{t('profile.regions.gangbuk')}</option>
+                  <option value="서초구">{t('profile.regions.seocho')}</option>
+                  <option value="마포구">{t('profile.regions.mapo')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-gray-600 mb-1">활성 시간</label>
+                <label className="block text-gray-600 mb-1">{t('profile.activeHours')}</label>
                 <select
                   value={openMeetHours}
                   onChange={(e) => setOpenMeetHours(Number(e.target.value))}
                   className="w-full p-2 rounded border text-xs"
                   disabled={user?.openToMeet}
                 >
-                  <option value={6}>6시간</option>
-                  <option value={12}>12시간</option>
-                  <option value={24}>24시간</option>
+                  <option value={6}>{t('profile.hours', { count: 6 })}</option>
+                  <option value={12}>{t('profile.hours', { count: 12 })}</option>
+                  <option value={24}>{t('profile.hours', { count: 24 })}</option>
                 </select>
               </div>
             </div>
@@ -419,12 +419,12 @@ export default function Profile() {
                 <Sparkles size={18} className="text-purple-600" />
                 <div className="flex-1 text-left">
                   <div className="text-sm font-medium text-gray-900">
-                    포트폴리오 모드
+                    {t('profile.portfolioMode')}
                   </div>
                   <div className="text-xs text-gray-500">
                     {user?.portfolioMode && user?.publicProfileUrl
-                      ? `공개 프로필: /${user.publicProfileUrl}`
-                      : '당신의 서비스와 패키지를 공개 프로필로 showcase하세요'}
+                      ? `${t('profile.publicProfile')}: /${user.publicProfileUrl}`
+                      : t('profile.portfolioModeDesc')}
                   </div>
                 </div>
                 <Switch
@@ -439,8 +439,8 @@ export default function Profile() {
                       if (!publicProfileUrl || publicProfileUrl.trim().length < 3) {
                         setPortfolioSwitchChecked(false);
                         toast({
-                          title: '프로필 URL 필요',
-                          description: '포트폴리오 모드를 활성화하려면 3자 이상의 프로필 URL을 입력해주세요.',
+                          title: t('profile.urlRequired'),
+                          description: t('profile.urlRequiredDesc'),
                           variant: 'destructive',
                         });
                         return;
@@ -451,8 +451,8 @@ export default function Profile() {
                       if (!urlPattern.test(publicProfileUrl.trim())) {
                         setPortfolioSwitchChecked(false);
                         toast({
-                          title: '잘못된 URL 형식',
-                          description: '프로필 URL은 영문, 숫자, _, - 만 사용 가능합니다.',
+                          title: t('profile.invalidUrlFormat'),
+                          description: t('profile.invalidUrlFormatDesc'),
                           variant: 'destructive',
                         });
                         return;
@@ -473,7 +473,7 @@ export default function Profile() {
               
               {/* 프로필 URL 설정 */}
               <div className="text-xs">
-                <label className="block text-gray-600 mb-1">공개 프로필 URL</label>
+                <label className="block text-gray-600 mb-1">{t('profile.publicProfileUrl')}</label>
                 <div className="flex gap-2">
                   <span className="text-gray-400 self-center">tourgether.com/</span>
                   <input
@@ -484,10 +484,10 @@ export default function Profile() {
                     className="flex-1 p-2 rounded border text-xs"
                     disabled={user?.portfolioMode}
                     pattern="[a-zA-Z0-9_-]+"
-                    title="영문, 숫자, _, - 만 사용 가능합니다"
+                    title={t('profile.urlPatternHelp')}
                   />
                 </div>
-                <p className="text-gray-400 mt-1">영문, 숫자, _, - 만 사용 가능 (3-50자)</p>
+                <p className="text-gray-400 mt-1">{t('profile.urlHint')}</p>
               </div>
             </div>
           )}
@@ -498,7 +498,7 @@ export default function Profile() {
             data-testid="button-edit-profile"
           >
             <Edit3 size={16} className="mr-2" />
-            프로필 편집
+            {t('profileEdit.title')}
           </Button>
         </div>
       </div>
@@ -508,29 +508,29 @@ export default function Profile() {
         <div className="grid grid-cols-5 gap-4 text-center">
           <div>
             <div className="text-lg font-bold text-gray-900">{stats.posts}</div>
-            <div className="text-xs text-gray-500">게시글</div>
+            <div className="text-xs text-gray-500">{t('profile.stats.posts')}</div>
           </div>
           <div>
             <div className="text-lg font-bold text-gray-900">{stats.trips}</div>
-            <div className="text-xs text-gray-500">여행</div>
+            <div className="text-xs text-gray-500">{t('profile.stats.trips')}</div>
           </div>
           <div>
             <div className="text-lg font-bold text-gray-900">
               {stats.followers}
             </div>
-            <div className="text-xs text-gray-500">팔로워</div>
+            <div className="text-xs text-gray-500">{t('profile.stats.followers')}</div>
           </div>
           <div>
             <div className="text-lg font-bold text-gray-900">
               {stats.following}
             </div>
-            <div className="text-xs text-gray-500">팔로잉</div>
+            <div className="text-xs text-gray-500">{t('profile.stats.following')}</div>
           </div>
           <div>
             <div className="text-lg font-bold text-gray-900">
               {stats.experiences}
             </div>
-            <div className="text-xs text-gray-500">체험</div>
+            <div className="text-xs text-gray-500">{t('profile.stats.experiences')}</div>
           </div>
         </div>
       </div>
@@ -539,45 +539,45 @@ export default function Profile() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-8 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">
           <TabsTrigger value="posts" className="text-xs">
-            게시글
+            {t('profile.tabs.posts')}
           </TabsTrigger>
           <TabsTrigger value="trips" className="text-xs">
-            여행
+            {t('profile.tabs.trips')}
           </TabsTrigger>
           <TabsTrigger value="experiences" className="text-xs">
-            체험
+            {t('profile.tabs.experiences')}
           </TabsTrigger>
           <TabsTrigger value="bookings" className="text-xs">
-            예약
+            {t('profile.tabs.bookings')}
           </TabsTrigger>
           {(user?.userType === 'local_guide' || user?.isHost) && (
             <TabsTrigger value="host-bookings" className="text-xs" data-testid="tab-host-bookings">
               <div className="flex items-center space-x-1">
                 <Calendar className="w-3 h-3" />
-                <span>받은예약</span>
+                <span>{t('profile.tabs.receivedBookings')}</span>
               </div>
             </TabsTrigger>
           )}
           <TabsTrigger value="help-requests" className="text-xs" data-testid="tab-help-requests">
-            도움요청
+            {t('profile.tabs.helpRequests')}
           </TabsTrigger>
           <TabsTrigger value="service-templates" className="text-xs" data-testid="tab-service-templates">
             <div className="flex items-center space-x-1">
               <Sparkles className="w-3 h-3" />
-              <span>템플릿</span>
+              <span>{t('profile.tabs.templates')}</span>
             </div>
           </TabsTrigger>
           <TabsTrigger value="service-packages" className="text-xs" data-testid="tab-service-packages">
             <div className="flex items-center space-x-1">
               <ShoppingBag className="w-3 h-3" />
-              <span>패키지</span>
+              <span>{t('profile.tabs.packages')}</span>
             </div>
           </TabsTrigger>
           {(user?.userType === 'local_guide' || user?.isHost) && (
             <TabsTrigger value="slots" className="text-xs" data-testid="tab-slots">
               <div className="flex items-center space-x-1">
                 <Clock className="w-3 h-3" />
-                <span>슬롯</span>
+                <span>{t('profile.tabs.slots')}</span>
               </div>
             </TabsTrigger>
           )}
@@ -587,7 +587,7 @@ export default function Profile() {
           {posts.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">📸</div>
-              <p className="text-gray-500 text-sm">아직 게시한 사진이 없어요</p>
+              <p className="text-gray-500 text-sm">{t('profile.empty.noPosts')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-1">
@@ -607,14 +607,14 @@ export default function Profile() {
           {trips.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">✈️</div>
-              <p className="text-gray-500 text-sm">계획된 여행이 없어요</p>
+              <p className="text-gray-500 text-sm">{t('profile.empty.noTrips')}</p>
               <Button 
                 className="travel-button mt-3"
                 onClick={() => setShowTimelineCreateModal(true)}
                 data-testid="button-plan-trip"
               >
                 <Calendar size={16} className="mr-2" />
-                여행 계획하기
+                {t('profile.planTrip')}
               </Button>
             </div>
           ) : (
@@ -640,13 +640,13 @@ export default function Profile() {
           {experiences.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">🗺️</div>
-              <p className="text-gray-500 text-sm">등록한 체험이 없어요</p>
+              <p className="text-gray-500 text-sm">{t('profile.empty.noExperiences')}</p>
               <Button 
                 className="travel-button mt-3"
                 onClick={() => setShowCreateExperienceModal(true)}
                 data-testid="button-create-experience"
               >
-                체험 등록하기
+                {t('profile.createExperience')}
               </Button>
             </div>
           ) : (
