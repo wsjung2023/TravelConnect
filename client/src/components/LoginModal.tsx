@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
+  const { t } = useTranslation('ui');
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -48,12 +50,12 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       onSuccess(data.token, data.user);
-      toast({ title: '로그인 성공', description: data.message });
+      toast({ title: t('login.signInSuccess'), description: data.message });
       onClose();
     },
     onError: (error: Error) => {
       toast({
-        title: '로그인 실패',
+        title: t('login.signInFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -82,12 +84,12 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       onSuccess(data.token, data.user);
-      toast({ title: '회원가입 성공', description: data.message });
+      toast({ title: t('login.signUpSuccess'), description: data.message });
       onClose();
     },
     onError: (error: Error) => {
       toast({
-        title: '회원가입 실패',
+        title: t('login.signUpFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -99,8 +101,8 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
     if (!formData.email || !formData.password) {
       toast({
-        title: '입력 오류',
-        description: '이메일과 비밀번호를 입력해주세요',
+        title: t('login.inputError'),
+        description: t('login.emailPasswordRequired'),
         variant: 'destructive',
       });
       return;
@@ -155,12 +157,12 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            {isLogin ? '로그인' : '회원가입'}
+            {isLogin ? t('login.signIn') : t('login.signUp')}
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? 'Tourgether에 오신 것을 환영합니다'
-              : '새로운 여행을 시작하세요'}
+              ? t('login.welcomeMessage')
+              : t('login.startJourney')}
           </CardDescription>
         </CardHeader>
 
@@ -190,7 +192,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            구글 계정으로 계속하기
+            {t('login.continueWithGoogle')}
           </Button>
 
           <div className="relative">
@@ -199,7 +201,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                또는
+                {t('login.or')}
               </span>
             </div>
           </div>
@@ -209,12 +211,12 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             {!isLogin && (
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="firstName">이름</Label>
+                  <Label htmlFor="firstName">{t('login.firstName')}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="firstName"
-                      placeholder="이름"
+                      placeholder={t('login.firstName')}
                       value={formData.firstName}
                       onChange={(e) =>
                         setFormData({ ...formData, firstName: e.target.value })
@@ -224,12 +226,12 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="lastName">성</Label>
+                  <Label htmlFor="lastName">{t('login.lastName')}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="lastName"
-                      placeholder="성"
+                      placeholder={t('login.lastName')}
                       value={formData.lastName}
                       onChange={(e) =>
                         setFormData({ ...formData, lastName: e.target.value })
@@ -242,7 +244,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             )}
 
             <div>
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="email">{t('login.email')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -260,13 +262,13 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
             </div>
 
             <div>
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password">{t('login.password')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="비밀번호 (최소 6자)"
+                  placeholder={t('login.passwordPlaceholder')}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -294,10 +296,10 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               disabled={loginMutation.isPending || registerMutation.isPending}
             >
               {loginMutation.isPending || registerMutation.isPending
-                ? '처리 중...'
+                ? t('login.processing')
                 : isLogin
-                  ? '로그인'
-                  : '회원가입'}
+                  ? t('login.signIn')
+                  : t('login.signUp')}
             </Button>
           </form>
 
@@ -308,14 +310,14 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               className="text-sm text-blue-600 hover:underline"
             >
               {isLogin
-                ? '계정이 없으신가요? 회원가입'
-                : '이미 계정이 있으신가요? 로그인'}
+                ? t('login.noAccount')
+                : t('login.haveAccount')}
             </button>
           </div>
 
           <div className="flex justify-center">
             <Button variant="ghost" onClick={onClose}>
-              취소
+              {t('login.cancel')}
             </Button>
           </div>
         </CardContent>

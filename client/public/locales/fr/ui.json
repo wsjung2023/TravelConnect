@@ -370,5 +370,52 @@
     "hostApplySuccessDesc": "Félicitations ! Vous pouvez maintenant opérer en tant qu'hôte.",
     "hostApplyError": "Échec de la candidature",
     "hostApplyErrorDesc": "Une erreur s'est produite lors de la candidature hôte. Veuillez réessayer."
+  },
+  "notification": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "clearAll": "Tout effacer",
+    "feed": "Flux à proximité",
+    "help": "Demande d'aide",
+    "chat": "Nouveau message",
+    "follow": "Suivre",
+    "reaction": "Réaction",
+    "promotion": "Promotion",
+    "empty": "Aucune nouvelle notification",
+    "user": "Utilisateur",
+    "viewMore": "Voir plus de notifications",
+    "moreItems": " de plus"
+  },
+  "login": {
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "signInSuccess": "Connexion réussie",
+    "signUpSuccess": "Inscription réussie",
+    "signInFailed": "Échec de la connexion",
+    "signUpFailed": "Échec de l'inscription",
+    "inputError": "Erreur de saisie",
+    "emailPasswordRequired": "Veuillez saisir l'email et le mot de passe",
+    "welcomeMessage": "Bienvenue sur Tourgether",
+    "startJourney": "Commencez votre nouveau voyage",
+    "continueWithGoogle": "Continuer avec Google",
+    "or": "OU",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Mot de passe (min 6 caractères)",
+    "processing": "Traitement...",
+    "noAccount": "Vous n'avez pas de compte ? S'inscrire",
+    "haveAccount": "Vous avez déjà un compte ? Se connecter",
+    "cancel": "Annuler"
+  },
+  "timeago": {
+    "justNow": "À l'instant",
+    "minutesAgo": "il y a {{count}} minute",
+    "minutesAgo_plural": "il y a {{count}} minutes",
+    "hoursAgo": "il y a {{count}} heure",
+    "hoursAgo_plural": "il y a {{count}} heures",
+    "daysAgo": "il y a {{count}} jour",
+    "daysAgo_plural": "il y a {{count}} jours"
   }
 }

@@ -357,5 +357,52 @@
     "hostApplySuccessDesc": "¡Felicidades! Ahora puedes operar como anfitrión.",
     "hostApplyError": "Solicitud fallida",
     "hostApplyErrorDesc": "Ocurrió un error durante la solicitud de anfitrión. Por favor intenta de nuevo."
+  },
+  "notification": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "clearAll": "Borrar todo",
+    "feed": "Feed cercano",
+    "help": "Solicitud de ayuda",
+    "chat": "Nuevo mensaje",
+    "follow": "Seguir",
+    "reaction": "Reacción",
+    "promotion": "Promoción",
+    "empty": "No hay notificaciones nuevas",
+    "user": "Usuario",
+    "viewMore": "Ver más notificaciones",
+    "moreItems": " más"
+  },
+  "login": {
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "signInSuccess": "Inicio de sesión exitoso",
+    "signUpSuccess": "Registro exitoso",
+    "signInFailed": "Error al iniciar sesión",
+    "signUpFailed": "Error al registrarse",
+    "inputError": "Error de entrada",
+    "emailPasswordRequired": "Por favor ingresa email y contraseña",
+    "welcomeMessage": "Bienvenido a Tourgether",
+    "startJourney": "Comienza tu nuevo viaje",
+    "continueWithGoogle": "Continuar con Google",
+    "or": "O",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Email",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Contraseña (mín 6 caracteres)",
+    "processing": "Procesando...",
+    "noAccount": "¿No tienes cuenta? Regístrate",
+    "haveAccount": "¿Ya tienes cuenta? Inicia sesión",
+    "cancel": "Cancelar"
+  },
+  "timeago": {
+    "justNow": "Justo ahora",
+    "minutesAgo": "hace {{count}} minuto",
+    "minutesAgo_plural": "hace {{count}} minutos",
+    "hoursAgo": "hace {{count}} hora",
+    "hoursAgo_plural": "hace {{count}} horas",
+    "daysAgo": "hace {{count}} día",
+    "daysAgo_plural": "hace {{count}} días"
   }
 }

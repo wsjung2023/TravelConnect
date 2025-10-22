@@ -9,9 +9,11 @@ import {
   Gift,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useTranslation } from 'react-i18next';
 import { useNotifications, type Notification } from '@/hooks/useNotifications';
 
 export default function NotificationBell() {
+  const { t } = useTranslation('ui');
   const {
     notifications,
     counts,
@@ -126,19 +128,19 @@ export default function NotificationBell() {
   const getTypeLabel = (type: Notification['type']) => {
     switch (type) {
       case 'feed':
-        return '인근 피드';
+        return t('notification.feed');
       case 'help':
-        return '도움 요청';
+        return t('notification.help');
       case 'chat':
-        return '새 메시지';
+        return t('notification.chat');
       case 'follow':
-        return '팔로우';
+        return t('notification.follow');
       case 'reaction':
-        return '반응';
+        return t('notification.reaction');
       case 'promotion':
-        return '프로모션';
+        return t('notification.promotion');
       default:
-        return '알림';
+        return t('notification.title');
     }
   };
 
@@ -147,11 +149,11 @@ export default function NotificationBell() {
     const diff = now.getTime() - timestamp.getTime();
     const minutes = Math.floor(diff / 60000);
 
-    if (minutes < 1) return '방금 전';
-    if (minutes < 60) return `${minutes}분 전`;
+    if (minutes < 1) return t('timeago.justNow');
+    if (minutes < 60) return t('timeago.minutesAgo', { count: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}시간 전`;
-    return `${Math.floor(hours / 24)}일 전`;
+    if (hours < 24) return t('timeago.hoursAgo', { count: hours });
+    return t('timeago.daysAgo', { count: Math.floor(hours / 24) });
   };
 
   return (
@@ -206,14 +208,14 @@ export default function NotificationBell() {
             {/* 헤더 */}
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800">알림</h3>
+                <h3 className="font-semibold text-gray-800">{t('notification.title')}</h3>
                 <div className="flex gap-2">
                   {counts.total > 0 && (
                     <button
                       onClick={markAllAsRead}
                       className="text-xs text-blue-500 hover:text-blue-700"
                     >
-                      모두 읽음
+                      {t('notification.markAllRead')}
                     </button>
                   )}
                   {notifications.length > 0 && (
@@ -221,7 +223,7 @@ export default function NotificationBell() {
                       onClick={clearNotifications}
                       className="text-xs text-gray-500 hover:text-gray-700"
                     >
-                      모두 삭제
+                      {t('notification.clearAll')}
                     </button>
                   )}
                 </div>
@@ -232,32 +234,32 @@ export default function NotificationBell() {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {counts.feed > 0 && (
                     <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                      인근 피드 {counts.feed}
+                      {t('notification.feed')} {counts.feed}
                     </span>
                   )}
                   {counts.help > 0 && (
                     <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
-                      도움 요청 {counts.help}
+                      {t('notification.help')} {counts.help}
                     </span>
                   )}
                   {counts.chat > 0 && (
                     <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                      메시지 {counts.chat}
+                      {t('notification.chat')} {counts.chat}
                     </span>
                   )}
                   {counts.follow > 0 && (
                     <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
-                      팔로우 {counts.follow}
+                      {t('notification.follow')} {counts.follow}
                     </span>
                   )}
                   {counts.reaction > 0 && (
                     <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">
-                      반응 {counts.reaction}
+                      {t('notification.reaction')} {counts.reaction}
                     </span>
                   )}
                   {counts.promotion > 0 && (
                     <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">
-                      프로모션 {counts.promotion}
+                      {t('notification.promotion')} {counts.promotion}
                     </span>
                   )}
                 </div>
@@ -268,7 +270,7 @@ export default function NotificationBell() {
             <div className="max-h-64 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
-                  새로운 알림이 없습니다
+                  {t('notification.empty')}
                 </div>
               ) : (
                 notifications.slice(0, 10).map((notification) => (
@@ -319,7 +321,7 @@ export default function NotificationBell() {
                           <div className="flex items-center gap-2 mt-2">
                             <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
                             <span className="text-xs text-gray-500">
-                              사용자 {notification.relatedUserId}
+                              {t('notification.user')} {notification.relatedUserId}
                             </span>
                           </div>
                         )}
@@ -334,7 +336,7 @@ export default function NotificationBell() {
             {notifications.length > 10 && (
               <div className="p-3 bg-gray-50 text-center">
                 <button className="text-sm text-blue-500 hover:text-blue-700">
-                  더 많은 알림 보기 ({notifications.length - 10}개 더)
+                  {t('notification.viewMore')} ({notifications.length - 10}{t('notification.moreItems')})
                 </button>
               </div>
             )}

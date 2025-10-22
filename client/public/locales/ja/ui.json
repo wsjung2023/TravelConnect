@@ -357,5 +357,49 @@
     "hostApplySuccessDesc": "おめでとうございます！ホストとして活動できるようになりました。",
     "hostApplyError": "申請失敗",
     "hostApplyErrorDesc": "ホスト申請中にエラーが発生しました。もう一度お試しください。"
+  },
+  "notification": {
+    "title": "通知",
+    "markAllRead": "すべて既読にする",
+    "clearAll": "すべてクリア",
+    "feed": "近くのフィード",
+    "help": "ヘルプリクエスト",
+    "chat": "新しいメッセージ",
+    "follow": "フォロー",
+    "reaction": "リアクション",
+    "promotion": "プロモーション",
+    "empty": "新しい通知はありません",
+    "user": "ユーザー",
+    "viewMore": "もっと見る",
+    "moreItems": "件さらに"
+  },
+  "login": {
+    "signIn": "サインイン",
+    "signUp": "新規登録",
+    "signInSuccess": "サインインに成功しました",
+    "signUpSuccess": "新規登録に成功しました",
+    "signInFailed": "サインインに失敗しました",
+    "signUpFailed": "新規登録に失敗しました",
+    "inputError": "入力エラー",
+    "emailPasswordRequired": "メールアドレスとパスワードを入力してください",
+    "welcomeMessage": "Tourgetherへようこそ",
+    "startJourney": "新しい旅を始めましょう",
+    "continueWithGoogle": "Googleで続ける",
+    "or": "または",
+    "firstName": "名",
+    "lastName": "姓",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "passwordPlaceholder": "パスワード（6文字以上）",
+    "processing": "処理中...",
+    "noAccount": "アカウントをお持ちでない方は新規登録",
+    "haveAccount": "既にアカウントをお持ちの方はサインイン",
+    "cancel": "キャンセル"
+  },
+  "timeago": {
+    "justNow": "たった今",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前",
+    "daysAgo": "{{count}}日前"
   }
 }

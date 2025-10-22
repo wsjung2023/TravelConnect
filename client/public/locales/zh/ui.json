@@ -357,5 +357,49 @@
     "hostApplySuccessDesc": "恭喜！您现在可以作为主办方运营。",
     "hostApplyError": "申请失败",
     "hostApplyErrorDesc": "主办方申请过程中发生错误。请重试。"
+  },
+  "notification": {
+    "title": "通知",
+    "markAllRead": "全部标记为已读",
+    "clearAll": "全部清除",
+    "feed": "附近动态",
+    "help": "帮助请求",
+    "chat": "新消息",
+    "follow": "关注",
+    "reaction": "反应",
+    "promotion": "推广",
+    "empty": "暂无新通知",
+    "user": "用户",
+    "viewMore": "查看更多通知",
+    "moreItems": "个更多"
+  },
+  "login": {
+    "signIn": "登录",
+    "signUp": "注册",
+    "signInSuccess": "登录成功",
+    "signUpSuccess": "注册成功",
+    "signInFailed": "登录失败",
+    "signUpFailed": "注册失败",
+    "inputError": "输入错误",
+    "emailPasswordRequired": "请输入邮箱和密码",
+    "welcomeMessage": "欢迎来到Tourgether",
+    "startJourney": "开始您的新旅程",
+    "continueWithGoogle": "使用Google继续",
+    "or": "或",
+    "firstName": "名",
+    "lastName": "姓",
+    "email": "邮箱",
+    "password": "密码",
+    "passwordPlaceholder": "密码（至少6个字符）",
+    "processing": "处理中...",
+    "noAccount": "还没有账号？注册",
+    "haveAccount": "已有账号？登录",
+    "cancel": "取消"
+  },
+  "timeago": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}}分钟前",
+    "hoursAgo": "{{count}}小时前",
+    "daysAgo": "{{count}}天前"
   }
 }
