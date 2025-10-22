@@ -112,7 +112,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [miniMeetMarkers, setMiniMeetMarkers] = useState<any[]>([]);
   const [selectedMiniMeet, setSelectedMiniMeet] = useState<any>(null);
   const [mapMode, setMapMode] = useState<'PAN' | 'POST'>('PAN');
+  const mapModeRef = useRef<'PAN' | 'POST'>('PAN');
   const [showModeToast, setShowModeToast] = useState(false);
+
+  // mapMode 변경시 ref도 업데이트
+  useEffect(() => {
+    mapModeRef.current = mapMode;
+  }, [mapMode]);
 
   // POST 모드 전환시 안내 토스트 표시 (1회)
   useEffect(() => {
