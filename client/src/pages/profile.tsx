@@ -21,6 +21,7 @@ import TimelineCreateModal from '@/components/TimelineCreateModal';
 import ProfileEditModal from '@/components/ProfileEditModal';
 import type { Post, Trip, Experience } from '@shared/schema';
 import { Seo } from '@/components/Seo';
+import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   // Help Request Form 상태
   const [showHelpRequestForm, setShowHelpRequestForm] = useState(false);
@@ -72,16 +74,16 @@ export default function Profile() {
     },
     onSuccess: () => {
       toast({
-        title: '호스트 신청 완료',
-        description: '축하합니다! 이제 호스트로 활동하실 수 있습니다.',
+        title: t('profile.hostApplySuccess'),
+        description: t('profile.hostApplySuccessDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: (error) => {
       console.error('Host application error:', error);
       toast({
-        title: '신청 실패',
-        description: '호스트 신청 중 오류가 발생했습니다. 다시 시도해주세요.',
+        title: t('profile.hostApplyError'),
+        description: t('profile.hostApplyErrorDesc'),
         variant: 'destructive',
       });
     },
@@ -97,8 +99,8 @@ export default function Profile() {
     },
     onSuccess: () => {
       toast({
-        title: '여행 계획 생성 완료',
-        description: '새로운 여행 계획이 성공적으로 생성되었습니다!',
+        title: t('timeline.createSuccess'),
+        description: t('timeline.createSuccessDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/trips'] });
       setShowTimelineCreateModal(false);
@@ -106,8 +108,8 @@ export default function Profile() {
     onError: (error) => {
       console.error('Trip creation error:', error);
       toast({
-        title: '생성 실패',
-        description: '여행 계획 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
+        title: t('timeline.createError'),
+        description: t('timeline.createErrorDesc'),
         variant: 'destructive',
       });
     },

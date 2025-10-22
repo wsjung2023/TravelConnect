@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { InsertPost } from '@shared/schema';
 import exifr from 'exifr';
+import { useTranslation } from 'react-i18next';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export default function CreatePostModal({
   const [exifData, setExifData] = useState<ExifData[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const createPostMutation = useMutation({
     mutationFn: async (post: any) => {
@@ -54,8 +56,8 @@ export default function CreatePostModal({
     },
     onSuccess: () => {
       toast({
-        title: '게시글 작성 완료',
-        description: '새로운 여행 스토리가 공유되었습니다!',
+        title: t('post.createSuccess'),
+        description: t('post.createSuccessDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
       setTitle('');
@@ -70,8 +72,8 @@ export default function CreatePostModal({
     },
     onError: (error) => {
       toast({
-        title: '게시글 작성 실패',
-        description: '게시글 작성 중 오류가 발생했습니다.',
+        title: t('post.createError'),
+        description: t('post.createErrorDesc'),
         variant: 'destructive',
       });
     },
@@ -138,8 +140,8 @@ export default function CreatePostModal({
 
     if (!title.trim()) {
       toast({
-        title: '제목 입력',
-        description: '게시글 제목을 입력해주세요.',
+        title: t('post.titleRequired'),
+        description: t('post.titleRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -244,7 +246,7 @@ export default function CreatePostModal({
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="여행 제목을 입력하세요"
+              placeholder={t('post.titlePlaceholder')}
               className="border-gray-200 text-lg font-medium"
               autoFocus
             />
@@ -275,7 +277,7 @@ export default function CreatePostModal({
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="어떤 여행 이야기를 공유하고 싶나요?"
+            placeholder={t('post.contentPlaceholder')}
             className="border-0 resize-none text-base"
             rows={4}
           />
@@ -300,7 +302,7 @@ export default function CreatePostModal({
                   setLocationCoords(null);
                 }
               }}
-              placeholder="어디에서의 이야기인가요?"
+              placeholder={t('post.locationPlaceholder')}
               className="border-gray-200"
             />
           </div>
@@ -309,7 +311,7 @@ export default function CreatePostModal({
           <div className="mt-4">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
               <Image size={16} />
-              <span>사진 추가</span>
+              <span>{t('post.addPhoto')}</span>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2">
               <label className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
@@ -353,14 +355,14 @@ export default function CreatePostModal({
               onClick={onClose}
               className="flex-1"
             >
-              취소
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={!title.trim() || !content.trim() || !theme || createPostMutation.isPending}
               className="flex-1 travel-button"
             >
-              {createPostMutation.isPending ? '게시 중...' : '게시하기'}
+              {createPostMutation.isPending ? t('post.posting') : t('post.publish')}
             </Button>
           </div>
         </form>

@@ -1701,7 +1701,7 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
             ✕
           </button>
           <div className="absolute bottom-4 left-4 text-white">
-            <h2 className="text-xl font-bold">여기서 미니모임 만들기</h2>
+            <h2 className="text-xl font-bold">{t('miniMeet.create')}</h2>
           </div>
         </div>
 
@@ -1718,7 +1718,7 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              🎯 모임 제목
+              {t('miniMeet.titleLabel')}
             </label>
             <input
               type="text"
@@ -1752,7 +1752,7 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              👥 최대 인원 (본인 포함)
+              {t('miniMeet.maxPeopleLabel')}
             </label>
             <select
               value={maxPeople}
@@ -1787,7 +1787,7 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
               className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               data-testid="button-create-meet"
             >
-              {isLoading ? '생성 중...' : '모임 만들기'}
+              {isLoading ? t('miniMeet.creating') : t('miniMeet.createButton')}
             </button>
           </div>
         </form>
@@ -1956,7 +1956,7 @@ const MiniMeetDetailModal: React.FC<MiniMeetDetailModalProps> = ({
                 className="w-full px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 data-testid="button-join-meet"
               >
-                {isJoining ? '참여 중...' : '🤝 모임 참여하기'}
+                {isJoining ? t('miniMeet.joining') : t('miniMeet.joinButton')}
               </button>
             )}
           </div>

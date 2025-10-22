@@ -106,7 +106,11 @@
     "descriptionLabel": "여행 설명",
     "createButton": "타임라인 생성",
     "destinationHelp": "도시명과 국가명을 함께 입력해주세요 (예: 파리, 프랑스)",
-    "daysUnit": "일"
+    "daysUnit": "일",
+    "createSuccess": "여행 계획 생성 완료",
+    "createSuccessDesc": "새로운 여행 계획이 성공적으로 생성되었습니다!",
+    "createError": "생성 실패",
+    "createErrorDesc": "여행 계획 생성 중 오류가 발생했습니다. 다시 시도해주세요."
   },
   "post": {
     "noTitle": "제목 없음",
@@ -114,7 +118,19 @@
     "viewTogether": "개 함께보기",
     "moreCount": "개 더",
     "minuteUnit": "분간",
-    "experienceCount": "{{count}}개의 체험"
+    "experienceCount": "{{count}}개의 체험",
+    "createSuccess": "게시글 작성 완료",
+    "createSuccessDesc": "새로운 여행 스토리가 공유되었습니다!",
+    "createError": "게시글 작성 실패",
+    "createErrorDesc": "게시글 작성 중 오류가 발생했습니다.",
+    "titleRequired": "제목 입력",
+    "titleRequiredDesc": "게시글 제목을 입력해주세요.",
+    "titlePlaceholder": "여행 제목을 입력하세요",
+    "contentPlaceholder": "어떤 여행 이야기를 공유하고 싶나요?",
+    "locationPlaceholder": "어디에서의 이야기인가요?",
+    "addPhoto": "사진 추가",
+    "posting": "게시 중...",
+    "publish": "게시하기"
   },
   "experiences": {
     "nearbyTitle": "주변 체험",
@@ -273,5 +289,23 @@
     "music": "음악",
     "sports": "스포츠",
     "wellness": "웰니스"
+  },
+  "common": {
+    "cancel": "취소"
+  },
+  "miniMeet": {
+    "create": "여기서 미니모임 만들기",
+    "titleLabel": "🎯 모임 제목",
+    "maxPeopleLabel": "👥 최대 인원 (본인 포함)",
+    "creating": "생성 중...",
+    "createButton": "모임 만들기",
+    "joining": "참여 중...",
+    "joinButton": "🤝 모임 참여하기"
+  },
+  "profile": {
+    "hostApplySuccess": "호스트 신청 완료",
+    "hostApplySuccessDesc": "축하합니다! 이제 호스트로 활동하실 수 있습니다.",
+    "hostApplyError": "신청 실패",
+    "hostApplyErrorDesc": "호스트 신청 중 오류가 발생했습니다. 다시 시도해주세요."
   }
 }
