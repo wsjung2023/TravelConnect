@@ -1017,7 +1017,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         );
 
         // 사용자가 만남 열려있는지 확인
-        const isUserOpen = openUsers.some((openUser: any) => openUser.id === post.userId);
+        const isUserOpen = Array.isArray(openUsers) && openUsers.some((openUser: any) => openUser.id === post.userId);
         
         const marker = new window.google.maps.Marker({
           position: {
