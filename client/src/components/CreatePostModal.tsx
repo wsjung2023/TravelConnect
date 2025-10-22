@@ -288,15 +288,15 @@ export default function CreatePostModal({
             </div>
             <LocationSearchInput
               value={location}
-              onChange={(placeData) => {
-                if (placeData) {
-                  setLocation(placeData.description);
+              onChange={(value, placeData) => {
+                if (placeData && placeData.geometry && placeData.geometry.location) {
+                  setLocation(placeData.formatted_address || value);
                   setLocationCoords({
-                    lat: placeData.coordinates.lat,
-                    lng: placeData.coordinates.lng,
+                    lat: placeData.geometry.location.lat(),
+                    lng: placeData.geometry.location.lng(),
                   });
                 } else {
-                  setLocation('');
+                  setLocation(value);
                   setLocationCoords(null);
                 }
               }}

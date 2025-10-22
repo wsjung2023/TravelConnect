@@ -41,11 +41,10 @@ export function LocationSearchInput({
         
         if (!isMounted) return;
 
-        // 도시 레벨 검색으로 제한
+        // 모든 장소 검색 가능 (도시, 건물, 주소 등)
         autocompleteRef.current = new window.google.maps.places.Autocomplete(
           inputRef.current,
           {
-            types: ['(cities)'],
             fields: ['formatted_address', 'geometry', 'name', 'address_components'],
           }
         );
