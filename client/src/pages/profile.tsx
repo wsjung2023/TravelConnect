@@ -29,7 +29,7 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
 
   // Help Request Form 상태
   const [showHelpRequestForm, setShowHelpRequestForm] = useState(false);
