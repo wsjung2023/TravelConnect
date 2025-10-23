@@ -945,7 +945,33 @@ const MapComponent: React.FC<MapComponentProps> = ({
         };
 
         // 지도 이벤트 리스너 추가
-        newMap.addListener('idle', updatePOIs);
+        newMap.addListener('idle', () => {
+          updatePOIs();
+          
+          // 지도 중심 및 경계 업데이트 (Nearby 패널 실시간 업데이트용)
+          const center = newMap.getCenter();
+          const bounds = newMap.getBounds();
+          const zoom = newMap.getZoom();
+          
+          if (center) {
+            setMapCenter({ lat: center.lat(), lng: center.lng() });
+          }
+          
+          if (bounds) {
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            setMapBounds({
+              north: ne.lat(),
+              south: sw.lat(),
+              east: ne.lng(),
+              west: sw.lng(),
+            });
+          }
+          
+          if (zoom !== undefined) {
+            setCurrentZoom(zoom);
+          }
+        });
 
         // 지도 클릭 이벤트 - 피드 생성 모달 열기
         // 롱탭을 위한 마우스다운 이벤트
