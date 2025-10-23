@@ -61,6 +61,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [miniMeetLocation, setMiniMeetLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const longPressRef = useRef<number | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+  const [isNearbyPanelCollapsed, setIsNearbyPanelCollapsed] = useState(false);
 
   // 상태 변화 디버깅
   useEffect(() => {
@@ -1613,43 +1614,64 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* 하단 Nearby Posts */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-4 max-h-64 overflow-y-auto border-t shadow-lg">
-        <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
-        <h3 className="font-bold text-lg mb-3">{t('mapPage.nearbyExperiences')}</h3>
-        
-        <div className="space-y-2">
-          {nearbyPosts.map((post: any) => (
-            <div
-              key={post.id}
-              onClick={() => setSelectedPost(post)}
-              className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-              data-testid={`card-post-${post.id}`}
-            >
-              {post.imageUrl && (
-                <img
-                  src={post.imageUrl}
-                  alt={post.title || 'Post'}
-                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm truncate">{post.title || t('mapPage.untitled')}</h4>
-                <p className="text-xs text-gray-500 truncate">{post.locationName || t('mapPage.unknownLocation')}</p>
-                {post.distance !== undefined && (
-                  <p className="text-xs text-gray-400">{post.distance.toFixed(1)} km</p>
-                )}
-              </div>
-            </div>
-          ))}
-          
-          {nearbyPosts.length === 0 && (
-            <div className="text-center py-6 text-gray-500">
-              <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm">{t('mapPage.noNearbyExperiences')}</p>
-            </div>
+      {/* 하단 Nearby Posts - 접기/펼치기 가능 */}
+      <div 
+        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl border-t shadow-lg transition-all duration-300 ${
+          isNearbyPanelCollapsed ? 'p-2' : 'p-4 max-h-64 overflow-y-auto'
+        }`}
+      >
+        <button
+          onClick={() => setIsNearbyPanelCollapsed(!isNearbyPanelCollapsed)}
+          className="w-full flex items-center justify-between mb-2"
+          data-testid="button-toggle-nearby-panel"
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+            {!isNearbyPanelCollapsed && (
+              <h3 className="font-bold text-lg">{t('mapPage.nearbyExperiences')}</h3>
+            )}
+          </div>
+          {isNearbyPanelCollapsed ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
           )}
-        </div>
+        </button>
+        
+        {!isNearbyPanelCollapsed && (
+          <div className="space-y-2">
+            {nearbyPosts.map((post: any) => (
+              <div
+                key={post.id}
+                onClick={() => setSelectedPost(post)}
+                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                data-testid={`card-post-${post.id}`}
+              >
+                {post.imageUrl && (
+                  <img
+                    src={post.imageUrl}
+                    alt={post.title || 'Post'}
+                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm truncate">{post.title || t('mapPage.untitled')}</h4>
+                  <p className="text-xs text-gray-500 truncate">{post.locationName || t('mapPage.unknownLocation')}</p>
+                  {post.distance !== undefined && (
+                    <p className="text-xs text-gray-400">{post.distance.toFixed(1)} km</p>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {nearbyPosts.length === 0 && (
+              <div className="text-center py-6 text-gray-500">
+                <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm">{t('mapPage.noNearbyExperiences')}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* MiniMeet 생성 모달 */}

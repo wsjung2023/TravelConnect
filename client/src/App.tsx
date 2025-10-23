@@ -32,7 +32,6 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 }
 
 // Lazy load heavy components
-const Map = lazy(() => import('@/pages/map'));
 const MapTest = lazy(() => import('@/pages/map-test'));
 const Feed = lazy(() => import('@/pages/feed'));
 const Chat = lazy(() => import('@/pages/chat'));
@@ -108,14 +107,6 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <MapTest />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/map"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Map />
                 </Suspense>
               )}
             />
