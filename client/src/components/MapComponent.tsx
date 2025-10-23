@@ -686,8 +686,39 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
     console.log('Google Maps 초기화 시작');
 
-    const newMap = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 37.5665, lng: 126.978 }, // 서울
+    // GPS로 현재 위치 가져오기
+    const initializeMapWithUserLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            console.log('사용자 현재 위치:', userLat, userLng);
+            
+            // 지도 중심을 사용자 위치로 설정
+            setMapCenter({ lat: userLat, lng: userLng });
+            createMap(userLat, userLng);
+          },
+          (error) => {
+            console.warn('위치 권한 없음, 기본 위치(서울) 사용:', error);
+            // 위치 권한이 없으면 서울로 기본값 설정
+            createMap(37.5665, 126.978);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0,
+          }
+        );
+      } else {
+        console.warn('Geolocation API 지원 안됨, 기본 위치(서울) 사용');
+        createMap(37.5665, 126.978);
+      }
+    };
+
+    const createMap = (lat: number, lng: number) => {
+      const newMap = new window.google.maps.Map(mapRef.current, {
+        center: { lat, lng },
         zoom: 13,
         styles: [
           {
@@ -1094,6 +1125,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       setMap(newMap);
       console.log('Google Maps 초기화 완료');
+    };
+
+    initializeMapWithUserLocation();
   }, [isGoogleMapsLoaded]);
 
   // 마커 생성 (줌 레벨에 따라 클러스터링)
