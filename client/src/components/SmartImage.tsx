@@ -1,14 +1,15 @@
 // client/src/components/SmartImage.tsx
-import React from 'react';
+import { useState } from 'react';
+import { ImageOff } from 'lucide-react';
 import { pickImage, buildSrcSet, ImageVariants } from '@/lib/pickImage';
 
 type Props = {
   alt: string;
-  widthHint?: number; // 이 이미지가 쓰일 대략적인 가로폭(px)
+  widthHint?: number;
   className?: string;
-  src?: string; // 원본 이미지 (variants 없을 때 사용)
-  variants?: ImageVariants; // 썸네일/카드/풀 경로들
-  onError?: React.ReactEventHandler<HTMLImageElement>; // ★ 추가
+  src?: string;
+  variants?: ImageVariants;
+  onError?: React.ReactEventHandler<HTMLImageElement>;
 };
 
 export default function SmartImage({
@@ -19,11 +20,32 @@ export default function SmartImage({
   variants,
   onError,
 }: Props) {
+  const [hasError, setHasError] = useState(false);
+  
   const url = pickImage({ 
     ...(variants && { variants }), 
     ...(src && { src }) 
   }, widthHint);
   const srcSet = buildSrcSet(variants);
+
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    setHasError(true);
+    if (onError) {
+      onError(e);
+    }
+  };
+
+  if (hasError) {
+    return (
+      <div 
+        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className || ''}`}
+        role="img"
+        aria-label={alt}
+      >
+        <ImageOff className="w-8 h-8 text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <img
@@ -34,7 +56,7 @@ export default function SmartImage({
       className={className}
       loading="lazy"
       decoding="async"
-      onError={onError}    // ★ 전달
+      onError={handleError}
     />
   );
 }
