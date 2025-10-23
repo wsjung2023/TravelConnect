@@ -6,6 +6,7 @@ import { useLocation } from 'wouter';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 import { api } from '@/lib/api';
 import { calculateDistance } from '@shared/utils';
+import SmartImage from '@/components/SmartImage';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -1927,7 +1928,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 data-testid={`card-${item.type}-${item.id}`}
               >
                 {item.images && item.images[0] && (
-                  <img
+                  <SmartImage
                     src={item.images[0]}
                     alt={item.title || 'Experience'}
                     className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
