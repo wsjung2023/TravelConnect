@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 import { api } from '@/lib/api';
+import { calculateDistance } from '@shared/utils';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -321,6 +322,24 @@ const MapComponent: React.FC<MapComponentProps> = ({
       );
     });
   }, [posts, debouncedBounds]);
+
+  const nearbyPosts = useMemo(() => {
+    if (!visiblePosts || visiblePosts.length === 0) return [];
+    
+    return visiblePosts
+      .filter((post: any) => post.latitude && post.longitude)
+      .map((post: any) => ({
+        ...post,
+        distance: calculateDistance(
+          mapCenter.lat,
+          mapCenter.lng,
+          parseFloat(post.latitude),
+          parseFloat(post.longitude)
+        ),
+      }))
+      .sort((a: any, b: any) => a.distance - b.distance)
+      .slice(0, 10);
+  }, [visiblePosts, mapCenter]);
 
   // Determine clustering strategy based on marker count
   const shouldShowClusters = useMemo(() => {
@@ -1594,9 +1613,43 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* 하단 체험 정보 */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white p-4 border-t">
-        <h3 className="font-semibold text-gray-900">{t('post.experienceCount', { count: posts.length })}</h3>
+      {/* 하단 Nearby Posts */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-4 max-h-64 overflow-y-auto border-t shadow-lg">
+        <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
+        <h3 className="font-bold text-lg mb-3">{t('mapPage.nearbyExperiences')}</h3>
+        
+        <div className="space-y-2">
+          {nearbyPosts.map((post: any) => (
+            <div
+              key={post.id}
+              onClick={() => setSelectedPost(post)}
+              className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              data-testid={`card-post-${post.id}`}
+            >
+              {post.imageUrl && (
+                <img
+                  src={post.imageUrl}
+                  alt={post.title || 'Post'}
+                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm truncate">{post.title || t('mapPage.untitled')}</h4>
+                <p className="text-xs text-gray-500 truncate">{post.locationName || t('mapPage.unknownLocation')}</p>
+                {post.distance !== undefined && (
+                  <p className="text-xs text-gray-400">{post.distance.toFixed(1)} km</p>
+                )}
+              </div>
+            </div>
+          ))}
+          
+          {nearbyPosts.length === 0 && (
+            <div className="text-center py-6 text-gray-500">
+              <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+              <p className="text-sm">{t('mapPage.noNearbyExperiences')}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* MiniMeet 생성 모달 */}
