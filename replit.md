@@ -8,14 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### Experience Markers on Map with Nearby Panel Integration (October 23, 2025)
-- **Experience Map Markers**: Added star-shaped SVG markers for experiences with category-based colors (tour=purple #9333EA, food=orange #F97316, activity=sky blue, tip=green, shopping=pink)
-- **Experience API Integration**: Implemented /api/experiences useQuery in MapComponent to fetch and display bookable experiences on map
-- **Nearby Panel Redesign**: Changed Nearby panel from showing posts to displaying experiences within 5km radius, sorted by distance with 10-item limit
-- **SPA Navigation**: Fixed navigation from window.location.href to wouter's setLocation for seamless experience detail page access without page reload
-- **Route Correction**: Ensured consistent singular route /experience/:id across all navigation paths (map markers and nearby cards)
-- **Visual Differentiation**: Experience markers render at zIndex 1000 (above posts/POIs) with distinct star shape for clear identification
-- **E2E Test Success**: Verified map rendering, experience markers visibility, nearby panel functionality, and detail page navigation with full authentication preservation
+### Unified Content Display with Filters (October 23, 2025)
+- **Feed Page Integration**: Feed page now shows both posts AND experiences together with filter toggles (All/Posts/Experiences)
+- **Nearby Panel Integration**: Nearby panel restored posts display alongside experiences with same 3-option filter UI (All/Posts/Experiences)
+- **Distance Expansion**: Increased nearby filtering from 5km to 20km radius to display more relevant content
+- **Consistent Filter UX**: Unified filter pattern across Feed page and Nearby panel for intuitive user experience
+- **i18n Complete**: Added filter.all, filter.posts, filter.experiences, feedPage.noExperiences keys across all 6 languages (en, ko, ja, zh, fr, es)
+- **E2E Test Success**: Verified filter functionality on both Feed page and Nearby panel, content type toggling, and authentication preservation across navigation
 
 ### Unified Map Experience with Collapsible Nearby Panel (October 23, 2025)
 - **Removed /map Page**: Deleted redundant map.tsx and unified all map functionality into home page MapComponent for better UX
