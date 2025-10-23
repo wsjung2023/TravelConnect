@@ -65,19 +65,28 @@ const saveLikedPostsToStorage = (likedPosts: Set<number>, userId?: string) => {
   }
 };
 
+type FilterType = 'all' | 'posts' | 'experiences';
+
 export default function Feed() {
   const { t } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [failedImages, setFailedImages] = useState(new Set<number>());
+  const [filter, setFilter] = useState<FilterType>('all');
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const { data: posts = [], isLoading } = useQuery<Post[]>({
+  const { data: posts = [], isLoading: isLoadingPosts } = useQuery<Post[]>({
     queryKey: ['/api/posts'],
   });
+
+  const { data: experiences = [], isLoading: isLoadingExperiences } = useQuery<any[]>({
+    queryKey: ['/api/experiences'],
+  });
+
+  const isLoading = isLoadingPosts || isLoadingExperiences;
 
   const { data: currentUser } = useQuery<{ id: string; email: string; role?: string }>({
     queryKey: ['/api/auth/me'],
@@ -103,8 +112,27 @@ export default function Feed() {
     }
   }, [likedPosts, currentUser?.id]);
 
+  // experiences를 post 형식으로 변환
+  const experiencesAsPosts = experiences.map((exp: any) => ({
+    ...exp,
+    type: 'experience' as const,
+    userId: exp.providerId || 'Host',
+    content: exp.description || '',
+    images: exp.images || [],
+    likesCount: 0,
+    commentsCount: 0,
+  }));
+
+  // posts와 experiences 통합 및 필터링
+  const allItems = [...posts.map(p => ({ ...p, type: 'post' as const })), ...experiencesAsPosts];
+  const filteredItems = filter === 'all' 
+    ? allItems 
+    : filter === 'posts' 
+      ? allItems.filter(item => item.type === 'post')
+      : allItems.filter(item => item.type === 'experience');
+
   // 포스트 수가 많으면 자동으로 가상화 활성화
-  const shouldUseVirtualization = posts.length > 50 || useVirtualization;
+  const shouldUseVirtualization = filteredItems.length > 50 || useVirtualization;
   const postGroups = groupSimilarPosts(posts);
 
   const likeMutation = useMutation({
@@ -281,34 +309,73 @@ export default function Feed() {
         desc="Share and discover authentic travel experiences from local hosts and travelers"
       />
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setLocation('/')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            data-testid="button-back"
-          >
-            <ArrowLeft size={20} className="text-gray-600" />
-          </button>
-          <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* 가상화 토글 */}
-          <button
-            onClick={() => setUseVirtualization(!useVirtualization)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              shouldUseVirtualization 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {shouldUseVirtualization ? t('feedPage.virtualizationOn') : t('feedPage.virtualizationOff')}
-          </button>
-          <Link href="/timeline">
-            <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
-              <Calendar size={20} className="text-purple-600" />
+      <div className="border-b bg-white sticky top-0 z-10">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setLocation('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              data-testid="button-back"
+            >
+              <ArrowLeft size={20} className="text-gray-600" />
             </button>
-          </Link>
+            <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* 가상화 토글 */}
+            <button
+              onClick={() => setUseVirtualization(!useVirtualization)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                shouldUseVirtualization 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {shouldUseVirtualization ? t('feedPage.virtualizationOn') : t('feedPage.virtualizationOff')}
+            </button>
+            <Link href="/timeline">
+              <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
+                <Calendar size={20} className="text-purple-600" />
+              </button>
+            </Link>
+          </div>
+        </div>
+        
+        {/* Filter Buttons */}
+        <div className="flex gap-2 px-4 pb-3">
+          <button
+            onClick={() => setFilter('all')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            data-testid="filter-all"
+          >
+            {t('filter.all')}
+          </button>
+          <button
+            onClick={() => setFilter('posts')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'posts'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            data-testid="filter-posts"
+          >
+            {t('filter.posts')}
+          </button>
+          <button
+            onClick={() => setFilter('experiences')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'experiences'
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            data-testid="filter-experiences"
+          >
+            {t('filter.experiences')}
+          </button>
         </div>
       </div>
 
@@ -323,35 +390,47 @@ export default function Feed() {
       )}
 
       {/* Posts */}
-      {posts.length === 0 ? (
+      {filteredItems.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {t('feedPage.noFeed')}
+          {filter === 'experiences' ? t('feedPage.noExperiences') : t('feedPage.noFeed')}
         </div>
       ) : shouldUseVirtualization ? (
         <VirtualizedFeed
-          posts={posts}
+          posts={filteredItems.filter(item => item.type === 'post') as Post[]}
           onPostClick={(post) => setSelectedPost(post)}
           containerRef={containerRef}
         />
       ) : (
         <div className="space-y-4 p-4">
-          {posts.map((post: Post) => (
-            <div key={post.id} className="travel-card p-4">
+          {filteredItems.map((item: any) => {
+            const isExperience = item.type === 'experience';
+            
+            return (
+            <div 
+              key={`${item.type}-${item.id}`} 
+              className="travel-card p-4"
+              onClick={() => {
+                if (isExperience) {
+                  setLocation(`/experience/${item.id}`);
+                }
+              }}
+              style={isExperience ? { cursor: 'pointer' } : undefined}
+            >
               {/* Post Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
                     <AvatarImage
-                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.userId}`}
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${item.userId}`}
                     />
                     <AvatarFallback>
-                      {post.userId.slice(0, 2).toUpperCase()}
+                      {item.userId.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">{post.userId}</p>
+                    <p className="font-medium text-sm">{item.userId}</p>
                     <p className="text-xs text-gray-500">
-                      {formatTime(post.createdAt || new Date())}
+                      {formatTime(item.createdAt || new Date())}
                     </p>
                   </div>
                 </div>
@@ -359,34 +438,34 @@ export default function Feed() {
                   <DropdownMenuTrigger asChild>
                     <button
                       className="p-2 hover:bg-gray-100 rounded-full"
-                      data-testid={`button-menu-${post.id}`}
+                      data-testid={`button-menu-${item.id}`}
                     >
                       <MoreHorizontal size={16} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem
-                      onClick={() => handleSharePost(post)}
-                      data-testid={`item-share-${post.id}`}
+                      onClick={() => handleSharePost(item)}
+                      data-testid={`item-share-${item.id}`}
                     >
                       <Share2 size={16} className="mr-2" />
                       {t('feedPage.share')}
                     </DropdownMenuItem>
                     
-                    {currentUser?.id === post.userId && (
+                    {currentUser?.id === item.userId && (
                       <>
                         <DropdownMenuItem
-                          onClick={() => handleEditPost(post)}
-                          data-testid={`item-edit-${post.id}`}
+                          onClick={() => handleEditPost(item)}
+                          data-testid={`item-edit-${item.id}`}
                         >
                           <Edit3 size={16} className="mr-2" />
                           {t('feedPage.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => handleDeletePost(post)}
+                          onClick={() => handleDeletePost(item)}
                           className="text-red-600 focus:text-red-600"
-                          data-testid={`item-delete-${post.id}`}
+                          data-testid={`item-delete-${item.id}`}
                         >
                           <Trash2 size={16} className="mr-2" />
                           {t('feedPage.delete')}
@@ -394,13 +473,13 @@ export default function Feed() {
                       </>
                     )}
                     
-                    {currentUser?.id !== post.userId && (
+                    {currentUser?.id !== item.userId && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => handleReportPost(post)}
+                          onClick={() => handleReportPost(item)}
                           className="text-red-600 focus:text-red-600"
-                          data-testid={`item-report-${post.id}`}
+                          data-testid={`item-report-${item.id}`}
                         >
                           <Flag size={16} className="mr-2" />
                           {t('feedPage.report')}
@@ -414,24 +493,24 @@ export default function Feed() {
               {/* Post Content */}
               <div className="mb-3">
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  {post.title}
+                  {item.title}
                 </h3>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  {post.content}
+                  {item.content}
                 </p>
 
                 {/* Location */}
-                {post.location && (
+                {item.location && (
                   <div className="flex items-center gap-1 mt-2 text-gray-500">
                     <MapPin size={14} />
-                    <span className="text-xs">{post.location}</span>
+                    <span className="text-xs">{item.location}</span>
                   </div>
                 )}
 
                 {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
+                {item.tags && item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {post.tags.map((tag, index) => (
+                    {item.tags.map((tag: string, index: number) => (
                       <span
                         key={index}
                         className="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs"
@@ -444,63 +523,63 @@ export default function Feed() {
               </div>
 
               {/* Post Image with Shape */}
-              {post.images && post.images.length > 0 && (
+              {item.images && item.images.length > 0 && (
                 <div
                   className={`mb-3 overflow-hidden ${
-                    post.shape === 'heart'
+                    item.shape === 'heart'
                       ? 'rounded-full'
-                      : post.shape === 'cloud'
+                      : item.shape === 'cloud'
                         ? 'rounded-3xl'
-                        : post.shape === 'wave'
+                        : item.shape === 'wave'
                           ? 'rounded-2xl transform rotate-2'
-                          : post.shape === 'polaroid'
+                          : item.shape === 'polaroid'
                             ? 'rounded border-8 border-white shadow-lg'
                             : 'rounded-lg'
                   }`}
                 >
-                  {post.images?.[0]?.startsWith('dummy_') ? (
+                  {item.images?.[0]?.startsWith('dummy_') ? (
                     <div
                       className={`w-full h-64 flex items-center justify-center ${
-                        post.shape === 'heart'
+                        item.shape === 'heart'
                           ? 'bg-gradient-to-br from-pink-300 to-red-300'
-                          : post.shape === 'cloud'
+                          : item.shape === 'cloud'
                             ? 'bg-gradient-to-br from-blue-200 to-white'
-                            : post.shape === 'wave'
+                            : item.shape === 'wave'
                               ? 'bg-gradient-to-br from-teal-200 to-blue-200'
-                              : post.shape === 'polaroid'
+                              : item.shape === 'polaroid'
                                 ? 'bg-white'
                                 : 'bg-gradient-to-br from-teal-200 to-pink-200'
                       }`}
                     >
                       <span className="text-white text-2xl">
-                        {post.shape === 'heart'
+                        {item.shape === 'heart'
                           ? '💖'
-                          : post.shape === 'cloud'
+                          : item.shape === 'cloud'
                             ? '☁️'
-                            : post.shape === 'wave'
+                            : item.shape === 'wave'
                               ? '🌊'
-                              : post.shape === 'polaroid'
+                              : item.shape === 'polaroid'
                                 ? '📸'
                                 : '📷'}
                       </span>
                     </div>
-                  ) : failedImages.has(post.id) ? (
+                  ) : failedImages.has(item.id) ? (
                     <ImageFallback 
-                      shape={post.shape ?? undefined} 
+                      shape={item.shape ?? undefined} 
                       className="w-full h-64 bg-gradient-to-br flex items-center justify-center" 
                     />
                   ) : (
                   <SmartImage
-                          alt={post.title ?? ''}
+                          alt={item.title ?? ''}
                           className={`w-full h-64 object-cover ${
-                            post.shape === 'heart' ? 'clip-path-heart' : ''
+                            item.shape === 'heart' ? 'clip-path-heart' : ''
                           }`}
                           widthHint={720} // 카드 영역 폭 기준
                           // 서버가 썸네일/카드/풀을 아직 안 주더라도 OK (src로 자동 fallback)
-                          src={post.images?.[0] || ''}
-                          // variants가 있다면 여기에 붙이세요(없으면 생략): variants={post.imageVariants}
+                          src={item.images?.[0] || ''}
+                          // variants가 있다면 여기에 붙이세요(없으면 생략): variants={item.imageVariants}
                           onError={() => {
-                            setFailedImages(prev => new Set(prev).add(post.id));
+                            setFailedImages(prev => new Set(prev).add(item.id));
                           }}
                         />
                   )}
@@ -512,10 +591,10 @@ export default function Feed() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <button
-                      onClick={() => handleLike(post.id)}
+                      onClick={() => handleLike(item.id)}
                       disabled={likeMutation.isPending}
                       className={`flex items-center gap-2 transition-colors ${
-                        likedPosts.has(post.id)
+                        likedPosts.has(item.id)
                           ? 'text-red-500'
                           : 'text-gray-600 hover:text-red-500'
                       } ${likeMutation.isPending ? 'opacity-50' : ''}`}
@@ -523,21 +602,21 @@ export default function Feed() {
                       <Heart
                         size={20}
                         className={
-                          likedPosts.has(post.id) ? 'fill-current' : ''
+                          likedPosts.has(item.id) ? 'fill-current' : ''
                         }
                       />
-                      <span className="text-sm">{post.likesCount || 0}</span>
+                      <span className="text-sm">{item.likesCount || 0}</span>
                     </button>
                     <button
                       className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
-                      onClick={() => setSelectedPost(post)}
+                      onClick={() => setSelectedPost(item)}
                     >
                       <MessageCircle size={20} />
-                      <span className="text-sm">{post.commentsCount || 0}</span>
+                      <span className="text-sm">{item.commentsCount || 0}</span>
                     </button>
                   </div>
                   <button
-                    onClick={() => setSelectedPost(post)}
+                    onClick={() => setSelectedPost(item)}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
                   >
                     {t('feedPage.viewDetails')}
@@ -545,7 +624,8 @@ export default function Feed() {
                 </div>
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
       )}
 
