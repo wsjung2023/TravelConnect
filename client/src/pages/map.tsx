@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import ExperienceCard from '@/components/ExperienceCard';
 import BookingModal from '@/components/BookingModal';
 import type { Experience } from '@shared/schema';
-import MapCluster from '@/components/MapCluster'; // ★ 추가
+import MapCluster from '@/components/MapCluster';
 import { Seo } from '@/components/Seo';
+import { calculateDistance, isInBounds } from '@shared/utils';
 
 // Declare Google Maps types
 declare global {
@@ -162,6 +163,53 @@ export default function Map() {
     }
   };
 
+  const nearbyExperiences = useMemo(() => {
+    if (!experiences || (experiences as Experience[]).length === 0) return [];
+
+    const validExperiences = (experiences as Experience[]).filter(
+      (exp) => exp.latitude && exp.longitude
+    );
+
+    if (bounds && window.google) {
+      const inBoundsExps = validExperiences.filter((exp) =>
+        isInBounds(parseFloat(exp.latitude as any), parseFloat(exp.longitude as any), bounds)
+      );
+
+      if (userLocation) {
+        return inBoundsExps
+          .map((exp) => ({
+            ...exp,
+            distance: calculateDistance(
+              userLocation.lat,
+              userLocation.lng,
+              parseFloat(exp.latitude as any),
+              parseFloat(exp.longitude as any)
+            ),
+          }))
+          .sort((a, b) => a.distance - b.distance);
+      }
+
+      return inBoundsExps;
+    }
+
+    if (userLocation) {
+      return validExperiences
+        .map((exp) => ({
+          ...exp,
+          distance: calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            parseFloat(exp.latitude as any),
+            parseFloat(exp.longitude as any)
+          ),
+        }))
+        .filter((exp) => exp.distance <= 5)
+        .sort((a, b) => a.distance - b.distance);
+    }
+
+    return validExperiences;
+  }, [experiences, bounds, userLocation]);
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -230,7 +278,7 @@ export default function Map() {
         <h3 className="font-bold text-lg mb-4">{t('ui:mapPage.nearbyExperiences')}</h3>
 
         <div className="space-y-3">
-          {(experiences as Experience[]).map((experience: Experience) => (
+          {nearbyExperiences.map((experience: any) => (
             <ExperienceCard
               key={experience.id}
               experience={experience}
@@ -242,10 +290,10 @@ export default function Map() {
             />
           ))}
 
-          {(experiences as Experience[]).length === 0 && (
+          {nearbyExperiences.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <i className="fas fa-map-marker-alt text-3xl mb-2"></i>
-              <p>{t('ui:mapPage.noExperiences')}</p>
+              <p>{t('ui:mapPage.noNearbyExperiences')}</p>
             </div>
           )}
         </div>
