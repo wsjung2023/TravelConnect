@@ -248,16 +248,18 @@ export default function Landing() {
             {t('ui:landingPage.getStartedDesc')}
           </p>
 
-          {/* 데모 체험하기 버튼 */}
-          <Button
-            onClick={handleDemoLogin}
-            disabled={isDemoLoading}
-            className="w-full h-12 text-lg mb-3 bg-orange-500 hover:bg-orange-600 text-white"
-            data-testid="button-demo-login"
-          >
-            <PlayCircle className="w-5 h-5 mr-2" />
-            {isDemoLoading ? t('ui:landingPage.tryingDemo') : t('ui:landingPage.tryDemo')}
-          </Button>
+          {/* 데모 체험하기 버튼 - 개발환경에서만 표시 */}
+          {import.meta.env.DEV && (
+            <Button
+              onClick={handleDemoLogin}
+              disabled={isDemoLoading}
+              className="w-full h-12 text-lg mb-3 bg-orange-500 hover:bg-orange-600 text-white"
+              data-testid="button-demo-login"
+            >
+              <PlayCircle className="w-5 h-5 mr-2" />
+              {isDemoLoading ? t('ui:landingPage.tryingDemo') : t('ui:landingPage.tryDemo')}
+            </Button>
+          )}
 
           {/* Login Button */}
           <Button

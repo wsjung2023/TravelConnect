@@ -183,14 +183,6 @@ export default function Home() {
               >
                 <Settings className="h-4 w-4 text-gray-600" />
               </Button>
-              <button
-                onClick={() => window.open('/db-admin', '_blank')}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
-                title={t('ui:homePage.dbAdmin')}
-                data-testid="button-db-admin"
-              >
-                <i className="fas fa-database text-gray-600 text-sm"></i>
-              </button>
             </>
           )}
 
