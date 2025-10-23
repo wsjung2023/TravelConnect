@@ -8,13 +8,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### Map Bounds-Based Nearby Experiences Filtering (October 23, 2025)
+### Unified Map Experience with Collapsible Nearby Panel (October 23, 2025)
+- **Removed /map Page**: Deleted redundant map.tsx and unified all map functionality into home page MapComponent for better UX
+- **Collapsible Nearby Panel**: Added toggle button with ChevronUp/Down icons to collapse/expand Nearby Experiences panel, reducing screen clutter
 - **Distance Calculation Utility**: Implemented Haversine formula in shared/utils.ts for accurate km-based distance calculation between coordinates
-- **Bounds-Based Filtering**: Added viewport bounds-based filtering with 5km radius fallback for nearby experiences in both map.tsx and MapComponent.tsx
-- **Nearby Experiences Panel**: Enhanced MapComponent.tsx bottom panel to display filtered list of nearby experiences with thumbnails, titles, and distance
+- **Bounds-Based Filtering**: Added viewport bounds-based filtering with 5km radius fallback for nearby experiences in MapComponent.tsx
+- **Enhanced UX**: Bottom panel now smoothly transitions between collapsed (minimal) and expanded (max-h-64) states with CSS animations
 - **Google Maps Loading Fix**: Improved loadGoogleMaps.ts to prevent duplicate script loading while supporting language-specific map reloads
-- **i18n Expansion**: Added mapPage.noNearbyExperiences, mapPage.untitled, and mapPage.unknownLocation keys to all 6 languages
-- **E2E Test Verification**: Confirmed map rendering, nearby experiences filtering, and user interactions work correctly via playwright testing
+- **i18n Expansion**: Added mapPage.nearbyExperiences, mapPage.noNearbyExperiences, mapPage.untitled, and mapPage.unknownLocation keys to all 6 languages
+- **E2E Test Verification**: Confirmed map rendering, panel toggle functionality, nearby experiences filtering (10 cards), and all user interactions work correctly
 
 ### Code Quality & SEO Enhancement (October 12, 2025)
 - **SmartImage Component Fix**: Resolved onError prop destructuring bug to support exactOptionalPropertyTypes TypeScript setting
