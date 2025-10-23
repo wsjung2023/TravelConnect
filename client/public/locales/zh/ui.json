@@ -589,11 +589,17 @@
     "activityCat": "活动",
     "tip": "提示"
   },
+  "filter": {
+    "all": "全部",
+    "posts": "动态",
+    "experiences": "体验"
+  },
   "feedPage": {
     "title": "旅行动态",
     "virtualizationOn": "虚拟化开启",
     "virtualizationOff": "虚拟化关闭",
     "noFeed": "还没有动态。",
+    "noExperiences": "还没有体验。",
     "viewDetails": "查看动态详情",
     "share": "分享",
     "edit": "编辑",

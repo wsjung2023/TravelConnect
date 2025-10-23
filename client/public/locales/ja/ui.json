@@ -592,11 +592,17 @@
     "activityCat": "アクティビティ",
     "tip": "チップ"
   },
+  "filter": {
+    "all": "すべて",
+    "posts": "投稿",
+    "experiences": "体験"
+  },
   "feedPage": {
     "title": "旅行フィード",
     "virtualizationOn": "仮想化 ON",
     "virtualizationOff": "仮想化 OFF",
     "noFeed": "まだフィードはありません。",
+    "noExperiences": "まだ体験はありません。",
     "viewDetails": "フィード詳細を見る",
     "share": "共有",
     "edit": "編集",

@@ -595,11 +595,17 @@
     "activityCat": "Actividad",
     "tip": "Consejo"
   },
+  "filter": {
+    "all": "Todo",
+    "posts": "Publicaciones",
+    "experiences": "Experiencias"
+  },
   "feedPage": {
     "title": "Feed de viajes",
     "virtualizationOn": "Virtualización ACTIVADA",
     "virtualizationOff": "Virtualización DESACTIVADA",
     "noFeed": "Aún no hay feed.",
+    "noExperiences": "Aún no hay experiencias.",
     "viewDetails": "Ver detalles del feed",
     "share": "Compartir",
     "edit": "Editar",

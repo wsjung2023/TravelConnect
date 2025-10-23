@@ -605,11 +605,17 @@
     "activityCat": "Activity",
     "tip": "Tip"
   },
+  "filter": {
+    "all": "All",
+    "posts": "Posts",
+    "experiences": "Experiences"
+  },
   "feedPage": {
     "title": "Travel Feed",
     "virtualizationOn": "Virtualization ON",
     "virtualizationOff": "Virtualization OFF",
     "noFeed": "No feed yet.",
+    "noExperiences": "No experiences yet.",
     "viewDetails": "View Feed Details",
     "share": "Share",
     "edit": "Edit",

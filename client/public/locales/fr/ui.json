@@ -608,11 +608,17 @@
     "activityCat": "Activité",
     "tip": "Conseil"
   },
+  "filter": {
+    "all": "Tout",
+    "posts": "Publications",
+    "experiences": "Expériences"
+  },
   "feedPage": {
     "title": "Fil de voyage",
     "virtualizationOn": "Virtualisation ACTIVE",
     "virtualizationOff": "Virtualisation DÉSACTIVÉE",
     "noFeed": "Aucun fil pour le moment.",
+    "noExperiences": "Aucune expérience pour le moment.",
     "viewDetails": "Voir les détails du fil",
     "share": "Partager",
     "edit": "Modifier",
