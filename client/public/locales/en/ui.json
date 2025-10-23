@@ -633,6 +633,9 @@
   "mapPage": {
     "nearbyExperiences": "Nearby Experiences",
     "noExperiences": "No experiences found in this area",
+    "noNearbyExperiences": "No nearby experiences",
+    "untitled": "Untitled",
+    "unknownLocation": "Unknown location",
     "explore": "Explore",
     "create": "Create"
   },

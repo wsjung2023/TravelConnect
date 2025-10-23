@@ -636,6 +636,9 @@
   "mapPage": {
     "nearbyExperiences": "Expériences à proximité",
     "noExperiences": "Aucune expérience trouvée dans cette zone",
+    "noNearbyExperiences": "Aucune expérience à proximité",
+    "untitled": "Sans titre",
+    "unknownLocation": "Emplacement inconnu",
     "explore": "Explorer",
     "create": "Créer"
   },

@@ -617,6 +617,9 @@
   "mapPage": {
     "nearbyExperiences": "附近体验",
     "noExperiences": "在此区域未找到体验",
+    "noNearbyExperiences": "附近没有体验",
+    "untitled": "无标题",
+    "unknownLocation": "未知位置",
     "explore": "探索",
     "create": "创建"
   },

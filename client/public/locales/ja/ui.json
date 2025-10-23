@@ -620,6 +620,9 @@
   "mapPage": {
     "nearbyExperiences": "周辺の体験",
     "noExperiences": "この地域に体験が見つかりません",
+    "noNearbyExperiences": "近くに体験がありません",
+    "untitled": "タイトルなし",
+    "unknownLocation": "不明な場所",
     "explore": "探索",
     "create": "作成"
   },
