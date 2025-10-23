@@ -619,7 +619,9 @@
   },
   "mapPage": {
     "nearbyExperiences": "周辺の体験",
-    "noExperiences": "この地域に体験が見つかりません"
+    "noExperiences": "この地域に体験が見つかりません",
+    "explore": "探索",
+    "create": "作成"
   },
   "chatPage": {
     "selectChat": "チャットを選択",

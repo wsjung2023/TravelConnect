@@ -622,7 +622,9 @@
   },
   "mapPage": {
     "nearbyExperiences": "Experiencias cercanas",
-    "noExperiences": "No se encontraron experiencias en esta área"
+    "noExperiences": "No se encontraron experiencias en esta área",
+    "explore": "Explorar",
+    "create": "Crear"
   },
   "chatPage": {
     "selectChat": "Seleccionar chat",

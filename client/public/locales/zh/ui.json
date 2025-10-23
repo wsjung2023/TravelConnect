@@ -616,7 +616,9 @@
   },
   "mapPage": {
     "nearbyExperiences": "附近体验",
-    "noExperiences": "在此区域未找到体验"
+    "noExperiences": "在此区域未找到体验",
+    "explore": "探索",
+    "create": "创建"
   },
   "chatPage": {
     "selectChat": "选择聊天",

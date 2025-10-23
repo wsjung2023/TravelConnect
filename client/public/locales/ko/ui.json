@@ -633,7 +633,9 @@
   },
   "mapPage": {
     "nearbyExperiences": "주변 체험",
-    "noExperiences": "이 지역에서 체험을 찾을 수 없습니다"
+    "noExperiences": "이 지역에서 체험을 찾을 수 없습니다",
+    "explore": "탐색",
+    "create": "작성"
   },
   "chatPage": {
     "selectChat": "채팅 선택",

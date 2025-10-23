@@ -1573,7 +1573,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
           }`}
           data-testid="button-toggle-map-mode"
         >
-          {mapMode === 'PAN' ? '🖐️ 탐색' : '📌 작성'}
+          {mapMode === 'PAN' ? `🖐️ ${t('mapPage.explore')}` : `📌 ${t('mapPage.create')}`}
         </button>
       </div>
 
