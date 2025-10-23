@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Map Bounds-Based Nearby Experiences Filtering (October 23, 2025)
+- **Distance Calculation Utility**: Implemented Haversine formula in shared/utils.ts for accurate km-based distance calculation between coordinates
+- **Bounds-Based Filtering**: Added viewport bounds-based filtering with 5km radius fallback for nearby experiences in both map.tsx and MapComponent.tsx
+- **Nearby Experiences Panel**: Enhanced MapComponent.tsx bottom panel to display filtered list of nearby experiences with thumbnails, titles, and distance
+- **Google Maps Loading Fix**: Improved loadGoogleMaps.ts to prevent duplicate script loading while supporting language-specific map reloads
+- **i18n Expansion**: Added mapPage.noNearbyExperiences, mapPage.untitled, and mapPage.unknownLocation keys to all 6 languages
+- **E2E Test Verification**: Confirmed map rendering, nearby experiences filtering, and user interactions work correctly via playwright testing
+
 ### Code Quality & SEO Enhancement (October 12, 2025)
 - **SmartImage Component Fix**: Resolved onError prop destructuring bug to support exactOptionalPropertyTypes TypeScript setting
 - **Rate Limiting Security**: Fixed express-rate-limit trust proxy configuration (set to 1) to prevent IP spoofing in Replit environment
