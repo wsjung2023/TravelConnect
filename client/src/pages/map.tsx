@@ -7,6 +7,7 @@ import type { Experience } from '@shared/schema';
 import MapCluster from '@/components/MapCluster';
 import { Seo } from '@/components/Seo';
 import { calculateDistance, isInBounds } from '@shared/utils';
+import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 
 // Declare Google Maps types
 declare global {
@@ -36,18 +37,15 @@ export default function Map() {
 
   // Load Google Maps script
   useEffect(() => {
-    if (!window.google) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places&callback=initGoogleMap`;
-      script.async = true;
-      script.defer = true;
+    const initGoogleMaps = async () => {
+      try {
+        await loadGoogleMaps();
+      } catch (error) {
+        console.error('Failed to load Google Maps:', error);
+      }
+    };
 
-      (window as any).initGoogleMap = () => {
-        // Google Maps loaded, will trigger map initialization
-      };
-
-      document.head.appendChild(script);
-    }
+    initGoogleMaps();
   }, []);
 
   // Initialize map
