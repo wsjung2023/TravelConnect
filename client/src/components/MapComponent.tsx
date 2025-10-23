@@ -64,6 +64,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const longPressRef = useRef<number | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [isNearbyPanelCollapsed, setIsNearbyPanelCollapsed] = useState(false);
+  const [nearbyFilter, setNearbyFilter] = useState<'all' | 'posts' | 'experiences'>('all');
 
   // 상태 변화 디버깅
   useEffect(() => {
@@ -336,11 +337,42 @@ const MapComponent: React.FC<MapComponentProps> = ({
     });
   }, [posts, debouncedBounds]);
 
+  // Nearby posts filtering
+  const nearbyPosts = useMemo(() => {
+    if (!posts || posts.length === 0) return [];
+    
+    const filtered = posts.filter((post: any) => {
+      if (!post.latitude || !post.longitude) return false;
+      
+      const lat = parseFloat(post.latitude);
+      const lng = parseFloat(post.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
+      return distance <= 20; // 20km radius
+    });
+    
+    return filtered
+      .map((post: any) => ({
+        ...post,
+        type: 'post' as const,
+        distance: calculateDistance(
+          mapCenter.lat,
+          mapCenter.lng,
+          parseFloat(post.latitude),
+          parseFloat(post.longitude)
+        ),
+      }))
+      .sort((a: any, b: any) => a.distance - b.distance)
+      .slice(0, 10);
+  }, [posts, mapCenter]);
+
   // Nearby experiences filtering
   const nearbyExperiences = useMemo(() => {
     if (!experiences || experiences.length === 0) return [];
     
-    // Filter experiences with coordinates within viewport or 5km radius
+    // Filter experiences with coordinates within 20km radius
     const filtered = experiences.filter((exp: any) => {
       if (!exp.latitude || !exp.longitude) return false;
       
@@ -352,13 +384,14 @@ const MapComponent: React.FC<MapComponentProps> = ({
       // Calculate distance from map center
       const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
       
-      // Show experiences within 5km
-      return distance <= 5;
+      // Show experiences within 20km
+      return distance <= 20;
     });
     
     return filtered
       .map((exp: any) => ({
         ...exp,
+        type: 'experience' as const,
         distance: calculateDistance(
           mapCenter.lat,
           mapCenter.lng,
@@ -369,6 +402,17 @@ const MapComponent: React.FC<MapComponentProps> = ({
       .sort((a: any, b: any) => a.distance - b.distance)
       .slice(0, 10);
   }, [experiences, mapCenter]);
+
+  // Combine nearby posts and experiences based on filter
+  const nearbyItems = useMemo(() => {
+    if (nearbyFilter === 'posts') return nearbyPosts;
+    if (nearbyFilter === 'experiences') return nearbyExperiences;
+    
+    // Combine and sort by distance
+    return [...nearbyPosts, ...nearbyExperiences]
+      .sort((a: any, b: any) => a.distance - b.distance)
+      .slice(0, 10);
+  }, [nearbyPosts, nearbyExperiences, nearbyFilter]);
 
   // Determine clustering strategy based on marker count
   const shouldShowClusters = useMemo(() => {
@@ -1731,7 +1775,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       {/* 하단 Nearby Posts - 접기/펼치기 가능 */}
       <div 
         className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl border-t shadow-lg transition-all duration-300 ${
-          isNearbyPanelCollapsed ? 'p-2' : 'p-4 max-h-64 overflow-y-auto'
+          isNearbyPanelCollapsed ? 'p-2' : 'p-4 max-h-80 overflow-y-auto'
         }`}
       >
         <button
@@ -1753,43 +1797,88 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         
         {!isNearbyPanelCollapsed && (
-          <div className="space-y-2">
-            {nearbyExperiences.map((exp: any) => (
-              <div
-                key={exp.id}
-                onClick={() => setLocation(`/experience/${exp.id}`)}
-                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                data-testid={`card-experience-${exp.id}`}
+          <>
+            {/* Filter Buttons */}
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setNearbyFilter('all')}
+                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                  nearbyFilter === 'all'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                data-testid="nearby-filter-all"
               >
-                {exp.images && exp.images[0] && (
+                {t('filter.all')}
+              </button>
+              <button
+                onClick={() => setNearbyFilter('posts')}
+                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                  nearbyFilter === 'posts'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                data-testid="nearby-filter-posts"
+              >
+                {t('filter.posts')}
+              </button>
+              <button
+                onClick={() => setNearbyFilter('experiences')}
+                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                  nearbyFilter === 'experiences'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                data-testid="nearby-filter-experiences"
+              >
+                {t('filter.experiences')}
+              </button>
+            </div>
+
+            <div className="space-y-2">
+            {nearbyItems.map((item: any) => (
+              <div
+                key={item.id}
+                onClick={() => {
+                  if (item.type === 'experience') {
+                    setLocation(`/experience/${item.id}`);
+                  } else if (item.type === 'post') {
+                    setSelectedPost(item);
+                  }
+                }}
+                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                data-testid={`card-${item.type}-${item.id}`}
+              >
+                {item.images && item.images[0] && (
                   <img
-                    src={exp.images[0]}
-                    alt={exp.title || 'Experience'}
+                    src={item.images[0]}
+                    alt={item.title || 'Experience'}
                     className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate">{exp.title || t('mapPage.untitled')}</h4>
-                  <p className="text-xs text-gray-500 truncate">{exp.location || t('mapPage.unknownLocation')}</p>
-                  {exp.distance !== undefined && (
-                    <p className="text-xs text-gray-400">{exp.distance.toFixed(1)} km</p>
+                  <h4 className="font-medium text-sm truncate">{item.title || t('mapPage.untitled')}</h4>
+                  <p className="text-xs text-gray-500 truncate">{item.location || t('mapPage.unknownLocation')}</p>
+                  {item.distance !== undefined && (
+                    <p className="text-xs text-gray-400">{item.distance.toFixed(1)} km</p>
                   )}
-                  {exp.price && (
+                  {item.price && (
                     <p className="text-xs font-semibold text-purple-600 mt-1">
-                      {Number(exp.price).toLocaleString()} {exp.currency || 'KRW'}
+                      {Number(item.price).toLocaleString()} {item.currency || 'KRW'}
                     </p>
                   )}
                 </div>
               </div>
             ))}
             
-            {nearbyExperiences.length === 0 && (
+            {nearbyItems.length === 0 && (
               <div className="text-center py-6 text-gray-500">
                 <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                 <p className="text-sm">{t('mapPage.noNearbyExperiences')}</p>
               </div>
             )}
           </div>
+          </>
         )}
       </div>
 
