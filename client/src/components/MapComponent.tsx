@@ -1642,6 +1642,7 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation('ui');
   const [title, setTitle] = useState('');
   const [startTime, setStartTime] = useState('');
   const [maxPeople, setMaxPeople] = useState(6);
@@ -1808,6 +1809,7 @@ const MiniMeetDetailModal: React.FC<MiniMeetDetailModalProps> = ({
   onClose,
   onJoin,
 }) => {
+  const { t } = useTranslation('ui');
   const [isJoining, setIsJoining] = useState(false);
   
   const handleJoin = async () => {
