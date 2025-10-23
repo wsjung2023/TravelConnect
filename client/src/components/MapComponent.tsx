@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'wouter';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 import { api } from '@/lib/api';
 import { calculateDistance } from '@shared/utils';
@@ -53,6 +54,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   onCreatePost,
 }) => {
   const { t } = useTranslation('ui');
+  const [, setLocation] = useLocation();
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
@@ -80,6 +82,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     !!selectedPost
   );
   const [markers, setMarkers] = useState<any[]>([]);
+  const [experienceMarkers, setExperienceMarkers] = useState<any[]>([]);
   const [currentZoom, setCurrentZoom] = useState(13);
   const [poiMarkers, setPOIMarkers] = useState<any[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
@@ -302,6 +305,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
     enabled: true,
   }) as { data: any[]; isLoading: boolean; error: any };
 
+  // 체험 데이터 가져오기
+  const {
+    data: experiences = [],
+    isLoading: isExperiencesLoading,
+  } = useQuery({
+    queryKey: ['/api/experiences'],
+    enabled: true,
+  }) as { data: any[]; isLoading: boolean };
+
   // Viewport filtering for performance - only render visible posts
   const visiblePosts = useMemo(() => {
     if (!posts || !debouncedBounds) return posts || [];
@@ -324,23 +336,39 @@ const MapComponent: React.FC<MapComponentProps> = ({
     });
   }, [posts, debouncedBounds]);
 
-  const nearbyPosts = useMemo(() => {
-    if (!visiblePosts || visiblePosts.length === 0) return [];
+  // Nearby experiences filtering
+  const nearbyExperiences = useMemo(() => {
+    if (!experiences || experiences.length === 0) return [];
     
-    return visiblePosts
-      .filter((post: any) => post.latitude && post.longitude)
-      .map((post: any) => ({
-        ...post,
+    // Filter experiences with coordinates within viewport or 5km radius
+    const filtered = experiences.filter((exp: any) => {
+      if (!exp.latitude || !exp.longitude) return false;
+      
+      const lat = parseFloat(exp.latitude);
+      const lng = parseFloat(exp.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      // Calculate distance from map center
+      const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
+      
+      // Show experiences within 5km
+      return distance <= 5;
+    });
+    
+    return filtered
+      .map((exp: any) => ({
+        ...exp,
         distance: calculateDistance(
           mapCenter.lat,
           mapCenter.lng,
-          parseFloat(post.latitude),
-          parseFloat(post.longitude)
+          parseFloat(exp.latitude),
+          parseFloat(exp.longitude)
         ),
       }))
       .sort((a: any, b: any) => a.distance - b.distance)
       .slice(0, 10);
-  }, [visiblePosts, mapCenter]);
+  }, [experiences, mapCenter]);
 
   // Determine clustering strategy based on marker count
   const shouldShowClusters = useMemo(() => {
@@ -436,6 +464,37 @@ const MapComponent: React.FC<MapComponentProps> = ({
       `)}`,
       scaledSize: new window.google.maps.Size(40, 50),
       anchor: new window.google.maps.Point(20, 50),
+    };
+  };
+
+  // 체험 마커 (별 모양) - 예약 가능한 체험용
+  const createExperienceMarker = (category: string) => {
+    // 카테고리별 색상
+    const categoryColors: { [key: string]: string } = {
+      tour: '#9333EA', // 보라색
+      food: '#F97316', // 주황색
+      activity: '#0EA5E9', // 하늘색
+      tip: '#10B981', // 초록색
+      shopping: '#EC4899', // 핑크색
+    };
+    const color = categoryColors[category] || '#9333EA';
+
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="exp-shadow">
+              <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.4"/>
+            </filter>
+          </defs>
+          <path d="M20 2 L24 14 L37 14 L27 22 L31 35 L20 27 L9 35 L13 22 L3 14 L16 14 Z" 
+                fill="${color}" stroke="white" stroke-width="2" filter="url(#exp-shadow)"/>
+          <circle cx="20" cy="18" r="8" fill="white"/>
+          <text x="20" y="23" text-anchor="middle" font-size="12" font-family="Arial">⭐</text>
+        </svg>
+      `)}`,
+      scaledSize: new window.google.maps.Size(40, 40),
+      anchor: new window.google.maps.Point(20, 20),
     };
   };
 
@@ -1149,6 +1208,61 @@ const MapComponent: React.FC<MapComponentProps> = ({
     );
   }, [map, posts, currentZoom]);
 
+  // Experience 마커 생성 (별 모양, 클러스터링 없음)
+  useEffect(() => {
+    if (!map || !window.google || !experiences.length) {
+      console.log('Experience 마커 생성 조건 실패:', {
+        map: !!map,
+        google: !!window.google,
+        experiencesLength: experiences.length,
+      });
+      return;
+    }
+
+    console.log(`${experiences.length}개 Experience 마커 생성 시작`);
+
+    // 기존 experience 마커 제거
+    experienceMarkers.forEach((marker) => marker.setMap(null));
+
+    const newExperienceMarkers: any[] = [];
+
+    experiences.forEach((exp: any) => {
+      if (!exp.latitude || !exp.longitude) {
+        console.log('Experience 좌표 없음:', exp.title);
+        return;
+      }
+
+      const lat = parseFloat(exp.latitude);
+      const lng = parseFloat(exp.longitude);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        console.log('Experience 좌표 변환 실패:', exp.title, exp.latitude, exp.longitude);
+        return;
+      }
+
+      console.log('Experience 마커 추가:', exp.title, lat, lng, 'category:', exp.category);
+
+      const marker = new window.google.maps.Marker({
+        position: { lat, lng },
+        map: map,
+        icon: createExperienceMarker(exp.category || 'tour'),
+        title: exp.title,
+        zIndex: 1000, // Experience 마커를 다른 마커보다 위에 표시
+      });
+
+      marker.addListener('click', () => {
+        console.log('Experience 클릭:', exp.title);
+        // Experience 상세 페이지로 이동 (SPA navigation)
+        setLocation(`/experience/${exp.id}`);
+      });
+
+      newExperienceMarkers.push(marker);
+    });
+
+    setExperienceMarkers(newExperienceMarkers);
+    console.log(`${newExperienceMarkers.length}개 Experience 마커 생성 완료`);
+  }, [map, experiences]);
+
   // 검색 기능 - Geocoding 재시도
   useEffect(() => {
     // 전역 검색 함수 등록
@@ -1640,31 +1754,36 @@ const MapComponent: React.FC<MapComponentProps> = ({
         
         {!isNearbyPanelCollapsed && (
           <div className="space-y-2">
-            {nearbyPosts.map((post: any) => (
+            {nearbyExperiences.map((exp: any) => (
               <div
-                key={post.id}
-                onClick={() => setSelectedPost(post)}
+                key={exp.id}
+                onClick={() => setLocation(`/experience/${exp.id}`)}
                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                data-testid={`card-post-${post.id}`}
+                data-testid={`card-experience-${exp.id}`}
               >
-                {post.imageUrl && (
+                {exp.images && exp.images[0] && (
                   <img
-                    src={post.imageUrl}
-                    alt={post.title || 'Post'}
+                    src={exp.images[0]}
+                    alt={exp.title || 'Experience'}
                     className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate">{post.title || t('mapPage.untitled')}</h4>
-                  <p className="text-xs text-gray-500 truncate">{post.locationName || t('mapPage.unknownLocation')}</p>
-                  {post.distance !== undefined && (
-                    <p className="text-xs text-gray-400">{post.distance.toFixed(1)} km</p>
+                  <h4 className="font-medium text-sm truncate">{exp.title || t('mapPage.untitled')}</h4>
+                  <p className="text-xs text-gray-500 truncate">{exp.location || t('mapPage.unknownLocation')}</p>
+                  {exp.distance !== undefined && (
+                    <p className="text-xs text-gray-400">{exp.distance.toFixed(1)} km</p>
+                  )}
+                  {exp.price && (
+                    <p className="text-xs font-semibold text-purple-600 mt-1">
+                      {Number(exp.price).toLocaleString()} {exp.currency || 'KRW'}
+                    </p>
                   )}
                 </div>
               </div>
             ))}
             
-            {nearbyPosts.length === 0 && (
+            {nearbyExperiences.length === 0 && (
               <div className="text-center py-6 text-gray-500">
                 <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                 <p className="text-sm">{t('mapPage.noNearbyExperiences')}</p>
