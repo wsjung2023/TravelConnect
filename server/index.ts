@@ -119,8 +119,64 @@ if (process.env.SENTRY_DSN) {
 
 const app = express();
 
-// Security headers with helmet
-app.use(helmet({ contentSecurityPolicy: false }));
+// Security headers with helmet - CSP configured for Google AdSense
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "*.googleapis.com",
+        "*.gstatic.com",
+        "*.googlesyndication.com",
+        "pagead2.googlesyndication.com",
+        "*.google.com",
+        "*.doubleclick.net"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "fonts.googleapis.com",
+        "cdnjs.cloudflare.com"
+      ],
+      fontSrc: [
+        "'self'",
+        "fonts.gstatic.com",
+        "cdnjs.cloudflare.com",
+        "data:"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https:",
+        "*.unsplash.com",
+        "*.googleusercontent.com",
+        "*.googlesyndication.com",
+        "*.doubleclick.net"
+      ],
+      connectSrc: [
+        "'self'",
+        "wss:",
+        "ws:",
+        "*.googleapis.com",
+        "*.replit.app",
+        "*.replit.dev",
+        "*.googlesyndication.com",
+        "*.google.com"
+      ],
+      mediaSrc: ["'self'", "data:", "blob:"],
+      objectSrc: ["'none'"],
+      frameSrc: [
+        "'self'",
+        "*.googlesyndication.com",
+        "*.doubleclick.net"
+      ]
+    }
+  }
+}));
 
 // Trust proxy for Replit environment (only trust first proxy for security)
 app.set('trust proxy', 1);
