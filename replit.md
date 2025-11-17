@@ -12,6 +12,8 @@ Preferred communication style: Simple, everyday language.
 - **Feature Overview**: Location-based 1-hour activity planner generating 3 structured plan cards (cafe→photo spot→snack style) with map integration and check-in functionality
 - **Database Schema**: Added miniPlans, miniPlanSpots, miniPlanCheckins tables with proper relations and indexes
 - **AI Generation**: OpenAI gpt-4o-mini integration for intelligent plan creation based on user location, time, budget, mood, and companions
+- **AI Response Validation**: Robust validateAIResponse() function enforcing exactly 3 plans with 3 spots each, Number.isFinite() checks for coordinates/stayMin, handles 0° coordinates correctly
+- **Error Handling**: Granular error codes - SERVICE_UNAVAILABLE (503) for OpenAI errors, VALIDATION_FAILED (502) for malformed AI responses, INTERNAL_ERROR (500) for others
 - **Storage Layer**: Complete CRUD operations - getMiniPlansByUser, getMiniPlanById, startMiniPlan, completeMiniPlan, checkInSpot, getCheckinsByPlan
 - **API Endpoints**: 6 REST endpoints (GET/POST) for plan generation, retrieval, lifecycle management (start/complete), and check-ins
 - **Frontend Components**: MiniPlanButton (FAB), MiniPlanOptionsModal, MiniPlanCardsView, MiniPlanExecutionView with purple/pink gradient branding
@@ -19,6 +21,7 @@ Preferred communication style: Simple, everyday language.
 - **Complete i18n**: miniConcierge keys added to all 6 languages (en, ko, ja, zh, fr, es) with proper translations for all UI elements
 - **User Options**: Time (60min default), Budget (low/mid/high), Mood (chill/hip/local_food/photo/anything), Companions (solo/couple/friends/family)
 - **Plan Structure**: Each plan contains title, summary, 3 spots with name/location/stayMin/metaJson (reason, recommendedMenu, priceRange, photoHint)
+- **Quality Assurance**: Architect-approved validation prevents malformed data persistence, E2E tests verify complete flow from FAB to check-in
 - **IMPORTANT**: Requires valid OPENAI_API_KEY environment variable for GPT-4o-mini model access
 
 ### AI Concierge Feature COMPLETED (November 17, 2025)
