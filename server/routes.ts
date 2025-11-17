@@ -4455,6 +4455,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CineMap API routes
+  app.get('/api/timelines/:id/media', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const timelineId = parseInt(req.params.id!);
+      if (isNaN(timelineId)) {
+        return res.status(400).json({ message: 'Invalid timeline ID' });
+      }
+
+      const timeline = await storage.getTimelineWithPosts(timelineId);
+      if (!timeline) {
+        return res.status(404).json({ message: 'Timeline not found' });
+      }
+
+      const postsWithMedia = await Promise.all(
+        (timeline.posts || []).map(async (post) => {
+          const media = await storage.getPostMediaByPostId(post.id);
+          return { ...post, media };
+        })
+      );
+
+      res.json({
+        timeline,
+        posts: postsWithMedia,
+      });
+    } catch (error) {
+      console.error('Error fetching timeline media:', error);
+      res.status(500).json({ message: 'Failed to fetch timeline media' });
+    }
+  });
+
+  app.post('/api/cinemap/jobs', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { timelineId, config } = req.body;
+
+      if (!timelineId || isNaN(parseInt(timelineId))) {
+        return res.status(400).json({ message: 'Valid timeline ID is required' });
+      }
+
+      const timeline = await storage.getTimelineById(parseInt(timelineId));
+      if (!timeline) {
+        return res.status(404).json({ message: 'Timeline not found' });
+      }
+
+      if (timeline.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied - not timeline owner' });
+      }
+
+      const job = await storage.createCinemapJob({
+        userId: req.user.id,
+        timelineId: parseInt(timelineId),
+        status: 'pending',
+        config: config || {},
+      });
+
+      res.status(201).json({ job });
+    } catch (error) {
+      console.error('Error creating CineMap job:', error);
+      res.status(500).json({ message: 'Failed to create CineMap job' });
+    }
+  });
+
+  app.get('/api/cinemap/jobs/:id', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const jobId = parseInt(req.params.id!);
+      if (isNaN(jobId)) {
+        return res.status(400).json({ message: 'Invalid job ID' });
+      }
+
+      const job = await storage.getCinemapJobById(jobId);
+      if (!job) {
+        return res.status(404).json({ message: 'Job not found' });
+      }
+
+      if (job.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      res.json({ job });
+    } catch (error) {
+      console.error('Error fetching CineMap job:', error);
+      res.status(500).json({ message: 'Failed to fetch CineMap job' });
+    }
+  });
+
+  app.get('/api/cinemap/jobs/user/:userId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const userId = req.params.userId!;
+      if (userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const jobs = await storage.getCinemapJobsByUser(userId);
+      res.json({ jobs });
+    } catch (error) {
+      console.error('Error fetching user CineMap jobs:', error);
+      res.status(500).json({ message: 'Failed to fetch user CineMap jobs' });
+    }
+  });
+
+  app.get('/api/cinemap/jobs/timeline/:timelineId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const timelineId = parseInt(req.params.timelineId!);
+      if (isNaN(timelineId)) {
+        return res.status(400).json({ message: 'Invalid timeline ID' });
+      }
+
+      const timeline = await storage.getTimelineById(timelineId);
+      if (!timeline) {
+        return res.status(404).json({ message: 'Timeline not found' });
+      }
+
+      if (timeline.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const jobs = await storage.getCinemapJobsByTimeline(timelineId);
+      res.json({ jobs });
+    } catch (error) {
+      console.error('Error fetching timeline CineMap jobs:', error);
+      res.status(500).json({ message: 'Failed to fetch timeline CineMap jobs' });
+    }
+  });
+
   // 예약 시스템 자동화 작업 API (내부 시스템 전용 - 인증 필요)
   app.post('/api/admin/process-expired-bookings', authenticateToken, async (req: any, res) => {
     // 관리자 권한 확인
