@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -41,6 +41,10 @@ export default function EnhancedChatWindow({
   const { t, i18n } = useTranslation('ui');
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Translation state
+  const [translatedMessages, setTranslatedMessages] = useState<Record<number, string>>({});
+  const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,6 +59,50 @@ export default function EnhancedChatWindow({
     if (newMessage.trim()) {
       onSendMessage(newMessage.trim());
       setNewMessage('');
+    }
+  };
+
+  const handleTranslate = async (messageId: number) => {
+    // Toggle translation
+    if (translatedMessages[messageId]) {
+      setTranslatedMessages(prev => {
+        const { [messageId]: _, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    // Start translation
+    setTranslatingMessages(prev => new Set(prev).add(messageId));
+
+    try {
+      const response = await fetch(`/api/messages/${messageId}/translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          targetLanguage: i18n.language,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Translation failed');
+      }
+
+      const data = await response.json();
+      setTranslatedMessages(prev => ({
+        ...prev,
+        [messageId]: data.translatedText,
+      }));
+    } catch (error) {
+      console.error('Translation error:', error);
+    } finally {
+      setTranslatingMessages(prev => {
+        const next = new Set(prev);
+        next.delete(messageId);
+        return next;
+      });
     }
   };
 
@@ -272,6 +320,8 @@ export default function EnhancedChatWindow({
                   {group.messages.map((message) => {
                     const isOwn = message.senderId === currentUserId;
                     const hasReplies = messages.some(m => m.parentMessageId === message.id);
+                    const isTranslated = !!translatedMessages[message.id];
+                    const isTranslating = translatingMessages.has(message.id);
                     
                     return (
                       <div
@@ -294,7 +344,15 @@ export default function EnhancedChatWindow({
                           )}
                           
                           <div className={`chat-bubble ${isOwn ? 'sent' : 'received'} relative`}>
-                            <p className="break-words">{message.content}</p>
+                            <p className="break-words">
+                              {isTranslated ? translatedMessages[message.id] : message.content}
+                            </p>
+                            
+                            {isTranslated && (
+                              <div className="text-xs opacity-60 mt-1 italic">
+                                {t('chat.translated')}
+                              </div>
+                            )}
                             
                             {hasReplies && (
                               <div className="flex items-center gap-1 mt-2 pt-2 border-t border-white/20">
@@ -311,18 +369,36 @@ export default function EnhancedChatWindow({
                               {formatTime(message.createdAt!)}
                             </p>
                             
-                            {/* Thread Reply Button */}
-                            {onStartThread && (
+                            <div className="flex items-center gap-1">
+                              {/* Translation Button */}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => onStartThread(message)}
+                                onClick={() => handleTranslate(message.id)}
                                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6"
-                                data-testid={`button-reply-${message.id}`}
+                                data-testid={`button-translate-${message.id}`}
+                                disabled={isTranslating}
                               >
-                                <Reply size={12} />
+                                {isTranslating ? (
+                                  <Loader2 size={12} className="animate-spin" />
+                                ) : (
+                                  <Languages size={12} className={isTranslated ? 'text-blue-500' : ''} />
+                                )}
                               </Button>
-                            )}
+                              
+                              {/* Thread Reply Button */}
+                              {onStartThread && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onStartThread(message)}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6"
+                                  data-testid={`button-reply-${message.id}`}
+                                >
+                                  <Reply size={12} />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
