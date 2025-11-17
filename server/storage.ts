@@ -6,6 +6,7 @@ import {
   comments,
   conversations,
   messages,
+  messageTranslations,
   reviews,
   likes,
   trips,
@@ -39,6 +40,8 @@ import {
   type Comment,
   type InsertMessage,
   type Message,
+  type InsertMessageTranslation,
+  type MessageTranslation,
   type Conversation,
   type InsertTrip,
   type Trip,
@@ -836,6 +839,56 @@ export class DatabaseStorage implements IStorage {
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(messages.createdAt);
+  }
+
+  async getMessageById(messageId: number): Promise<Message | undefined> {
+    const [message] = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, messageId))
+      .limit(1);
+    return message;
+  }
+
+  async updateMessageLanguage(messageId: number, language: string): Promise<void> {
+    await db
+      .update(messages)
+      .set({ detectedLanguage: language })
+      .where(eq(messages.id, messageId));
+  }
+
+  async getTranslation(
+    messageId: number,
+    targetLanguage: string
+  ): Promise<MessageTranslation | undefined> {
+    const [translation] = await db
+      .select()
+      .from(messageTranslations)
+      .where(
+        and(
+          eq(messageTranslations.messageId, messageId),
+          eq(messageTranslations.targetLanguage, targetLanguage)
+        )
+      )
+      .limit(1);
+    return translation;
+  }
+
+  async createTranslation(
+    translation: InsertMessageTranslation
+  ): Promise<MessageTranslation> {
+    const [newTranslation] = await db
+      .insert(messageTranslations)
+      .values(translation)
+      .returning();
+    return newTranslation!;
+  }
+
+  async updateUserPreferredLanguage(userId: string, language: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ preferredLanguage: language })
+      .where(eq(users.id, userId));
   }
 
   // Timeline operations
