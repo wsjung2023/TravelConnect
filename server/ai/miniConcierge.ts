@@ -2,6 +2,8 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const AI_MODEL = process.env.MINI_CONCIERGE_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest';
 const MAX_TOKENS = 1500;
 
+console.log(`[Mini Concierge AI] Using model: ${AI_MODEL} (MINI_CONCIERGE_AI_MODEL=${process.env.MINI_CONCIERGE_AI_MODEL}, AI_MODEL=${process.env.AI_MODEL})`);
+
 export interface MiniPlanContext {
   userId: string;
   location: {

@@ -2,6 +2,8 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const AI_MODEL = process.env.CINEMAP_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest';
 const MAX_TOKENS = 2000;
 
+console.log(`[CineMap AI] Using model: ${AI_MODEL} (CINEMAP_AI_MODEL=${process.env.CINEMAP_AI_MODEL}, AI_MODEL=${process.env.AI_MODEL})`);
+
 // Haversine distance calculation in meters
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000; // Earth's radius in meters

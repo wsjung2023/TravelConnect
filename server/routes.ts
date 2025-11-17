@@ -4716,5 +4716,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Model Configuration Test Endpoint
+  app.get('/api/admin/ai-models', (req, res) => {
+    res.json({
+      cinemap: {
+        CINEMAP_AI_MODEL: process.env.CINEMAP_AI_MODEL || 'not set',
+        AI_MODEL: process.env.AI_MODEL || 'not set',
+        effectiveModel: process.env.CINEMAP_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest'
+      },
+      miniConcierge: {
+        MINI_CONCIERGE_AI_MODEL: process.env.MINI_CONCIERGE_AI_MODEL || 'not set',
+        AI_MODEL: process.env.AI_MODEL || 'not set',
+        effectiveModel: process.env.MINI_CONCIERGE_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest'
+      },
+      concierge: {
+        CONCIERGE_AI_MODEL: process.env.CONCIERGE_AI_MODEL || 'not set',
+        AI_MODEL: process.env.AI_MODEL || 'not set',
+        effectiveModel: process.env.CONCIERGE_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest'
+      }
+    });
+  });
+
   return httpServer;
 }
