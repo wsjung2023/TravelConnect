@@ -760,4 +760,30 @@
       "title": "체크인 완료",
       "description": "다음 스팟으로 이동합니다"
     }
+  },
+  "cinemap": {
+    "title": "시네맵",
+    "subtitle": "여행 사진을 영화 같은 영상으로",
+    "createVideo": "영상 만들기",
+    "processing": "처리 중...",
+    "pending": "대기 중",
+    "generating": "생성 중",
+    "completed": "완료",
+    "failed": "실패",
+    "selectTimeline": "타임라인 선택",
+    "noTimelines": "사용 가능한 타임라인이 없습니다",
+    "createFirst": "시네맵을 생성하려면 먼저 타임라인을 만드세요",
+    "jobCreated": "시네맵 작업 생성됨",
+    "jobCreatedDesc": "영화 같은 영상이 생성되고 있습니다",
+    "jobFailed": "작업 생성 실패",
+    "jobFailedDesc": "영상 작업 생성 중 오류가 발생했습니다",
+    "viewVideo": "영상 보기",
+    "downloadVideo": "영상 다운로드",
+    "regenerate": "다시 생성",
+    "status": "상태",
+    "createdAt": "생성일",
+    "duration": "길이",
+    "photos": "사진",
+    "route": "경로"
   }
+}

@@ -747,4 +747,30 @@
       "description": "次のスポットへ移動します"
     }
   }
+  },
+  "cinemap": {
+    "title": "CineMap",
+    "subtitle": "Turn your travel photos into cinematic videos",
+    "createVideo": "Create Video",
+    "processing": "Processing...",
+    "pending": "Pending",
+    "generating": "Generating",
+    "completed": "Completed",
+    "failed": "Failed",
+    "selectTimeline": "Select Timeline",
+    "noTimelines": "No timelines available",
+    "createFirst": "Create a timeline first to generate CineMap",
+    "jobCreated": "CineMap job created",
+    "jobCreatedDesc": "Your cinematic video is being generated",
+    "jobFailed": "Failed to create job",
+    "jobFailedDesc": "An error occurred while creating the video job",
+    "viewVideo": "View Video",
+    "downloadVideo": "Download Video",
+    "regenerate": "Regenerate",
+    "status": "Status",
+    "createdAt": "Created",
+    "duration": "Duration",
+    "photos": "Photos",
+    "route": "Route"
+  }
 }
