@@ -8,6 +8,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Mini Concierge Phase 1 COMPLETED (November 17, 2025)
+- **Feature Overview**: Location-based 1-hour activity planner generating 3 structured plan cards (cafe→photo spot→snack style) with map integration and check-in functionality
+- **Database Schema**: Added miniPlans, miniPlanSpots, miniPlanCheckins tables with proper relations and indexes
+- **AI Generation**: OpenAI gpt-4o-mini integration for intelligent plan creation based on user location, time, budget, mood, and companions
+- **Storage Layer**: Complete CRUD operations - getMiniPlansByUser, getMiniPlanById, startMiniPlan, completeMiniPlan, checkInSpot, getCheckinsByPlan
+- **API Endpoints**: 6 REST endpoints (GET/POST) for plan generation, retrieval, lifecycle management (start/complete), and check-ins
+- **Frontend Components**: MiniPlanButton (FAB), MiniPlanOptionsModal, MiniPlanCardsView, MiniPlanExecutionView with purple/pink gradient branding
+- **Map Integration**: FAB button on home map, automatic camera pan to first spot on plan selection, real-time spot navigation
+- **Complete i18n**: miniConcierge keys added to all 6 languages (en, ko, ja, zh, fr, es) with proper translations for all UI elements
+- **User Options**: Time (60min default), Budget (low/mid/high), Mood (chill/hip/local_food/photo/anything), Companions (solo/couple/friends/family)
+- **Plan Structure**: Each plan contains title, summary, 3 spots with name/location/stayMin/metaJson (reason, recommendedMenu, priceRange, photoHint)
+- **IMPORTANT**: Requires valid OPENAI_API_KEY environment variable for GPT-4o-mini model access
+
 ### AI Concierge Feature COMPLETED (November 17, 2025)
 - **OpenAI gpt-4o-mini Integration**: Fully functional AI travel assistant with 94% cost reduction vs gpt-4o
 - **Database Schema Updates**: Made messages.senderId nullable to support AI messages (senderId=null), channels.ownerId already nullable for system channels
