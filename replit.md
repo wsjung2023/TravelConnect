@@ -9,7 +9,7 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### AI Concierge Feature COMPLETED (November 17, 2025)
-- **OpenAI GPT-4o Integration**: Fully functional AI travel assistant powered by OpenAI's latest model with context-aware responses
+- **OpenAI gpt-4o-mini Integration**: Fully functional AI travel assistant with 94% cost reduction vs gpt-4o
 - **Database Schema Updates**: Made messages.senderId nullable to support AI messages (senderId=null), channels.ownerId already nullable for system channels
 - **Auto-channel Creation**: AI Concierge channel automatically created on first /chat visit via getOrCreateAIConciergeChannel()
 - **Context Gathering**: AI responses include user profile, nearby experiences (20km), recent posts, upcoming slots for personalized recommendations
