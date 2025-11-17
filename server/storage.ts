@@ -2,6 +2,8 @@ import {
   users,
   experiences,
   posts,
+  postMedia,
+  cinemapJobs,
   bookings,
   comments,
   conversations,
@@ -34,6 +36,10 @@ import {
   type Experience,
   type InsertPost,
   type Post,
+  type InsertPostMedia,
+  type PostMedia,
+  type InsertCinemapJob,
+  type CinemapJob,
   type InsertBooking,
   type Booking,
   type InsertComment,
@@ -121,6 +127,11 @@ export interface IStorage {
   getPostsByUser(userId: string): Promise<Post[]>;
   getPostsByUserWithTakenAt(userId: string): Promise<Post[]>;
   toggleLike(userId: string, postId: number): Promise<boolean>;
+  
+  // PostMedia operations
+  createPostMedia(media: InsertPostMedia): Promise<PostMedia>;
+  createPostMediaBatch(mediaList: InsertPostMedia[]): Promise<PostMedia[]>;
+  getPostMediaByPostId(postId: number): Promise<PostMedia[]>;
 
   // Comment operations
   createComment(comment: InsertComment): Promise<Comment>;
@@ -160,6 +171,16 @@ export interface IStorage {
   getTimelineWithPosts(
     id: number
   ): Promise<(Timeline & { posts: Post[] }) | undefined>;
+  
+  // CineMap operations
+  createCinemapJob(job: InsertCinemapJob): Promise<CinemapJob>;
+  getCinemapJobById(id: number): Promise<CinemapJob | undefined>;
+  getCinemapJobsByUser(userId: string): Promise<CinemapJob[]>;
+  getCinemapJobsByTimeline(timelineId: number): Promise<CinemapJob[]>;
+  updateCinemapJob(
+    id: number,
+    updates: Partial<InsertCinemapJob>
+  ): Promise<CinemapJob | undefined>;
 
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
@@ -613,6 +634,25 @@ export class DatabaseStorage implements IStorage {
 
       return true;
     }
+  }
+
+  // PostMedia operations
+  async createPostMedia(media: InsertPostMedia): Promise<PostMedia> {
+    const [newMedia] = await db.insert(postMedia).values(media).returning();
+    return newMedia;
+  }
+
+  async createPostMediaBatch(mediaList: InsertPostMedia[]): Promise<PostMedia[]> {
+    if (mediaList.length === 0) return [];
+    return await db.insert(postMedia).values(mediaList).returning();
+  }
+
+  async getPostMediaByPostId(postId: number): Promise<PostMedia[]> {
+    return await db
+      .select()
+      .from(postMedia)
+      .where(eq(postMedia.postId, postId))
+      .orderBy(postMedia.orderIndex);
   }
 
   // Comment operations
@@ -1918,6 +1958,49 @@ export class DatabaseStorage implements IStorage {
 
   async getNearbyPOIs(latitude: number, longitude: number, radiusM: number = 2000): Promise<any[]> {
     return [];
+  }
+
+  // CineMap operations
+  async createCinemapJob(job: InsertCinemapJob): Promise<CinemapJob> {
+    const [newJob] = await db.insert(cinemapJobs).values(job).returning();
+    return newJob;
+  }
+
+  async getCinemapJobById(id: number): Promise<CinemapJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(cinemapJobs)
+      .where(eq(cinemapJobs.id, id))
+      .limit(1);
+    return job;
+  }
+
+  async getCinemapJobsByUser(userId: string): Promise<CinemapJob[]> {
+    return await db
+      .select()
+      .from(cinemapJobs)
+      .where(eq(cinemapJobs.userId, userId))
+      .orderBy(desc(cinemapJobs.createdAt));
+  }
+
+  async getCinemapJobsByTimeline(timelineId: number): Promise<CinemapJob[]> {
+    return await db
+      .select()
+      .from(cinemapJobs)
+      .where(eq(cinemapJobs.timelineId, timelineId))
+      .orderBy(desc(cinemapJobs.createdAt));
+  }
+
+  async updateCinemapJob(
+    id: number,
+    updates: Partial<InsertCinemapJob>
+  ): Promise<CinemapJob | undefined> {
+    const [updated] = await db
+      .update(cinemapJobs)
+      .set(updates)
+      .where(eq(cinemapJobs.id, id))
+      .returning();
+    return updated;
   }
 
   // Admin Commerce operations

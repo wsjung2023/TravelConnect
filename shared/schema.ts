@@ -127,6 +127,42 @@ export const posts = pgTable('posts', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+export const postMedia = pgTable('post_media', {
+  id: serial('id').primaryKey(),
+  postId: integer('post_id')
+    .notNull()
+    .references(() => posts.id, { onDelete: 'cascade' }),
+  url: varchar('url').notNull(),
+  type: varchar('type').notNull(), // 'image' or 'video'
+  orderIndex: integer('order_index').default(0),
+  exifDatetime: timestamp('exif_datetime'),
+  exifLatitude: decimal('exif_latitude', { precision: 10, scale: 8 }),
+  exifLongitude: decimal('exif_longitude', { precision: 11, scale: 8 }),
+  exifMetadata: jsonb('exif_metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_post_media_post_id').on(table.postId),
+]);
+
+export const cinemapJobs = pgTable('cinemap_jobs', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  timelineId: integer('timeline_id')
+    .references(() => timelines.id),
+  status: varchar('status').default('pending'), // pending, processing, completed, failed
+  resultVideoUrl: varchar('result_video_url'),
+  storyboard: jsonb('storyboard'),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_cinemap_jobs_user_id').on(table.userId),
+  index('IDX_cinemap_jobs_timeline_id').on(table.timelineId),
+  index('IDX_cinemap_jobs_status').on(table.status),
+]);
+
 export const bookings = pgTable('bookings', {
   id: serial('id').primaryKey(),
   experienceId: integer('experience_id')
@@ -400,11 +436,25 @@ export const postRelations = relations(posts, ({ one, many }) => ({
     references: [timelines.id],
   }),
   likes: many(likes),
+  media: many(postMedia),
+}));
+
+export const postMediaRelations = relations(postMedia, ({ one }) => ({
+  post: one(posts, { fields: [postMedia.postId], references: [posts.id] }),
 }));
 
 export const timelineRelations = relations(timelines, ({ one, many }) => ({
   user: one(users, { fields: [timelines.userId], references: [users.id] }),
   posts: many(posts),
+  cinemapJobs: many(cinemapJobs),
+}));
+
+export const cinemapJobRelations = relations(cinemapJobs, ({ one }) => ({
+  user: one(users, { fields: [cinemapJobs.userId], references: [users.id] }),
+  timeline: one(timelines, {
+    fields: [cinemapJobs.timelineId],
+    references: [timelines.id],
+  }),
 }));
 
 
@@ -507,6 +557,17 @@ export const insertPostSchema = createInsertSchema(posts, {
   updatedAt: true,
 });
 
+export const insertPostMediaSchema = createInsertSchema(postMedia).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCinemapJobSchema = createInsertSchema(cinemapJobs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
@@ -573,6 +634,10 @@ export type InsertExperience = z.infer<typeof insertExperienceSchema>;
 export type Experience = typeof experiences.$inferSelect;
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Post = typeof posts.$inferSelect;
+export type InsertPostMedia = z.infer<typeof insertPostMediaSchema>;
+export type PostMedia = typeof postMedia.$inferSelect;
+export type InsertCinemapJob = z.infer<typeof insertCinemapJobSchema>;
+export type CinemapJob = typeof cinemapJobs.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
