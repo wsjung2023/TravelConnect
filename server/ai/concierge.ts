@@ -134,8 +134,7 @@ export async function generateConciergeResponse(
       body: JSON.stringify({
         model: AI_MODEL,
         messages: messages,
-        max_tokens: MAX_TOKENS,
-        temperature: 0.7,
+        max_completion_tokens: MAX_TOKENS,
       }),
     });
 
@@ -190,8 +189,7 @@ export async function generateConciergeResponseStream(
       body: JSON.stringify({
         model: AI_MODEL,
         messages: messages,
-        max_tokens: MAX_TOKENS,
-        temperature: 0.7,
+        max_completion_tokens: MAX_TOKENS,
         stream: true,
       }),
     });

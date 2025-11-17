@@ -218,8 +218,7 @@ export async function generateMiniPlans(context: MiniPlanContext): Promise<MiniP
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_tokens: MAX_TOKENS,
-        temperature: 0.8,
+        max_completion_tokens: MAX_TOKENS,
         response_format: { type: 'json_object' },
       }),
     });
