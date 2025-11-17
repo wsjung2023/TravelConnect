@@ -15,6 +15,7 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
+import exifr from 'exifr';
 import i18next from 'i18next';
 import * as i18nMiddleware from 'i18next-http-middleware';
 import i18nFsBackend from 'i18next-fs-backend';
@@ -1182,12 +1183,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const uploadedFiles = req.files.map((file: any) => ({
-          filename: file.filename,
-          originalName: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-          url: `/api/files/${file.filename}`, // 보안 프록시 URL로 변경
+        const uploadedFiles = await Promise.all(req.files.map(async (file: any) => {
+          const fileInfo: any = {
+            filename: file.filename,
+            originalName: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size,
+            url: `/api/files/${file.filename}`,
+          };
+
+          if (file.mimetype.startsWith('image/')) {
+            try {
+              const filePath = path.join(process.cwd(), 'uploads', file.filename);
+              const exifData = await exifr.parse(filePath, {
+                gps: true,
+                exif: true,
+                iptc: true,
+                ifd0: true,
+                ifd1: true,
+                tiff: true,
+              });
+
+              if (exifData) {
+                fileInfo.exif = {
+                  latitude: exifData.latitude || null,
+                  longitude: exifData.longitude || null,
+                  datetime: exifData.DateTimeOriginal || exifData.DateTime || null,
+                  make: exifData.Make || null,
+                  model: exifData.Model || null,
+                  orientation: exifData.Orientation || null,
+                  metadata: exifData,
+                };
+              }
+            } catch (exifError) {
+              console.log(`EXIF extraction skipped for ${file.filename}:`, exifError);
+            }
+          }
+
+          return fileInfo;
         }));
 
         console.log('파일 업로드 성공:', uploadedFiles);
@@ -1409,6 +1442,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const post = await storage.createPost(finalPostData);
+
+      if (req.body.mediaFiles && Array.isArray(req.body.mediaFiles)) {
+        const mediaInserts = req.body.mediaFiles.map((file: any, index: number) => ({
+          postId: post.id,
+          type: file.mimetype?.startsWith('video/') ? 'video' : 'image',
+          url: file.url,
+          orderIndex: index,
+          exifDatetime: file.exif?.datetime ? new Date(file.exif.datetime) : null,
+          exifLatitude: file.exif?.latitude?.toString() || null,
+          exifLongitude: file.exif?.longitude?.toString() || null,
+          exifMetadata: file.exif?.metadata || null,
+        }));
+
+        await storage.createPostMediaBatch(mediaInserts);
+        console.log(`postMedia 레코드 ${mediaInserts.length}개 생성 완료`);
+      }
+
       res.status(201).json(post);
     } catch (error) {
       console.error('Error creating post:', error);

@@ -184,6 +184,7 @@ export default function CreatePostModal({
 
     // 이미지 파일 업로드
     let uploadedImageUrls: string[] = [];
+    let uploadedMediaFiles: any[] = [];
     if (imageFiles.length > 0) {
       try {
         const formData = new FormData();
@@ -197,6 +198,7 @@ export default function CreatePostModal({
         });
 
         uploadedImageUrls = uploadResponse.files.map((file: any) => file.url);
+        uploadedMediaFiles = uploadResponse.files;
       } catch (error) {
         console.error('이미지 업로드 실패:', error);
         toast({
@@ -217,6 +219,7 @@ export default function CreatePostModal({
       takenAt: earliestTakenAt || undefined,
       latitude: locationCoords?.lat?.toString() || bestLatitude?.toString(),
       longitude: locationCoords?.lng?.toString() || bestLongitude?.toString(),
+      mediaFiles: uploadedMediaFiles.length > 0 ? uploadedMediaFiles : undefined,
     };
 
     console.log('게시글 생성 데이터:', post);
