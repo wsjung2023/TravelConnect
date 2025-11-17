@@ -52,7 +52,8 @@
     "enterReply": "댓글을 입력하세요...",
     "sendHint": "Enter로 전송, Shift+Enter로 줄바꿈",
     "noDescription": "설명 없음",
-    "lastMessage": "마지막 메시지"
+    "lastMessage": "마지막 메시지",
+    "translated": "번역됨"
   },
   "themes": {
     "restaurant": "맛집",

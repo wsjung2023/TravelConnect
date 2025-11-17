@@ -50,7 +50,8 @@
     "enterReply": "Ingresa tu respuesta...",
     "sendHint": "Presiona Enter para enviar, Shift+Enter para nueva línea",
     "noDescription": "Sin descripción",
-    "lastMessage": "Último mensaje"
+    "lastMessage": "Último mensaje",
+    "translated": "Traducido"
   },
   "themes": {
     "restaurant": "Restaurante",

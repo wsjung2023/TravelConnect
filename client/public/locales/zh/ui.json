@@ -50,7 +50,8 @@
     "enterReply": "输入您的回复...",
     "sendHint": "按Enter发送，Shift+Enter换行",
     "noDescription": "无描述",
-    "lastMessage": "最后消息"
+    "lastMessage": "最后消息",
+    "translated": "已翻译"
   },
   "themes": {
     "restaurant": "餐厅",

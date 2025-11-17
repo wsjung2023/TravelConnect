@@ -50,7 +50,8 @@
     "enterReply": "返信を入力...",
     "sendHint": "Enterで送信、Shift+Enterで改行",
     "noDescription": "説明なし",
-    "lastMessage": "最後のメッセージ"
+    "lastMessage": "最後のメッセージ",
+    "translated": "翻訳済み"
   },
   "themes": {
     "restaurant": "レストラン",

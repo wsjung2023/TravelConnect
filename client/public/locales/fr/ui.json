@@ -52,7 +52,8 @@
     "enterReply": "Saisissez votre réponse...",
     "sendHint": "Appuyez sur Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne",
     "noDescription": "Aucune description",
-    "lastMessage": "Dernier message"
+    "lastMessage": "Dernier message",
+    "translated": "Traduit"
   },
   "themes": {
     "restaurant": "Restaurant",
