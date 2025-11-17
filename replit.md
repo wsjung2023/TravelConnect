@@ -6,98 +6,6 @@ Tourgether is a full-stack web application designed to connect travelers with lo
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes
-
-### Mini Concierge Phase 1 COMPLETED (November 17, 2025)
-- **Feature Overview**: Location-based 1-hour activity planner generating 3 structured plan cards (cafe→photo spot→snack style) with map integration and check-in functionality
-- **Database Schema**: Added miniPlans, miniPlanSpots, miniPlanCheckins tables with proper relations and indexes
-- **AI Generation**: OpenAI gpt-4o-mini integration for intelligent plan creation based on user location, time, budget, mood, and companions
-- **AI Response Validation**: Robust validateAIResponse() function enforcing exactly 3 plans with 3 spots each, Number.isFinite() checks for coordinates/stayMin, handles 0° coordinates correctly
-- **Error Handling**: Granular error codes - SERVICE_UNAVAILABLE (503) for OpenAI errors, VALIDATION_FAILED (502) for malformed AI responses, INTERNAL_ERROR (500) for others
-- **Storage Layer**: Complete CRUD operations - getMiniPlansByUser, getMiniPlanById, startMiniPlan, completeMiniPlan, checkInSpot, getCheckinsByPlan
-- **API Endpoints**: 6 REST endpoints (GET/POST) for plan generation, retrieval, lifecycle management (start/complete), and check-ins
-- **Frontend Components**: MiniPlanButton (FAB), MiniPlanOptionsModal, MiniPlanCardsView, MiniPlanExecutionView with purple/pink gradient branding
-- **Map Integration**: FAB button on home map, automatic camera pan to first spot on plan selection, real-time spot navigation
-- **Complete i18n**: miniConcierge keys added to all 6 languages (en, ko, ja, zh, fr, es) with proper translations for all UI elements
-- **User Options**: Time (60min default), Budget (low/mid/high), Mood (chill/hip/local_food/photo/anything), Companions (solo/couple/friends/family)
-- **Plan Structure**: Each plan contains title, summary, 3 spots with name/location/stayMin/metaJson (reason, recommendedMenu, priceRange, photoHint)
-- **Quality Assurance**: Architect-approved validation prevents malformed data persistence, E2E tests verify complete flow from FAB to check-in
-- **IMPORTANT**: Requires valid OPENAI_API_KEY environment variable for GPT-4o-mini model access
-
-### AI Concierge Feature COMPLETED (November 17, 2025)
-- **OpenAI gpt-4o-mini Integration**: Fully functional AI travel assistant with 94% cost reduction vs gpt-4o
-- **Database Schema Updates**: Made messages.senderId nullable to support AI messages (senderId=null), channels.ownerId already nullable for system channels
-- **Auto-channel Creation**: AI Concierge channel automatically created on first /chat visit via getOrCreateAIConciergeChannel()
-- **Context Gathering**: AI responses include user profile, nearby experiences (20km), recent posts, upcoming slots for personalized recommendations
-- **Frontend UI**: Special rendering with purple/pink gradient background, Sparkles icon, "AI" badge, localized sender name across all components
-- **API Endpoint**: POST /api/ai/concierge/message handles user→AI messaging with OpenAI API integration
-- **Storage Functions**: Added getUpcomingSlotsByLocation(), getNearbyExperiences() with gte/asc Drizzle operators for context data
-- **Complete i18n**: Added chat.aiConcierge key across all 6 languages (en: "AI Concierge", ko: "AI 컨시어지", ja, zh, fr, es)
-- **CSS Styling**: .chat-bubble.ai class with gradient background (135deg, #f3e7ff to #ffe7f7)
-- **E2E Test Success**: Verified Korean message handling, ~5s response time, proper gradient/Sparkles rendering, no FK violations
-- **IMPORTANT**: Requires valid OPENAI_API_KEY environment variable for GPT-4o model access
-
-### DM Translation Phase 1 COMPLETED (November 17, 2025)
-- **Full Translation System**: Complete implementation of DM message translation with Google Translate API integration
-- **Database Schema**: Added messageTranslations table for caching, users.preferred_language field (default: 'en')
-- **Translation Service**: server/translate.ts with translateText, detectLanguage, and isTranslationEnabled functions
-- **Storage Layer**: getMessageTranslation and saveMessageTranslation functions for efficient caching
-- **API Endpoints**: POST /api/messages/:id/translate and POST /api/user/preferred-language
-- **Frontend UI**: Languages icon button in EnhancedChatWindow.tsx with hover-reveal, loading states, and "Translated" badge
-- **Complete i18n**: Added chat.translated key across all 6 languages (en, ko, ja, zh, fr, es)
-- **Caching Strategy**: Translations cached in DB by (messageId, targetLanguage) to minimize API calls
-- **User Experience**: Click to translate, click again to toggle back to original, instant cached translations
-- **IMPORTANT**: Requires valid GOOGLE_TRANSLATE_API_KEY with Cloud Translation API enabled and billing configured
-
-### Unified Content Display with Filters (October 23, 2025)
-- **Feed Page Integration**: Feed page now shows both posts AND experiences together with filter toggles (All/Posts/Experiences)
-- **Nearby Panel Integration**: Nearby panel restored posts display alongside experiences with same 3-option filter UI (All/Posts/Experiences)
-- **Distance Expansion**: Increased nearby filtering from 5km to 20km radius to display more relevant content
-- **Consistent Filter UX**: Unified filter pattern across Feed page and Nearby panel for intuitive user experience
-- **i18n Complete**: Added filter.all, filter.posts, filter.experiences, feedPage.noExperiences keys across all 6 languages (en, ko, ja, zh, fr, es)
-- **E2E Test Success**: Verified filter functionality on both Feed page and Nearby panel, content type toggling, and authentication preservation across navigation
-
-### Unified Map Experience with Collapsible Nearby Panel (October 23, 2025)
-- **Removed /map Page**: Deleted redundant map.tsx and unified all map functionality into home page MapComponent for better UX
-- **Collapsible Nearby Panel**: Added toggle button with ChevronUp/Down icons to collapse/expand Nearby Experiences panel, reducing screen clutter
-- **Distance Calculation Utility**: Implemented Haversine formula in shared/utils.ts for accurate km-based distance calculation between coordinates
-- **Bounds-Based Filtering**: Added viewport bounds-based filtering with 5km radius fallback for nearby experiences in MapComponent.tsx
-- **Enhanced UX**: Bottom panel now smoothly transitions between collapsed (minimal) and expanded (max-h-64) states with CSS animations
-- **Google Maps Loading Fix**: Improved loadGoogleMaps.ts to prevent duplicate script loading while supporting language-specific map reloads
-- **i18n Expansion**: Added mapPage.nearbyExperiences, mapPage.noNearbyExperiences, mapPage.untitled, and mapPage.unknownLocation keys to all 6 languages
-- **E2E Test Verification**: Confirmed map rendering, panel toggle functionality, nearby experiences filtering (10 cards), and all user interactions work correctly
-
-### Code Quality & SEO Enhancement (October 12, 2025)
-- **SmartImage Component Fix**: Resolved onError prop destructuring bug to support exactOptionalPropertyTypes TypeScript setting
-- **Rate Limiting Security**: Fixed express-rate-limit trust proxy configuration (set to 1) to prevent IP spoofing in Replit environment
-- **Production Console Suppression**: Implemented Object.defineProperty-based console.log silencing for production builds
-- **Comprehensive SEO Implementation**: Created Seo component with Open Graph, Twitter Card, canonical URL, and JSON-LD structured data
-- **SEO Page Coverage**: Applied SEO meta tags to Map, Feed, and Profile pages in both loading and loaded states
-- **TypeScript Configuration**: Fixed tsconfig.json duplicate "types" key issue, consolidated all type definitions into single array
-- **E2E Test Coverage**: Verified all changes with comprehensive playwright-based end-to-end testing
-
-### Profile Edit Enhancement (October 3, 2025)
-- **Complete ProfileEditModal Redesign**: Rebuilt with proper UI controls and comprehensive i18n support
-- **Multi-Select Components**: Implemented reusable MultiSelect for languages (en, ko, ja, zh, fr, es) and interests (12 predefined options)
-- **Google Places Integration**: Added LocationSearchInput with autocomplete and current location detection
-- **Enhanced Server Validation**: Improved /api/user/profile endpoint with detailed logging and array field validation
-- **Shared Constants**: Extracted INTEREST_OPTIONS and LANGUAGE_OPTIONS to shared/constants.ts for reusability
-- **Full Internationalization**: All profile edit labels, placeholders, and buttons translated to 6 languages
-
-### Onboarding Simplification (October 1, 2025)
-- **Simplified Onboarding Flow**: Removed userType selection step - all users start as 'traveler' by default
-- **Action-based Role System**: Users automatically become providers when creating services/slots
-- **Skippable Onboarding**: Added skip button for quick access - onboarding can be completed later
-- **Optional Profile Setup**: Interest and language selection made optional with sensible defaults
-- **API Enhancement**: /api/auth/me now returns onboardingCompleted, userType, interests, languages, and timezone fields
-
-### Phase B - Code Quality Improvements (September 21, 2025)
-- **Thread Real-time Updates**: Implemented WebSocket-based real-time synchronization for threaded comments with optimistic UI updates
-- **Responsive Enhancement**: Added useMediaQuery hook for real-time window resize detection and responsive behavior
-- **UX Improvements**: Added comprehensive loading/error states across all major components (ChannelList, EnhancedChatWindow, ThreadPanel)
-- **WebSocket Stability**: Enhanced connection reliability with heartbeat mechanism, exponential backoff reconnection, and improved error handling
-- **Cache Synchronization**: Improved DM message handling to properly sync conversation list with last message updates and unread status
-
 ## System Architecture
 
 ### Frontend
@@ -126,13 +34,23 @@ Preferred communication style: Simple, everyday language.
 - **Authentication System**: Replit Auth and JWT-based email/password, secure session management, automatic user profile creation.
 - **Experience Management**: Categorized experiences (tours, food, activities, tips), booking system, host management, geographic discovery.
 - **Social Features**: Content sharing with location tagging, like system, trip planning.
-- **Real-time Communication**: Enhanced 3-panel chat system (Slack/Discord style) with threaded messaging, real-time WebSocket updates, heartbeat mechanism for stable connections, and optimistic UI updates.
-- **Mobile Experience**: Progressive Web App (PWA) with responsive design, touch navigation, and real-time responsive behavior using useMediaQuery hook for window resize detection.
+- **Real-time Communication**: Enhanced 3-panel chat system with threaded messaging, real-time WebSocket updates, heartbeat mechanism, and optimistic UI updates.
+- **Mobile Experience**: Progressive Web App (PWA) with responsive design, touch navigation, and real-time responsive behavior.
 - **Map Integration**: Custom Google Maps styling, SVG markers, theme-based color coding, interactive info windows, zoom-level responsive clustering, POI filtering, and direct feed creation from map clicks.
 - **File Upload System**: Multer-based file uploads (images/videos) with UUID-based naming, static file serving, and database integration.
 - **Database Management Tool**: In-app DB admin interface (`/db-admin`) for real-time statistics, grid view data visualization, safe SQL query execution, and CRUD operations.
 - **Dual Search Functionality**: Location search using Places API and content search for user-generated posts.
 - **Real-time Notification System**: Six notification types with visual indicators and location-aware delivery.
+- **AI-Powered Features**:
+    - **CineMap**: AI-powered travel video storyboard generation from EXIF-tagged photos, creating cinematic journey narratives using OpenAI gpt-4o-mini.
+    - **Mini Concierge**: Location-based 1-hour activity planner generating 3 structured plan cards with map integration and check-in functionality using OpenAI gpt-4o-mini.
+    - **AI Concierge**: Fully functional AI travel assistant with personalized recommendations based on user profile, nearby experiences, recent posts, and upcoming slots, using OpenAI gpt-4o-mini.
+- **DM Translation**: Direct message translation with Google Translate API integration, caching, and user-selectable preferred languages.
+- **Unified Content Display**: Feed page and Nearby panel display both posts and experiences with filter toggles (All/Posts/Experiences).
+- **Unified Map Experience**: All map functionality integrated into the home page MapComponent with a collapsible Nearby Experiences panel.
+- **SEO Enhancement**: Comprehensive SEO implementation with Open Graph, Twitter Card, canonical URL, and JSON-LD structured data on key pages.
+- **Profile Management**: Redesigned profile edit modal with multi-select components for languages and interests, Google Places integration for location, and enhanced server validation.
+- **Simplified Onboarding**: Removed userType selection, action-based role system, skippable onboarding, and optional profile setup.
 
 ### Security Guidelines
 - Environment variables must be used for sensitive data (e.g., `process.env.API_KEY`).
@@ -145,6 +63,8 @@ Preferred communication style: Simple, everyday language.
 - **Neon Database**: Serverless PostgreSQL hosting
 - **Replit Auth**: Authentication service
 - **Google Maps API**: Location services and interactive maps (including Places API)
+- **OpenAI API**: For AI-powered features (CineMap, Mini Concierge, AI Concierge)
+- **Google Translate API**: For DM translation
 
 ### Development Tools
 - **Replit Vite Plugin**: Development environment integration

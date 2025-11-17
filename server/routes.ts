@@ -24,6 +24,7 @@ import { tripsRouter } from './routes/trips';
 import { translateText, detectLanguage, isTranslationEnabled } from './translate';
 import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } from './ai/concierge';
 import { generateMiniPlans, isMiniConciergeEnabled, type MiniPlanContext } from './ai/miniConcierge';
+import { generateStoryboard, type PhotoWithExif } from './ai/cinemap';
 //import { authenticateToken } from "./auth";
 import { setupGoogleAuth } from './googleAuth';
 import passport from 'passport';
@@ -4506,14 +4507,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Access denied - not timeline owner' });
       }
 
+      // Create job as 'pending'
       const job = await storage.createCinemapJob({
         userId: req.user.id,
         timelineId: parseInt(timelineId),
         status: 'pending',
-        config: config || {},
       });
 
+      // Respond immediately with pending job
       res.status(201).json({ job });
+
+      // Process storyboard generation asynchronously
+      (async () => {
+        try {
+          console.log(`[CineMap] Starting storyboard generation for job ${job.id}, timeline ${timelineId}`);
+          
+          // Update status to processing
+          await storage.updateCinemapJob(job.id, { status: 'processing' });
+
+          // Fetch timeline with all media
+          const timelineWithPosts = await storage.getTimelineWithPosts(parseInt(timelineId));
+          if (!timelineWithPosts || !timelineWithPosts.posts) {
+            throw new Error('Timeline has no posts');
+          }
+
+          // Collect all media with EXIF data from all posts
+          const allPhotos: PhotoWithExif[] = [];
+          for (const post of timelineWithPosts.posts) {
+            const media = await storage.getPostMediaByPostId(post.id);
+            for (const m of media) {
+              if (m.exifDatetime && m.exifLatitude && m.exifLongitude) {
+                allPhotos.push({
+                  id: m.id,
+                  url: m.url,
+                  datetime: new Date(m.exifDatetime),
+                  latitude: parseFloat(m.exifLatitude),
+                  longitude: parseFloat(m.exifLongitude),
+                  metadata: m.exifMetadata,
+                });
+              }
+            }
+          }
+
+          if (allPhotos.length === 0) {
+            throw new Error('No photos with EXIF data found in timeline');
+          }
+
+          console.log(`[CineMap] Found ${allPhotos.length} photos with EXIF data`);
+
+          // Generate storyboard using AI
+          const storyboard = await generateStoryboard(
+            timeline.title,
+            allPhotos,
+            req.user.preferredLanguage || 'en'
+          );
+
+          console.log(`[CineMap] Storyboard generated successfully for job ${job.id}`);
+
+          // Update job with completed storyboard
+          await storage.updateCinemapJob(job.id, {
+            status: 'completed',
+            storyboard: storyboard as any,
+            // resultVideoUrl would be set by actual video rendering service
+            resultVideoUrl: null, // Placeholder - actual video rendering not implemented yet
+          });
+
+          console.log(`[CineMap] Job ${job.id} completed successfully`);
+        } catch (error: any) {
+          console.error(`[CineMap] Error generating storyboard for job ${job.id}:`, error);
+          await storage.updateCinemapJob(job.id, {
+            status: 'failed',
+            errorMessage: error.message || 'Failed to generate storyboard',
+          });
+        }
+      })();
+
     } catch (error) {
       console.error('Error creating CineMap job:', error);
       res.status(500).json({ message: 'Failed to create CineMap job' });
