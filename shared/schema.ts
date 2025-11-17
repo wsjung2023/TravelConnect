@@ -48,6 +48,7 @@ export const users = pgTable('users', {
   userType: varchar('user_type', { length: 20 }).default('traveler'), // 'traveler', 'influencer', 'host'
   interests: text('interests').array(),
   languages: text('languages').array().default(sql`'{"ko"}'`),
+  preferredLanguage: varchar('preferred_language', { length: 10 }).default('ko'), // 번역 선호 언어
   timezone: varchar('timezone', { length: 50 }).default('Asia/Seoul'),
   publicProfileUrl: varchar('public_profile_url', { length: 200 }), // link-in-bio URL
   portfolioMode: boolean('portfolio_mode').default(false),
@@ -282,11 +283,27 @@ export const messages = pgTable('messages', {
   messageType: varchar('message_type').default('text'), // text, image, booking, thread
   parentMessageId: integer('parent_message_id'), // 스레드 지원 - self reference
   metadata: jsonb('metadata'), // for booking requests, image urls, etc
+  detectedLanguage: varchar('detected_language', { length: 10 }), // 자동 감지된 언어 코드
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => [
   index('IDX_messages_conversation_id').on(table.conversationId),
   index('IDX_messages_channel_id').on(table.channelId),
   index('IDX_messages_parent_message_id').on(table.parentMessageId),
+]);
+
+// 메시지 번역 캐시 테이블
+export const messageTranslations = pgTable('message_translations', {
+  id: serial('id').primaryKey(),
+  messageId: integer('message_id')
+    .notNull()
+    .references(() => messages.id, { onDelete: 'cascade' }),
+  targetLanguage: varchar('target_language', { length: 10 }).notNull(),
+  translatedText: text('translated_text').notNull(),
+  provider: varchar('provider', { length: 50 }).default('google'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_message_translations_message_id').on(table.messageId),
+  index('IDX_message_translations_message_lang').on(table.messageId, table.targetLanguage),
 ]);
 
 export const reviews = pgTable('reviews', {
@@ -407,7 +424,7 @@ export const conversationRelations = relations(
   })
 );
 
-export const messageRelations = relations(messages, ({ one }) => ({
+export const messageRelations = relations(messages, ({ one, many }) => ({
   conversation: one(conversations, {
     fields: [messages.conversationId],
     references: [conversations.id],
@@ -419,6 +436,14 @@ export const messageRelations = relations(messages, ({ one }) => ({
   sender: one(users, { fields: [messages.senderId], references: [users.id] }),
   parentMessage: one(messages, {
     fields: [messages.parentMessageId],
+    references: [messages.id],
+  }),
+  translations: many(messageTranslations),
+}));
+
+export const messageTranslationRelations = relations(messageTranslations, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageTranslations.messageId],
     references: [messages.id],
   }),
 }));
@@ -501,6 +526,11 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+export const insertMessageTranslationSchema = createInsertSchema(messageTranslations).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTimelineSchema = createInsertSchema(timelines, {
   startDate: z
     .union([z.string(), z.date()])
@@ -550,6 +580,8 @@ export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Comment = typeof comments.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+export type InsertMessageTranslation = z.infer<typeof insertMessageTranslationSchema>;
+export type MessageTranslation = typeof messageTranslations.$inferSelect;
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertTimeline = z.infer<typeof insertTimelineSchema>;
 export type Timeline = typeof timelines.$inferSelect;
