@@ -38,7 +38,7 @@ export function MiniPlanOptionsModal({
   onGenerate,
   isGenerating,
 }: MiniPlanOptionsModalProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
   const [options, setOptions] = useState<MiniPlanOptions>({
     timeMinutes: 60,
     budgetLevel: 'mid',

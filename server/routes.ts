@@ -4256,7 +4256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const planId = parseInt(req.params.id);
+      const planId = parseInt(req.params.id!);
       if (isNaN(planId)) {
         return res.status(400).json({ message: 'Invalid plan ID' });
       }
@@ -4289,7 +4289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const planId = parseInt(req.params.id);
+      const planId = parseInt(req.params.id!);
       if (isNaN(planId)) {
         return res.status(400).json({ message: 'Invalid plan ID' });
       }
@@ -4319,7 +4319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const planId = parseInt(req.params.id);
+      const planId = parseInt(req.params.id!);
       if (isNaN(planId)) {
         return res.status(400).json({ message: 'Invalid plan ID' });
       }
@@ -4349,7 +4349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      const spotId = parseInt(req.params.spotId);
+      const spotId = parseInt(req.params.spotId!);
       if (isNaN(spotId)) {
         return res.status(400).json({ message: 'Invalid spot ID' });
       }

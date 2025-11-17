@@ -145,7 +145,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(options),
       });
-      return response;
+      return response.json() as Promise<{ plans: MiniPlan[] }>;
     },
     onSuccess: (data: { plans: MiniPlan[] }) => {
       setGeneratedPlans(data.plans);
@@ -228,10 +228,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
     if (plan.spots.length > 0 && map) {
       const firstSpot = plan.spots[0];
-      map.panTo({
-        lat: parseFloat(firstSpot.latitude),
-        lng: parseFloat(firstSpot.longitude),
-      });
+      if (firstSpot) {
+        map.panTo({
+          lat: parseFloat(firstSpot.latitude),
+          lng: parseFloat(firstSpot.longitude),
+        });
+      }
     }
   };
 

@@ -32,7 +32,7 @@ export function MiniPlanExecutionView({
   onClose,
   mapCenter,
 }: MiniPlanExecutionViewProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {

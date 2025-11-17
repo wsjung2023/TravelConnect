@@ -8,7 +8,7 @@ interface MiniPlanButtonProps {
 }
 
 export function MiniPlanButton({ onClick, disabled }: MiniPlanButtonProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
 
   return (
     <Button

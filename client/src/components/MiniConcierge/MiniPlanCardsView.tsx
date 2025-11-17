@@ -39,7 +39,7 @@ interface MiniPlanCardsViewProps {
 }
 
 export function MiniPlanCardsView({ plans, onSelectPlan, onClose }: MiniPlanCardsViewProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black/50 flex items-center justify-center p-4" data-testid="view-mini-plan-cards">
