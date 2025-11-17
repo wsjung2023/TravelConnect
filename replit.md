@@ -8,6 +8,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### DM Translation Phase 1 COMPLETED (November 17, 2025)
+- **Full Translation System**: Complete implementation of DM message translation with Google Translate API integration
+- **Database Schema**: Added messageTranslations table for caching, users.preferred_language field (default: 'en')
+- **Translation Service**: server/translate.ts with translateText, detectLanguage, and isTranslationEnabled functions
+- **Storage Layer**: getMessageTranslation and saveMessageTranslation functions for efficient caching
+- **API Endpoints**: POST /api/messages/:id/translate and POST /api/user/preferred-language
+- **Frontend UI**: Languages icon button in EnhancedChatWindow.tsx with hover-reveal, loading states, and "Translated" badge
+- **Complete i18n**: Added chat.translated key across all 6 languages (en, ko, ja, zh, fr, es)
+- **Caching Strategy**: Translations cached in DB by (messageId, targetLanguage) to minimize API calls
+- **User Experience**: Click to translate, click again to toggle back to original, instant cached translations
+- **IMPORTANT**: Requires valid GOOGLE_TRANSLATE_API_KEY with Cloud Translation API enabled and billing configured
+
 ### Unified Content Display with Filters (October 23, 2025)
 - **Feed Page Integration**: Feed page now shows both posts AND experiences together with filter toggles (All/Posts/Experiences)
 - **Nearby Panel Integration**: Nearby panel restored posts display alongside experiences with same 3-option filter UI (All/Posts/Experiences)
