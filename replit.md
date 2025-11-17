@@ -42,9 +42,9 @@ Preferred communication style: Simple, everyday language.
 - **Dual Search Functionality**: Location search using Places API and content search for user-generated posts.
 - **Real-time Notification System**: Six notification types with visual indicators and location-aware delivery.
 - **AI-Powered Features**:
-    - **CineMap**: AI-powered travel video storyboard generation from EXIF-tagged photos, creating cinematic journey narratives using OpenAI gpt-4o-mini.
-    - **Mini Concierge**: Location-based 1-hour activity planner generating 3 structured plan cards with map integration and check-in functionality using OpenAI gpt-4o-mini.
-    - **AI Concierge**: Fully functional AI travel assistant with personalized recommendations based on user profile, nearby experiences, recent posts, and upcoming slots, using OpenAI gpt-4o-mini.
+    - **CineMap**: AI-powered travel video storyboard generation from EXIF-tagged photos, creating cinematic journey narratives using OpenAI GPT-5.1 (gpt-5.1-chat-latest).
+    - **Mini Concierge**: Location-based 1-hour activity planner generating 3 structured plan cards with map integration and check-in functionality using OpenAI GPT-5.1 (gpt-5.1-chat-latest).
+    - **AI Concierge**: Fully functional AI travel assistant with personalized recommendations based on user profile, nearby experiences, recent posts, and upcoming slots, using OpenAI GPT-5.1 (gpt-5.1-chat-latest).
 - **DM Translation**: Direct message translation with Google Translate API integration, caching, and user-selectable preferred languages.
 - **Unified Content Display**: Feed page and Nearby panel display both posts and experiences with filter toggles (All/Posts/Experiences).
 - **Unified Map Experience**: All map functionality integrated into the home page MapComponent with a collapsible Nearby Experiences panel.

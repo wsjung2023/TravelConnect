@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-const AI_MODEL = 'gpt-4o-mini';
+const AI_MODEL = 'gpt-5.1-chat-latest';
 const MAX_TOKENS = 500;
 
 export interface ConciergeContext {
