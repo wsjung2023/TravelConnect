@@ -22,6 +22,7 @@ import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
 import { translateText, detectLanguage, isTranslationEnabled } from './translate';
 import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } from './ai/concierge';
+import { generateMiniPlans, isMiniConciergeEnabled, type MiniPlanContext } from './ai/miniConcierge';
 //import { authenticateToken } from "./auth";
 import { setupGoogleAuth } from './googleAuth';
 import passport from 'passport';
@@ -56,6 +57,9 @@ import {
   insertServiceTemplateSchema,
   insertServicePackageSchema,
   insertSlotSchema,
+  insertMiniPlanSchema,
+  insertMiniPlanSpotSchema,
+  insertMiniPlanCheckinSchema,
 } from '@shared/schema';
 import {
   LoginSchema,
@@ -4134,6 +4138,250 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(500).json({ message: 'Failed to get AI response' });
+    }
+  });
+
+  // Mini Concierge API endpoints
+  app.get('/api/mini-concierge/status', (req, res) => {
+    res.json({
+      enabled: isMiniConciergeEnabled(),
+    });
+  });
+
+  app.post('/api/mini-concierge/generate', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      if (!isMiniConciergeEnabled()) {
+        return res.status(503).json({ message: 'Mini Concierge service not available' });
+      }
+
+      const { location, timeMinutes, budgetLevel, mood, companions } = req.body;
+
+      if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+        return res.status(400).json({ message: 'Valid location is required' });
+      }
+
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const context: MiniPlanContext = {
+        userId: req.user.id,
+        location: {
+          lat: location.lat,
+          lng: location.lng,
+        },
+        timeMinutes: timeMinutes || 60,
+        budgetLevel: budgetLevel || 'mid',
+        mood: mood || 'anything',
+        companions: companions || 'solo',
+        userLanguage: user.preferredLanguage || 'en',
+      };
+
+      const result = await generateMiniPlans(context);
+
+      const savedPlans = [];
+      for (const plan of result.plans) {
+        const newPlan = await storage.createMiniPlan({
+          userId: req.user.id,
+          title: plan.title,
+          summary: plan.summary,
+          estimatedDurationMin: plan.estimatedDurationMin,
+          estimatedDistanceM: plan.estimatedDistanceM,
+          tags: plan.tags,
+        });
+
+        const spotsToInsert = plan.spots.map((spot, idx) => ({
+          miniPlanId: newPlan.id,
+          orderIndex: idx,
+          poiId: spot.poiId,
+          name: spot.name,
+          latitude: spot.lat.toString(),
+          longitude: spot.lng.toString(),
+          stayMin: spot.stayMin,
+          metaJson: {
+            reason: spot.reason,
+            recommendedMenu: spot.recommendedMenu,
+            priceRange: spot.priceRange,
+            photoHint: spot.photoHint,
+            expectedPrice: spot.expectedPrice,
+          },
+        }));
+
+        const spots = await storage.createMiniPlanSpots(spotsToInsert);
+
+        savedPlans.push({
+          ...newPlan,
+          spots,
+        });
+      }
+
+      res.json({
+        plans: savedPlans,
+      });
+    } catch (error: any) {
+      console.error('Mini Concierge generate error:', error);
+      
+      if (error.message?.includes('OpenAI API')) {
+        return res.status(503).json({ message: 'AI service temporarily unavailable' });
+      }
+      
+      res.status(500).json({ message: 'Failed to generate mini plans' });
+    }
+  });
+
+  app.get('/api/mini-concierge/plans', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const plans = await storage.getMiniPlansByUser(req.user.id, limit);
+
+      res.json({ plans });
+    } catch (error) {
+      console.error('Error fetching mini plans:', error);
+      res.status(500).json({ message: 'Failed to fetch mini plans' });
+    }
+  });
+
+  app.get('/api/mini-concierge/plans/:id', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const planId = parseInt(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
+      }
+
+      const plan = await storage.getMiniPlanById(planId);
+      
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      if (plan.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const checkins = await storage.getCheckinsByPlan(planId);
+
+      res.json({ 
+        plan,
+        checkins,
+      });
+    } catch (error) {
+      console.error('Error fetching mini plan:', error);
+      res.status(500).json({ message: 'Failed to fetch mini plan' });
+    }
+  });
+
+  app.post('/api/mini-concierge/plans/:id/start', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const planId = parseInt(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
+      }
+
+      const plan = await storage.getMiniPlanById(planId);
+      
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      if (plan.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const updated = await storage.startMiniPlan(planId);
+      
+      res.json({ plan: updated });
+    } catch (error) {
+      console.error('Error starting mini plan:', error);
+      res.status(500).json({ message: 'Failed to start mini plan' });
+    }
+  });
+
+  app.post('/api/mini-concierge/plans/:id/complete', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const planId = parseInt(req.params.id);
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
+      }
+
+      const plan = await storage.getMiniPlanById(planId);
+      
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      if (plan.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const updated = await storage.completeMiniPlan(planId);
+      
+      res.json({ plan: updated });
+    } catch (error) {
+      console.error('Error completing mini plan:', error);
+      res.status(500).json({ message: 'Failed to complete mini plan' });
+    }
+  });
+
+  app.post('/api/mini-concierge/spots/:spotId/checkin', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const spotId = parseInt(req.params.spotId);
+      if (isNaN(spotId)) {
+        return res.status(400).json({ message: 'Invalid spot ID' });
+      }
+
+      const { planId, photos, notes } = req.body;
+
+      if (!planId || isNaN(parseInt(planId))) {
+        return res.status(400).json({ message: 'Valid plan ID is required' });
+      }
+
+      const plan = await storage.getMiniPlanById(parseInt(planId));
+      
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      if (plan.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      const checkin = await storage.checkInSpot({
+        miniPlanId: parseInt(planId),
+        spotId: spotId,
+        userId: req.user.id,
+        photos: photos || [],
+        notes: notes || null,
+      });
+
+      res.json({ checkin });
+    } catch (error) {
+      console.error('Error checking in spot:', error);
+      res.status(500).json({ message: 'Failed to check in spot' });
     }
   });
 

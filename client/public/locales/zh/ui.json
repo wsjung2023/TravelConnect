@@ -687,4 +687,61 @@
     "demoLoginSuccessDesc": "已以 TEST 账户登录。自由探索平台！",
     "demoLoginFailed": "演示登录失败"
   }
+  },
+  "miniConcierge": {
+    "fabButton": "现在一小时做什么？",
+    "optionsModal": {
+      "title": "迷你计划选项",
+      "description": "AI将为您创建3个个性化的1小时活动计划",
+      "time": "时间",
+      "minutes": "分钟",
+      "budget": "预算",
+      "budgetLow": "10美元以下",
+      "budgetMid": "30美元左右",
+      "budgetHigh": "50美元以上",
+      "mood": "心情",
+      "moodAnything": "随便",
+      "moodChill": "安静放松",
+      "moodHip": "时尚潮流",
+      "moodLocalFood": "当地美食",
+      "moodPhoto": "适合拍照",
+      "companions": "同伴",
+      "companionsSolo": "独自",
+      "companionsCouple": "情侣",
+      "companionsFriends": "朋友",
+      "companionsFamily": "家人",
+      "cancel": "取消",
+      "generate": "生成计划",
+      "generating": "生成中..."
+    },
+    "cardsView": {
+      "title": "选择您的计划",
+      "minutes": "分钟",
+      "min": "分",
+      "noPlans": "没有计划"
+    },
+    "execution": {
+      "min": "分",
+      "recommended": "推荐",
+      "photoHint": "拍照提示",
+      "priceRange": "价格范围",
+      "navigate": "导航",
+      "checkIn": "签到",
+      "completed": "计划完成！",
+      "completedMessage": "您已完成所有景点。感觉如何？",
+      "finish": "完成"
+    },
+    "error": {
+      "title": "生成失败",
+      "description": "生成计划失败。请重试。"
+    },
+    "completed": {
+      "title": "计划完成！",
+      "description": "您完成了迷你计划！"
+    },
+    "checkin": {
+      "title": "签到完成",
+      "description": "移至下一个景点"
+    }
+  }
 }

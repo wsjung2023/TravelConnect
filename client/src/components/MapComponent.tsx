@@ -1,12 +1,18 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { MapPin, ChevronDown, ChevronUp } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'wouter';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 import { api } from '@/lib/api';
 import { calculateDistance } from '@shared/utils';
 import SmartImage from '@/components/SmartImage';
+import { MiniPlanButton } from '@/components/MiniConcierge/MiniPlanButton';
+import { MiniPlanOptionsModal, type MiniPlanOptions } from '@/components/MiniConcierge/MiniPlanOptionsModal';
+import { MiniPlanCardsView, type MiniPlan } from '@/components/MiniConcierge/MiniPlanCardsView';
+import { MiniPlanExecutionView } from '@/components/MiniConcierge/MiniPlanExecutionView';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -121,6 +127,123 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [mapMode, setMapMode] = useState<'PAN' | 'POST'>('PAN');
   const mapModeRef = useRef<'PAN' | 'POST'>('PAN');
   const [showModeToast, setShowModeToast] = useState(false);
+
+  // Mini Concierge states
+  const [showMiniOptions, setShowMiniOptions] = useState(false);
+  const [showMiniCards, setShowMiniCards] = useState(false);
+  const [showMiniExecution, setShowMiniExecution] = useState(false);
+  const [generatedPlans, setGeneratedPlans] = useState<MiniPlan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<MiniPlan | null>(null);
+  const [currentSpotIndex, setCurrentSpotIndex] = useState(0);
+  const { toast } = useToast();
+
+  // Mini Concierge mutations
+  const generatePlansMutation = useMutation({
+    mutationFn: async (options: MiniPlanOptions & { location: { lat: number; lng: number } }) => {
+      const response = await apiRequest('/api/mini-concierge/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options),
+      });
+      return response;
+    },
+    onSuccess: (data: { plans: MiniPlan[] }) => {
+      setGeneratedPlans(data.plans);
+      setShowMiniOptions(false);
+      setShowMiniCards(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('miniConcierge.error.title'),
+        description: error.message || t('miniConcierge.error.description'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const startPlanMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      return await apiRequest(`/api/mini-concierge/plans/${planId}/start`, {
+        method: 'POST',
+      });
+    },
+  });
+
+  const completePlanMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      return await apiRequest(`/api/mini-concierge/plans/${planId}/complete`, {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('miniConcierge.completed.title'),
+        description: t('miniConcierge.completed.description'),
+      });
+      setShowMiniExecution(false);
+      setSelectedPlan(null);
+      setCurrentSpotIndex(0);
+    },
+  });
+
+  const checkInMutation = useMutation({
+    mutationFn: async ({ spotId, planId }: { spotId: number; planId: number }) => {
+      return await apiRequest(`/api/mini-concierge/spots/${spotId}/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId }),
+      });
+    },
+    onSuccess: () => {
+      setCurrentSpotIndex((prev) => prev + 1);
+      toast({
+        title: t('miniConcierge.checkin.title'),
+        description: t('miniConcierge.checkin.description'),
+      });
+    },
+  });
+
+  // Mini Concierge handlers
+  const handleOpenMiniOptions = () => {
+    setShowMiniOptions(true);
+  };
+
+  const handleGeneratePlans = (options: MiniPlanOptions) => {
+    generatePlansMutation.mutate({
+      ...options,
+      location: {
+        lat: mapCenter.lat,
+        lng: mapCenter.lng,
+      },
+    });
+  };
+
+  const handleSelectPlan = async (plan: MiniPlan) => {
+    setSelectedPlan(plan);
+    setCurrentSpotIndex(0);
+    setShowMiniCards(false);
+    setShowMiniExecution(true);
+
+    await startPlanMutation.mutateAsync(plan.id);
+
+    if (plan.spots.length > 0 && map) {
+      const firstSpot = plan.spots[0];
+      map.panTo({
+        lat: parseFloat(firstSpot.latitude),
+        lng: parseFloat(firstSpot.longitude),
+      });
+    }
+  };
+
+  const handleCheckIn = (spotId: number) => {
+    if (!selectedPlan) return;
+    checkInMutation.mutate({ spotId, planId: selectedPlan.id });
+  };
+
+  const handleCompletePlan = () => {
+    if (!selectedPlan) return;
+    completePlanMutation.mutate(selectedPlan.id);
+  };
 
   // mapMode 변경시 ref도 업데이트
   useEffect(() => {
@@ -1985,6 +2108,47 @@ const MapComponent: React.FC<MapComponentProps> = ({
             // 참여 후 모달 닫기
             setSelectedMiniMeet(null);
           }}
+        />
+      )}
+
+      {/* Mini Concierge FAB */}
+      {!showMiniExecution && (
+        <MiniPlanButton
+          onClick={handleOpenMiniOptions}
+          disabled={generatePlansMutation.isPending}
+        />
+      )}
+
+      {/* Mini Concierge Options Modal */}
+      <MiniPlanOptionsModal
+        isOpen={showMiniOptions}
+        onClose={() => setShowMiniOptions(false)}
+        onGenerate={handleGeneratePlans}
+        isGenerating={generatePlansMutation.isPending}
+      />
+
+      {/* Mini Concierge Cards View */}
+      {showMiniCards && (
+        <MiniPlanCardsView
+          plans={generatedPlans}
+          onSelectPlan={handleSelectPlan}
+          onClose={() => setShowMiniCards(false)}
+        />
+      )}
+
+      {/* Mini Concierge Execution View */}
+      {showMiniExecution && selectedPlan && (
+        <MiniPlanExecutionView
+          plan={selectedPlan}
+          currentSpotIndex={currentSpotIndex}
+          onCheckIn={handleCheckIn}
+          onComplete={handleCompletePlan}
+          onClose={() => {
+            setShowMiniExecution(false);
+            setSelectedPlan(null);
+            setCurrentSpotIndex(0);
+          }}
+          mapCenter={mapCenter}
         />
       )}
     </div>

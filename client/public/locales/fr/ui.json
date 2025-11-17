@@ -706,4 +706,61 @@
     "demoLoginSuccessDesc": "Connecté avec le compte TEST. Explorez librement la plateforme !",
     "demoLoginFailed": "Échec de la connexion démo"
   }
+  },
+  "miniConcierge": {
+    "fabButton": "Que faire pendant 1 heure?",
+    "optionsModal": {
+      "title": "Options Mini Plan",
+      "description": "L'IA créera 3 plans d'activités personnalisés d'1 heure pour vous",
+      "time": "Temps",
+      "minutes": "min",
+      "budget": "Budget",
+      "budgetLow": "Moins de 10€",
+      "budgetMid": "Environ 30€",
+      "budgetHigh": "50€ et plus",
+      "mood": "Ambiance",
+      "moodAnything": "N'importe quoi",
+      "moodChill": "Calme et relaxant",
+      "moodHip": "Branché et tendance",
+      "moodLocalFood": "Cuisine locale",
+      "moodPhoto": "Digne d'Instagram",
+      "companions": "Compagnons",
+      "companionsSolo": "Seul",
+      "companionsCouple": "En couple",
+      "companionsFriends": "Entre amis",
+      "companionsFamily": "En famille",
+      "cancel": "Annuler",
+      "generate": "Générer des plans",
+      "generating": "Génération..."
+    },
+    "cardsView": {
+      "title": "Choisissez votre plan",
+      "minutes": "min",
+      "min": "min",
+      "noPlans": "Aucun plan disponible"
+    },
+    "execution": {
+      "min": "min",
+      "recommended": "Recommandé",
+      "photoHint": "Astuce photo",
+      "priceRange": "Gamme de prix",
+      "navigate": "Naviguer",
+      "checkIn": "Enregistrement",
+      "completed": "Plan terminé!",
+      "completedMessage": "Vous avez terminé tous les lieux. Comment c'était?",
+      "finish": "Terminer"
+    },
+    "error": {
+      "title": "Échec de génération",
+      "description": "Échec de génération des plans. Veuillez réessayer."
+    },
+    "completed": {
+      "title": "Plan terminé!",
+      "description": "Excellent travail pour avoir terminé le mini plan!"
+    },
+    "checkin": {
+      "title": "Enregistrement terminé",
+      "description": "Passage au lieu suivant"
+    }
+  }
 }

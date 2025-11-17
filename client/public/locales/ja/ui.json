@@ -690,4 +690,61 @@
     "demoLoginSuccessDesc": "TESTアカウントでログインしました。自由にプラットフォームを探索してください！",
     "demoLoginFailed": "デモログイン失敗"
   }
+  },
+  "miniConcierge": {
+    "fabButton": "今から1時間何する?",
+    "optionsModal": {
+      "title": "ミニプランオプション",
+      "description": "AIがカスタマイズされた1時間のアクティビティプランを3つ作成します",
+      "time": "時間",
+      "minutes": "分",
+      "budget": "予算",
+      "budgetLow": "10ドル以下",
+      "budgetMid": "30ドル前後",
+      "budgetHigh": "50ドル以上",
+      "mood": "ムード",
+      "moodAnything": "何でも",
+      "moodChill": "静かでリラックス",
+      "moodHip": "ヒップでトレンディ",
+      "moodLocalFood": "ローカルフード中心",
+      "moodPhoto": "写真映えする",
+      "companions": "同伴者",
+      "companionsSolo": "一人",
+      "companionsCouple": "パートナーと",
+      "companionsFriends": "友達と",
+      "companionsFamily": "家族と",
+      "cancel": "キャンセル",
+      "generate": "プラン生成",
+      "generating": "生成中..."
+    },
+    "cardsView": {
+      "title": "プランを選択",
+      "minutes": "分",
+      "min": "分",
+      "noPlans": "プランがありません"
+    },
+    "execution": {
+      "min": "分",
+      "recommended": "おすすめ",
+      "photoHint": "写真のヒント",
+      "priceRange": "価格帯",
+      "navigate": "ナビゲート",
+      "checkIn": "チェックイン",
+      "completed": "プラン完了！",
+      "completedMessage": "全てのスポットを完了しました。いかがでしたか？",
+      "finish": "終了"
+    },
+    "error": {
+      "title": "生成失敗",
+      "description": "プラン生成に失敗しました。もう一度お試しください。"
+    },
+    "completed": {
+      "title": "プラン完了！",
+      "description": "ミニプランを完走しました！"
+    },
+    "checkin": {
+      "title": "チェックイン完了",
+      "description": "次のスポットへ移動します"
+    }
+  }
 }

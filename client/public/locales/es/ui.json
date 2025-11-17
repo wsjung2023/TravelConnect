@@ -693,4 +693,61 @@
     "demoLoginSuccessDesc": "Conectado con la cuenta TEST. ¡Explora libremente la plataforma!",
     "demoLoginFailed": "Error en inicio de sesión demo"
   }
+  },
+  "miniConcierge": {
+    "fabButton": "¿Qué hacer en 1 hora?",
+    "optionsModal": {
+      "title": "Opciones de Mini Plan",
+      "description": "La IA creará 3 planes de actividades personalizados de 1 hora para ti",
+      "time": "Tiempo",
+      "minutes": "min",
+      "budget": "Presupuesto",
+      "budgetLow": "Menos de $10",
+      "budgetMid": "Alrededor de $30",
+      "budgetHigh": "$50 o más",
+      "mood": "Estado de ánimo",
+      "moodAnything": "Cualquier cosa",
+      "moodChill": "Tranquilo y relajante",
+      "moodHip": "Moderno y de moda",
+      "moodLocalFood": "Comida local",
+      "moodPhoto": "Digno de Instagram",
+      "companions": "Compañía",
+      "companionsSolo": "Solo",
+      "companionsCouple": "En pareja",
+      "companionsFriends": "Con amigos",
+      "companionsFamily": "En familia",
+      "cancel": "Cancelar",
+      "generate": "Generar planes",
+      "generating": "Generando..."
+    },
+    "cardsView": {
+      "title": "Elige tu plan",
+      "minutes": "min",
+      "min": "min",
+      "noPlans": "No hay planes disponibles"
+    },
+    "execution": {
+      "min": "min",
+      "recommended": "Recomendado",
+      "photoHint": "Consejo de foto",
+      "priceRange": "Rango de precio",
+      "navigate": "Navegar",
+      "checkIn": "Registrarse",
+      "completed": "¡Plan completado!",
+      "completedMessage": "Has completado todos los lugares. ¿Cómo fue?",
+      "finish": "Finalizar"
+    },
+    "error": {
+      "title": "Error de generación",
+      "description": "Error al generar planes. Por favor, inténtalo de nuevo."
+    },
+    "completed": {
+      "title": "¡Plan completado!",
+      "description": "¡Excelente trabajo completando el mini plan!"
+    },
+    "checkin": {
+      "title": "Registro completado",
+      "description": "Pasando al siguiente lugar"
+    }
+  }
 }

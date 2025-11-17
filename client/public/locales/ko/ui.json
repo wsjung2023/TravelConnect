@@ -704,4 +704,60 @@
     "demoLoginSuccessDesc": "TEST 계정으로 로그인했습니다. 자유롭게 플랫폼을 탐색해보세요!",
     "demoLoginFailed": "데모 로그인 실패"
   }
-}
+}  },
+  "miniConcierge": {
+    "fabButton": "지금 1시간 뭐하지?",
+    "optionsModal": {
+      "title": "미니 플랜 옵션",
+      "description": "AI가 맞춤형 1시간 활동 플랜 3개를 만들어드려요",
+      "time": "시간",
+      "minutes": "분",
+      "budget": "예산",
+      "budgetLow": "1만원 이하",
+      "budgetMid": "3만원 정도",
+      "budgetHigh": "5만원 이상",
+      "mood": "분위기",
+      "moodAnything": "아무거나",
+      "moodChill": "조용하고 차분하게",
+      "moodHip": "힙하고 트렌디하게",
+      "moodLocalFood": "로컬 맛집 위주",
+      "moodPhoto": "사진 찍기 좋은",
+      "companions": "동행",
+      "companionsSolo": "혼자",
+      "companionsCouple": "연인과",
+      "companionsFriends": "친구들과",
+      "companionsFamily": "가족과",
+      "cancel": "취소",
+      "generate": "플랜 생성",
+      "generating": "생성 중..."
+    },
+    "cardsView": {
+      "title": "플랜을 선택하세요",
+      "minutes": "분",
+      "min": "분",
+      "noPlans": "플랜이 없습니다"
+    },
+    "execution": {
+      "min": "분",
+      "recommended": "추천",
+      "photoHint": "사진 팁",
+      "priceRange": "가격대",
+      "navigate": "길 안내",
+      "checkIn": "체크인",
+      "completed": "플랜 완료!",
+      "completedMessage": "모든 스팟을 완료했어요. 어떠셨나요?",
+      "finish": "완료"
+    },
+    "error": {
+      "title": "생성 실패",
+      "description": "플랜 생성에 실패했습니다. 다시 시도해주세요."
+    },
+    "completed": {
+      "title": "플랜 완료!",
+      "description": "미니 플랜을 완주하셨네요!"
+    },
+    "checkin": {
+      "title": "체크인 완료",
+      "description": "다음 스팟으로 이동합니다"
+    }
+  }

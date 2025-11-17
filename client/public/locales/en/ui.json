@@ -702,5 +702,61 @@
     "demoLoginSuccess": "Demo Login Successful",
     "demoLoginSuccessDesc": "Logged in as TEST account. Feel free to explore the platform!",
     "demoLoginFailed": "Demo Login Failed"
+  },
+  "miniConcierge": {
+    "fabButton": "What to do for 1 hour?",
+    "optionsModal": {
+      "title": "Mini Plan Options",
+      "description": "AI will create 3 personalized 1-hour activity plans for you",
+      "time": "Time",
+      "minutes": "min",
+      "budget": "Budget",
+      "budgetLow": "Under $10",
+      "budgetMid": "Around $30",
+      "budgetHigh": "$50+",
+      "mood": "Mood",
+      "moodAnything": "Anything",
+      "moodChill": "Quiet & Relaxing",
+      "moodHip": "Hip & Trendy",
+      "moodLocalFood": "Local Food Focused",
+      "moodPhoto": "Photo-worthy",
+      "companions": "Companions",
+      "companionsSolo": "Solo",
+      "companionsCouple": "With Partner",
+      "companionsFriends": "With Friends",
+      "companionsFamily": "With Family",
+      "cancel": "Cancel",
+      "generate": "Generate Plans",
+      "generating": "Generating..."
+    },
+    "cardsView": {
+      "title": "Choose Your Plan",
+      "minutes": "min",
+      "min": "min",
+      "noPlans": "No plans available"
+    },
+    "execution": {
+      "min": "min",
+      "recommended": "Recommended",
+      "photoHint": "Photo Tip",
+      "priceRange": "Price Range",
+      "navigate": "Navigate",
+      "checkIn": "Check In",
+      "completed": "Plan Completed!",
+      "completedMessage": "You've completed all spots. How was it?",
+      "finish": "Finish"
+    },
+    "error": {
+      "title": "Generation Failed",
+      "description": "Failed to generate plans. Please try again."
+    },
+    "completed": {
+      "title": "Plan Completed!",
+      "description": "Great job completing the mini plan!"
+    },
+    "checkin": {
+      "title": "Check-in Complete",
+      "description": "Moving to next spot"
+    }
   }
 }
