@@ -237,15 +237,66 @@ export async function generateMiniPlans(context: MiniPlanContext): Promise<MiniP
 
     const parsedResponse = JSON.parse(aiResponse) as MiniPlansResponse;
     
-    if (!parsedResponse.plans || !Array.isArray(parsedResponse.plans)) {
-      throw new Error('Invalid response format from AI');
-    }
+    // Validate AI response structure
+    validateAIResponse(parsedResponse);
 
     return parsedResponse;
   } catch (error: any) {
     console.error('Mini Concierge AI error:', error);
     throw error;
   }
+}
+
+function validateAIResponse(response: MiniPlansResponse): void {
+  if (!response.plans || !Array.isArray(response.plans)) {
+    throw new Error('Invalid response format: plans array missing');
+  }
+
+  if (response.plans.length !== 3) {
+    throw new Error(`Invalid response: expected 3 plans, got ${response.plans.length}`);
+  }
+
+  response.plans.forEach((plan, planIndex) => {
+    if (!plan.title || !plan.summary) {
+      throw new Error(`Invalid plan ${planIndex}: missing title or summary`);
+    }
+
+    if (!plan.spots || !Array.isArray(plan.spots)) {
+      throw new Error(`Invalid plan ${planIndex}: spots array missing`);
+    }
+
+    if (plan.spots.length !== 3) {
+      throw new Error(`Invalid plan ${planIndex}: expected 3 spots, got ${plan.spots.length}`);
+    }
+
+    plan.spots.forEach((spot, spotIndex) => {
+      // Check for required fields with explicit null/undefined checks
+      if (!spot.name || !spot.reason) {
+        throw new Error(`Invalid spot ${spotIndex} in plan ${planIndex}: missing name or reason`);
+      }
+
+      // Validate coordinates (must be numbers, including 0)
+      if (spot.lat === undefined || spot.lat === null || 
+          typeof spot.lat !== 'number' || !Number.isFinite(spot.lat)) {
+        throw new Error(`Invalid spot ${spotIndex} in plan ${planIndex}: invalid latitude`);
+      }
+
+      if (spot.lng === undefined || spot.lng === null || 
+          typeof spot.lng !== 'number' || !Number.isFinite(spot.lng)) {
+        throw new Error(`Invalid spot ${spotIndex} in plan ${planIndex}: invalid longitude`);
+      }
+
+      // Validate stayMin (must be a valid positive number)
+      if (spot.stayMin === undefined || spot.stayMin === null || 
+          typeof spot.stayMin !== 'number' || !Number.isFinite(spot.stayMin)) {
+        throw new Error(`Invalid spot ${spotIndex} in plan ${planIndex}: stayMin must be a number`);
+      }
+
+      if (spot.stayMin <= 0 || spot.stayMin > 120) {
+        throw new Error(`Invalid spot ${spotIndex} in plan ${planIndex}: stayMin must be between 1 and 120 minutes`);
+      }
+    });
+  });
 }
 
 export function isMiniConciergeEnabled(): boolean {

@@ -4226,11 +4226,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Mini Concierge generate error:', error);
       
+      // Handle OpenAI API errors
       if (error.message?.includes('OpenAI API')) {
-        return res.status(503).json({ message: 'AI service temporarily unavailable' });
+        return res.status(503).json({ 
+          message: 'AI service temporarily unavailable',
+          error: 'SERVICE_UNAVAILABLE',
+        });
       }
       
-      res.status(500).json({ message: 'Failed to generate mini plans' });
+      // Handle validation errors (malformed AI response)
+      if (error.message?.includes('Invalid response') || 
+          error.message?.includes('Invalid plan') || 
+          error.message?.includes('Invalid spot') ||
+          error.message?.includes('expected 3')) {
+        return res.status(502).json({ 
+          message: 'Failed to generate valid plans. Please try again.',
+          error: 'VALIDATION_FAILED',
+          details: error.message,
+        });
+      }
+      
+      // Handle other errors
+      res.status(500).json({ 
+        message: 'Failed to generate mini plans',
+        error: 'INTERNAL_ERROR',
+      });
     }
   });
 
