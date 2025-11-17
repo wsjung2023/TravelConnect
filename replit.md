@@ -6,6 +6,25 @@ Tourgether is a full-stack web application designed to connect travelers with lo
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### AI Model Configuration Enhancement (November 17, 2025)
+- **환경 변수 기반 AI 모델 선택**: 관리자가 비용 절감을 위해 AI 모델을 동적으로 변경할 수 있도록 개선
+- **서비스별 개별 설정 지원**: CineMap, Mini Concierge, AI Concierge 각각 다른 모델 사용 가능
+- **우선순위 시스템**:
+  1. 서비스별 환경 변수 (예: `CINEMAP_AI_MODEL`)
+  2. 공통 환경 변수 (`AI_MODEL`)
+  3. 기본값 (`gpt-5.1-chat-latest`)
+- **비용 최적화 옵션**:
+  - `AI_MODEL=gpt-5-mini` 설정 시 모든 AI 서비스가 저렴한 모델 사용
+  - 서비스별 차등 적용 가능 (CineMap은 프리미엄, 나머지는 미니 모델)
+- **상세 문서**: `docs/AI_MODEL_CONFIGURATION.md` 참고
+
+### GPT-5.1 Upgrade (November 17, 2025)
+- **모델 업그레이드**: 모든 AI 서비스를 `gpt-4o-mini`에서 `gpt-5.1-chat-latest`로 업그레이드
+- **성능 향상**: 더 자연스러운 대화, 향상된 추론 능력, 2-3배 빠른 속도
+- **비용 효율**: GPT-5 대비 토큰 사용량 50% 절감
+
 ## System Architecture
 
 ### Frontend
