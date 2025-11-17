@@ -81,6 +81,15 @@ import {
   type InsertSlot,
   type PackageItem,
   type InsertPackageItem,
+  miniPlans,
+  miniPlanSpots,
+  miniPlanCheckins,
+  type MiniPlan,
+  type InsertMiniPlan,
+  type MiniPlanSpot,
+  type InsertMiniPlanSpot,
+  type MiniPlanCheckin,
+  type InsertMiniPlanCheckin,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc } from 'drizzle-orm';
@@ -223,6 +232,17 @@ export interface IStorage {
   getNearbyExperiences(userId: string, radiusKm?: number): Promise<Experience[]>;
   getRecentPostsByUser(userId: string, limit?: number): Promise<Post[]>;
   getUpcomingSlotsByLocation(location: string, limit?: number): Promise<Slot[]>;
+
+  // Mini Concierge operations
+  createMiniPlan(plan: InsertMiniPlan): Promise<MiniPlan>;
+  createMiniPlanSpots(spots: InsertMiniPlanSpot[]): Promise<MiniPlanSpot[]>;
+  getMiniPlanById(id: number): Promise<(MiniPlan & { spots: MiniPlanSpot[] }) | undefined>;
+  getMiniPlansByUser(userId: string, limit?: number): Promise<(MiniPlan & { spots: MiniPlanSpot[] })[]>;
+  startMiniPlan(planId: number): Promise<MiniPlan | undefined>;
+  completeMiniPlan(planId: number): Promise<MiniPlan | undefined>;
+  checkInSpot(checkin: InsertMiniPlanCheckin): Promise<MiniPlanCheckin>;
+  getCheckinsByPlan(planId: number): Promise<MiniPlanCheckin[]>;
+  getNearbyPOIs(latitude: number, longitude: number, radiusM?: number): Promise<any[]>;
 
   // Admin Commerce operations
   getCommerceStats(): Promise<{
@@ -1818,6 +1838,86 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
 
     return upcomingSlots;
+  }
+
+  // Mini Concierge operations
+  async createMiniPlan(plan: InsertMiniPlan): Promise<MiniPlan> {
+    const [newPlan] = await db.insert(miniPlans).values(plan).returning();
+    return newPlan;
+  }
+
+  async createMiniPlanSpots(spots: InsertMiniPlanSpot[]): Promise<MiniPlanSpot[]> {
+    if (spots.length === 0) return [];
+    const newSpots = await db.insert(miniPlanSpots).values(spots).returning();
+    return newSpots;
+  }
+
+  async getMiniPlanById(id: number): Promise<(MiniPlan & { spots: MiniPlanSpot[] }) | undefined> {
+    const plan = await db.query.miniPlans.findFirst({
+      where: eq(miniPlans.id, id),
+      with: {
+        spots: {
+          orderBy: asc(miniPlanSpots.orderIndex),
+        },
+      },
+    });
+    return plan;
+  }
+
+  async getMiniPlansByUser(userId: string, limit: number = 10): Promise<(MiniPlan & { spots: MiniPlanSpot[] })[]> {
+    const plans = await db.query.miniPlans.findMany({
+      where: eq(miniPlans.userId, userId),
+      with: {
+        spots: {
+          orderBy: asc(miniPlanSpots.orderIndex),
+        },
+      },
+      orderBy: desc(miniPlans.createdAt),
+      limit,
+    });
+    return plans;
+  }
+
+  async startMiniPlan(planId: number): Promise<MiniPlan | undefined> {
+    const [updated] = await db
+      .update(miniPlans)
+      .set({ 
+        status: 'started',
+        startedAt: new Date(),
+      })
+      .where(eq(miniPlans.id, planId))
+      .returning();
+    return updated;
+  }
+
+  async completeMiniPlan(planId: number): Promise<MiniPlan | undefined> {
+    const [updated] = await db
+      .update(miniPlans)
+      .set({ 
+        status: 'completed',
+        completedAt: new Date(),
+      })
+      .where(eq(miniPlans.id, planId))
+      .returning();
+    return updated;
+  }
+
+  async checkInSpot(checkin: InsertMiniPlanCheckin): Promise<MiniPlanCheckin> {
+    const [newCheckin] = await db.insert(miniPlanCheckins).values(checkin).returning();
+    return newCheckin;
+  }
+
+  async getCheckinsByPlan(planId: number): Promise<MiniPlanCheckin[]> {
+    const checkins = await db
+      .select()
+      .from(miniPlanCheckins)
+      .where(eq(miniPlanCheckins.miniPlanId, planId))
+      .orderBy(desc(miniPlanCheckins.checkedInAt));
+    return checkins;
+  }
+
+  async getNearbyPOIs(latitude: number, longitude: number, radiusM: number = 2000): Promise<any[]> {
+    return [];
   }
 
   // Admin Commerce operations

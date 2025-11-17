@@ -1345,4 +1345,119 @@ export const insertSlotSchema = createInsertSchema(slots).omit({
 export type Slot = typeof slots.$inferSelect;
 export type InsertSlot = z.infer<typeof insertSlotSchema>;
 
+// 미니 컨시어지 + 세렌디피티 테이블들
+export const miniPlans = pgTable('mini_plans', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  title: varchar('title', { length: 200 }).notNull(),
+  summary: text('summary').notNull(),
+  estimatedDurationMin: integer('estimated_duration_min').notNull(),
+  estimatedDistanceM: integer('estimated_distance_m').notNull(),
+  tags: text('tags').array(),
+  status: varchar('status', { length: 20 }).default('generated'), // generated, started, completed, cancelled
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_mini_plans_user_id').on(table.userId),
+  index('IDX_mini_plans_status').on(table.status),
+]);
+
+export const miniPlanSpots = pgTable('mini_plan_spots', {
+  id: serial('id').primaryKey(),
+  miniPlanId: integer('mini_plan_id')
+    .notNull()
+    .references(() => miniPlans.id, { onDelete: 'cascade' }),
+  orderIndex: integer('order_index').notNull(), // 0, 1, 2 (스팟 순서)
+  poiId: varchar('poi_id'), // Google Places ID or internal ID (nullable)
+  name: varchar('name', { length: 200 }).notNull(),
+  latitude: decimal('latitude', { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }).notNull(),
+  stayMin: integer('stay_min').notNull(), // 예상 체류 시간
+  metaJson: jsonb('meta_json'), // { reason, recommendedMenu, priceRange, photoHint, etc }
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_mini_plan_spots_plan_id').on(table.miniPlanId),
+]);
+
+export const miniPlanCheckins = pgTable('mini_plan_checkins', {
+  id: serial('id').primaryKey(),
+  miniPlanId: integer('mini_plan_id')
+    .notNull()
+    .references(() => miniPlans.id, { onDelete: 'cascade' }),
+  spotId: integer('spot_id')
+    .notNull()
+    .references(() => miniPlanSpots.id, { onDelete: 'cascade' }),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  photos: text('photos').array(), // 체크인 시 업로드한 사진들
+  notes: text('notes'), // 사용자 메모
+  checkedInAt: timestamp('checked_in_at').defaultNow(),
+}, (table) => [
+  index('IDX_mini_plan_checkins_plan_id').on(table.miniPlanId),
+  index('IDX_mini_plan_checkins_user_id').on(table.userId),
+]);
+
+// Zod 스키마
+export const insertMiniPlanSchema = createInsertSchema(miniPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMiniPlanSpotSchema = createInsertSchema(miniPlanSpots).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMiniPlanCheckinSchema = createInsertSchema(miniPlanCheckins).omit({
+  id: true,
+  checkedInAt: true,
+});
+
+// 타입 정의
+export type MiniPlan = typeof miniPlans.$inferSelect;
+export type InsertMiniPlan = z.infer<typeof insertMiniPlanSchema>;
+export type MiniPlanSpot = typeof miniPlanSpots.$inferSelect;
+export type InsertMiniPlanSpot = z.infer<typeof insertMiniPlanSpotSchema>;
+export type MiniPlanCheckin = typeof miniPlanCheckins.$inferSelect;
+export type InsertMiniPlanCheckin = z.infer<typeof insertMiniPlanCheckinSchema>;
+
+// 관계 정의
+export const miniPlansRelations = relations(miniPlans, ({ one, many }) => ({
+  user: one(users, {
+    fields: [miniPlans.userId],
+    references: [users.id],
+  }),
+  spots: many(miniPlanSpots),
+  checkins: many(miniPlanCheckins),
+}));
+
+export const miniPlanSpotsRelations = relations(miniPlanSpots, ({ one, many }) => ({
+  plan: one(miniPlans, {
+    fields: [miniPlanSpots.miniPlanId],
+    references: [miniPlans.id],
+  }),
+  checkins: many(miniPlanCheckins),
+}));
+
+export const miniPlanCheckinsRelations = relations(miniPlanCheckins, ({ one }) => ({
+  plan: one(miniPlans, {
+    fields: [miniPlanCheckins.miniPlanId],
+    references: [miniPlans.id],
+  }),
+  spot: one(miniPlanSpots, {
+    fields: [miniPlanCheckins.spotId],
+    references: [miniPlanSpots.id],
+  }),
+  user: one(users, {
+    fields: [miniPlanCheckins.userId],
+    references: [users.id],
+  }),
+}));
+
 
