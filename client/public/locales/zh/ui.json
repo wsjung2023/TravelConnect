@@ -686,7 +686,6 @@
     "demoLoginSuccess": "演示登录成功",
     "demoLoginSuccessDesc": "已以 TEST 账户登录。自由探索平台！",
     "demoLoginFailed": "演示登录失败"
-  }
   },
   "miniConcierge": {
     "fabButton": "现在一小时做什么？",
@@ -743,7 +742,6 @@
       "title": "签到完成",
       "description": "移至下一个景点"
     }
-  }
   },
   "cinemap": {
     "title": "CineMap",

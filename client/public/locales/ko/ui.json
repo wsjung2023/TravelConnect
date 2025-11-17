@@ -703,8 +703,7 @@
     "demoLoginSuccess": "데모 로그인 성공",
     "demoLoginSuccessDesc": "TEST 계정으로 로그인했습니다. 자유롭게 플랫폼을 탐색해보세요!",
     "demoLoginFailed": "데모 로그인 실패"
-  }
-}  },
+  },
   "miniConcierge": {
     "fabButton": "지금 1시간 뭐하지?",
     "optionsModal": {

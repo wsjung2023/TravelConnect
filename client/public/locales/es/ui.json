@@ -692,7 +692,6 @@
     "demoLoginSuccess": "Inicio de sesión demo exitoso",
     "demoLoginSuccessDesc": "Conectado con la cuenta TEST. ¡Explora libremente la plataforma!",
     "demoLoginFailed": "Error en inicio de sesión demo"
-  }
   },
   "miniConcierge": {
     "fabButton": "¿Qué hacer en 1 hora?",

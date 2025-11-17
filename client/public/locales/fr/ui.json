@@ -705,7 +705,6 @@
     "demoLoginSuccess": "Connexion démo réussie",
     "demoLoginSuccessDesc": "Connecté avec le compte TEST. Explorez librement la plateforme !",
     "demoLoginFailed": "Échec de la connexion démo"
-  }
   },
   "miniConcierge": {
     "fabButton": "Que faire pendant 1 heure?",
