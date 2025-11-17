@@ -53,7 +53,8 @@
     "sendHint": "Enter로 전송, Shift+Enter로 줄바꿈",
     "noDescription": "설명 없음",
     "lastMessage": "마지막 메시지",
-    "translated": "번역됨"
+    "translated": "번역됨",
+    "aiConcierge": "AI 컨시어지"
   },
   "themes": {
     "restaurant": "맛집",

@@ -51,7 +51,8 @@
     "sendHint": "按Enter发送，Shift+Enter换行",
     "noDescription": "无描述",
     "lastMessage": "最后消息",
-    "translated": "已翻译"
+    "translated": "已翻译",
+    "aiConcierge": "AI礼宾员"
   },
   "themes": {
     "restaurant": "餐厅",

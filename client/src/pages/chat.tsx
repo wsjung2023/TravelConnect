@@ -113,14 +113,37 @@ export default function Chat() {
     };
   }, [selectedConversation, selectedChannel, addMessageHandler, removeMessageHandler, queryClient]);
 
-  const handleSendMessage = (content: string, parentMessageId?: number) => {
+  const handleSendMessage = async (content: string, parentMessageId?: number) => {
     if (!user) {
       console.error('사용자 정보가 없습니다');
       return;
     }
 
     if (selectedChannel) {
-      // 채널 메시지 전송
+      if (selectedChannel.name === 'AI Concierge') {
+        try {
+          const response = await apiRequest('/api/ai/concierge/message', {
+            method: 'POST',
+            body: JSON.stringify({
+              message: content,
+              channelId: selectedChannel.id,
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const data = await response.json();
+          
+          queryClient.invalidateQueries({ 
+            queryKey: ['/api/channels', selectedChannel.id, 'messages'] 
+          });
+        } catch (error) {
+          console.error('AI Concierge 메시지 전송 실패:', error);
+        }
+        return;
+      }
+
       const success = sendMessage({
         type: 'channel_message',
         channelId: selectedChannel.id,
@@ -132,7 +155,6 @@ export default function Chat() {
         console.error('채널 메시지 전송 실패 - WebSocket 연결 없음');
       }
     } else if (selectedConversation) {
-      // DM 메시지 전송
       const recipientId = selectedConversation.participant1Id === user.id 
         ? selectedConversation.participant2Id 
         : selectedConversation.participant1Id;

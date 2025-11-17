@@ -83,7 +83,7 @@ import {
   type InsertPackageItem,
 } from '@shared/schema';
 import { db } from './db';
-import { eq, desc, and, or, sql, like } from 'drizzle-orm';
+import { eq, desc, and, or, sql, like, gte, asc } from 'drizzle-orm';
 
 // Interface for storage operations
 export interface IStorage {
@@ -217,6 +217,12 @@ export interface IStorage {
   createChannelMessage(message: Omit<InsertMessage, 'conversationId'> & { channelId: number }): Promise<Message>;
   getMessagesByChannel(channelId: number, limit?: number, offset?: number): Promise<Message[]>;
   getThreadMessages(parentMessageId: number): Promise<Message[]>;
+
+  // AI Concierge operations
+  getOrCreateAIConciergeChannel(userId: string): Promise<Channel>;
+  getNearbyExperiences(userId: string, radiusKm?: number): Promise<Experience[]>;
+  getRecentPostsByUser(userId: string, limit?: number): Promise<Post[]>;
+  getUpcomingSlotsByLocation(location: string, limit?: number): Promise<Slot[]>;
 
   // Admin Commerce operations
   getCommerceStats(): Promise<{
@@ -1719,6 +1725,99 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(messages.createdAt));
 
     return threadMessages;
+  }
+
+  // AI Concierge operations
+  async getOrCreateAIConciergeChannel(userId: string): Promise<Channel> {
+    const existingChannels = await db
+      .select()
+      .from(channels)
+      .innerJoin(channelMembers, eq(channels.id, channelMembers.channelId))
+      .where(
+        and(
+          eq(channels.type, 'topic'),
+          eq(channels.name, 'AI Concierge'),
+          eq(channelMembers.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (existingChannels.length > 0) {
+      return existingChannels[0].channels;
+    }
+
+    const [newChannel] = await db
+      .insert(channels)
+      .values({
+        type: 'topic',
+        name: 'AI Concierge',
+        description: 'Your personal travel assistant',
+        ownerId: null,
+        isPrivate: true,
+      })
+      .returning();
+
+    await db.insert(channelMembers).values({
+      channelId: newChannel.id,
+      userId: userId,
+      role: 'member',
+    });
+
+    return newChannel;
+  }
+
+  async getNearbyExperiences(userId: string, radiusKm: number = 20): Promise<Experience[]> {
+    const user = await this.getUser(userId);
+    if (!user || !user.location) {
+      return await db
+        .select()
+        .from(experiences)
+        .where(eq(experiences.isActive, true))
+        .limit(10);
+    }
+
+    const allExperiences = await db
+      .select()
+      .from(experiences)
+      .where(eq(experiences.isActive, true));
+
+    const userLocationStr = user.location.toLowerCase();
+    const nearby = allExperiences.filter(exp => {
+      if (!exp.location) return false;
+      const expLocation = exp.location.toLowerCase();
+      return expLocation.includes(userLocationStr) || userLocationStr.includes(expLocation);
+    });
+
+    return nearby.slice(0, 10);
+  }
+
+  async getRecentPostsByUser(userId: string, limit: number = 5): Promise<Post[]> {
+    const recentPosts = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.userId, userId))
+      .orderBy(desc(posts.createdAt))
+      .limit(limit);
+
+    return recentPosts;
+  }
+
+  async getUpcomingSlotsByLocation(location: string, limit: number = 5): Promise<Slot[]> {
+    const today = new Date().toISOString().split('T')[0];
+
+    const upcomingSlots = await db
+      .select()
+      .from(slots)
+      .where(
+        and(
+          gte(slots.date, today),
+          eq(slots.isAvailable, true)
+        )
+      )
+      .orderBy(asc(slots.date))
+      .limit(limit);
+
+    return upcomingSlots;
   }
 
   // Admin Commerce operations

@@ -53,7 +53,8 @@
     "sendHint": "Press Enter to send, Shift+Enter for new line",
     "noDescription": "No description",
     "lastMessage": "Last message",
-    "translated": "Translated"
+    "translated": "Translated",
+    "aiConcierge": "AI Concierge"
   },
   "themes": {
     "restaurant": "Restaurant",

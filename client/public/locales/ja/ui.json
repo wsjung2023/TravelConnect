@@ -51,7 +51,8 @@
     "sendHint": "Enterで送信、Shift+Enterで改行",
     "noDescription": "説明なし",
     "lastMessage": "最後のメッセージ",
-    "translated": "翻訳済み"
+    "translated": "翻訳済み",
+    "aiConcierge": "AIコンシェルジュ"
   },
   "themes": {
     "restaurant": "レストラン",

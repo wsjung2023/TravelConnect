@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Hash, MessageCircle, Users, Plus, Search } from 'lucide-react';
+import { Hash, MessageCircle, Users, Plus, Search, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,9 +51,15 @@ export default function ChannelList({
     queryKey: ['/api/conversations'],
   });
 
-  // 채팅 아이템 통합 및 필터링
+  const aiConciergeChannel = channels.find(ch => ch.name === 'AI Concierge');
+  const otherChannels = channels.filter(ch => ch.name !== 'AI Concierge');
+
   const chatItems: ChatItem[] = [
-    ...channels.map(channel => ({ 
+    ...(aiConciergeChannel ? [{ 
+      type: 'channel' as const, 
+      data: { ...aiConciergeChannel, memberCount: 0, unreadCount: 0 } 
+    }] : []),
+    ...otherChannels.map(channel => ({ 
       type: 'channel' as const, 
       data: { ...channel, memberCount: 0, unreadCount: 0 } 
     })),
@@ -226,6 +232,7 @@ export default function ChannelList({
               if (item.type === 'channel') {
                 const channel = item.data;
                 const isSelected = selectedChannelId === channel.id;
+                const isAIConcierge = channel.name === 'AI Concierge';
                 
                 return (
                   <div
@@ -238,15 +245,28 @@ export default function ChannelList({
                     }`}
                     data-testid={`channel-item-${channel.id}`}
                   >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100">
-                      {getChannelIcon(channel.type)}
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${
+                      isAIConcierge ? 'bg-gradient-to-br from-purple-500 to-pink-500' : 'bg-gray-100'
+                    }`}>
+                      {isAIConcierge ? (
+                        <Sparkles size={16} className="text-white" />
+                      ) : (
+                        getChannelIcon(channel.type)
+                      )}
                     </div>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium text-sm truncate">
-                          {channel.name || `${channel.type} ${t('common:navigation.chat')}`}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-sm truncate">
+                            {channel.name || `${channel.type} ${t('common:navigation.chat')}`}
+                          </h4>
+                          {isAIConcierge && (
+                            <Badge variant="secondary" className="text-xs h-5 px-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                              AI
+                            </Badge>
+                          )}
+                        </div>
                         {channel.lastMessageAt && (
                           <span className="text-xs text-gray-500">
                             {formatTime(channel.lastMessageAt)}

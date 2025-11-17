@@ -277,7 +277,6 @@ export const messages = pgTable('messages', {
   channelId: integer('channel_id')
     .references(() => channels.id), // 새로운 채널 시스템용
   senderId: varchar('sender_id')
-    .notNull()
     .references(() => users.id),
   content: text('content').notNull(),
   messageType: varchar('message_type').default('text'), // text, image, booking, thread

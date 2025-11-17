@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut, Languages } from 'lucide-react';
+import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut, Languages, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -322,6 +322,7 @@ export default function EnhancedChatWindow({
                     const hasReplies = messages.some(m => m.parentMessageId === message.id);
                     const isTranslated = !!translatedMessages[message.id];
                     const isTranslating = translatingMessages.has(message.id);
+                    const isAIConcierge = message.senderId === null;
                     
                     return (
                       <div
@@ -332,18 +333,24 @@ export default function EnhancedChatWindow({
                         <div className="max-w-sm relative group">
                           {!isOwn && headerInfo.isChannel && (
                             <div className="flex items-center gap-2 mb-1">
-                              <Avatar className="w-6 h-6">
-                                <AvatarFallback className="text-xs">
-                                  {message.senderId.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
+                              {isAIConcierge ? (
+                                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+                                  <Sparkles size={12} className="text-white" />
+                                </div>
+                              ) : (
+                                <Avatar className="w-6 h-6">
+                                  <AvatarFallback className="text-xs">
+                                    {(message.senderId || 'U').charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                              )}
                               <span className="text-xs text-gray-600 font-medium">
-                                {message.senderId}
+                                {isAIConcierge ? t('chat.aiConcierge') : message.senderId}
                               </span>
                             </div>
                           )}
                           
-                          <div className={`chat-bubble ${isOwn ? 'sent' : 'received'} relative`}>
+                          <div className={`chat-bubble ${isOwn ? 'sent' : isAIConcierge ? 'ai' : 'received'} relative`}>
                             <p className="break-words">
                               {isTranslated ? translatedMessages[message.id] : message.content}
                             </p>

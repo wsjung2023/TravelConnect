@@ -8,6 +8,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### AI Concierge Feature COMPLETED (November 17, 2025)
+- **OpenAI GPT-4o Integration**: Fully functional AI travel assistant powered by OpenAI's latest model with context-aware responses
+- **Database Schema Updates**: Made messages.senderId nullable to support AI messages (senderId=null), channels.ownerId already nullable for system channels
+- **Auto-channel Creation**: AI Concierge channel automatically created on first /chat visit via getOrCreateAIConciergeChannel()
+- **Context Gathering**: AI responses include user profile, nearby experiences (20km), recent posts, upcoming slots for personalized recommendations
+- **Frontend UI**: Special rendering with purple/pink gradient background, Sparkles icon, "AI" badge, localized sender name across all components
+- **API Endpoint**: POST /api/ai/concierge/message handles user→AI messaging with OpenAI API integration
+- **Storage Functions**: Added getUpcomingSlotsByLocation(), getNearbyExperiences() with gte/asc Drizzle operators for context data
+- **Complete i18n**: Added chat.aiConcierge key across all 6 languages (en: "AI Concierge", ko: "AI 컨시어지", ja, zh, fr, es)
+- **CSS Styling**: .chat-bubble.ai class with gradient background (135deg, #f3e7ff to #ffe7f7)
+- **E2E Test Success**: Verified Korean message handling, ~5s response time, proper gradient/Sparkles rendering, no FK violations
+- **IMPORTANT**: Requires valid OPENAI_API_KEY environment variable for GPT-4o model access
+
 ### DM Translation Phase 1 COMPLETED (November 17, 2025)
 - **Full Translation System**: Complete implementation of DM message translation with Google Translate API integration
 - **Database Schema**: Added messageTranslations table for caching, users.preferred_language field (default: 'en')

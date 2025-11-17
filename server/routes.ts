@@ -21,6 +21,7 @@ import i18nFsBackend from 'i18next-fs-backend';
 import { storage } from './storage';
 import { tripsRouter } from './routes/trips';
 import { translateText, detectLanguage, isTranslationEnabled } from './translate';
+import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } from './ai/concierge';
 //import { authenticateToken } from "./auth";
 import { setupGoogleAuth } from './googleAuth';
 import passport from 'passport';
@@ -2662,8 +2663,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const channels = await storage.getChannelsByUser(userId);
-      res.json(channels);
+      const aiConciergeChannel = await storage.getOrCreateAIConciergeChannel(userId);
+      const userChannels = await storage.getChannelsByUser(userId);
+      
+      const allChannels = [aiConciergeChannel, ...userChannels.filter(ch => ch.id !== aiConciergeChannel.id)];
+      
+      res.json(allChannels);
     } catch (error) {
       console.error('채널 목록 조회 오류:', error);
       res.status(500).json({ message: '채널 목록 조회 중 오류가 발생했습니다' });
@@ -4021,6 +4026,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating preferred language:', error);
       res.status(500).json({ message: 'Failed to update preferred language' });
+    }
+  });
+
+  // AI Concierge API endpoints
+  app.get('/api/ai/concierge/status', (req, res) => {
+    res.json({
+      enabled: isConciergeEnabled(),
+    });
+  });
+
+  app.post('/api/ai/concierge/message', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { message: userMessage, channelId } = req.body;
+
+      if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+        return res.status(400).json({ message: 'Message is required' });
+      }
+
+      if (!channelId || isNaN(parseInt(channelId))) {
+        return res.status(400).json({ message: 'Valid channel ID is required' });
+      }
+
+      if (!isConciergeEnabled()) {
+        return res.status(503).json({ message: 'AI Concierge service not available' });
+      }
+
+      const userId = req.user.id;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const nearbyExperiences = await storage.getNearbyExperiences(userId);
+      const recentPosts = await storage.getRecentPostsByUser(userId);
+      const upcomingSlots = user.location 
+        ? await storage.getUpcomingSlotsByLocation(user.location) 
+        : [];
+
+      const context: ConciergeContext = {
+        userId,
+        userProfile: {
+          firstName: user.firstName || undefined,
+          lastName: user.lastName || undefined,
+          location: user.location || undefined,
+          interests: user.interests || undefined,
+          languages: user.languages || undefined,
+          preferredLanguage: user.preferredLanguage || 'en',
+          timezone: user.timezone || undefined,
+        },
+        nearbyExperiences: nearbyExperiences.map(exp => ({
+          id: exp.id,
+          title: exp.title,
+          category: exp.category,
+          location: exp.location,
+          price: `${exp.price} ${exp.currency}`,
+        })),
+        recentPosts: recentPosts.map(post => ({
+          id: post.id,
+          title: post.title || undefined,
+          location: post.location || undefined,
+          theme: post.theme || undefined,
+        })),
+        upcomingSlots: upcomingSlots.map(slot => ({
+          id: slot.id,
+          title: slot.title || 'Untitled',
+          date: slot.date,
+          category: slot.category || 'general',
+        })),
+      };
+
+      const previousMessages = await storage.getMessagesByChannel(parseInt(channelId), 10);
+      const conversationHistory = previousMessages
+        .filter(msg => msg.senderId === userId || msg.senderId === null)
+        .map(msg => ({
+          role: msg.senderId === userId ? 'user' : 'assistant',
+          content: msg.content,
+        }));
+
+      const aiResponse = await generateConciergeResponse(
+        userMessage.trim(),
+        context,
+        conversationHistory
+      );
+
+      const aiMessage = await storage.createChannelMessage({
+        channelId: parseInt(channelId),
+        senderId: null,
+        content: aiResponse,
+        messageType: 'text',
+      });
+
+      res.json({
+        message: aiMessage,
+        aiResponse,
+      });
+    } catch (error: any) {
+      console.error('AI Concierge error:', error);
+      
+      if (error.message?.includes('OpenAI API')) {
+        return res.status(503).json({ message: 'AI service temporarily unavailable' });
+      }
+      
+      res.status(500).json({ message: 'Failed to get AI response' });
     }
   });
 

@@ -51,7 +51,8 @@
     "sendHint": "Presiona Enter para enviar, Shift+Enter para nueva línea",
     "noDescription": "Sin descripción",
     "lastMessage": "Último mensaje",
-    "translated": "Traducido"
+    "translated": "Traducido",
+    "aiConcierge": "Conserje IA"
   },
   "themes": {
     "restaurant": "Restaurante",
