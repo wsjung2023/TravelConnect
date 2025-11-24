@@ -1,10 +1,13 @@
-import { MapPin, Users, MessageCircle, Star, PlayCircle } from 'lucide-react';
+import { MapPin, Users, MessageCircle, Star, PlayCircle, Compass, Heart, Globe } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoginModal } from '@/components/LoginModal';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Footer from '@/components/Footer';
+import heroImage from '@assets/stock_images/traveler_sunset_moun_6f45f15a.jpg';
+import meetingImage from '@assets/stock_images/people_meeting_trave_1a5f85aa.jpg';
+import exploringImage from '@assets/stock_images/backpacker_exploring_e1b0b730.jpg';
 
 export default function Landing() {
   const { toast } = useToast();
@@ -122,50 +125,141 @@ export default function Landing() {
 
   return (
     <div className="mobile-container bg-white min-h-screen">
-      {/* Hero Section */}
-      <div className="relative travel-gradient text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative px-6 py-16 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
-            <div className="text-3xl">🌍</div>
+      {/* Hero Section - Cinematic with Real Photo */}
+      <div className="relative h-[70vh] min-h-[500px] overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative h-full flex flex-col justify-end px-6 pb-12 text-white">
+          {/* Floating Badge */}
+          <div className="absolute top-8 left-6 flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 animate-fade-in">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium">{t('ui:landingPage.connectTravelers')}</span>
           </div>
-          <h1 className="text-3xl font-bold mb-4">{t('ui:landingPage.appName')}</h1>
-          <p className="text-lg opacity-90 mb-8 leading-relaxed whitespace-pre-line">
-            {t('ui:landingPage.subtitle')}
-          </p>
-          <div className="flex items-center justify-center gap-2 text-sm opacity-80">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <span>{t('ui:landingPage.connectTravelers')}</span>
+          
+          {/* Main Content */}
+          <div className="space-y-4 animate-slide-up">
+            <div className="flex items-center gap-2 mb-2">
+              <Compass className="w-6 h-6 text-yellow-400" />
+              <span className="text-sm font-medium tracking-wide uppercase text-yellow-400">
+                Your Journey Awaits
+              </span>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
+              {t('ui:landingPage.appName')}
+            </h1>
+            
+            <p className="text-xl opacity-90 leading-relaxed max-w-md whitespace-pre-line">
+              {t('ui:landingPage.subtitle')}
+            </p>
+            
+            <div className="flex items-center gap-4 pt-4">
+              <div className="flex items-center gap-2">
+                <Heart className="w-5 h-5 text-pink-400" />
+                <span className="text-sm">Authentic Experiences</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-400" />
+                <span className="text-sm">Global Community</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Features */}
-      <div className="px-6 py-12">
-        <h2 className="text-2xl font-bold text-center mb-2">{t('ui:landingPage.startWith')}</h2>
-        <p className="text-gray-600 text-center mb-8">
-          {t('ui:landingPage.startJourney')}
-        </p>
+      {/* Features - Storytelling Style */}
+      <div className="px-6 py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3">{t('ui:landingPage.startWith')}</h2>
+          <p className="text-gray-600 text-lg max-w-md mx-auto">
+            {t('ui:landingPage.startJourney')}
+          </p>
+        </div>
 
-        <div className="space-y-6">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="flex items-start gap-4">
-                <div className="w-12 h-12 travel-gradient rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Icon size={24} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
+        <div className="space-y-8">
+          {/* Feature 1 - Discover */}
+          {features[0] && (
+            <div className="relative overflow-hidden rounded-3xl bg-white shadow-lg group">
+              <div className="aspect-video w-full overflow-hidden">
+                <img 
+                  src={exploringImage} 
+                  alt="Discover" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
               </div>
-            );
-          })}
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                    <MapPin size={24} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold">{features[0].title}</h3>
+                </div>
+                <p className="text-sm opacity-90 leading-relaxed">
+                  {features[0].description}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Feature 2 - Connect */}
+          {features[1] && (
+            <div className="relative overflow-hidden rounded-3xl bg-white shadow-lg group">
+              <div className="aspect-video w-full overflow-hidden">
+                <img 
+                  src={meetingImage} 
+                  alt="Connect" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                    <Users size={24} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold">{features[1].title}</h3>
+                </div>
+                <p className="text-sm opacity-90 leading-relaxed">
+                  {features[1].description}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Features 3 & 4 - Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {features[2] && (
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 p-6 text-white aspect-square flex flex-col justify-end">
+                <div className="absolute top-4 right-4">
+                  <MessageCircle size={32} className="opacity-40" />
+                </div>
+                <h3 className="font-bold mb-2 text-lg">{features[2].title}</h3>
+                <p className="text-sm opacity-90 leading-snug">
+                  {features[2].description}
+                </p>
+              </div>
+            )}
+            
+            {features[3] && (
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-400 to-yellow-500 p-6 text-white aspect-square flex flex-col justify-end">
+                <div className="absolute top-4 right-4">
+                  <Star size={32} className="opacity-40" />
+                </div>
+                <h3 className="font-bold mb-2 text-lg">{features[3].title}</h3>
+                <p className="text-sm opacity-90 leading-snug">
+                  {features[3].description}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

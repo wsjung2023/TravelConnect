@@ -249,6 +249,35 @@
   }
 }
 
+/* Landing page animations */
+.animate-slide-up {
+  animation: slideUpSmooth 0.8s ease-out;
+}
+
+@keyframes slideUpSmooth {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInSmooth 0.6s ease-out;
+}
+
+@keyframes fadeInSmooth {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Responsive utilities for mobile-first */
 @media (max-width: 640px) {
   .text-responsive {
