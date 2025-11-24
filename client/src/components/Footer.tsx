@@ -13,15 +13,15 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <footer className="bg-gradient-to-b from-white to-[hsl(30,20%,97%)] dark:from-gray-800 dark:to-gray-900 border-t border-[hsl(30,15%,88%)] dark:border-gray-700 shadow-[0_-4px_12px_rgba(92,58,110,0.06)]">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* 브랜드 정보 */}
           <div>
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3">
+            <h3 className="font-bold text-xl bg-gradient-to-r from-[hsl(280,33%,40%)] to-[hsl(280,40%,50%)] bg-clip-text text-transparent dark:text-white mb-4">
               Tourgether
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+            <p className="text-[hsl(280,15%,40%)] dark:text-gray-400 text-sm leading-relaxed">
               현지인과 함께하는 특별한 여행 경험을 만들어보세요. 
               진정한 여행의 즐거움을 발견하세요.
             </p>
@@ -29,17 +29,17 @@ export default function Footer() {
 
           {/* 법적 고지 링크 */}
           <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+            <h4 className="font-semibold text-[hsl(280,25%,25%)] dark:text-white mb-4">
               법적 고지
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-2.5">
               {legalLinks.map(({ href, label, icon: Icon }) => (
                 <li key={href}>
                   <Link 
                     href={href}
-                    className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="flex items-center gap-2 text-sm text-[hsl(280,15%,40%)] dark:text-gray-400 hover:text-[hsl(280,33%,40%)] dark:hover:text-[hsl(7,85%,72%)] transition-all duration-200 group"
                   >
-                    <Icon className="w-3 h-3" />
+                    <Icon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                     {label}
                   </Link>
                 </li>
@@ -49,34 +49,34 @@ export default function Footer() {
 
           {/* 연락처 */}
           <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+            <h4 className="font-semibold text-[hsl(280,25%,25%)] dark:text-white mb-4">
               연락처
             </h4>
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <p>이메일: contact@tourgether.com</p>
-              <p>고객지원: support@tourgether.com</p>
-              <p>개인정보: privacy@tourgether.com</p>
+            <div className="space-y-2 text-sm text-[hsl(280,15%,40%)] dark:text-gray-400">
+              <p className="hover:text-[hsl(280,33%,40%)] transition-colors">이메일: contact@tourgether.com</p>
+              <p className="hover:text-[hsl(280,33%,40%)] transition-colors">고객지원: support@tourgether.com</p>
+              <p className="hover:text-[hsl(280,33%,40%)] transition-colors">개인정보: privacy@tourgether.com</p>
             </div>
           </div>
         </div>
 
         {/* 하단 구분선 및 저작권 */}
-        <div className="border-t border-gray-200 dark:border-gray-700 mt-8 pt-6">
+        <div className="border-t border-[hsl(30,15%,88%)] dark:border-gray-700 mt-10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-[hsl(280,15%,45%)] dark:text-gray-400 font-medium">
               © {currentYear} Tourgether. All rights reserved.
             </p>
-            <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-500">
+            <div className="flex gap-6 text-xs text-[hsl(280,10%,50%)] dark:text-gray-500">
               <Link 
                 href="/legal"
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                className="hover:text-[hsl(280,33%,40%)] dark:hover:text-gray-300 transition-colors font-medium"
               >
                 법적 고지
               </Link>
-              <span>|</span>
+              <span className="text-[hsl(30,15%,80%)]">|</span>
               <a 
                 href="mailto:legal@tourgether.com"
-                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                className="hover:text-[hsl(280,33%,40%)] dark:hover:text-gray-300 transition-colors font-medium"
               >
                 법무팀 문의
               </a>

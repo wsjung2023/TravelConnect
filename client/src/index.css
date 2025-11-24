@@ -128,22 +128,29 @@
 
 .chat-bubble {
   @apply max-w-xs p-3 rounded-2xl text-sm;
+  box-shadow: 0 1px 3px rgba(92, 58, 110, 0.1);
 }
 
 .chat-bubble.sent {
-  @apply bg-primary text-white ml-auto;
+  @apply text-white ml-auto;
+  background: linear-gradient(135deg, var(--primary) 0%, hsl(280, 40%, 50%) 100%);
   border-bottom-right-radius: 0.375rem;
+  box-shadow: 0 2px 6px rgba(92, 58, 110, 0.2);
 }
 
 .chat-bubble.received {
-  @apply bg-gray-100 text-gray-900;
+  @apply text-gray-900;
+  background: hsl(30, 20%, 97%);
   border-bottom-left-radius: 0.375rem;
+  border: 1px solid hsl(30, 15%, 90%);
 }
 
 .chat-bubble.ai {
   @apply text-gray-900;
-  background: linear-gradient(135deg, #f3e7ff 0%, #ffe7f7 100%);
+  background: linear-gradient(135deg, hsl(280, 40%, 96%) 0%, hsl(7, 60%, 96%) 100%);
   border-bottom-left-radius: 0.375rem;
+  border: 1px solid hsl(280, 20%, 88%);
+  box-shadow: 0 2px 8px rgba(92, 58, 110, 0.1);
 }
 
 .map-marker {
@@ -174,8 +181,10 @@
 
 /* Mobile SNS App Container - Responsive */
 .mobile-container {
-  @apply w-full mx-auto bg-white min-h-screen relative overflow-hidden;
+  @apply w-full mx-auto min-h-screen relative overflow-hidden;
+  background: linear-gradient(to bottom, hsl(30, 20%, 98%), hsl(30, 15%, 99%));
   max-width: min(428px, 100vw); /* iPhone 14 Pro Max width or full viewport */
+  box-shadow: 0 0 40px rgba(92, 58, 110, 0.08);
 }
 
 /* Responsive mobile viewport */
@@ -206,11 +215,15 @@
 
 /* Mobile navigation - Responsive */
 .mobile-nav {
-  @apply fixed bottom-0 bg-white border-t border-gray-200 z-50;
+  @apply fixed bottom-0 z-50;
+  background: linear-gradient(to top, hsl(0, 0%, 100%), hsl(30, 20%, 98%));
+  border-top: 1px solid hsl(30, 15%, 88%);
+  box-shadow: 0 -4px 12px rgba(92, 58, 110, 0.08);
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: min(428px, 100vw);
+  backdrop-filter: blur(10px);
 }
 
 @media (max-width: 428px) {
