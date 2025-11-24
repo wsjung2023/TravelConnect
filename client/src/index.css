@@ -4,30 +4,40 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(240, 10%, 3.9%);
-  --muted: hsl(240, 4.8%, 95.9%);
-  --muted-foreground: hsl(240, 3.8%, 46.1%);
+  /* Sophisticated color palette - weight + playfulness */
+  --background: hsl(30, 20%, 96%);
+  --foreground: hsl(280, 20%, 20%);
+  --muted: hsl(30, 15%, 92%);
+  --muted-foreground: hsl(280, 10%, 45%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(280, 20%, 20%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(240, 10%, 3.9%);
-  --border: hsl(240, 5.9%, 90%);
-  --input: hsl(240, 5.9%, 90%);
-  --primary: hsl(348, 100%, 70%);
+  --card-foreground: hsl(280, 20%, 20%);
+  --border: hsl(30, 15%, 88%);
+  --input: hsl(30, 15%, 90%);
+  
+  /* Deep Plum - Sophisticated weight */
+  --primary: hsl(280, 33%, 40%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(180, 49%, 68%);
-  --secondary-foreground: hsl(180, 49%, 20%);
-  --accent: hsl(199, 69%, 60%);
-  --accent-foreground: hsl(199, 69%, 15%);
-  --mint: hsl(150, 50%, 70%);
-  --mint-foreground: hsl(150, 50%, 15%);
-  --dark: hsl(210, 22%, 22%);
-  --slate: hsl(210, 18%, 30%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(348, 100%, 70%);
-  --radius: 0.75rem;
+  
+  /* Warm Coral - Playful warmth */
+  --secondary: hsl(7, 85%, 72%);
+  --secondary-foreground: hsl(7, 85%, 20%);
+  
+  /* Soft Gold - Luxury accent */
+  --accent: hsl(39, 69%, 67%);
+  --accent-foreground: hsl(39, 69%, 20%);
+  
+  /* Supporting colors */
+  --mint: hsl(150, 45%, 65%);
+  --mint-foreground: hsl(150, 45%, 15%);
+  --dark: hsl(280, 25%, 25%);
+  --slate: hsl(280, 15%, 35%);
+  
+  --destructive: hsl(0, 70%, 55%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(280, 33%, 40%);
+  --radius: 1rem;
 }
 
 .dark {
@@ -58,25 +68,50 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(to bottom, hsl(30, 20%, 96%), hsl(30, 15%, 98%));
+    min-height: 100vh;
   }
 }
 
-/* Custom travel app styles */
+/* Custom travel app styles - Sophisticated design */
 .travel-gradient {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, hsl(280, 40%, 50%) 50%, var(--secondary) 100%);
 }
 
 .travel-card {
-  @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden;
+  @apply bg-white rounded-2xl overflow-hidden;
+  box-shadow: 0 2px 8px rgba(92, 58, 110, 0.08), 0 1px 3px rgba(92, 58, 110, 0.05);
+  border: 1px solid hsl(30, 15%, 90%);
+  transition: all 0.3s ease;
+}
+
+.travel-card:hover {
+  box-shadow: 0 8px 24px rgba(92, 58, 110, 0.12), 0 4px 8px rgba(92, 58, 110, 0.08);
+  transform: translateY(-2px);
 }
 
 .travel-button {
-  @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5;
+  @apply text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300;
+  background: linear-gradient(135deg, var(--primary) 0%, hsl(280, 40%, 50%) 100%);
+  box-shadow: 0 4px 12px rgba(92, 58, 110, 0.25), 0 2px 4px rgba(92, 58, 110, 0.15);
+}
+
+.travel-button:hover {
+  box-shadow: 0 6px 20px rgba(92, 58, 110, 0.35), 0 3px 6px rgba(92, 58, 110, 0.2);
+  transform: translateY(-1px);
 }
 
 .travel-button-outline {
-  @apply border border-primary text-primary bg-white font-semibold py-3 px-6 rounded-xl hover:bg-primary hover:text-white transition-all duration-200;
+  @apply bg-white font-semibold py-3 px-6 rounded-xl transition-all duration-300;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+.travel-button-outline:hover {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(92, 58, 110, 0.25);
 }
 
 .nav-btn {
