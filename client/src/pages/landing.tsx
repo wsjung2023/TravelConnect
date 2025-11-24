@@ -263,29 +263,35 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="px-6 mb-8">
-        <div className="travel-card p-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-primary mb-1">{t('ui:landingPage.experiencesCount')}</div>
-              <div className="text-xs text-gray-500">{t('ui:landingPage.localExperiences')}</div>
+      {/* Stats - Enhanced */}
+      <div className="px-6 py-12 bg-gray-50">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 text-white">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative grid grid-cols-3 gap-6 text-center">
+            <div className="space-y-2">
+              <div className="text-3xl font-bold">{t('ui:landingPage.experiencesCount')}</div>
+              <div className="text-sm opacity-90">{t('ui:landingPage.localExperiences')}</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-secondary mb-1">{t('ui:landingPage.hostsCount')}</div>
-              <div className="text-xs text-gray-500">{t('ui:landingPage.verifiedHosts')}</div>
+            <div className="space-y-2">
+              <div className="text-3xl font-bold">{t('ui:landingPage.hostsCount')}</div>
+              <div className="text-sm opacity-90">{t('ui:landingPage.verifiedHosts')}</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-accent mb-1">{t('ui:landingPage.citiesCount')}</div>
-              <div className="text-xs text-gray-500">{t('ui:landingPage.cities')}</div>
+            <div className="space-y-2">
+              <div className="text-3xl font-bold">{t('ui:landingPage.citiesCount')}</div>
+              <div className="text-sm opacity-90">{t('ui:landingPage.cities')}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Reviews */}
-      <div className="px-6 mb-12">
-        <h3 className="font-semibold text-center mb-6">{t('ui:landingPage.reviews')}</h3>
+      {/* Reviews - Enhanced */}
+      <div className="px-6 py-12 bg-white">
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-bold mb-2">{t('ui:landingPage.reviews')}</h3>
+          <p className="text-gray-600">Real stories from our travelers</p>
+        </div>
         <div className="space-y-4">
           {[
             {
@@ -304,29 +310,27 @@ export default function Landing() {
               comment: t('ui:landingPage.review3Text'),
             },
           ].map((review, index) => (
-            <div key={index} className="travel-card p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium">
-                    {review.name.charAt(0)}
-                  </span>
+            <div key={index} className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                  {review.name.charAt(0)}
                 </div>
-                <div>
-                  <div className="font-medium text-sm">{review.name}</div>
-                  <div className="flex items-center gap-1">
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">{review.name}</div>
+                  <div className="flex items-center gap-1 mt-1">
                     {Array(review.rating)
                       .fill(0)
                       .map((_, i) => (
                         <Star
                           key={i}
-                          size={12}
+                          size={14}
                           className="text-yellow-400 fill-current"
                         />
                       ))}
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-gray-700 leading-relaxed italic">
                 "{review.comment}"
               </p>
             </div>
@@ -334,39 +338,49 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Login Options */}
-      <div className="px-6 pb-8">
-        <div className="text-center">
-          <h3 className="text-xl font-bold mb-2">{t('ui:landingPage.getStarted')}</h3>
-          <p className="text-gray-600 text-sm mb-6">
-            {t('ui:landingPage.getStartedDesc')}
-          </p>
+      {/* Login Options - Enhanced */}
+      <div className="px-6 py-12 bg-gradient-to-b from-white to-gray-50">
+        <div className="relative overflow-hidden rounded-3xl bg-white shadow-xl border border-gray-100 p-8">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full blur-3xl opacity-30"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-full blur-3xl opacity-30"></div>
+          
+          <div className="relative text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl mb-4">
+                <Compass className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">{t('ui:landingPage.getStarted')}</h3>
+              <p className="text-gray-600 leading-relaxed">
+                {t('ui:landingPage.getStartedDesc')}
+              </p>
+            </div>
 
-          {/* 데모 체험하기 버튼 - 개발환경에서만 표시 */}
-          {import.meta.env.DEV && (
+            {/* 데모 체험하기 버튼 - 개발환경에서만 표시 */}
+            {import.meta.env.DEV && (
+              <Button
+                onClick={handleDemoLogin}
+                disabled={isDemoLoading}
+                className="w-full h-14 text-lg mb-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+                data-testid="button-demo-login"
+              >
+                <PlayCircle className="w-5 h-5 mr-2" />
+                {isDemoLoading ? t('ui:landingPage.tryingDemo') : t('ui:landingPage.tryDemo')}
+              </Button>
+            )}
+
+            {/* Login Button */}
             <Button
-              onClick={handleDemoLogin}
-              disabled={isDemoLoading}
-              className="w-full h-12 text-lg mb-3 bg-orange-500 hover:bg-orange-600 text-white"
-              data-testid="button-demo-login"
+              onClick={() => setShowLoginModal(true)}
+              className="w-full h-14 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+              data-testid="button-login"
             >
-              <PlayCircle className="w-5 h-5 mr-2" />
-              {isDemoLoading ? t('ui:landingPage.tryingDemo') : t('ui:landingPage.tryDemo')}
+              {t('ui:landingPage.login')}
             </Button>
-          )}
 
-          {/* Login Button */}
-          <Button
-            onClick={() => setShowLoginModal(true)}
-            className="travel-button w-full h-12 text-lg"
-            data-testid="button-login"
-          >
-            {t('ui:landingPage.login')}
-          </Button>
-
-          <p className="text-xs text-gray-500 mt-4 leading-relaxed">
-            {t('ui:landingPage.loginDesc')}
-          </p>
+            <p className="text-sm text-gray-500 mt-6 leading-relaxed">
+              {t('ui:landingPage.loginDesc')}
+            </p>
+          </div>
         </div>
       </div>
 
