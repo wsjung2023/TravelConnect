@@ -37,6 +37,7 @@ const profileEditSchema = z.object({
   location: z.string().optional(),
   interests: z.array(z.string()).optional(),
   languages: z.array(z.string()).optional(),
+  publicProfileUrl: z.string().max(100).regex(/^[a-z0-9-]*$/, 'Only lowercase letters, numbers, and hyphens allowed').optional(),
 });
 
 type ProfileEditFormData = z.infer<typeof profileEditSchema>;
@@ -68,6 +69,7 @@ export default function ProfileEditModal({
       location: user.location || '',
       interests: user.interests || [],
       languages: user.languages || [],
+      publicProfileUrl: user.publicProfileUrl || '',
     },
   });
 
@@ -81,6 +83,7 @@ export default function ProfileEditModal({
         location: user.location || '',
         interests: user.interests || [],
         languages: user.languages || [],
+        publicProfileUrl: user.publicProfileUrl || '',
       });
       setImageFile(null);
       setImagePreview(null);
@@ -151,6 +154,7 @@ export default function ProfileEditModal({
         interests: data.interests || [],
         languages: data.languages || [],
         profileImageUrl,
+        publicProfileUrl: data.publicProfileUrl || null,
       };
 
       console.log('Sending profile update:', updateData);
@@ -366,6 +370,31 @@ export default function ProfileEditModal({
                       searchPlaceholder={t('ui:profileEdit.searchLocation')}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* 공개 프로필 URL */}
+            <FormField
+              control={form.control}
+              name="publicProfileUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('ui:profileEdit.publicProfileUrl', 'Public Profile URL')}</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">/portfolio/</span>
+                      <Input
+                        placeholder={t('ui:profileEdit.publicProfileUrlPlaceholder', 'your-unique-url')}
+                        {...field}
+                        data-testid="input-public-profile-url"
+                      />
+                    </div>
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t('ui:profileEdit.publicProfileUrlHint', 'Only lowercase letters, numbers, and hyphens')}
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
