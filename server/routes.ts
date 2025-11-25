@@ -1709,7 +1709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/conversations', authenticateToken, apiLimiter, validateSchema(CreateConversationSchema), async (req: any, res) => {
     try {
-      const participant1Id = req.user.claims.sub;
+      const participant1Id = req.user!.id;
       const { participant2Id } = req.validatedData;
       const conversation = await storage.getOrCreateConversation(
         participant1Id,
