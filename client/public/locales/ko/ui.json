@@ -26,7 +26,9 @@
     "searchLocation": "위치를 검색하세요...",
     "writeReview": "경험에 대한 솔직한 후기를 작성해주세요...",
     "destinationExample": "예: 도쿄, 일본 또는 서울, 대한민국",
-    "enterMessage": "메시지를 입력하세요..."
+    "enterMessage": "메시지를 입력하세요...",
+    "timelineTitle": "타임라인 제목을 입력하세요...",
+    "timelineDescription": "여행 경험을 설명해주세요..."
   },
   "chat": {
     "online": "온라인",

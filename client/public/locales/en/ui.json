@@ -26,7 +26,9 @@
     "searchLocation": "Search location...",
     "writeReview": "Write your honest review about this experience...",
     "destinationExample": "Ex: Tokyo, Japan or Seoul, South Korea",
-    "enterMessage": "Enter your message..."
+    "enterMessage": "Enter your message...",
+    "timelineTitle": "Enter a title for your timeline...",
+    "timelineDescription": "Describe your travel experience..."
   },
   "chat": {
     "online": "Online",
@@ -127,7 +129,7 @@
     "noTimelines": "No timelines yet",
     "createFirst": "Create your first travel timeline to start planning your trips!",
     "createModalPlaceholder": "Timeline creation functionality coming soon!",
-    "titleLabel": "Timeline Title *",
+    "titleLabel": "Timeline Title",
     "destinationLabel": "Trip Destination *",
     "startDateLabel": "Start Date *",
     "durationLabel": "Trip Duration",
@@ -138,7 +140,13 @@
     "createSuccess": "Travel Plan Created",
     "createSuccessDesc": "Your new travel plan has been successfully created!",
     "createError": "Creation Failed",
-    "createErrorDesc": "An error occurred while creating the travel plan. Please try again."
+    "createErrorDesc": "An error occurred while creating the travel plan. Please try again.",
+    "createdSchedule": "Created Travel Schedule",
+    "timelineInfo": "Timeline Information",
+    "titleRequired": "Please enter a timeline title",
+    "validationError": "Validation Error",
+    "completeButton": "Complete Timeline",
+    "descriptionHelp": "Describe your trip briefly (optional)"
   },
   "post": {
     "noTitle": "Untitled",
