@@ -19,6 +19,7 @@ import BookingList from '@/components/BookingList';
 import CreateExperienceModal from '@/components/CreateExperienceModal';
 import TimelineCreateModal from '@/components/TimelineCreateModal';
 import ProfileEditModal from '@/components/ProfileEditModal';
+import SerendipityToggle from '@/components/SerendipityToggle';
 import type { Post, Trip, Experience } from '@shared/schema';
 import { Seo } from '@/components/Seo';
 import { useTranslation } from 'react-i18next';
@@ -410,6 +411,11 @@ export default function Profile() {
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* Serendipity Protocol 토글 */}
+          <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 backdrop-blur-sm">
+            <SerendipityToggle />
           </div>
 
           {/* Portfolio Mode 토글 - 인플루언서만 */}
