@@ -96,6 +96,15 @@ import {
   type InsertMiniPlanSpot,
   type MiniPlanCheckin,
   type InsertMiniPlanCheckin,
+  type Quest,
+  type InsertQuest,
+  type QuestParticipant,
+  type InsertQuestParticipant,
+  type QuestHighlight,
+  type InsertQuestHighlight,
+  quests,
+  questParticipants,
+  questHighlights,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc } from 'drizzle-orm';
@@ -264,6 +273,20 @@ export interface IStorage {
   checkInSpot(checkin: InsertMiniPlanCheckin): Promise<MiniPlanCheckin>;
   getCheckinsByPlan(planId: number): Promise<MiniPlanCheckin[]>;
   getNearbyPOIs(latitude: number, longitude: number, radiusM?: number): Promise<any[]>;
+
+  // Serendipity Protocol operations
+  createQuest(quest: InsertQuest): Promise<Quest>;
+  getQuestById(id: number): Promise<Quest | undefined>;
+  getActiveQuests(latitude: number, longitude: number, radiusM?: number): Promise<Quest[]>;
+  getQuestsByUser(userId: string, limit?: number): Promise<(Quest & { participants: QuestParticipant[] })[]>;
+  updateQuestStatus(id: number, status: string): Promise<Quest | undefined>;
+  addQuestParticipant(participant: InsertQuestParticipant): Promise<QuestParticipant>;
+  updateQuestParticipantStatus(questId: number, userId: string, status: string, resultJson?: any): Promise<QuestParticipant | undefined>;
+  getQuestParticipants(questId: number): Promise<(QuestParticipant & { user: User })[]>;
+  createQuestHighlight(highlight: InsertQuestHighlight): Promise<QuestHighlight>;
+  getQuestHighlights(questId: number): Promise<QuestHighlight[]>;
+  findNearbyUsersWithSamePlan(planId: number, userId: string, latitude: number, longitude: number, radiusM: number): Promise<User[]>;
+  findNearbyUsersWithSimilarTags(tags: string[], userId: string, latitude: number, longitude: number, radiusM: number): Promise<User[]>;
 
   // Admin Commerce operations
   getCommerceStats(): Promise<{
@@ -2971,6 +2994,179 @@ export class DatabaseStorage implements IStorage {
       available: true,
       remainingCapacity
     };
+  }
+
+  // ============================================
+  // Serendipity Protocol operations
+  // ============================================
+
+  async createQuest(quest: InsertQuest): Promise<Quest> {
+    const [newQuest] = await db.insert(quests).values(quest).returning();
+    return newQuest;
+  }
+
+  async getQuestById(id: number): Promise<Quest | undefined> {
+    const quest = await db.query.quests.findFirst({
+      where: eq(quests.id, id),
+    });
+    return quest;
+  }
+
+  async getActiveQuests(latitude: number, longitude: number, radiusM: number = 500): Promise<Quest[]> {
+    const radiusDegrees = radiusM / 111000;
+    const activeQuests = await db.query.quests.findMany({
+      where: and(
+        eq(quests.status, 'active'),
+        sql`${quests.latitude}::numeric BETWEEN ${latitude - radiusDegrees} AND ${latitude + radiusDegrees}`,
+        sql`${quests.longitude}::numeric BETWEEN ${longitude - radiusDegrees} AND ${longitude + radiusDegrees}`
+      ),
+      orderBy: [desc(quests.createdAt)],
+    });
+    return activeQuests;
+  }
+
+  async getQuestsByUser(userId: string, limit: number = 20): Promise<(Quest & { participants: QuestParticipant[] })[]> {
+    const participantRecords = await db.query.questParticipants.findMany({
+      where: eq(questParticipants.userId, userId),
+      orderBy: [desc(questParticipants.createdAt)],
+      limit,
+    });
+
+    const questIds = participantRecords.map(p => p.questId);
+    if (questIds.length === 0) return [];
+
+    const userQuests = await db.query.quests.findMany({
+      where: sql`${quests.id} IN (${sql.join(questIds.map(id => sql`${id}`), sql`, `)})`,
+      with: {
+        participants: true,
+      },
+    });
+    return userQuests as (Quest & { participants: QuestParticipant[] })[];
+  }
+
+  async updateQuestStatus(id: number, status: string): Promise<Quest | undefined> {
+    const [updated] = await db
+      .update(quests)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(quests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async addQuestParticipant(participant: InsertQuestParticipant): Promise<QuestParticipant> {
+    const [newParticipant] = await db.insert(questParticipants).values(participant).returning();
+    return newParticipant;
+  }
+
+  async updateQuestParticipantStatus(
+    questId: number,
+    userId: string,
+    status: string,
+    resultJson?: any
+  ): Promise<QuestParticipant | undefined> {
+    const updates: any = { status };
+    if (status === 'accepted') {
+      updates.joinedAt = new Date();
+    }
+    if (status === 'completed') {
+      updates.completedAt = new Date();
+    }
+    if (resultJson) {
+      updates.resultJson = resultJson;
+    }
+
+    const [updated] = await db
+      .update(questParticipants)
+      .set(updates)
+      .where(and(eq(questParticipants.questId, questId), eq(questParticipants.userId, userId)))
+      .returning();
+    return updated;
+  }
+
+  async getQuestParticipants(questId: number): Promise<(QuestParticipant & { user: User })[]> {
+    const participants = await db.query.questParticipants.findMany({
+      where: eq(questParticipants.questId, questId),
+      with: {
+        user: true,
+      },
+    });
+    return participants as (QuestParticipant & { user: User })[];
+  }
+
+  async createQuestHighlight(highlight: InsertQuestHighlight): Promise<QuestHighlight> {
+    const [newHighlight] = await db.insert(questHighlights).values(highlight).returning();
+    return newHighlight;
+  }
+
+  async getQuestHighlights(questId: number): Promise<QuestHighlight[]> {
+    const highlights = await db.query.questHighlights.findMany({
+      where: eq(questHighlights.questId, questId),
+      orderBy: [desc(questHighlights.createdAt)],
+    });
+    return highlights;
+  }
+
+  async findNearbyUsersWithSamePlan(
+    planId: number,
+    userId: string,
+    latitude: number,
+    longitude: number,
+    radiusM: number
+  ): Promise<User[]> {
+    const radiusDegrees = radiusM / 111000;
+    const usersWithSamePlan = await db.query.miniPlans.findMany({
+      where: and(
+        eq(miniPlans.id, planId),
+        sql`${miniPlans.userId} != ${userId}`,
+        eq(miniPlans.status, 'started')
+      ),
+      with: {
+        user: true,
+      },
+    });
+
+    const nearbyUsers = usersWithSamePlan
+      .filter(plan => {
+        const user = plan.user;
+        if (!user || !user.lastLatitude || !user.lastLongitude) return false;
+        const lat = parseFloat(user.lastLatitude);
+        const lng = parseFloat(user.lastLongitude);
+        return (
+          Math.abs(lat - latitude) <= radiusDegrees &&
+          Math.abs(lng - longitude) <= radiusDegrees
+        );
+      })
+      .map(plan => plan.user as User);
+
+    return nearbyUsers;
+  }
+
+  async findNearbyUsersWithSimilarTags(
+    tags: string[],
+    userId: string,
+    latitude: number,
+    longitude: number,
+    radiusM: number
+  ): Promise<User[]> {
+    if (tags.length === 0) return [];
+
+    const radiusDegrees = radiusM / 111000;
+    const allUsers = await db.query.users.findMany({
+      where: and(
+        sql`${users.id} != ${userId}`,
+        sql`${users.serendipityEnabled} = true`,
+        sql`${users.lastLatitude}::numeric BETWEEN ${latitude - radiusDegrees} AND ${latitude + radiusDegrees}`,
+        sql`${users.lastLongitude}::numeric BETWEEN ${longitude - radiusDegrees} AND ${longitude + radiusDegrees}`
+      ),
+    });
+
+    const nearbyUsersWithTags = allUsers.filter(user => {
+      if (!user.interests) return false;
+      const userTags = Array.isArray(user.interests) ? user.interests : [];
+      return tags.some(tag => userTags.includes(tag));
+    });
+
+    return nearbyUsersWithTags;
   }
 }
 

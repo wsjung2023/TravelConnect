@@ -53,6 +53,11 @@ export const users = pgTable('users', {
   publicProfileUrl: varchar('public_profile_url', { length: 200 }), // link-in-bio URL
   portfolioMode: boolean('portfolio_mode').default(false),
   onboardingCompleted: boolean('onboarding_completed').default(false),
+  // Serendipity Protocol 관련 컬럼
+  serendipityEnabled: boolean('serendipity_enabled').default(true),
+  lastLatitude: decimal('last_latitude', { precision: 10, scale: 8 }),
+  lastLongitude: decimal('last_longitude', { precision: 11, scale: 8 }),
+  lastLocationUpdatedAt: timestamp('last_location_updated_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -1525,4 +1530,116 @@ export const miniPlanCheckinsRelations = relations(miniPlanCheckins, ({ one }) =
   }),
 }));
 
+// ============================================
+// Serendipity Protocol 테이블들
+// ============================================
 
+// 퀘스트 (근접 사용자 공동 미션)
+export const quests = pgTable('quests', {
+  id: serial('id').primaryKey(),
+  type: varchar('type', { length: 30 }).notNull().default('serendipity'), // serendipity, sponsor
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description').notNull(),
+  durationMin: integer('duration_min').notNull().default(5),
+  rewardType: varchar('reward_type', { length: 50 }).default('highlight'), // highlight, badge, points
+  rewardDetail: text('reward_detail'),
+  requiredActions: jsonb('required_actions'), // [{ type: 'photo_upload', count: 2, note: '...' }]
+  latitude: decimal('latitude', { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }).notNull(),
+  radiusM: integer('radius_m').default(80),
+  status: varchar('status', { length: 20 }).default('active'), // active, in_progress, completed, expired, cancelled
+  matchedMiniPlanId: integer('matched_mini_plan_id').references(() => miniPlans.id), // 같은 플랜 선택 시
+  matchedTags: text('matched_tags').array(), // 태그 기반 매칭 시
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_quests_status').on(table.status),
+  index('IDX_quests_location').on(table.latitude, table.longitude),
+]);
+
+// 퀘스트 참가자
+export const questParticipants = pgTable('quest_participants', {
+  id: serial('id').primaryKey(),
+  questId: integer('quest_id')
+    .notNull()
+    .references(() => quests.id, { onDelete: 'cascade' }),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  status: varchar('status', { length: 20 }).default('invited'), // invited, accepted, declined, completed
+  joinedAt: timestamp('joined_at'),
+  completedAt: timestamp('completed_at'),
+  resultJson: jsonb('result_json'), // { photos: [...], checkins: [...] }
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_quest_participants_quest_id').on(table.questId),
+  index('IDX_quest_participants_user_id').on(table.userId),
+]);
+
+// 퀘스트 하이라이트 (공동 생성 결과물)
+export const questHighlights = pgTable('quest_highlights', {
+  id: serial('id').primaryKey(),
+  questId: integer('quest_id')
+    .notNull()
+    .references(() => quests.id, { onDelete: 'cascade' }),
+  highlightMediaUrl: text('highlight_media_url'),
+  thumbnailUrl: text('thumbnail_url'),
+  metaJson: jsonb('meta_json'), // { participants: [...], photos: [...], location: {...} }
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_quest_highlights_quest_id').on(table.questId),
+]);
+
+// Zod 스키마
+export const insertQuestSchema = createInsertSchema(quests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuestParticipantSchema = createInsertSchema(questParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertQuestHighlightSchema = createInsertSchema(questHighlights).omit({
+  id: true,
+  createdAt: true,
+});
+
+// 타입 정의
+export type Quest = typeof quests.$inferSelect;
+export type InsertQuest = z.infer<typeof insertQuestSchema>;
+export type QuestParticipant = typeof questParticipants.$inferSelect;
+export type InsertQuestParticipant = z.infer<typeof insertQuestParticipantSchema>;
+export type QuestHighlight = typeof questHighlights.$inferSelect;
+export type InsertQuestHighlight = z.infer<typeof insertQuestHighlightSchema>;
+
+// 관계 정의
+export const questsRelations = relations(quests, ({ one, many }) => ({
+  matchedMiniPlan: one(miniPlans, {
+    fields: [quests.matchedMiniPlanId],
+    references: [miniPlans.id],
+  }),
+  participants: many(questParticipants),
+  highlights: many(questHighlights),
+}));
+
+export const questParticipantsRelations = relations(questParticipants, ({ one }) => ({
+  quest: one(quests, {
+    fields: [questParticipants.questId],
+    references: [quests.id],
+  }),
+  user: one(users, {
+    fields: [questParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const questHighlightsRelations = relations(questHighlights, ({ one }) => ({
+  quest: one(quests, {
+    fields: [questHighlights.questId],
+    references: [quests.id],
+  }),
+}));
