@@ -4737,5 +4737,422 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // ============================================
+  // Serendipity Protocol API Routes
+  // ============================================
+
+  // 위치 업데이트 (serendipity 매칭을 위한)
+  app.put('/api/serendipity/location', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { latitude, longitude } = req.body;
+      if (!latitude || !longitude) {
+        return res.status(400).json({ message: 'Latitude and longitude are required' });
+      }
+
+      await storage.updateUser(req.user.id, {
+        lastLatitude: latitude.toString(),
+        lastLongitude: longitude.toString(),
+        lastLocationUpdatedAt: new Date(),
+      });
+
+      res.json({ message: 'Location updated' });
+    } catch (error) {
+      console.error('Error updating location:', error);
+      res.status(500).json({ message: 'Failed to update location' });
+    }
+  });
+
+  // Serendipity 설정 토글
+  app.put('/api/serendipity/toggle', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { enabled } = req.body;
+      if (typeof enabled !== 'boolean') {
+        return res.status(400).json({ message: 'Enabled must be a boolean' });
+      }
+
+      await storage.updateUser(req.user.id, {
+        serendipityEnabled: enabled,
+      });
+
+      res.json({ message: `Serendipity ${enabled ? 'enabled' : 'disabled'}`, enabled });
+    } catch (error) {
+      console.error('Error toggling serendipity:', error);
+      res.status(500).json({ message: 'Failed to toggle serendipity' });
+    }
+  });
+
+  // 근접 매칭 확인 (같은 플랜 or 유사 태그)
+  app.post('/api/serendipity/check', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { latitude, longitude, planId, tags, radiusM = 150 } = req.body;
+      if (!latitude || !longitude) {
+        return res.status(400).json({ message: 'Location is required' });
+      }
+
+      // 위치 업데이트
+      await storage.updateUser(req.user.id, {
+        lastLatitude: latitude.toString(),
+        lastLongitude: longitude.toString(),
+        lastLocationUpdatedAt: new Date(),
+      });
+
+      let nearbyUsers: any[] = [];
+
+      // 같은 플랜을 선택한 근처 사용자 찾기
+      if (planId) {
+        nearbyUsers = await storage.findNearbyUsersWithSamePlan(
+          planId,
+          req.user.id,
+          latitude,
+          longitude,
+          radiusM
+        );
+      }
+
+      // 유사 태그를 가진 근처 사용자 찾기
+      if (tags && tags.length > 0 && nearbyUsers.length === 0) {
+        nearbyUsers = await storage.findNearbyUsersWithSimilarTags(
+          tags,
+          req.user.id,
+          latitude,
+          longitude,
+          radiusM
+        );
+      }
+
+      // 근처에 매칭 가능한 사용자가 있으면 퀘스트 제안
+      if (nearbyUsers.length > 0) {
+        // 이미 활성 퀘스트가 있는지 확인
+        const existingQuests = await storage.getActiveQuests(latitude, longitude, radiusM);
+        const userInQuest = existingQuests.some(q => 
+          q.status === 'active' || q.status === 'in_progress'
+        );
+
+        if (!userInQuest) {
+          // 퀘스트 템플릿 선택 (랜덤)
+          const questTemplates = [
+            {
+              title: '야경 인생샷 3컷 미션',
+              description: '근처 여행자와 함께 서로 한 장씩 사진을 찍어주세요.',
+              durationMin: 5,
+              rewardType: 'highlight',
+              rewardDetail: '공동 하이라이트 클립 자동 생성',
+              requiredActions: [{ type: 'photo_upload', count: 2, note: '각자 1장 이상 업로드' }],
+            },
+            {
+              title: '숨은 맛집 공유 미션',
+              description: '서로의 추천 메뉴를 한 개씩 추천해보세요.',
+              durationMin: 3,
+              rewardType: 'badge',
+              rewardDetail: '로컬 푸드 탐험가 뱃지',
+              requiredActions: [{ type: 'recommendation', count: 1, note: '메뉴 추천' }],
+            },
+            {
+              title: '포토스팟 교환 미션',
+              description: '서로가 발견한 좋은 사진 스팟을 공유해보세요.',
+              durationMin: 5,
+              rewardType: 'highlight',
+              rewardDetail: '공동 포토 하이라이트',
+              requiredActions: [{ type: 'location_share', count: 1, note: '포토스팟 위치 공유' }],
+            },
+          ];
+
+          const template = questTemplates[Math.floor(Math.random() * questTemplates.length)];
+
+          // 새 퀘스트 생성
+          const newQuest = await storage.createQuest({
+            type: 'serendipity',
+            title: template.title,
+            description: template.description,
+            durationMin: template.durationMin,
+            rewardType: template.rewardType,
+            rewardDetail: template.rewardDetail,
+            requiredActions: template.requiredActions,
+            latitude: latitude.toString(),
+            longitude: longitude.toString(),
+            radiusM,
+            status: 'active',
+            matchedMiniPlanId: planId || null,
+            matchedTags: tags || null,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10분 후 만료
+          });
+
+          // 현재 사용자를 참가자로 추가 (초대 상태)
+          await storage.addQuestParticipant({
+            questId: newQuest.id,
+            userId: req.user.id,
+            status: 'invited',
+          });
+
+          // 근처 사용자들도 초대
+          for (const nearbyUser of nearbyUsers.slice(0, 3)) { // 최대 3명
+            await storage.addQuestParticipant({
+              questId: newQuest.id,
+              userId: nearbyUser.id,
+              status: 'invited',
+            });
+
+            // 알림 생성
+            await storage.createNotification({
+              userId: nearbyUser.id,
+              type: 'serendipity',
+              title: '🍀 근처에 비슷한 여행자 발견!',
+              message: `${template.title} - 참여하시겠습니까?`,
+              relatedUserId: req.user.id,
+            });
+          }
+
+          return res.json({
+            matched: true,
+            quest: newQuest,
+            nearbyUsers: nearbyUsers.map(u => ({
+              id: u.id,
+              firstName: u.firstName,
+              profileImageUrl: u.profileImageUrl,
+            })),
+          });
+        }
+      }
+
+      res.json({ matched: false, nearbyUsers: [] });
+    } catch (error) {
+      console.error('Error checking serendipity:', error);
+      res.status(500).json({ message: 'Failed to check serendipity' });
+    }
+  });
+
+  // 퀘스트 수락
+  app.post('/api/serendipity/quest/:questId/accept', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const questId = parseInt(req.params.questId);
+      if (isNaN(questId)) {
+        return res.status(400).json({ message: 'Invalid quest ID' });
+      }
+
+      const quest = await storage.getQuestById(questId);
+      if (!quest) {
+        return res.status(404).json({ message: 'Quest not found' });
+      }
+
+      if (quest.status === 'expired' || quest.status === 'cancelled') {
+        return res.status(400).json({ message: 'Quest is no longer available' });
+      }
+
+      // 참가자 상태 업데이트
+      const participant = await storage.updateQuestParticipantStatus(
+        questId,
+        req.user.id,
+        'accepted'
+      );
+
+      if (!participant) {
+        return res.status(400).json({ message: 'You are not invited to this quest' });
+      }
+
+      // 모든 참가자가 수락했는지 확인
+      const allParticipants = await storage.getQuestParticipants(questId);
+      const allAccepted = allParticipants.every(p => p.status === 'accepted');
+
+      if (allAccepted && allParticipants.length >= 2) {
+        // 퀘스트 시작
+        await storage.updateQuestStatus(questId, 'in_progress');
+      }
+
+      res.json({ message: 'Quest accepted', participant, quest });
+    } catch (error) {
+      console.error('Error accepting quest:', error);
+      res.status(500).json({ message: 'Failed to accept quest' });
+    }
+  });
+
+  // 퀘스트 거절
+  app.post('/api/serendipity/quest/:questId/decline', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const questId = parseInt(req.params.questId);
+      if (isNaN(questId)) {
+        return res.status(400).json({ message: 'Invalid quest ID' });
+      }
+
+      await storage.updateQuestParticipantStatus(questId, req.user.id, 'declined');
+
+      res.json({ message: 'Quest declined' });
+    } catch (error) {
+      console.error('Error declining quest:', error);
+      res.status(500).json({ message: 'Failed to decline quest' });
+    }
+  });
+
+  // 퀘스트 완료 (결과 제출)
+  app.post('/api/serendipity/quest/:questId/complete', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const questId = parseInt(req.params.questId);
+      if (isNaN(questId)) {
+        return res.status(400).json({ message: 'Invalid quest ID' });
+      }
+
+      const { photos, notes } = req.body;
+
+      const quest = await storage.getQuestById(questId);
+      if (!quest) {
+        return res.status(404).json({ message: 'Quest not found' });
+      }
+
+      // 참가자 결과 업데이트
+      const participant = await storage.updateQuestParticipantStatus(
+        questId,
+        req.user.id,
+        'completed',
+        { photos: photos || [], notes: notes || '' }
+      );
+
+      if (!participant) {
+        return res.status(400).json({ message: 'You are not part of this quest' });
+      }
+
+      // 모든 참가자가 완료했는지 확인
+      const allParticipants = await storage.getQuestParticipants(questId);
+      const allCompleted = allParticipants.every(p => p.status === 'completed');
+
+      if (allCompleted) {
+        // 퀘스트 완료 및 하이라이트 생성
+        await storage.updateQuestStatus(questId, 'completed');
+
+        // 공동 하이라이트 생성
+        const allPhotos = allParticipants.flatMap(p => {
+          const result = p.resultJson as any;
+          return result?.photos || [];
+        });
+
+        if (allPhotos.length > 0) {
+          await storage.createQuestHighlight({
+            questId,
+            highlightMediaUrl: allPhotos[0], // 첫 번째 사진을 대표로
+            thumbnailUrl: allPhotos[0],
+            metaJson: {
+              participants: allParticipants.map(p => ({
+                id: p.userId,
+                firstName: p.user?.firstName,
+              })),
+              photos: allPhotos,
+              location: { lat: quest.latitude, lng: quest.longitude },
+            },
+          });
+        }
+
+        // 참가자들에게 알림
+        for (const p of allParticipants) {
+          await storage.createNotification({
+            userId: p.userId,
+            type: 'serendipity',
+            title: '🎉 퀘스트 완료!',
+            message: `${quest.title} 미션을 성공적으로 완료했습니다!`,
+          });
+        }
+      }
+
+      res.json({ 
+        message: allCompleted ? 'Quest completed! Highlight created.' : 'Your result submitted',
+        completed: allCompleted,
+        participant 
+      });
+    } catch (error) {
+      console.error('Error completing quest:', error);
+      res.status(500).json({ message: 'Failed to complete quest' });
+    }
+  });
+
+  // 내 퀘스트 목록
+  app.get('/api/serendipity/quests', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const quests = await storage.getQuestsByUser(req.user.id);
+      res.json({ quests });
+    } catch (error) {
+      console.error('Error fetching quests:', error);
+      res.status(500).json({ message: 'Failed to fetch quests' });
+    }
+  });
+
+  // 퀘스트 상세
+  app.get('/api/serendipity/quest/:questId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const questId = parseInt(req.params.questId);
+      if (isNaN(questId)) {
+        return res.status(400).json({ message: 'Invalid quest ID' });
+      }
+
+      const quest = await storage.getQuestById(questId);
+      if (!quest) {
+        return res.status(404).json({ message: 'Quest not found' });
+      }
+
+      const participants = await storage.getQuestParticipants(questId);
+      const highlights = await storage.getQuestHighlights(questId);
+
+      res.json({ quest, participants, highlights });
+    } catch (error) {
+      console.error('Error fetching quest:', error);
+      res.status(500).json({ message: 'Failed to fetch quest' });
+    }
+  });
+
+  // 퀘스트 하이라이트 조회
+  app.get('/api/serendipity/highlights', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const quests = await storage.getQuestsByUser(req.user.id);
+      const highlights: any[] = [];
+
+      for (const quest of quests) {
+        if (quest.status === 'completed') {
+          const questHighlights = await storage.getQuestHighlights(quest.id);
+          highlights.push(...questHighlights.map(h => ({
+            ...h,
+            quest: { id: quest.id, title: quest.title },
+          })));
+        }
+      }
+
+      res.json({ highlights });
+    } catch (error) {
+      console.error('Error fetching highlights:', error);
+      res.status(500).json({ message: 'Failed to fetch highlights' });
+    }
+  });
+
   return httpServer;
 }
