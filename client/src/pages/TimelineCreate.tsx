@@ -1,11 +1,14 @@
 import { useState, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
-import { Upload, X, Calendar, Camera, MapPin } from 'lucide-react';
+import { Upload, X, Calendar, Camera, MapPin, FileText, Edit3 } from 'lucide-react';
 import { TimelineCard } from '@/components/TimelineCard';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 
 interface ProcessedFile {
@@ -38,6 +41,7 @@ interface ImportResponse {
 }
 
 export default function TimelineCreate() {
+  const { t } = useTranslation(['ui', 'common']);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -45,6 +49,11 @@ export default function TimelineCreate() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  
+  // 타임라인 정보 입력 state
+  const [timelineTitle, setTimelineTitle] = useState('');
+  const [timelineDescription, setTimelineDescription] = useState('');
+  const [titleError, setTitleError] = useState('');
 
   // 파일 선택 핸들러
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -293,17 +302,83 @@ export default function TimelineCreate() {
         {dayGroups.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">생성된 여행 일정</h2>
+              <h2 className="text-xl font-bold">{t('ui:timeline.createdSchedule')}</h2>
               <Button
                 onClick={() => {
                   setDayGroups([]);
                   setSelectedFiles([]);
+                  setTimelineTitle('');
+                  setTimelineDescription('');
+                  setTitleError('');
                 }}
                 variant="outline"
                 size="sm"
               >
-                다시 선택
+                {t('common:app.retry')}
               </Button>
+            </div>
+            
+            {/* 타임라인 제목/설명 입력 섹션 */}
+            <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl p-4 space-y-4 border border-primary/20">
+              <div className="flex items-center gap-2 text-primary">
+                <Edit3 size={18} />
+                <h3 className="font-semibold">{t('ui:timeline.timelineInfo')}</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label 
+                    htmlFor="timeline-title" 
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui:timeline.titleLabel')} <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="timeline-title"
+                    value={timelineTitle}
+                    onChange={(e) => {
+                      setTimelineTitle(e.target.value);
+                      if (e.target.value.trim()) {
+                        setTitleError('');
+                      }
+                    }}
+                    placeholder={t('ui:placeholders.timelineTitle')}
+                    className={titleError ? 'border-red-500 focus:ring-red-500' : ''}
+                    data-testid="input-timeline-title"
+                  />
+                  {titleError && (
+                    <p className="text-sm text-red-500 mt-1" role="alert">
+                      {titleError}
+                    </p>
+                  )}
+                </div>
+                
+                <div>
+                  <label 
+                    htmlFor="timeline-description" 
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {t('ui:timeline.descriptionLabel')}
+                  </label>
+                  <div className="relative">
+                    <FileText 
+                      className="absolute left-3 top-3 text-gray-400" 
+                      size={16} 
+                    />
+                    <Textarea
+                      id="timeline-description"
+                      value={timelineDescription}
+                      onChange={(e) => setTimelineDescription(e.target.value)}
+                      placeholder={t('ui:placeholders.timelineDescription')}
+                      className="pl-10 min-h-[80px] resize-none"
+                      data-testid="input-timeline-description"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('ui:timeline.descriptionHelp')}
+                  </p>
+                </div>
+              </div>
             </div>
             
             {dayGroups.map((day) => (
@@ -313,18 +388,28 @@ export default function TimelineCreate() {
                 date={day.date}
                 filesCount={day.files.length}
                 onUpdateCard={(dayId, updates) => {
-                  // Day 카드 업데이트 로직 (향후 구현)
                   console.log('Day', dayId, '업데이트:', updates);
                 }}
               />
             ))}
             
             <Button
-              onClick={() => setLocation('/timeline')}
+              onClick={() => {
+                if (!timelineTitle.trim()) {
+                  setTitleError(t('ui:timeline.titleRequired'));
+                  toast({
+                    title: t('ui:timeline.validationError'),
+                    description: t('ui:timeline.titleRequired'),
+                    variant: 'destructive',
+                  });
+                  return;
+                }
+                setLocation('/timeline');
+              }}
               className="w-full travel-button"
               data-testid="complete-button"
             >
-              타임라인 완성하기
+              {t('ui:timeline.completeButton')}
             </Button>
           </div>
         )}
