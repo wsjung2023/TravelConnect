@@ -107,6 +107,23 @@ const MapComponent: React.FC<MapComponentProps> = ({
     refetchInterval: 60000, // 1분마다 자동 갱신
   });
 
+  // DB 기반 POI 카테고리 조회
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language?.split('-')[0] || 'en';
+  const { data: poiCategoriesData } = useQuery<{ categories: any[] }>({
+    queryKey: ['/api/poi/categories', currentLang],
+    queryFn: async () => {
+      const response = await fetch(`/api/poi/categories?lang=${currentLang}`);
+      if (!response.ok) throw new Error('Failed to fetch POI categories');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+  });
+  const poiCategories = poiCategoriesData?.categories || [];
+  
+  // 확장된 카테고리 상태 관리
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
   // 근처 모임들 조회 (임시 비활성화)
   const { data: miniMeets = [] } = useQuery({
     queryKey: ['/api/mini-meets', debouncedCenter.lat, debouncedCenter.lng],
@@ -1890,55 +1907,154 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* POI 필터링 토글 */}
-      <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg z-10">
+      {/* POI 필터링 토글 - DB 기반 그룹핑 UI */}
+      <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg z-10 max-w-xs">
         <button
           onClick={() => setIsFilterExpanded(!isFilterExpanded)}
           className="flex items-center justify-between gap-2 w-full p-3 hover:bg-gray-50 rounded-xl transition-colors"
           data-testid="button-toggle-poi-filters"
         >
           <span className="text-xs font-medium text-gray-600">{t('filters.poi')}</span>
-          {isFilterExpanded ? (
-            <ChevronUp className="w-4 h-4 text-gray-600" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-gray-600" />
-          )}
+          <div className="flex items-center gap-1">
+            {enabledPOITypes.length > 0 && (
+              <span className="text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">
+                {enabledPOITypes.length}
+              </span>
+            )}
+            {isFilterExpanded ? (
+              <ChevronUp className="w-4 h-4 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-600" />
+            )}
+          </div>
         </button>
         
         {isFilterExpanded && (
-          <div className="px-3 pb-3 space-y-1">
-            {[
-              { type: 'tourist_attraction', label: t('filters.tourist_attraction'), icon: '🏛️' },
-              { type: 'restaurant', label: t('filters.restaurant'), icon: '🍽️' },
-              { type: 'lodging', label: t('filters.lodging'), icon: '🏨' },
-              { type: 'hospital', label: t('filters.hospital'), icon: '🏥' },
-              { type: 'bank', label: t('filters.bank'), icon: '🏦' },
-              { type: 'gas_station', label: t('filters.gas_station'), icon: '⛽' },
-            ].map((poi) => (
-              <label
-                key={poi.type}
-                className="flex items-center gap-2 cursor-pointer"
-                data-testid={`checkbox-poi-${poi.type}`}
+          <div className="px-3 pb-3 max-h-80 overflow-y-auto">
+            {poiCategories.filter(cat => !cat.isSystem).map((category) => {
+              const isCategoryExpanded = expandedCategories.has(category.code);
+              const categoryTypes = category.types || [];
+              const selectedTypesInCategory = categoryTypes.filter((type: any) => 
+                enabledPOITypes.includes(type.googlePlaceType)
+              ).length;
+              
+              return (
+                <div key={category.code} className="border-b border-gray-100 last:border-0">
+                  <button
+                    onClick={() => {
+                      const newExpanded = new Set(expandedCategories);
+                      if (isCategoryExpanded) {
+                        newExpanded.delete(category.code);
+                      } else {
+                        newExpanded.add(category.code);
+                      }
+                      setExpandedCategories(newExpanded);
+                    }}
+                    className="flex items-center justify-between w-full py-2 text-left hover:bg-gray-50 rounded transition-colors"
+                    data-testid={`button-category-${category.code}`}
+                  >
+                    <span className="text-sm flex items-center gap-1.5">
+                      <span>{category.icon}</span>
+                      <span className="font-medium text-gray-700">{category.name}</span>
+                      {selectedTypesInCategory > 0 && (
+                        <span className="text-xs bg-teal-100 text-teal-700 px-1 py-0.5 rounded-full">
+                          {selectedTypesInCategory}
+                        </span>
+                      )}
+                    </span>
+                    {isCategoryExpanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                    )}
+                  </button>
+                  
+                  {isCategoryExpanded && categoryTypes.length > 0 && (
+                    <div className="pl-5 pb-2 space-y-1">
+                      {categoryTypes.map((type: any) => (
+                        <label
+                          key={type.code}
+                          className="flex items-center gap-2 cursor-pointer py-1 hover:bg-gray-50 rounded px-1"
+                          data-testid={`checkbox-poi-${type.code}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={enabledPOITypes.includes(type.googlePlaceType)}
+                            onChange={(e) => {
+                              if (!type.googlePlaceType) return;
+                              if (e.target.checked) {
+                                setEnabledPOITypes([...enabledPOITypes, type.googlePlaceType]);
+                              } else {
+                                setEnabledPOITypes(
+                                  enabledPOITypes.filter((t) => t !== type.googlePlaceType)
+                                );
+                              }
+                            }}
+                            className="rounded text-teal-500 h-3.5 w-3.5"
+                          />
+                          <span className="text-xs text-gray-600">
+                            {type.icon} {type.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            
+            {/* 시스템 카테고리 (만남활성화, 세렌디피티) */}
+            <div className="pt-2 mt-2 border-t border-gray-200">
+              {poiCategories.filter(cat => cat.isSystem).map((category) => (
+                <label
+                  key={category.code}
+                  className="flex items-center gap-2 cursor-pointer py-1.5 hover:bg-gray-50 rounded px-1"
+                  data-testid={`checkbox-system-${category.code}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={enabledPOITypes.includes(category.code)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setEnabledPOITypes([...enabledPOITypes, category.code]);
+                      } else {
+                        setEnabledPOITypes(
+                          enabledPOITypes.filter((t) => t !== category.code)
+                        );
+                      }
+                    }}
+                    className="rounded text-teal-500 h-3.5 w-3.5"
+                  />
+                  <span className="text-xs font-medium text-gray-700">
+                    {category.icon} {category.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+            
+            {/* 전체 선택/해제 버튼 */}
+            <div className="pt-2 mt-2 border-t border-gray-200 flex gap-2">
+              <button
+                onClick={() => {
+                  const allGoogleTypes = poiCategories
+                    .flatMap(cat => cat.types || [])
+                    .map((t: any) => t.googlePlaceType)
+                    .filter(Boolean);
+                  setEnabledPOITypes(allGoogleTypes);
+                }}
+                className="flex-1 text-xs py-1.5 px-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 transition-colors"
+                data-testid="button-select-all-poi"
               >
-                <input
-                  type="checkbox"
-                  checked={enabledPOITypes.includes(poi.type)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setEnabledPOITypes([...enabledPOITypes, poi.type]);
-                    } else {
-                      setEnabledPOITypes(
-                        enabledPOITypes.filter((t) => t !== poi.type)
-                      );
-                    }
-                  }}
-                  className="rounded text-teal-500"
-                />
-                <span className="text-xs">
-                  {poi.icon} {poi.label}
-                </span>
-              </label>
-            ))}
+                {t('common.selectAll') || 'Select All'}
+              </button>
+              <button
+                onClick={() => setEnabledPOITypes([])}
+                className="flex-1 text-xs py-1.5 px-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 transition-colors"
+                data-testid="button-clear-all-poi"
+              >
+                {t('common.clearAll') || 'Clear All'}
+              </button>
+            </div>
           </div>
         )}
       </div>
