@@ -980,6 +980,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update experience (Host or Admin only)
+  app.patch('/api/experiences/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user!.id;
+      const experienceId = parseInt(req.params.id);
+
+      if (isNaN(experienceId)) {
+        return res.status(400).json({ message: 'Invalid experience ID' });
+      }
+
+      const experience = await storage.getExperienceById(experienceId);
+      if (!experience) {
+        return res.status(404).json({ message: 'Experience not found' });
+      }
+
+      const user = await storage.getUser(userId);
+      const isOwner = experience.hostId === userId;
+      const isAdmin = user?.role === 'admin';
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: 'You can only edit your own experiences' });
+      }
+
+      const { title, description, price, currency, location, latitude, longitude, category, duration, maxParticipants, images, included, requirements, isActive } = req.body;
+      const updatedExperience = await storage.updateExperience(experienceId, {
+        title,
+        description,
+        price,
+        currency,
+        location,
+        latitude,
+        longitude,
+        category,
+        duration,
+        maxParticipants,
+        images,
+        included,
+        requirements,
+        isActive,
+      });
+
+      if (updatedExperience) {
+        res.json(updatedExperience);
+      } else {
+        res.status(500).json({ message: 'Failed to update experience' });
+      }
+    } catch (error) {
+      console.error('Error updating experience:', error);
+      res.status(500).json({ message: 'Failed to update experience' });
+    }
+  });
+
+  // Delete experience (Host or Admin only)
+  app.delete('/api/experiences/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user!.id;
+      const experienceId = parseInt(req.params.id);
+
+      if (isNaN(experienceId)) {
+        return res.status(400).json({ message: 'Invalid experience ID' });
+      }
+
+      const experience = await storage.getExperienceById(experienceId);
+      if (!experience) {
+        return res.status(404).json({ message: 'Experience not found' });
+      }
+
+      const user = await storage.getUser(userId);
+      const isOwner = experience.hostId === userId;
+      const isAdmin = user?.role === 'admin';
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: 'You can only delete your own experiences' });
+      }
+
+      const success = await storage.deleteExperience(experienceId);
+
+      if (success) {
+        res.json({ message: 'Experience deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Failed to delete experience' });
+      }
+    } catch (error) {
+      console.error('Error deleting experience:', error);
+      res.status(500).json({ message: 'Failed to delete experience' });
+    }
+  });
+
   app.get('/api/experiences/:id/reviews', async (req, res) => {
     try {
       const experienceId = parseInt(req.params.id);
@@ -1117,23 +1205,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete post (Admin only)
+  // Get single post by ID
+  app.get('/api/posts/:id', async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'Invalid post ID' });
+      }
+
+      const post = await storage.getPostById(postId);
+      if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+
+      res.json(post);
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      res.status(500).json({ message: 'Failed to fetch post' });
+    }
+  });
+
+  // Update post (Author or Admin only)
+  app.patch('/api/posts/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user!.id;
+      const postId = parseInt(req.params.id);
+
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'Invalid post ID' });
+      }
+
+      const post = await storage.getPostById(postId);
+      if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+
+      const user = await storage.getUser(userId);
+      const isOwner = post.userId === userId;
+      const isAdmin = user?.role === 'admin';
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: 'You can only edit your own posts' });
+      }
+
+      const { title, content, location, latitude, longitude, theme, tags } = req.body;
+      const updatedPost = await storage.updatePost(postId, {
+        title,
+        content,
+        location,
+        latitude,
+        longitude,
+        theme,
+        tags,
+      });
+
+      if (updatedPost) {
+        res.json(updatedPost);
+      } else {
+        res.status(500).json({ message: 'Failed to update post' });
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+      res.status(500).json({ message: 'Failed to update post' });
+    }
+  });
+
+  // Delete post (Author or Admin only)
   app.delete('/api/posts/:id', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user!.id;
-      const user = await storage.getUser(userId);
+      const postId = parseInt(req.params.id);
 
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
+      if (isNaN(postId)) {
+        return res.status(400).json({ message: 'Invalid post ID' });
       }
 
-      const postId = parseInt(req.params.id);
+      const post = await storage.getPostById(postId);
+      if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+
+      const user = await storage.getUser(userId);
+      const isOwner = post.userId === userId;
+      const isAdmin = user?.role === 'admin';
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: 'You can only delete your own posts' });
+      }
+
       const success = await storage.deletePost(postId);
 
       if (success) {
         res.json({ message: 'Post deleted successfully' });
       } else {
-        res.status(404).json({ message: 'Post not found' });
+        res.status(500).json({ message: 'Failed to delete post' });
       }
     } catch (error) {
       console.error('Error deleting post:', error);

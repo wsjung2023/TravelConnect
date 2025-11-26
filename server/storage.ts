@@ -569,6 +569,19 @@ export class DatabaseStorage implements IStorage {
     return experience;
   }
 
+  async deleteExperience(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(experiences)
+        .where(eq(experiences.id, id))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting experience:', error);
+      return false;
+    }
+  }
+
   // Post operations
   async createPost(post: InsertPost): Promise<Post> {
     const [newPost] = await db.insert(posts).values(post).returning();
@@ -598,6 +611,29 @@ export class DatabaseStorage implements IStorage {
       .from(posts)
       .where(and(eq(posts.userId, userId), sql`${posts.takenAt} IS NOT NULL`))
       .orderBy(posts.takenAt);
+  }
+
+  async getPostById(postId: number): Promise<Post | null> {
+    const [post] = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, postId))
+      .limit(1);
+    return post || null;
+  }
+
+  async updatePost(postId: number, data: Partial<InsertPost>): Promise<Post | null> {
+    try {
+      const [updatedPost] = await db
+        .update(posts)
+        .set(data)
+        .where(eq(posts.id, postId))
+        .returning();
+      return updatedPost || null;
+    } catch (error) {
+      console.error('Error updating post:', error);
+      return null;
+    }
   }
 
   async deletePost(postId: number): Promise<boolean> {
