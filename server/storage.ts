@@ -105,6 +105,18 @@ import {
   quests,
   questParticipants,
   questHighlights,
+  poiCategories,
+  poiTypes,
+  poiCategoryTranslations,
+  poiTypeTranslations,
+  type PoiCategory,
+  type InsertPoiCategory,
+  type PoiType,
+  type InsertPoiType,
+  type PoiCategoryTranslation,
+  type InsertPoiCategoryTranslation,
+  type PoiTypeTranslation,
+  type InsertPoiTypeTranslation,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc } from 'drizzle-orm';
@@ -3167,6 +3179,99 @@ export class DatabaseStorage implements IStorage {
     });
 
     return nearbyUsersWithTags;
+  }
+
+  // ==========================================
+  // POI (Point of Interest) 시스템 메서드
+  // ==========================================
+
+  async getPoiCategories(): Promise<PoiCategory[]> {
+    return db.query.poiCategories.findMany({
+      where: eq(poiCategories.isActive, true),
+      orderBy: [asc(poiCategories.sortOrder)],
+    });
+  }
+
+  async getPoiCategoriesWithTypes(languageCode: string = 'en'): Promise<any[]> {
+    const categories = await db.query.poiCategories.findMany({
+      where: eq(poiCategories.isActive, true),
+      orderBy: [asc(poiCategories.sortOrder)],
+      with: {
+        types: {
+          where: eq(poiTypes.isActive, true),
+          orderBy: [asc(poiTypes.sortOrder)],
+          with: {
+            translations: {
+              where: eq(poiTypeTranslations.languageCode, languageCode),
+            },
+          },
+        },
+        translations: {
+          where: eq(poiCategoryTranslations.languageCode, languageCode),
+        },
+      },
+    });
+
+    return categories.map(cat => ({
+      id: cat.id,
+      code: cat.code,
+      icon: cat.icon,
+      isSystem: cat.isSystem,
+      name: cat.translations[0]?.name || cat.code,
+      description: cat.translations[0]?.description || '',
+      types: cat.types.map(type => ({
+        id: type.id,
+        code: type.code,
+        googlePlaceType: type.googlePlaceType,
+        icon: type.icon || cat.icon,
+        name: type.translations[0]?.name || type.code,
+      })),
+    }));
+  }
+
+  async createPoiCategory(category: InsertPoiCategory): Promise<PoiCategory> {
+    const [newCategory] = await db.insert(poiCategories).values(category).returning();
+    return newCategory;
+  }
+
+  async createPoiType(type: InsertPoiType): Promise<PoiType> {
+    const [newType] = await db.insert(poiTypes).values(type).returning();
+    return newType;
+  }
+
+  async createPoiCategoryTranslation(translation: InsertPoiCategoryTranslation): Promise<PoiCategoryTranslation> {
+    const [newTranslation] = await db.insert(poiCategoryTranslations).values(translation).returning();
+    return newTranslation;
+  }
+
+  async createPoiTypeTranslation(translation: InsertPoiTypeTranslation): Promise<PoiTypeTranslation> {
+    const [newTranslation] = await db.insert(poiTypeTranslations).values(translation).returning();
+    return newTranslation;
+  }
+
+  async bulkInsertPoiCategories(categories: InsertPoiCategory[]): Promise<PoiCategory[]> {
+    if (categories.length === 0) return [];
+    return db.insert(poiCategories).values(categories).returning();
+  }
+
+  async bulkInsertPoiTypes(types: InsertPoiType[]): Promise<PoiType[]> {
+    if (types.length === 0) return [];
+    return db.insert(poiTypes).values(types).returning();
+  }
+
+  async bulkInsertPoiCategoryTranslations(translations: InsertPoiCategoryTranslation[]): Promise<PoiCategoryTranslation[]> {
+    if (translations.length === 0) return [];
+    return db.insert(poiCategoryTranslations).values(translations).returning();
+  }
+
+  async bulkInsertPoiTypeTranslations(translations: InsertPoiTypeTranslation[]): Promise<PoiTypeTranslation[]> {
+    if (translations.length === 0) return [];
+    return db.insert(poiTypeTranslations).values(translations).returning();
+  }
+
+  async getPoiCategoryCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(poiCategories);
+    return Number(result[0]?.count || 0);
   }
 }
 

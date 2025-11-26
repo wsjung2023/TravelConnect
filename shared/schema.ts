@@ -1643,3 +1643,119 @@ export const questHighlightsRelations = relations(questHighlights, ({ one }) => 
     references: [quests.id],
   }),
 }));
+
+// ==========================================
+// POI (Point of Interest) 시스템 - DB 기반
+// ==========================================
+
+// POI 카테고리 (대분류: 음식&음료, 숙박, 문화 등)
+export const poiCategories = pgTable('poi_categories', {
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(), // food_drink, lodging, culture 등
+  icon: varchar('icon', { length: 10 }).notNull(), // 🍽️, 🏨, 🎭 등
+  sortOrder: integer('sort_order').default(0),
+  isActive: boolean('is_active').default(true),
+  isSystem: boolean('is_system').default(false), // 시스템 기본 카테고리 (만남활성화, 세렌디피티)
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_poi_categories_code').on(table.code),
+]);
+
+// POI 타입 (세부: restaurant, cafe, hotel 등 - Google Places API 타입과 매핑)
+export const poiTypes = pgTable('poi_types', {
+  id: serial('id').primaryKey(),
+  categoryId: integer('category_id')
+    .notNull()
+    .references(() => poiCategories.id, { onDelete: 'cascade' }),
+  code: varchar('code', { length: 50 }).notNull().unique(), // Google Places API 타입명
+  googlePlaceType: varchar('google_place_type', { length: 100 }), // Google Places API 검색 타입
+  icon: varchar('icon', { length: 10 }), // 개별 아이콘 (없으면 카테고리 아이콘 사용)
+  sortOrder: integer('sort_order').default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_poi_types_category_id').on(table.categoryId),
+  index('IDX_poi_types_code').on(table.code),
+]);
+
+// POI 카테고리 번역 (6개 언어)
+export const poiCategoryTranslations = pgTable('poi_category_translations', {
+  id: serial('id').primaryKey(),
+  categoryId: integer('category_id')
+    .notNull()
+    .references(() => poiCategories.id, { onDelete: 'cascade' }),
+  languageCode: varchar('language_code', { length: 10 }).notNull(), // en, ko, ja, zh, fr, es
+  name: varchar('name', { length: 100 }).notNull(),
+  description: varchar('description', { length: 255 }),
+}, (table) => [
+  index('IDX_poi_category_translations_category_lang').on(table.categoryId, table.languageCode),
+]);
+
+// POI 타입 번역 (6개 언어)
+export const poiTypeTranslations = pgTable('poi_type_translations', {
+  id: serial('id').primaryKey(),
+  typeId: integer('type_id')
+    .notNull()
+    .references(() => poiTypes.id, { onDelete: 'cascade' }),
+  languageCode: varchar('language_code', { length: 10 }).notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+}, (table) => [
+  index('IDX_poi_type_translations_type_lang').on(table.typeId, table.languageCode),
+]);
+
+// POI Zod 스키마
+export const insertPoiCategorySchema = createInsertSchema(poiCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPoiTypeSchema = createInsertSchema(poiTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPoiCategoryTranslationSchema = createInsertSchema(poiCategoryTranslations).omit({
+  id: true,
+});
+
+export const insertPoiTypeTranslationSchema = createInsertSchema(poiTypeTranslations).omit({
+  id: true,
+});
+
+// POI 타입 정의
+export type PoiCategory = typeof poiCategories.$inferSelect;
+export type InsertPoiCategory = z.infer<typeof insertPoiCategorySchema>;
+export type PoiType = typeof poiTypes.$inferSelect;
+export type InsertPoiType = z.infer<typeof insertPoiTypeSchema>;
+export type PoiCategoryTranslation = typeof poiCategoryTranslations.$inferSelect;
+export type InsertPoiCategoryTranslation = z.infer<typeof insertPoiCategoryTranslationSchema>;
+export type PoiTypeTranslation = typeof poiTypeTranslations.$inferSelect;
+export type InsertPoiTypeTranslation = z.infer<typeof insertPoiTypeTranslationSchema>;
+
+// POI 관계 정의
+export const poiCategoriesRelations = relations(poiCategories, ({ many }) => ({
+  types: many(poiTypes),
+  translations: many(poiCategoryTranslations),
+}));
+
+export const poiTypesRelations = relations(poiTypes, ({ one, many }) => ({
+  category: one(poiCategories, {
+    fields: [poiTypes.categoryId],
+    references: [poiCategories.id],
+  }),
+  translations: many(poiTypeTranslations),
+}));
+
+export const poiCategoryTranslationsRelations = relations(poiCategoryTranslations, ({ one }) => ({
+  category: one(poiCategories, {
+    fields: [poiCategoryTranslations.categoryId],
+    references: [poiCategories.id],
+  }),
+}));
+
+export const poiTypeTranslationsRelations = relations(poiTypeTranslations, ({ one }) => ({
+  type: one(poiTypes, {
+    fields: [poiTypeTranslations.typeId],
+    references: [poiTypes.id],
+  }),
+}));
