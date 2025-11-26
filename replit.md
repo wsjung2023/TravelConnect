@@ -8,6 +8,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Performance Optimization (November 26, 2025)
+- **N+1 쿼리 문제 해결**: Smart/Popular 피드의 200+ 쿼리를 3개 배치 쿼리로 최적화
+- **성능 향상**: Smart Feed 4.7초 → 0.28초 (94% 향상, 목표 40% 초과 달성)
+- **새 서비스 모듈**:
+  - `server/services/cache.ts`: LRU 캐시 서비스
+  - `server/services/feedScoringService.ts`: 7-factor 점수 계산 서비스
+  - `client/src/hooks/useFeedController.ts`: 피드 상태 관리 훅
+- **프론트엔드 최적화**: 가상화 기본 활성화, 임계값 50→20 조정
+- **상세 문서**: `docs/PERFORMANCE_TEST_PLAN.md` 참고
+
 ### DB-Based POI Filter System (November 26, 2025)
 - **하드코딩 제거**: 기존 하드코딩된 POI 필터를 완전한 DB 기반 아키텍처로 마이그레이션
 - **새 DB 스키마**: poi_categories, poi_types, poi_category_translations, poi_type_translations 테이블 추가
