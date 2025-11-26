@@ -117,11 +117,12 @@ export default function Feed() {
     }
   }, [likedPosts, currentUser?.id]);
 
-  // experiences를 post 형식으로 변환
+  // experiences를 post 형식으로 변환 (hostId 유지)
   const experiencesAsPosts = experiences.map((exp: any) => ({
     ...exp,
     type: 'experience' as const,
-    userId: exp.providerId || 'Host',
+    userId: exp.hostId || exp.providerId || 'Host',
+    hostId: exp.hostId,
     content: exp.description || '',
     images: exp.images || [],
     likesCount: 0,
