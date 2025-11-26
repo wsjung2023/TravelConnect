@@ -1759,3 +1759,273 @@ export const poiTypeTranslationsRelations = relations(poiTypeTranslations, ({ on
     references: [poiTypes.id],
   }),
 }));
+
+// =====================================================
+// Smart Feed & Hashtag System
+// =====================================================
+
+// 해시태그 마스터 테이블
+export const hashtags = pgTable('hashtags', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  postCount: integer('post_count').default(0),
+  followerCount: integer('follower_count').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_hashtags_name').on(table.name),
+  index('IDX_hashtags_post_count').on(table.postCount),
+]);
+
+// 해시태그 다국어 번역 (6개 언어)
+export const hashtagTranslations = pgTable('hashtag_translations', {
+  id: serial('id').primaryKey(),
+  hashtagId: integer('hashtag_id')
+    .notNull()
+    .references(() => hashtags.id, { onDelete: 'cascade' }),
+  languageCode: varchar('language_code', { length: 10 }).notNull(),
+  translatedName: varchar('translated_name', { length: 100 }).notNull(),
+}, (table) => [
+  index('IDX_hashtag_translations_hashtag_lang').on(table.hashtagId, table.languageCode),
+]);
+
+// 게시물-해시태그 연결 테이블
+export const postHashtags = pgTable('post_hashtags', {
+  id: serial('id').primaryKey(),
+  postId: integer('post_id')
+    .notNull()
+    .references(() => posts.id, { onDelete: 'cascade' }),
+  hashtagId: integer('hashtag_id')
+    .notNull()
+    .references(() => hashtags.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_post_hashtags_post').on(table.postId),
+  index('IDX_post_hashtags_hashtag').on(table.hashtagId),
+]);
+
+// 해시태그 팔로우
+export const hashtagFollows = pgTable('hashtag_follows', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  hashtagId: integer('hashtag_id')
+    .notNull()
+    .references(() => hashtags.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_hashtag_follows_user').on(table.userId),
+  index('IDX_hashtag_follows_hashtag').on(table.hashtagId),
+]);
+
+// 해시태그 일별 메트릭 (트렌딩 계산용)
+export const hashtagMetricsDaily = pgTable('hashtag_metrics_daily', {
+  id: serial('id').primaryKey(),
+  hashtagId: integer('hashtag_id')
+    .notNull()
+    .references(() => hashtags.id, { onDelete: 'cascade' }),
+  date: date('date').notNull(),
+  usageCount: integer('usage_count').default(0),
+  growthRate: decimal('growth_rate', { precision: 5, scale: 2 }).default('0'),
+  calculatedAt: timestamp('calculated_at').defaultNow(),
+}, (table) => [
+  index('IDX_hashtag_metrics_hashtag_date').on(table.hashtagId, table.date),
+]);
+
+// 게시물 저장 (북마크)
+export const postSaves = pgTable('post_saves', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  postId: integer('post_id')
+    .notNull()
+    .references(() => posts.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_post_saves_user').on(table.userId),
+  index('IDX_post_saves_post').on(table.postId),
+]);
+
+// 사용자 참여 이벤트 (피드 속도 계산용)
+export const userEngagementEvents = pgTable('user_engagement_events', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  postId: integer('post_id')
+    .notNull()
+    .references(() => posts.id, { onDelete: 'cascade' }),
+  eventType: varchar('event_type', { length: 20 }).notNull(), // like, comment, save, view
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_engagement_events_post').on(table.postId),
+  index('IDX_engagement_events_created').on(table.createdAt),
+]);
+
+// 사용자 피드 설정
+export const userFeedPreferences = pgTable('user_feed_preferences', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  engagementWeight: decimal('engagement_weight', { precision: 3, scale: 2 }).default('0.22'),
+  affinityWeight: decimal('affinity_weight', { precision: 3, scale: 2 }).default('0.20'),
+  interestWeight: decimal('interest_weight', { precision: 3, scale: 2 }).default('0.15'),
+  hashtagWeight: decimal('hashtag_weight', { precision: 3, scale: 2 }).default('0.12'),
+  locationWeight: decimal('location_weight', { precision: 3, scale: 2 }).default('0.12'),
+  recencyWeight: decimal('recency_weight', { precision: 3, scale: 2 }).default('0.11'),
+  velocityWeight: decimal('velocity_weight', { precision: 3, scale: 2 }).default('0.08'),
+  preferredMode: varchar('preferred_mode', { length: 20 }).default('smart'), // smart, latest, nearby, popular, hashtag
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 피드 알고리즘 가중치 (시스템 설정 - DB 기반)
+export const feedAlgorithmWeights = pgTable('feed_algorithm_weights', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 50 }).notNull().unique(),
+  description: varchar('description', { length: 255 }),
+  engagementWeight: decimal('engagement_weight', { precision: 3, scale: 2 }).default('0.22'),
+  affinityWeight: decimal('affinity_weight', { precision: 3, scale: 2 }).default('0.20'),
+  interestWeight: decimal('interest_weight', { precision: 3, scale: 2 }).default('0.15'),
+  hashtagWeight: decimal('hashtag_weight', { precision: 3, scale: 2 }).default('0.12'),
+  locationWeight: decimal('location_weight', { precision: 3, scale: 2 }).default('0.12'),
+  recencyWeight: decimal('recency_weight', { precision: 3, scale: 2 }).default('0.11'),
+  velocityWeight: decimal('velocity_weight', { precision: 3, scale: 2 }).default('0.08'),
+  recencyDecayHours: integer('recency_decay_hours').default(24),
+  velocityWindowMinutes: integer('velocity_window_minutes').default(120),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Hashtag Zod 스키마
+export const insertHashtagSchema = createInsertSchema(hashtags).omit({
+  id: true,
+  postCount: true,
+  followerCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHashtagTranslationSchema = createInsertSchema(hashtagTranslations).omit({
+  id: true,
+});
+
+export const insertPostHashtagSchema = createInsertSchema(postHashtags).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertHashtagFollowSchema = createInsertSchema(hashtagFollows).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPostSaveSchema = createInsertSchema(postSaves).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserEngagementEventSchema = createInsertSchema(userEngagementEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserFeedPreferencesSchema = createInsertSchema(userFeedPreferences).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertFeedAlgorithmWeightsSchema = createInsertSchema(feedAlgorithmWeights).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Hashtag & Feed 타입 정의
+export type Hashtag = typeof hashtags.$inferSelect;
+export type InsertHashtag = z.infer<typeof insertHashtagSchema>;
+export type HashtagTranslation = typeof hashtagTranslations.$inferSelect;
+export type InsertHashtagTranslation = z.infer<typeof insertHashtagTranslationSchema>;
+export type PostHashtag = typeof postHashtags.$inferSelect;
+export type InsertPostHashtag = z.infer<typeof insertPostHashtagSchema>;
+export type HashtagFollow = typeof hashtagFollows.$inferSelect;
+export type InsertHashtagFollow = z.infer<typeof insertHashtagFollowSchema>;
+export type HashtagMetricDaily = typeof hashtagMetricsDaily.$inferSelect;
+export type PostSave = typeof postSaves.$inferSelect;
+export type InsertPostSave = z.infer<typeof insertPostSaveSchema>;
+export type UserEngagementEvent = typeof userEngagementEvents.$inferSelect;
+export type InsertUserEngagementEvent = z.infer<typeof insertUserEngagementEventSchema>;
+export type UserFeedPreferences = typeof userFeedPreferences.$inferSelect;
+export type InsertUserFeedPreferences = z.infer<typeof insertUserFeedPreferencesSchema>;
+export type FeedAlgorithmWeights = typeof feedAlgorithmWeights.$inferSelect;
+export type InsertFeedAlgorithmWeights = z.infer<typeof insertFeedAlgorithmWeightsSchema>;
+
+// Hashtag 관계 정의
+export const hashtagsRelations = relations(hashtags, ({ many }) => ({
+  translations: many(hashtagTranslations),
+  postHashtags: many(postHashtags),
+  followers: many(hashtagFollows),
+  metrics: many(hashtagMetricsDaily),
+}));
+
+export const hashtagTranslationsRelations = relations(hashtagTranslations, ({ one }) => ({
+  hashtag: one(hashtags, {
+    fields: [hashtagTranslations.hashtagId],
+    references: [hashtags.id],
+  }),
+}));
+
+export const postHashtagsRelations = relations(postHashtags, ({ one }) => ({
+  post: one(posts, {
+    fields: [postHashtags.postId],
+    references: [posts.id],
+  }),
+  hashtag: one(hashtags, {
+    fields: [postHashtags.hashtagId],
+    references: [hashtags.id],
+  }),
+}));
+
+export const hashtagFollowsRelations = relations(hashtagFollows, ({ one }) => ({
+  user: one(users, {
+    fields: [hashtagFollows.userId],
+    references: [users.id],
+  }),
+  hashtag: one(hashtags, {
+    fields: [hashtagFollows.hashtagId],
+    references: [hashtags.id],
+  }),
+}));
+
+export const postSavesRelations = relations(postSaves, ({ one }) => ({
+  user: one(users, {
+    fields: [postSaves.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [postSaves.postId],
+    references: [posts.id],
+  }),
+}));
+
+export const userEngagementEventsRelations = relations(userEngagementEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [userEngagementEvents.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [userEngagementEvents.postId],
+    references: [posts.id],
+  }),
+}));
+
+export const userFeedPreferencesRelations = relations(userFeedPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userFeedPreferences.userId],
+    references: [users.id],
+  }),
+}));
