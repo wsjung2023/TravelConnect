@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Clock, Users, Camera, Phone, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,17 +10,20 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
-import type { InsertExperience } from '@shared/schema';
+import type { InsertExperience, Experience } from '@shared/schema';
 
 interface CreateExperienceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editExperience?: Experience | null;
 }
 
 export default function CreateExperienceModal({
   isOpen,
   onClose,
+  editExperience,
 }: CreateExperienceModalProps) {
+  const isEditMode = !!editExperience;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -42,6 +45,33 @@ export default function CreateExperienceModal({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { t } = useTranslation('ui');
+
+  useEffect(() => {
+    if (editExperience) {
+      setTitle(editExperience.title || '');
+      setDescription(editExperience.description || '');
+      setPrice(editExperience.price?.toString() || '');
+      setLocation(editExperience.location || '');
+      setCategory(editExperience.category || '');
+      setDuration(editExperience.duration?.toString() || '');
+      setMaxParticipants(editExperience.maxParticipants?.toString() || '');
+      setMeetingPoint((editExperience as any).meetingPoint || '');
+      setContactPhone((editExperience as any).contactPhone || '');
+      setIncluded(editExperience.included?.join('\n') || '');
+      setRequirements(editExperience.requirements?.join('\n') || '');
+      setCancelPolicy((editExperience as any).cancelPolicy || 'flexible');
+      setMinLeadHours((editExperience as any).minLeadHours?.toString() || '24');
+      setAutoConfirm((editExperience as any).autoConfirm ?? true);
+      if (editExperience.latitude && editExperience.longitude) {
+        setLocationCoords({
+          lat: parseFloat(editExperience.latitude),
+          lng: parseFloat(editExperience.longitude),
+        });
+      }
+    } else {
+      resetForm();
+    }
+  }, [editExperience, isOpen]);
 
   const experienceMutation = useMutation({
     mutationFn: async (experience: InsertExperience) => {
@@ -65,6 +95,34 @@ export default function CreateExperienceModal({
       toast({
         title: t('experience.createError'),
         description: t('experience.createErrorDesc'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateExperienceMutation = useMutation({
+    mutationFn: async (experience: Partial<InsertExperience>) => {
+      return api(`/api/experiences/${editExperience?.id}`, {
+        method: 'PATCH',
+        body: experience,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('experience.updateSuccess') || 'Experience updated',
+        description: t('experience.updateSuccessDesc') || 'Your experience has been updated successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/host/experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/experiences', editExperience?.id] });
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      console.error('Experience update error:', error);
+      toast({
+        title: t('experience.updateError') || 'Update failed',
+        description: t('experience.updateErrorDesc') || 'Failed to update experience. Please try again.',
         variant: 'destructive',
       });
     },
@@ -129,8 +187,8 @@ export default function CreateExperienceModal({
       return;
     }
 
-    const experienceData: InsertExperience = {
-      hostId: user.id,
+    const experienceData: Partial<InsertExperience> = {
+      hostId: isEditMode ? editExperience.hostId : user.id,
       title: title.trim(),
       description: description.trim(),
       price: price,
@@ -148,10 +206,14 @@ export default function CreateExperienceModal({
       cancelPolicy,
       minLeadHours: parseInt(minLeadHours),
       autoConfirm,
-      images: [], // 향후 이미지 업로드 기능 추가 예정
+      images: isEditMode ? editExperience.images : [],
     };
 
-    experienceMutation.mutate(experienceData);
+    if (isEditMode) {
+      updateExperienceMutation.mutate(experienceData);
+    } else {
+      experienceMutation.mutate(experienceData as InsertExperience);
+    }
   };
 
   if (!isOpen) return null;
@@ -163,7 +225,9 @@ export default function CreateExperienceModal({
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
             <Camera className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold">새 경험 등록</h2>
+            <h2 className="text-xl font-semibold">
+              {isEditMode ? (t('experience.editExperience') || '경험 수정') : '새 경험 등록'}
+            </h2>
           </div>
           <Button
             variant="ghost"
@@ -452,10 +516,13 @@ export default function CreateExperienceModal({
             </Button>
             <Button
               type="submit"
-              disabled={experienceMutation.isPending}
+              disabled={experienceMutation.isPending || updateExperienceMutation.isPending}
               data-testid="button-submit-experience"
             >
-              {experienceMutation.isPending ? '등록 중...' : '경험 등록'}
+              {isEditMode
+                ? (updateExperienceMutation.isPending ? '수정 중...' : '경험 수정')
+                : (experienceMutation.isPending ? '등록 중...' : '경험 등록')
+              }
             </Button>
           </div>
         </form>

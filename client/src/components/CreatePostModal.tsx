@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Camera, MapPin, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import type { InsertPost } from '@shared/schema';
+import type { InsertPost, Post } from '@shared/schema';
 import exifr from 'exifr';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +15,7 @@ interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   location?: { lat: number; lng: number; name?: string } | null;
+  editPost?: Post | null;
 }
 
 interface ExifData {
@@ -27,18 +28,13 @@ export default function CreatePostModal({
   isOpen,
   onClose,
   location: initialLocation,
+  editPost,
 }: CreatePostModalProps) {
+  const isEditMode = !!editPost;
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [location, setLocation] = useState(
-    initialLocation?.name ||
-      (initialLocation
-        ? `${initialLocation.lat.toFixed(4)}, ${initialLocation.lng.toFixed(4)}`
-        : '')
-  );
-  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(
-    initialLocation ? { lat: initialLocation.lat, lng: initialLocation.lng } : null
-  );
+  const [location, setLocation] = useState('');
+  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [theme, setTheme] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -46,6 +42,38 @@ export default function CreatePostModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation('ui');
+
+  useEffect(() => {
+    if (editPost) {
+      setTitle(editPost.title || '');
+      setContent(editPost.content || '');
+      setLocation(editPost.location || '');
+      setTheme(editPost.theme || '');
+      setImages(editPost.images || []);
+      if (editPost.latitude && editPost.longitude) {
+        setLocationCoords({
+          lat: parseFloat(editPost.latitude),
+          lng: parseFloat(editPost.longitude),
+        });
+      }
+    } else {
+      setTitle('');
+      setContent('');
+      setLocation(
+        initialLocation?.name ||
+          (initialLocation
+            ? `${initialLocation.lat.toFixed(4)}, ${initialLocation.lng.toFixed(4)}`
+            : '')
+      );
+      setLocationCoords(
+        initialLocation ? { lat: initialLocation.lat, lng: initialLocation.lng } : null
+      );
+      setTheme('');
+      setImages([]);
+      setImageFiles([]);
+      setExifData([]);
+    }
+  }, [editPost, initialLocation, isOpen]);
 
   const createPostMutation = useMutation({
     mutationFn: async (post: any) => {
@@ -60,14 +88,7 @@ export default function CreatePostModal({
         description: t('post.createSuccessDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
-      setTitle('');
-      setContent('');
-      setLocation('');
-      setLocationCoords(null);
-      setTheme('');
-      setImages([]);
-      setImageFiles([]);
-      setExifData([]);
+      resetForm();
       onClose();
     },
     onError: (error) => {
@@ -78,6 +99,42 @@ export default function CreatePostModal({
       });
     },
   });
+
+  const updatePostMutation = useMutation({
+    mutationFn: async (post: any) => {
+      return api(`/api/posts/${editPost?.id}`, {
+        method: 'PATCH',
+        body: post,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('post.updateSuccess') || 'Post updated',
+        description: t('post.updateSuccessDesc') || 'Your post has been updated successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        title: t('post.updateError') || 'Update failed',
+        description: t('post.updateErrorDesc') || 'Failed to update post. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setLocation('');
+    setLocationCoords(null);
+    setTheme('');
+    setImages([]);
+    setImageFiles([]);
+    setExifData([]);
+  };
 
   // EXIF 데이터 추출 함수
   const extractExifData = async (file: File): Promise<ExifData> => {
@@ -215,15 +272,20 @@ export default function CreatePostModal({
       content,
       location: location || undefined,
       theme,
-      images: uploadedImageUrls.length > 0 ? uploadedImageUrls : undefined,
+      images: uploadedImageUrls.length > 0 ? uploadedImageUrls : (isEditMode ? images : undefined),
       takenAt: earliestTakenAt || undefined,
       latitude: locationCoords?.lat?.toString() || bestLatitude?.toString(),
       longitude: locationCoords?.lng?.toString() || bestLongitude?.toString(),
       mediaFiles: uploadedMediaFiles.length > 0 ? uploadedMediaFiles : undefined,
     };
 
-    console.log('게시글 생성 데이터:', post);
-    createPostMutation.mutate(post);
+    if (isEditMode) {
+      console.log('게시글 수정 데이터:', post);
+      updatePostMutation.mutate(post);
+    } else {
+      console.log('게시글 생성 데이터:', post);
+      createPostMutation.mutate(post);
+    }
   };
 
   if (!isOpen) return null;
@@ -233,7 +295,9 @@ export default function CreatePostModal({
       <div className="bg-white rounded-t-3xl w-full max-h-[90vh] overflow-y-auto slide-up">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">{t('post.newPost')}</h2>
+          <h2 className="text-lg font-semibold">
+            {isEditMode ? (t('post.editPost') || 'Edit Post') : t('post.newPost')}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full"
@@ -362,10 +426,14 @@ export default function CreatePostModal({
             </Button>
             <Button
               type="submit"
-              disabled={!title.trim() || !content.trim() || !theme || createPostMutation.isPending}
+              disabled={!title.trim() || !content.trim() || !theme || createPostMutation.isPending || updatePostMutation.isPending}
               className="flex-1 travel-button"
+              data-testid="button-submit-post"
             >
-              {createPostMutation.isPending ? t('post.posting') : t('post.publish')}
+              {isEditMode
+                ? (updatePostMutation.isPending ? (t('post.updating') || 'Updating...') : (t('post.update') || 'Update'))
+                : (createPostMutation.isPending ? t('post.posting') : t('post.publish'))
+              }
             </Button>
           </div>
         </form>

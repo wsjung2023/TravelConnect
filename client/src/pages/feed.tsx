@@ -26,7 +26,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import PostDetailModal from '@/components/PostDetailModal';
+import CreatePostModal from '@/components/CreatePostModal';
+import CreateExperienceModal from '@/components/CreateExperienceModal';
 import { VirtualizedFeed, FeedStats } from '@/components/VirtualizedFeed';
+import type { Experience } from '@shared/schema';
 import { groupSimilarPosts } from '@/utils/postGrouping';
 import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
@@ -70,6 +73,8 @@ type FilterType = 'all' | 'posts' | 'experiences';
 export default function Feed() {
   const { t } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [editPost, setEditPost] = useState<Post | null>(null);
+  const [editExperience, setEditExperience] = useState<Experience | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [failedImages, setFailedImages] = useState(new Set<number>());
   const [filter, setFilter] = useState<FilterType>('all');
@@ -250,11 +255,7 @@ export default function Feed() {
   };
 
   const handleEditPost = (post: Post) => {
-    // TODO: Implement edit functionality
-    toast({
-      title: t('feedPage.editFeature'),
-      description: t('feedPage.editFeatureDesc'),
-    });
+    setEditPost(post);
   };
 
   const handleDeletePost = async (post: Post) => {
@@ -270,6 +271,29 @@ export default function Feed() {
         toast({
           title: t('feedPage.deleteFailed'),
           description: t('feedPage.deleteFailedDesc'),
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleEditExperience = (experience: any) => {
+    setEditExperience(experience);
+  };
+
+  const handleDeleteExperience = async (experience: any) => {
+    if (confirm(t('feedPage.confirmDeleteExperience', { title: experience.title }) || `Delete "${experience.title}"?`)) {
+      try {
+        await api(`/api/experiences/${experience.id}`, { method: 'DELETE' });
+        queryClient.invalidateQueries({ queryKey: ['/api/experiences'] });
+        toast({
+          title: t('feedPage.deleteExperienceSuccess') || 'Experience deleted',
+          description: t('feedPage.deleteExperienceSuccessDesc') || 'Your experience has been deleted.',
+        });
+      } catch (error) {
+        toast({
+          title: t('feedPage.deleteExperienceFailed') || 'Delete failed',
+          description: t('feedPage.deleteExperienceFailedDesc') || 'Failed to delete experience.',
           variant: 'destructive',
         });
       }
@@ -445,17 +469,18 @@ export default function Feed() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem
-                      onClick={() => handleSharePost(item)}
+                      onClick={(e) => { e.stopPropagation(); handleSharePost(item); }}
                       data-testid={`item-share-${item.id}`}
                     >
                       <Share2 size={16} className="mr-2" />
                       {t('feedPage.share')}
                     </DropdownMenuItem>
                     
-                    {currentUser?.id === item.userId && (
+                    {/* Owner actions for posts */}
+                    {!isExperience && currentUser?.id === item.userId && (
                       <>
                         <DropdownMenuItem
-                          onClick={() => handleEditPost(item)}
+                          onClick={(e) => { e.stopPropagation(); handleEditPost(item); }}
                           data-testid={`item-edit-${item.id}`}
                         >
                           <Edit3 size={16} className="mr-2" />
@@ -463,7 +488,7 @@ export default function Feed() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => handleDeletePost(item)}
+                          onClick={(e) => { e.stopPropagation(); handleDeletePost(item); }}
                           className="text-red-600 focus:text-red-600"
                           data-testid={`item-delete-${item.id}`}
                         >
@@ -472,12 +497,34 @@ export default function Feed() {
                         </DropdownMenuItem>
                       </>
                     )}
+
+                    {/* Owner actions for experiences */}
+                    {isExperience && currentUser?.id === (item.hostId || item.userId) && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={(e) => { e.stopPropagation(); handleEditExperience(item); }}
+                          data-testid={`item-edit-exp-${item.id}`}
+                        >
+                          <Edit3 size={16} className="mr-2" />
+                          {t('feedPage.edit')}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => { e.stopPropagation(); handleDeleteExperience(item); }}
+                          className="text-red-600 focus:text-red-600"
+                          data-testid={`item-delete-exp-${item.id}`}
+                        >
+                          <Trash2 size={16} className="mr-2" />
+                          {t('feedPage.delete')}
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     
-                    {currentUser?.id !== item.userId && (
+                    {currentUser?.id !== item.userId && currentUser?.id !== (isExperience ? item.hostId : null) && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => handleReportPost(item)}
+                          onClick={(e) => { e.stopPropagation(); handleReportPost(item); }}
                           className="text-red-600 focus:text-red-600"
                           data-testid={`item-report-${item.id}`}
                         >
@@ -642,6 +689,20 @@ export default function Feed() {
           isLiked={likedPosts.has(selectedPost.id)}
         />
       )}
+
+      {/* Edit Post Modal */}
+      <CreatePostModal
+        isOpen={!!editPost}
+        onClose={() => setEditPost(null)}
+        editPost={editPost}
+      />
+
+      {/* Edit Experience Modal */}
+      <CreateExperienceModal
+        isOpen={!!editExperience}
+        onClose={() => setEditExperience(null)}
+        editExperience={editExperience}
+      />
     </div>
   );
 }
