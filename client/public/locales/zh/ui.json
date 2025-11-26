@@ -24,7 +24,9 @@
     "searchLocation": "搜索位置...",
     "writeReview": "请写下您对这次体验的诚实评价...",
     "destinationExample": "例：东京，日本或首尔，韩国",
-    "enterMessage": "输入您的消息..."
+    "enterMessage": "输入您的消息...",
+    "timelineTitle": "输入时间线标题...",
+    "timelineDescription": "描述您的旅行体验..."
   },
   "chat": {
     "online": "在线",
@@ -121,7 +123,10 @@
   },
   "timeline": {
     "create": "创建新时间线",
-    "titleLabel": "时间线标题 *",
+    "title": "旅行时间线",
+    "noTimelines": "还没有时间线",
+    "createFirst": "创建您的第一个旅行时间线，开始规划您的旅行！",
+    "titleLabel": "时间线标题",
     "destinationLabel": "旅行目的地 *",
     "startDateLabel": "开始日期 *",
     "durationLabel": "旅行时长",
@@ -132,7 +137,13 @@
     "createSuccess": "旅行计划创建成功",
     "createSuccessDesc": "您的新旅行计划已成功创建！",
     "createError": "创建失败",
-    "createErrorDesc": "创建旅行计划时发生错误。请重试。"
+    "createErrorDesc": "创建旅行计划时发生错误。请重试。",
+    "createdSchedule": "已创建的旅行日程",
+    "timelineInfo": "时间线信息",
+    "titleRequired": "请输入时间线标题",
+    "validationError": "输入错误",
+    "completeButton": "完成时间线",
+    "descriptionHelp": "简要描述您的旅行（可选）"
   },
   "post": {
     "noTitle": "无标题",

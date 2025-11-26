@@ -24,7 +24,9 @@
     "searchLocation": "場所を検索...",
     "writeReview": "この体験についての正直なレビューを書いてください...",
     "destinationExample": "例：東京、日本またはソウル、韓国",
-    "enterMessage": "メッセージを入力..."
+    "enterMessage": "メッセージを入力...",
+    "timelineTitle": "タイムラインのタイトルを入力...",
+    "timelineDescription": "旅行体験を説明してください..."
   },
   "chat": {
     "online": "オンライン",
@@ -121,7 +123,10 @@
   },
   "timeline": {
     "create": "新しいタイムラインを作成",
-    "titleLabel": "タイムラインタイトル *",
+    "title": "旅行タイムライン",
+    "noTimelines": "まだタイムラインがありません",
+    "createFirst": "最初の旅行タイムラインを作成して、旅行計画を始めましょう！",
+    "titleLabel": "タイムラインタイトル",
     "destinationLabel": "旅行先 *",
     "startDateLabel": "開始日 *",
     "durationLabel": "旅行期間",
@@ -132,7 +137,13 @@
     "createSuccess": "旅行プラン作成完了",
     "createSuccessDesc": "新しい旅行プランが正常に作成されました！",
     "createError": "作成失敗",
-    "createErrorDesc": "旅行プランの作成中にエラーが発生しました。もう一度お試しください。"
+    "createErrorDesc": "旅行プランの作成中にエラーが発生しました。もう一度お試しください。",
+    "createdSchedule": "作成された旅行スケジュール",
+    "timelineInfo": "タイムライン情報",
+    "titleRequired": "タイムラインのタイトルを入力してください",
+    "validationError": "入力エラー",
+    "completeButton": "タイムラインを完成する",
+    "descriptionHelp": "旅行について簡単に説明してください（任意）"
   },
   "post": {
     "noTitle": "タイトルなし",

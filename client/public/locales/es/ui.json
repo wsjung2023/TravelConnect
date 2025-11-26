@@ -24,7 +24,9 @@
     "searchLocation": "Buscar ubicación...",
     "writeReview": "Escribe tu reseña honesta sobre esta experiencia...",
     "destinationExample": "Ej: Tokio, Japón o Seúl, Corea del Sur",
-    "enterMessage": "Ingresa tu mensaje..."
+    "enterMessage": "Ingresa tu mensaje...",
+    "timelineTitle": "Ingresa el título de la línea de tiempo...",
+    "timelineDescription": "Describe tu experiencia de viaje..."
   },
   "chat": {
     "online": "En línea",
@@ -133,7 +135,10 @@
   },
   "timeline": {
     "create": "Crear nueva cronología",
-    "titleLabel": "Título de la cronología *",
+    "title": "Cronología de viaje",
+    "noTimelines": "Aún no hay cronologías",
+    "createFirst": "¡Crea tu primera cronología de viaje para comenzar a planificar tus viajes!",
+    "titleLabel": "Título de la cronología",
     "destinationLabel": "Destino del viaje *",
     "startDateLabel": "Fecha de inicio *",
     "durationLabel": "Duración del viaje",
@@ -144,7 +149,13 @@
     "createSuccess": "Plan de viaje creado",
     "createSuccessDesc": "¡Tu nuevo plan de viaje ha sido creado exitosamente!",
     "createError": "Error de creación",
-    "createErrorDesc": "Ocurrió un error al crear el plan de viaje. Por favor intenta de nuevo."
+    "createErrorDesc": "Ocurrió un error al crear el plan de viaje. Por favor intenta de nuevo.",
+    "createdSchedule": "Itinerario de viaje creado",
+    "timelineInfo": "Información de la cronología",
+    "titleRequired": "Por favor ingresa un título para la cronología",
+    "validationError": "Error de validación",
+    "completeButton": "Completar cronología",
+    "descriptionHelp": "Describe brevemente tu viaje (opcional)"
   },
   "post": {
     "noTitle": "Sin título",
