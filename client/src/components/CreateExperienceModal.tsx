@@ -25,6 +25,7 @@ export default function CreateExperienceModal({
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState('');
+  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [category, setCategory] = useState('');
   const [duration, setDuration] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
@@ -74,6 +75,7 @@ export default function CreateExperienceModal({
     setDescription('');
     setPrice('');
     setLocation('');
+    setLocationCoords(null);
     setCategory('');
     setDuration('');
     setMaxParticipants('');
@@ -134,6 +136,8 @@ export default function CreateExperienceModal({
       price: price,
       currency: 'KRW',
       location: location.trim(),
+      latitude: locationCoords?.lat?.toString(),
+      longitude: locationCoords?.lng?.toString(),
       category,
       duration: duration ? parseInt(duration) : undefined,
       maxParticipants: maxParticipants ? parseInt(maxParticipants) : undefined,
@@ -259,8 +263,24 @@ export default function CreateExperienceModal({
               </label>
               <LocationSearchInput
                 value={location}
-                onChange={(value) => { setLocation(value); setFieldErrors(prev => ({ ...prev, location: '' })); }}
-                placeholder="도시, 국가를 검색하세요"
+                onChange={(value, placeData) => {
+                  if (placeData && placeData.geometry && placeData.geometry.location) {
+                    setLocation(placeData.formatted_address || value);
+                    setLocationCoords({
+                      lat: typeof placeData.geometry.location.lat === 'function' 
+                        ? placeData.geometry.location.lat() 
+                        : placeData.geometry.location.lat,
+                      lng: typeof placeData.geometry.location.lng === 'function'
+                        ? placeData.geometry.location.lng()
+                        : placeData.geometry.location.lng,
+                    });
+                  } else {
+                    setLocation(value);
+                    setLocationCoords(null);
+                  }
+                  setFieldErrors(prev => ({ ...prev, location: '' }));
+                }}
+                placeholder="장소, 음식점, 카페, 랜드마크, 주소 검색..."
                 useCurrentLocationText="현재 위치 사용"
                 className={fieldErrors.location ? 'border-red-500' : ''}
               />
