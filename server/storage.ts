@@ -3816,10 +3816,10 @@ export class DatabaseStorage implements IStorage {
 
         const userPrefs = await this.getUserFeedPreferences(userId);
         const followedHashtags = await this.getFollowedHashtags(userId);
-        const followedUsers = await db.select({ followedId: follows.followedId })
+        const followedUsers = await db.select({ followingId: follows.followingId })
           .from(follows)
           .where(eq(follows.followerId, userId));
-        const followedUserIds = new Set(followedUsers.map(f => f.followedId));
+        const followedUserIds = new Set(followedUsers.map(f => f.followingId));
         const followedHashtagIds = new Set(followedHashtags.map(f => f.hashtagId));
 
         const recentPosts = await db.select().from(posts)

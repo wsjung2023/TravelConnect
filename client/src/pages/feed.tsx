@@ -12,6 +12,8 @@ import {
   Flag,
   Edit3,
   Trash2,
+  Bookmark,
+  BookmarkCheck,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,8 @@ import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
 import SmartImage from '@/components/SmartImage';
 import { Seo } from '@/components/Seo';
+import FeedModeSelector, { type FeedMode } from '@/components/FeedModeSelector';
+import TrendingHashtags from '@/components/TrendingHashtags';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -71,27 +75,63 @@ const saveLikedPostsToStorage = (likedPosts: Set<number>, userId?: string) => {
 type FilterType = 'all' | 'posts' | 'experiences';
 
 export default function Feed() {
-  const { t } = useTranslation('ui');
+  const { t, i18n } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editPost, setEditPost] = useState<Post | null>(null);
   const [editExperience, setEditExperience] = useState<Experience | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [failedImages, setFailedImages] = useState(new Set<number>());
   const [filter, setFilter] = useState<FilterType>('all');
+  const [feedMode, setFeedMode] = useState<FeedMode>('smart');
+  const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const { data: posts = [], isLoading: isLoadingPosts } = useQuery<Post[]>({
-    queryKey: ['/api/posts'],
+  const { data: smartFeedPosts = [], isLoading: isLoadingFeed } = useQuery<(Post & { score?: number; hashtags?: { id: number; name: string }[]; isSaved?: boolean })[]>({
+    queryKey: ['/api/feed', feedMode],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        mode: feedMode,
+        limit: '50',
+      });
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => 
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
+          );
+          params.set('lat', position.coords.latitude.toString());
+          params.set('lng', position.coords.longitude.toString());
+        } catch {}
+      }
+      const response = await fetch(`/api/feed?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch feed');
+      return response.json();
+    },
   });
+
+  const posts = smartFeedPosts;
 
   const { data: experiences = [], isLoading: isLoadingExperiences } = useQuery<any[]>({
     queryKey: ['/api/experiences'],
   });
 
-  const isLoading = isLoadingPosts || isLoadingExperiences;
+  const { data: savedPostsData = [] } = useQuery<{ id: number }[]>({
+    queryKey: ['/api/me/saved-posts'],
+    queryFn: async () => {
+      const response = await fetch('/api/me/saved-posts?limit=100');
+      if (!response.ok) return [];
+      return response.json();
+    },
+    staleTime: 30000,
+  });
+
+  useEffect(() => {
+    setSavedPosts(new Set(savedPostsData.map(p => p.id)));
+  }, [savedPostsData]);
+
+  const isLoading = isLoadingFeed || isLoadingExperiences;
 
   const { data: currentUser } = useQuery<{ id: string; email: string; role?: string }>({
     queryKey: ['/api/auth/me'],
@@ -146,13 +186,12 @@ export default function Feed() {
       return api(`/api/posts/${postId}/like`, { method: 'POST' });
     },
     onMutate: async (postId) => {
-      // 옵티미스틱 업데이트: UI를 먼저 업데이트
-      await queryClient.cancelQueries({ queryKey: ['/api/posts'] });
+      const feedQueryKey = ['/api/feed', feedMode];
+      await queryClient.cancelQueries({ queryKey: feedQueryKey });
       
-      const previousPosts = queryClient.getQueryData<Post[]>(['/api/posts']);
+      const previousPosts = queryClient.getQueryData<Post[]>(feedQueryKey);
       
-      // 즉시 UI 업데이트
-      queryClient.setQueryData<Post[]>(['/api/posts'], (oldPosts) => {
+      queryClient.setQueryData<Post[]>(feedQueryKey, (oldPosts) => {
         if (!oldPosts) return oldPosts;
         return oldPosts.map(post => {
           if (post.id === postId) {
@@ -167,7 +206,6 @@ export default function Feed() {
         });
       });
       
-      // likedPosts 상태도 즉시 업데이트
       setLikedPosts((prev) => {
         const newSet = new Set(prev);
         const wasLiked = newSet.has(postId);
@@ -179,14 +217,12 @@ export default function Feed() {
         return newSet;
       });
       
-      return { previousPosts };
+      return { previousPosts, feedQueryKey };
     },
     onError: (err, postId, context) => {
-      // 에러 시 롤백
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['/api/posts'], context.previousPosts);
+      if (context?.previousPosts && context?.feedQueryKey) {
+        queryClient.setQueryData(context.feedQueryKey, context.previousPosts);
       }
-      // likedPosts도 롤백
       setLikedPosts((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(postId)) {
@@ -198,8 +234,7 @@ export default function Feed() {
       });
     },
     onSettled: () => {
-      // 완료 후 서버에서 최신 데이터 가져오기
-      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/feed', feedMode] });
     },
   });
 
@@ -263,7 +298,7 @@ export default function Feed() {
     if (confirm(t('feedPage.confirmDelete', { title: post.title }))) {
       try {
         await api(`/api/posts/${post.id}`, { method: 'DELETE' });
-        queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/feed', feedMode] });
         toast({
           title: t('feedPage.deleteSuccess'),
           description: t('feedPage.deleteSuccessDesc'),
@@ -301,6 +336,40 @@ export default function Feed() {
     }
   };
 
+  const saveMutation = useMutation({
+    mutationFn: async ({ postId, action }: { postId: number; action: 'save' | 'unsave' }) => {
+      const method = action === 'save' ? 'POST' : 'DELETE';
+      return api(`/api/posts/${postId}/save`, { method });
+    },
+    onMutate: async ({ postId, action }) => {
+      setSavedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (action === 'save') {
+          newSet.add(postId);
+        } else {
+          newSet.delete(postId);
+        }
+        return newSet;
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/me/saved-posts'] });
+    },
+  });
+
+  const handleSavePost = (postId: number) => {
+    const isSaved = savedPosts.has(postId);
+    saveMutation.mutate({ postId, action: isSaved ? 'unsave' : 'save' });
+  };
+
+  const handleHashtagClick = (hashtag: { id: number; name: string }) => {
+    setLocation(`/feed?hashtag=${hashtag.id}`);
+    toast({
+      title: `#${hashtag.name}`,
+      description: t('feedPage.viewingHashtag') || 'Viewing posts with this hashtag',
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="mobile-content p-4">
@@ -335,7 +404,7 @@ export default function Feed() {
       />
       {/* Header */}
       <div className="border-b bg-white sticky top-0 z-10">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setLocation('/')}
@@ -347,23 +416,22 @@ export default function Feed() {
             <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
-            {/* 가상화 토글 */}
-            <button
-              onClick={() => setUseVirtualization(!useVirtualization)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                shouldUseVirtualization 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {shouldUseVirtualization ? t('feedPage.virtualizationOn') : t('feedPage.virtualizationOff')}
-            </button>
             <Link href="/timeline">
               <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
                 <Calendar size={20} className="text-purple-600" />
               </button>
             </Link>
           </div>
+        </div>
+        
+        {/* Feed Mode Selector */}
+        <div className="px-4 pb-2">
+          <FeedModeSelector mode={feedMode} onModeChange={setFeedMode} />
+        </div>
+
+        {/* Trending Hashtags */}
+        <div className="px-4 pb-3">
+          <TrendingHashtags onHashtagClick={handleHashtagClick} />
         </div>
         
         {/* Filter Buttons */}
@@ -646,6 +714,7 @@ export default function Feed() {
                           ? 'text-red-500'
                           : 'text-gray-600 hover:text-red-500'
                       } ${likeMutation.isPending ? 'opacity-50' : ''}`}
+                      data-testid={`button-like-${item.id}`}
                     >
                       <Heart
                         size={20}
@@ -658,14 +727,34 @@ export default function Feed() {
                     <button
                       className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
                       onClick={() => setSelectedPost(item)}
+                      data-testid={`button-comment-${item.id}`}
                     >
                       <MessageCircle size={20} />
                       <span className="text-sm">{item.commentsCount || 0}</span>
                     </button>
+                    {!isExperience && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleSavePost(item.id); }}
+                        disabled={saveMutation.isPending}
+                        className={`flex items-center gap-1 transition-colors ${
+                          savedPosts.has(item.id)
+                            ? 'text-purple-500'
+                            : 'text-gray-600 hover:text-purple-500'
+                        }`}
+                        data-testid={`button-save-${item.id}`}
+                      >
+                        {savedPosts.has(item.id) ? (
+                          <BookmarkCheck size={20} className="fill-current" />
+                        ) : (
+                          <Bookmark size={20} />
+                        )}
+                      </button>
+                    )}
                   </div>
                   <button
                     onClick={() => setSelectedPost(item)}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
+                    data-testid={`button-view-${item.id}`}
                   >
                     {t('feedPage.viewDetails')}
                   </button>
