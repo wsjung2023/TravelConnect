@@ -3747,13 +3747,34 @@ export class DatabaseStorage implements IStorage {
 
       case 'popular': {
         const allPosts = await db.select().from(posts).orderBy(desc(posts.createdAt)).limit(100);
-        const scored = await Promise.all(allPosts.map(async (post) => {
-          const velocity = await this.getPostVelocity(post.id);
+        
+        if (allPosts.length === 0) return [];
+
+        const postIds = allPosts.map(p => p.id);
+        const windowStart = new Date();
+        windowStart.setMinutes(windowStart.getMinutes() - 120);
+
+        const velocityCounts = await db.select({
+          postId: userEngagementEvents.postId,
+          count: sql<number>`count(*)`
+        })
+          .from(userEngagementEvents)
+          .where(and(
+            inArray(userEngagementEvents.postId, postIds),
+            gte(userEngagementEvents.createdAt, windowStart)
+          ))
+          .groupBy(userEngagementEvents.postId);
+
+        const velocityMap = new Map(velocityCounts.map(v => [v.postId, Number(v.count)]));
+
+        const scored = allPosts.map(post => {
+          const velocity = velocityMap.get(post.id) || 0;
           const likeCount = Number(post.likeCount || 0);
           const commentCount = Number(post.commentCount || 0);
           const score = (likeCount * 1) + (commentCount * 2) + (velocity * 3);
           return { ...post, score };
-        }));
+        });
+
         scored.sort((a, b) => (b.score || 0) - (a.score || 0));
         return scored.slice(offset, offset + limit);
       }
@@ -3814,17 +3835,58 @@ export class DatabaseStorage implements IStorage {
           velocityWindowMinutes: 120,
         };
 
-        const userPrefs = await this.getUserFeedPreferences(userId);
-        const followedHashtags = await this.getFollowedHashtags(userId);
-        const followedUsers = await db.select({ followingId: follows.followingId })
-          .from(follows)
-          .where(eq(follows.followerId, userId));
+        const [userPrefs, followedHashtags, followedUsers, recentPosts] = await Promise.all([
+          this.getUserFeedPreferences(userId),
+          this.getFollowedHashtags(userId),
+          db.select({ followingId: follows.followingId })
+            .from(follows)
+            .where(eq(follows.followerId, userId)),
+          db.select().from(posts)
+            .orderBy(desc(posts.createdAt))
+            .limit(100)
+        ]);
+
         const followedUserIds = new Set(followedUsers.map(f => f.followingId));
         const followedHashtagIds = new Set(followedHashtags.map(f => f.hashtagId));
 
-        const recentPosts = await db.select().from(posts)
-          .orderBy(desc(posts.createdAt))
-          .limit(100);
+        if (recentPosts.length === 0) return [];
+
+        const postIds = recentPosts.map(p => p.id);
+
+        const [allPostHashtags, allVelocities] = await Promise.all([
+          db.select({
+            postId: postHashtags.postId,
+            hashtagId: postHashtags.hashtagId,
+          })
+            .from(postHashtags)
+            .where(inArray(postHashtags.postId, postIds)),
+          
+          (async () => {
+            const windowStart = new Date();
+            windowStart.setMinutes(windowStart.getMinutes() - Number(weights.velocityWindowMinutes));
+            
+            const velocityCounts = await db.select({
+              postId: userEngagementEvents.postId,
+              count: sql<number>`count(*)`
+            })
+              .from(userEngagementEvents)
+              .where(and(
+                inArray(userEngagementEvents.postId, postIds),
+                gte(userEngagementEvents.createdAt, windowStart)
+              ))
+              .groupBy(userEngagementEvents.postId);
+            
+            return new Map(velocityCounts.map(v => [v.postId, Number(v.count)]));
+          })()
+        ]);
+
+        const postHashtagMap = new Map<number, number[]>();
+        for (const ph of allPostHashtags) {
+          if (!postHashtagMap.has(ph.postId)) {
+            postHashtagMap.set(ph.postId, []);
+          }
+          postHashtagMap.get(ph.postId)!.push(ph.hashtagId);
+        }
 
         const scored: (Post & { score: number })[] = [];
 
@@ -3840,8 +3902,8 @@ export class DatabaseStorage implements IStorage {
             score += 10 * Number(userPrefs?.affinityWeight || weights.affinityWeight);
           }
 
-          const postHashtagList = await this.getPostHashtags(post.id);
-          const hasFollowedHashtag = postHashtagList.some(ph => followedHashtagIds.has(ph.hashtagId));
+          const postHashtagIds = postHashtagMap.get(post.id) || [];
+          const hasFollowedHashtag = postHashtagIds.some(hid => followedHashtagIds.has(hid));
           if (hasFollowedHashtag) {
             score += 5 * Number(userPrefs?.hashtagWeight || weights.hashtagWeight);
           }
@@ -3859,7 +3921,7 @@ export class DatabaseStorage implements IStorage {
             score += locationScore * 5 * Number(userPrefs?.locationWeight || weights.locationWeight);
           }
 
-          const velocity = await this.getPostVelocity(post.id, Number(weights.velocityWindowMinutes));
+          const velocity = allVelocities.get(post.id) || 0;
           score += (velocity / 10) * Number(userPrefs?.velocityWeight || weights.velocityWeight);
 
           scored.push({ ...post, score });
