@@ -35,6 +35,7 @@ export default function CreateExperienceModal({
   const [cancelPolicy, setCancelPolicy] = useState('flexible');
   const [minLeadHours, setMinLeadHours] = useState('24');
   const [autoConfirm, setAutoConfirm] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { toast } = useToast();
   const { user } = useAuth();
@@ -83,6 +84,7 @@ export default function CreateExperienceModal({
     setCancelPolicy('flexible');
     setMinLeadHours('24');
     setAutoConfirm(true);
+    setFieldErrors({});
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -97,7 +99,26 @@ export default function CreateExperienceModal({
       return;
     }
 
-    if (!title || !description || !price || !location || !category) {
+    const errors: Record<string, string> = {};
+    if (!title.trim()) {
+      errors.title = t('experience.validation.titleRequired', '제목을 입력해주세요');
+    }
+    if (!description.trim()) {
+      errors.description = t('experience.validation.descriptionRequired', '설명을 입력해주세요');
+    }
+    if (!price || parseFloat(price) <= 0) {
+      errors.price = t('experience.validation.priceRequired', '유효한 가격을 입력해주세요');
+    }
+    if (!location.trim()) {
+      errors.location = t('experience.validation.locationRequired', '위치를 선택해주세요');
+    }
+    if (!category) {
+      errors.category = t('experience.validation.categoryRequired', '카테고리를 선택해주세요');
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
       toast({
         title: t('experience.requiredFieldsMissing'),
         description: t('experience.requiredFieldsDesc'),
@@ -165,11 +186,14 @@ export default function CreateExperienceModal({
               </label>
               <Input
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => { setTitle(e.target.value); setFieldErrors(prev => ({ ...prev, title: '' })); }}
                 placeholder="경험의 제목을 입력하세요"
-                required
+                className={fieldErrors.title ? 'border-red-500' : ''}
                 data-testid="input-experience-title"
               />
+              {fieldErrors.title && (
+                <p className="text-red-500 text-sm mt-1" data-testid="error-experience-title">{fieldErrors.title}</p>
+              )}
             </div>
 
             <div>
@@ -178,12 +202,15 @@ export default function CreateExperienceModal({
               </label>
               <Textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => { setDescription(e.target.value); setFieldErrors(prev => ({ ...prev, description: '' })); }}
                 placeholder="경험에 대한 자세한 설명을 입력하세요"
                 rows={4}
-                required
+                className={fieldErrors.description ? 'border-red-500' : ''}
                 data-testid="textarea-experience-description"
               />
+              {fieldErrors.description && (
+                <p className="text-red-500 text-sm mt-1" data-testid="error-experience-description">{fieldErrors.description}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,20 +221,23 @@ export default function CreateExperienceModal({
                 <Input
                   type="number"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => { setPrice(e.target.value); setFieldErrors(prev => ({ ...prev, price: '' })); }}
                   placeholder="10000"
                   min="0"
-                  required
+                  className={fieldErrors.price ? 'border-red-500' : ''}
                   data-testid="input-experience-price"
                 />
+                {fieldErrors.price && (
+                  <p className="text-red-500 text-sm mt-1" data-testid="error-experience-price">{fieldErrors.price}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
                   카테고리 <span className="text-red-500">*</span>
                 </label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger data-testid="select-experience-category">
+                <Select value={category} onValueChange={(v) => { setCategory(v); setFieldErrors(prev => ({ ...prev, category: '' })); }}>
+                  <SelectTrigger data-testid="select-experience-category" className={fieldErrors.category ? 'border-red-500' : ''}>
                     <SelectValue placeholder="카테고리 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,6 +247,9 @@ export default function CreateExperienceModal({
                     <SelectItem value="tip">💡 팁</SelectItem>
                   </SelectContent>
                 </Select>
+                {fieldErrors.category && (
+                  <p className="text-red-500 text-sm mt-1" data-testid="error-experience-category">{fieldErrors.category}</p>
+                )}
               </div>
             </div>
 
@@ -226,10 +259,14 @@ export default function CreateExperienceModal({
               </label>
               <LocationSearchInput
                 value={location}
-                onChange={(value) => setLocation(value)}
+                onChange={(value) => { setLocation(value); setFieldErrors(prev => ({ ...prev, location: '' })); }}
                 placeholder="도시, 국가를 검색하세요"
                 useCurrentLocationText="현재 위치 사용"
+                className={fieldErrors.location ? 'border-red-500' : ''}
               />
+              {fieldErrors.location && (
+                <p className="text-red-500 text-sm mt-1" data-testid="error-experience-location">{fieldErrors.location}</p>
+              )}
             </div>
           </div>
 
