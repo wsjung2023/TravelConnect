@@ -5551,5 +5551,313 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // Smart Feed & Hashtag API
+  // ==========================================
+
+  // 해시태그 검색 (자동완성)
+  app.get('/api/hashtags/search', async (req: Request, res: Response) => {
+    try {
+      const query = (req.query.q as string) || '';
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 20);
+      const lang = (req.query.lang as string) || 'en';
+
+      const hashtags = await storage.searchHashtags(query, limit);
+      
+      const results = await Promise.all(hashtags.map(async (h) => {
+        const withTranslation = await storage.getHashtagWithTranslation(h.id, lang);
+        return {
+          id: h.id,
+          name: h.name,
+          displayName: withTranslation?.translatedName || h.name,
+          postCount: h.postCount,
+          followerCount: h.followerCount,
+        };
+      }));
+
+      res.json(results);
+    } catch (error) {
+      console.error('Error searching hashtags:', error);
+      res.status(500).json({ message: 'Failed to search hashtags' });
+    }
+  });
+
+  // 트렌딩 해시태그
+  app.get('/api/hashtags/trending', async (req: Request, res: Response) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 20);
+      const period = (req.query.period as 'day' | 'week') || 'day';
+      const lang = (req.query.lang as string) || 'en';
+
+      const trending = await storage.getTrendingHashtags(limit, period);
+      
+      const results = await Promise.all(trending.map(async (h) => {
+        const withTranslation = await storage.getHashtagWithTranslation(h.id, lang);
+        return {
+          id: h.id,
+          name: h.name,
+          displayName: withTranslation?.translatedName || h.name,
+          postCount: h.postCount,
+          followerCount: h.followerCount,
+          growthRate: h.growthRate,
+        };
+      }));
+
+      res.json(results);
+    } catch (error) {
+      console.error('Error getting trending hashtags:', error);
+      res.status(500).json({ message: 'Failed to get trending hashtags' });
+    }
+  });
+
+  // 해시태그 상세 정보
+  app.get('/api/hashtags/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const lang = (req.query.lang as string) || 'en';
+
+      const hashtag = await storage.getHashtagWithTranslation(id, lang);
+      if (!hashtag) {
+        return res.status(404).json({ message: 'Hashtag not found' });
+      }
+
+      res.json({
+        id: hashtag.id,
+        name: hashtag.name,
+        displayName: hashtag.translatedName || hashtag.name,
+        postCount: hashtag.postCount,
+        followerCount: hashtag.followerCount,
+        createdAt: hashtag.createdAt,
+      });
+    } catch (error) {
+      console.error('Error getting hashtag:', error);
+      res.status(500).json({ message: 'Failed to get hashtag' });
+    }
+  });
+
+  // 해시태그별 게시물 조회
+  app.get('/api/hashtags/:id/posts', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const posts = await storage.getPostsByHashtag(id, limit, offset);
+      res.json(posts);
+    } catch (error) {
+      console.error('Error getting hashtag posts:', error);
+      res.status(500).json({ message: 'Failed to get hashtag posts' });
+    }
+  });
+
+  // 해시태그 팔로우
+  app.post('/api/hashtags/:id/follow', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const hashtagId = parseInt(req.params.id);
+      const follow = await storage.followHashtag(userId, hashtagId);
+      res.json({ success: true, follow });
+    } catch (error) {
+      console.error('Error following hashtag:', error);
+      res.status(500).json({ message: 'Failed to follow hashtag' });
+    }
+  });
+
+  // 해시태그 언팔로우
+  app.delete('/api/hashtags/:id/follow', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const hashtagId = parseInt(req.params.id);
+      await storage.unfollowHashtag(userId, hashtagId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error unfollowing hashtag:', error);
+      res.status(500).json({ message: 'Failed to unfollow hashtag' });
+    }
+  });
+
+  // 내가 팔로우한 해시태그 목록
+  app.get('/api/me/hashtags', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const lang = (req.query.lang as string) || 'en';
+      const followed = await storage.getFollowedHashtags(userId);
+
+      const results = await Promise.all(followed.map(async (f) => {
+        const withTranslation = await storage.getHashtagWithTranslation(f.hashtagId, lang);
+        return {
+          id: f.hashtag.id,
+          name: f.hashtag.name,
+          displayName: withTranslation?.translatedName || f.hashtag.name,
+          postCount: f.hashtag.postCount,
+          followedAt: f.createdAt,
+        };
+      }));
+
+      res.json(results);
+    } catch (error) {
+      console.error('Error getting followed hashtags:', error);
+      res.status(500).json({ message: 'Failed to get followed hashtags' });
+    }
+  });
+
+  // 게시물 저장 (북마크)
+  app.post('/api/posts/:id/save', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const postId = parseInt(req.params.id);
+      const save = await storage.savePost(userId, postId);
+      res.json({ success: true, save });
+    } catch (error) {
+      console.error('Error saving post:', error);
+      res.status(500).json({ message: 'Failed to save post' });
+    }
+  });
+
+  // 게시물 저장 취소
+  app.delete('/api/posts/:id/save', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const postId = parseInt(req.params.id);
+      await storage.unsavePost(userId, postId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error unsaving post:', error);
+      res.status(500).json({ message: 'Failed to unsave post' });
+    }
+  });
+
+  // 저장한 게시물 목록
+  app.get('/api/me/saved-posts', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const posts = await storage.getSavedPosts(userId, limit, offset);
+      res.json(posts);
+    } catch (error) {
+      console.error('Error getting saved posts:', error);
+      res.status(500).json({ message: 'Failed to get saved posts' });
+    }
+  });
+
+  // 스마트 피드 API
+  app.get('/api/feed', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId || 'anonymous';
+      const mode = (req.query.mode as 'smart' | 'latest' | 'nearby' | 'popular' | 'hashtag') || 'smart';
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const offset = parseInt(req.query.offset as string) || 0;
+      const latitude = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
+      const longitude = req.query.lng ? parseFloat(req.query.lng as string) : undefined;
+
+      const posts = await storage.getSmartFeed(userId, {
+        mode,
+        limit,
+        offset,
+        latitude,
+        longitude,
+      });
+
+      const enrichedPosts = await Promise.all(posts.map(async (post) => {
+        const postHashtags = await storage.getPostHashtags(post.id);
+        const isSaved = userId !== 'anonymous' ? await storage.isPostSaved(userId, post.id) : false;
+        return {
+          ...post,
+          hashtags: postHashtags.map(ph => ({ id: ph.hashtag.id, name: ph.hashtag.name })),
+          isSaved,
+        };
+      }));
+
+      res.json(enrichedPosts);
+    } catch (error) {
+      console.error('Error getting smart feed:', error);
+      res.status(500).json({ message: 'Failed to get feed' });
+    }
+  });
+
+  // 피드 설정 조회
+  app.get('/api/me/feed-preferences', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const prefs = await storage.getUserFeedPreferences(userId);
+      if (!prefs) {
+        return res.json({
+          preferredMode: 'smart',
+          engagementWeight: 0.22,
+          affinityWeight: 0.20,
+          interestWeight: 0.15,
+          hashtagWeight: 0.12,
+          locationWeight: 0.12,
+          recencyWeight: 0.11,
+          velocityWeight: 0.08,
+        });
+      }
+      res.json(prefs);
+    } catch (error) {
+      console.error('Error getting feed preferences:', error);
+      res.status(500).json({ message: 'Failed to get feed preferences' });
+    }
+  });
+
+  // 피드 설정 업데이트
+  app.put('/api/me/feed-preferences', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const prefs = await storage.setUserFeedPreferences({
+        userId,
+        ...req.body,
+      });
+      res.json(prefs);
+    } catch (error) {
+      console.error('Error updating feed preferences:', error);
+      res.status(500).json({ message: 'Failed to update feed preferences' });
+    }
+  });
+
+  // 해시태그 시드 데이터 생성
+  app.post('/api/hashtags/seed', async (req: Request, res: Response) => {
+    try {
+      await storage.seedInitialHashtags();
+      res.json({ message: 'Hashtags seeded successfully' });
+    } catch (error) {
+      console.error('Error seeding hashtags:', error);
+      res.status(500).json({ message: 'Failed to seed hashtags' });
+    }
+  });
+
   return httpServer;
 }

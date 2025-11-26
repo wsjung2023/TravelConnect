@@ -117,9 +117,35 @@ import {
   type InsertPoiCategoryTranslation,
   type PoiTypeTranslation,
   type InsertPoiTypeTranslation,
+  hashtags,
+  hashtagTranslations,
+  postHashtags,
+  hashtagFollows,
+  hashtagMetricsDaily,
+  postSaves,
+  userEngagementEvents,
+  userFeedPreferences,
+  feedAlgorithmWeights,
+  type Hashtag,
+  type InsertHashtag,
+  type HashtagTranslation,
+  type InsertHashtagTranslation,
+  type PostHashtag,
+  type InsertPostHashtag,
+  type HashtagFollow,
+  type InsertHashtagFollow,
+  type HashtagMetricDaily,
+  type PostSave,
+  type InsertPostSave,
+  type UserEngagementEvent,
+  type InsertUserEngagementEvent,
+  type UserFeedPreferences,
+  type InsertUserFeedPreferences,
+  type FeedAlgorithmWeights,
+  type InsertFeedAlgorithmWeights,
 } from '@shared/schema';
 import { db } from './db';
-import { eq, desc, and, or, sql, like, gte, asc } from 'drizzle-orm';
+import { eq, desc, and, or, sql, like, gte, asc, lte, inArray, ne } from 'drizzle-orm';
 
 // Interface for storage operations
 export interface IStorage {
@@ -429,6 +455,63 @@ export interface IStorage {
     remainingCapacity: number;
     conflicts?: string[];
   }>;
+
+  // ==================== Smart Feed & Hashtag System ====================
+  // Hashtag operations
+  createHashtag(hashtag: InsertHashtag): Promise<Hashtag>;
+  getHashtagById(id: number): Promise<Hashtag | undefined>;
+  getHashtagByName(name: string): Promise<Hashtag | undefined>;
+  searchHashtags(query: string, limit?: number): Promise<Hashtag[]>;
+  getTrendingHashtags(limit?: number, period?: 'day' | 'week'): Promise<(Hashtag & { growthRate: number })[]>;
+  updateHashtagCounts(id: number): Promise<Hashtag | undefined>;
+  
+  // Hashtag translation operations
+  createHashtagTranslation(translation: InsertHashtagTranslation): Promise<HashtagTranslation>;
+  getHashtagTranslations(hashtagId: number): Promise<HashtagTranslation[]>;
+  getHashtagWithTranslation(hashtagId: number, languageCode: string): Promise<(Hashtag & { translatedName?: string }) | undefined>;
+  
+  // Post-Hashtag operations
+  createPostHashtag(postHashtag: InsertPostHashtag): Promise<PostHashtag>;
+  getPostHashtags(postId: number): Promise<(PostHashtag & { hashtag: Hashtag })[]>;
+  getPostsByHashtag(hashtagId: number, limit?: number, offset?: number): Promise<Post[]>;
+  parseAndLinkHashtags(postId: number, content: string): Promise<Hashtag[]>;
+  
+  // Hashtag follow operations
+  followHashtag(userId: string, hashtagId: number): Promise<HashtagFollow>;
+  unfollowHashtag(userId: string, hashtagId: number): Promise<boolean>;
+  getFollowedHashtags(userId: string): Promise<(HashtagFollow & { hashtag: Hashtag })[]>;
+  isFollowingHashtag(userId: string, hashtagId: number): Promise<boolean>;
+  
+  // Post save (bookmark) operations
+  savePost(userId: string, postId: number): Promise<PostSave>;
+  unsavePost(userId: string, postId: number): Promise<boolean>;
+  getSavedPosts(userId: string, limit?: number, offset?: number): Promise<Post[]>;
+  isPostSaved(userId: string, postId: number): Promise<boolean>;
+  
+  // User engagement operations
+  createEngagementEvent(event: InsertUserEngagementEvent): Promise<UserEngagementEvent>;
+  getPostVelocity(postId: number, windowMinutes?: number): Promise<number>;
+  
+  // User feed preferences
+  getUserFeedPreferences(userId: string): Promise<UserFeedPreferences | undefined>;
+  setUserFeedPreferences(prefs: InsertUserFeedPreferences): Promise<UserFeedPreferences>;
+  
+  // Feed algorithm weights (system config)
+  getActiveFeedAlgorithmWeights(): Promise<FeedAlgorithmWeights | undefined>;
+  setFeedAlgorithmWeights(weights: InsertFeedAlgorithmWeights): Promise<FeedAlgorithmWeights>;
+  
+  // Smart Feed operations
+  getSmartFeed(userId: string, options: {
+    mode: 'smart' | 'latest' | 'nearby' | 'popular' | 'hashtag';
+    limit?: number;
+    offset?: number;
+    latitude?: number;
+    longitude?: number;
+  }): Promise<(Post & { score?: number })[]>;
+  
+  // Hashtag metrics
+  updateHashtagMetrics(hashtagId: number): Promise<void>;
+  seedInitialHashtags(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3308,6 +3391,557 @@ export class DatabaseStorage implements IStorage {
   async getPoiCategoryCount(): Promise<number> {
     const result = await db.select({ count: sql<number>`count(*)` }).from(poiCategories);
     return Number(result[0]?.count || 0);
+  }
+
+  // ==========================================
+  // Smart Feed & Hashtag System 메서드
+  // ==========================================
+
+  async createHashtag(hashtag: InsertHashtag): Promise<Hashtag> {
+    const [newHashtag] = await db.insert(hashtags).values(hashtag).returning();
+    return newHashtag;
+  }
+
+  async getHashtagById(id: number): Promise<Hashtag | undefined> {
+    const [hashtag] = await db.select().from(hashtags).where(eq(hashtags.id, id));
+    return hashtag;
+  }
+
+  async getHashtagByName(name: string): Promise<Hashtag | undefined> {
+    const normalizedName = name.toLowerCase().replace(/^#/, '');
+    const [hashtag] = await db.select().from(hashtags).where(eq(hashtags.name, normalizedName));
+    return hashtag;
+  }
+
+  async searchHashtags(query: string, limit: number = 10): Promise<Hashtag[]> {
+    const normalizedQuery = query.toLowerCase().replace(/^#/, '');
+    return db.select().from(hashtags)
+      .where(like(hashtags.name, `%${normalizedQuery}%`))
+      .orderBy(desc(hashtags.postCount))
+      .limit(limit);
+  }
+
+  async getTrendingHashtags(limit: number = 10, period: 'day' | 'week' = 'day'): Promise<(Hashtag & { growthRate: number })[]> {
+    const daysAgo = period === 'day' ? 1 : 7;
+    const dateThreshold = new Date();
+    dateThreshold.setDate(dateThreshold.getDate() - daysAgo);
+    const dateStr = dateThreshold.toISOString().split('T')[0];
+
+    const metricsData = await db.select({
+      hashtagId: hashtagMetricsDaily.hashtagId,
+      totalUsage: sql<number>`SUM(${hashtagMetricsDaily.usageCount})`,
+      avgGrowth: sql<number>`AVG(CAST(${hashtagMetricsDaily.growthRate} AS NUMERIC))`,
+    })
+      .from(hashtagMetricsDaily)
+      .where(gte(hashtagMetricsDaily.date, dateStr))
+      .groupBy(hashtagMetricsDaily.hashtagId)
+      .orderBy(desc(sql`AVG(CAST(${hashtagMetricsDaily.growthRate} AS NUMERIC))`))
+      .limit(limit);
+
+    const result: (Hashtag & { growthRate: number })[] = [];
+    for (const metric of metricsData) {
+      const hashtag = await this.getHashtagById(metric.hashtagId);
+      if (hashtag) {
+        result.push({ ...hashtag, growthRate: Number(metric.avgGrowth) || 0 });
+      }
+    }
+
+    if (result.length < limit) {
+      const existingIds = result.map(h => h.id);
+      const fallbackHashtags = await db.select().from(hashtags)
+        .where(existingIds.length > 0 ? sql`${hashtags.id} NOT IN (${existingIds.join(',')})` : sql`1=1`)
+        .orderBy(desc(hashtags.postCount))
+        .limit(limit - result.length);
+      for (const h of fallbackHashtags) {
+        result.push({ ...h, growthRate: 0 });
+      }
+    }
+
+    return result;
+  }
+
+  async updateHashtagCounts(id: number): Promise<Hashtag | undefined> {
+    const postCount = await db.select({ count: sql<number>`count(*)` })
+      .from(postHashtags)
+      .where(eq(postHashtags.hashtagId, id));
+    
+    const followerCount = await db.select({ count: sql<number>`count(*)` })
+      .from(hashtagFollows)
+      .where(eq(hashtagFollows.hashtagId, id));
+
+    const [updated] = await db.update(hashtags)
+      .set({
+        postCount: Number(postCount[0]?.count || 0),
+        followerCount: Number(followerCount[0]?.count || 0),
+        updatedAt: new Date(),
+      })
+      .where(eq(hashtags.id, id))
+      .returning();
+
+    return updated;
+  }
+
+  async createHashtagTranslation(translation: InsertHashtagTranslation): Promise<HashtagTranslation> {
+    const [newTranslation] = await db.insert(hashtagTranslations).values(translation).returning();
+    return newTranslation;
+  }
+
+  async getHashtagTranslations(hashtagId: number): Promise<HashtagTranslation[]> {
+    return db.select().from(hashtagTranslations).where(eq(hashtagTranslations.hashtagId, hashtagId));
+  }
+
+  async getHashtagWithTranslation(hashtagId: number, languageCode: string): Promise<(Hashtag & { translatedName?: string }) | undefined> {
+    const hashtag = await this.getHashtagById(hashtagId);
+    if (!hashtag) return undefined;
+
+    const [translation] = await db.select()
+      .from(hashtagTranslations)
+      .where(and(
+        eq(hashtagTranslations.hashtagId, hashtagId),
+        eq(hashtagTranslations.languageCode, languageCode)
+      ));
+
+    return { ...hashtag, translatedName: translation?.translatedName };
+  }
+
+  async createPostHashtag(postHashtag: InsertPostHashtag): Promise<PostHashtag> {
+    const [newPostHashtag] = await db.insert(postHashtags).values(postHashtag).returning();
+    return newPostHashtag;
+  }
+
+  async getPostHashtags(postId: number): Promise<(PostHashtag & { hashtag: Hashtag })[]> {
+    const results = await db.query.postHashtags.findMany({
+      where: eq(postHashtags.postId, postId),
+      with: {
+        hashtag: true,
+      },
+    });
+    return results;
+  }
+
+  async getPostsByHashtag(hashtagId: number, limit: number = 20, offset: number = 0): Promise<Post[]> {
+    const postIds = await db.select({ postId: postHashtags.postId })
+      .from(postHashtags)
+      .where(eq(postHashtags.hashtagId, hashtagId))
+      .orderBy(desc(postHashtags.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    if (postIds.length === 0) return [];
+
+    const ids = postIds.map(p => p.postId);
+    return db.select().from(posts)
+      .where(inArray(posts.id, ids))
+      .orderBy(desc(posts.createdAt));
+  }
+
+  async parseAndLinkHashtags(postId: number, content: string): Promise<Hashtag[]> {
+    const hashtagRegex = /#[\w가-힣一-龯ぁ-んァ-ン]+/g;
+    const matches = content.match(hashtagRegex) || [];
+    const linkedHashtags: Hashtag[] = [];
+
+    for (const match of matches) {
+      const name = match.toLowerCase().replace(/^#/, '');
+      let hashtag = await this.getHashtagByName(name);
+      
+      if (!hashtag) {
+        hashtag = await this.createHashtag({ name });
+      }
+
+      const existing = await db.select()
+        .from(postHashtags)
+        .where(and(
+          eq(postHashtags.postId, postId),
+          eq(postHashtags.hashtagId, hashtag.id)
+        ));
+
+      if (existing.length === 0) {
+        await this.createPostHashtag({ postId, hashtagId: hashtag.id });
+      }
+
+      await this.updateHashtagCounts(hashtag.id);
+      linkedHashtags.push(hashtag);
+    }
+
+    return linkedHashtags;
+  }
+
+  async followHashtag(userId: string, hashtagId: number): Promise<HashtagFollow> {
+    const existing = await db.select()
+      .from(hashtagFollows)
+      .where(and(
+        eq(hashtagFollows.userId, userId),
+        eq(hashtagFollows.hashtagId, hashtagId)
+      ));
+
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    const [follow] = await db.insert(hashtagFollows)
+      .values({ userId, hashtagId })
+      .returning();
+
+    await this.updateHashtagCounts(hashtagId);
+    return follow;
+  }
+
+  async unfollowHashtag(userId: string, hashtagId: number): Promise<boolean> {
+    const result = await db.delete(hashtagFollows)
+      .where(and(
+        eq(hashtagFollows.userId, userId),
+        eq(hashtagFollows.hashtagId, hashtagId)
+      ));
+
+    await this.updateHashtagCounts(hashtagId);
+    return true;
+  }
+
+  async getFollowedHashtags(userId: string): Promise<(HashtagFollow & { hashtag: Hashtag })[]> {
+    return db.query.hashtagFollows.findMany({
+      where: eq(hashtagFollows.userId, userId),
+      with: {
+        hashtag: true,
+      },
+    });
+  }
+
+  async isFollowingHashtag(userId: string, hashtagId: number): Promise<boolean> {
+    const [follow] = await db.select()
+      .from(hashtagFollows)
+      .where(and(
+        eq(hashtagFollows.userId, userId),
+        eq(hashtagFollows.hashtagId, hashtagId)
+      ));
+    return !!follow;
+  }
+
+  async savePost(userId: string, postId: number): Promise<PostSave> {
+    const existing = await db.select()
+      .from(postSaves)
+      .where(and(
+        eq(postSaves.userId, userId),
+        eq(postSaves.postId, postId)
+      ));
+
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    const [save] = await db.insert(postSaves)
+      .values({ userId, postId })
+      .returning();
+
+    await this.createEngagementEvent({ userId, postId, eventType: 'save' });
+    return save;
+  }
+
+  async unsavePost(userId: string, postId: number): Promise<boolean> {
+    await db.delete(postSaves)
+      .where(and(
+        eq(postSaves.userId, userId),
+        eq(postSaves.postId, postId)
+      ));
+    return true;
+  }
+
+  async getSavedPosts(userId: string, limit: number = 20, offset: number = 0): Promise<Post[]> {
+    const savedPostIds = await db.select({ postId: postSaves.postId })
+      .from(postSaves)
+      .where(eq(postSaves.userId, userId))
+      .orderBy(desc(postSaves.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    if (savedPostIds.length === 0) return [];
+
+    const ids = savedPostIds.map(s => s.postId);
+    return db.select().from(posts)
+      .where(inArray(posts.id, ids))
+      .orderBy(desc(posts.createdAt));
+  }
+
+  async isPostSaved(userId: string, postId: number): Promise<boolean> {
+    const [save] = await db.select()
+      .from(postSaves)
+      .where(and(
+        eq(postSaves.userId, userId),
+        eq(postSaves.postId, postId)
+      ));
+    return !!save;
+  }
+
+  async createEngagementEvent(event: InsertUserEngagementEvent): Promise<UserEngagementEvent> {
+    const [newEvent] = await db.insert(userEngagementEvents).values(event).returning();
+    return newEvent;
+  }
+
+  async getPostVelocity(postId: number, windowMinutes: number = 120): Promise<number> {
+    const windowStart = new Date();
+    windowStart.setMinutes(windowStart.getMinutes() - windowMinutes);
+
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(userEngagementEvents)
+      .where(and(
+        eq(userEngagementEvents.postId, postId),
+        gte(userEngagementEvents.createdAt, windowStart)
+      ));
+
+    return Number(result[0]?.count || 0);
+  }
+
+  async getUserFeedPreferences(userId: string): Promise<UserFeedPreferences | undefined> {
+    const [prefs] = await db.select()
+      .from(userFeedPreferences)
+      .where(eq(userFeedPreferences.userId, userId));
+    return prefs;
+  }
+
+  async setUserFeedPreferences(prefs: InsertUserFeedPreferences): Promise<UserFeedPreferences> {
+    const [newPrefs] = await db.insert(userFeedPreferences)
+      .values(prefs)
+      .onConflictDoUpdate({
+        target: userFeedPreferences.userId,
+        set: { ...prefs, updatedAt: new Date() },
+      })
+      .returning();
+    return newPrefs;
+  }
+
+  async getActiveFeedAlgorithmWeights(): Promise<FeedAlgorithmWeights | undefined> {
+    const [weights] = await db.select()
+      .from(feedAlgorithmWeights)
+      .where(eq(feedAlgorithmWeights.isActive, true))
+      .limit(1);
+    return weights;
+  }
+
+  async setFeedAlgorithmWeights(weights: InsertFeedAlgorithmWeights): Promise<FeedAlgorithmWeights> {
+    if (weights.isActive) {
+      await db.update(feedAlgorithmWeights)
+        .set({ isActive: false })
+        .where(eq(feedAlgorithmWeights.isActive, true));
+    }
+
+    const [newWeights] = await db.insert(feedAlgorithmWeights)
+      .values(weights)
+      .returning();
+    return newWeights;
+  }
+
+  async getSmartFeed(userId: string, options: {
+    mode: 'smart' | 'latest' | 'nearby' | 'popular' | 'hashtag';
+    limit?: number;
+    offset?: number;
+    latitude?: number;
+    longitude?: number;
+  }): Promise<(Post & { score?: number })[]> {
+    const { mode, limit = 20, offset = 0, latitude, longitude } = options;
+
+    switch (mode) {
+      case 'latest':
+        return db.select().from(posts)
+          .orderBy(desc(posts.createdAt))
+          .limit(limit)
+          .offset(offset);
+
+      case 'popular': {
+        const allPosts = await db.select().from(posts).orderBy(desc(posts.createdAt)).limit(100);
+        const scored = await Promise.all(allPosts.map(async (post) => {
+          const velocity = await this.getPostVelocity(post.id);
+          const likeCount = Number(post.likeCount || 0);
+          const commentCount = Number(post.commentCount || 0);
+          const score = (likeCount * 1) + (commentCount * 2) + (velocity * 3);
+          return { ...post, score };
+        }));
+        scored.sort((a, b) => (b.score || 0) - (a.score || 0));
+        return scored.slice(offset, offset + limit);
+      }
+
+      case 'nearby': {
+        if (!latitude || !longitude) {
+          return db.select().from(posts)
+            .orderBy(desc(posts.createdAt))
+            .limit(limit)
+            .offset(offset);
+        }
+        const radiusDegrees = 50 / 111;
+        const nearbyPosts = await db.select().from(posts)
+          .where(and(
+            sql`CAST(${posts.latitude} AS NUMERIC) BETWEEN ${latitude - radiusDegrees} AND ${latitude + radiusDegrees}`,
+            sql`CAST(${posts.longitude} AS NUMERIC) BETWEEN ${longitude - radiusDegrees} AND ${longitude + radiusDegrees}`
+          ))
+          .orderBy(desc(posts.createdAt))
+          .limit(limit)
+          .offset(offset);
+        return nearbyPosts;
+      }
+
+      case 'hashtag': {
+        const followedHashtags = await this.getFollowedHashtags(userId);
+        if (followedHashtags.length === 0) {
+          return db.select().from(posts)
+            .orderBy(desc(posts.createdAt))
+            .limit(limit)
+            .offset(offset);
+        }
+        const hashtagIds = followedHashtags.map(f => f.hashtagId);
+        const postIdsResult = await db.selectDistinct({ postId: postHashtags.postId })
+          .from(postHashtags)
+          .where(inArray(postHashtags.hashtagId, hashtagIds))
+          .orderBy(desc(postHashtags.createdAt))
+          .limit(limit)
+          .offset(offset);
+
+        if (postIdsResult.length === 0) return [];
+        const ids = postIdsResult.map(p => p.postId);
+        return db.select().from(posts)
+          .where(inArray(posts.id, ids))
+          .orderBy(desc(posts.createdAt));
+      }
+
+      case 'smart':
+      default: {
+        const weights = await this.getActiveFeedAlgorithmWeights() || {
+          engagementWeight: '0.22',
+          affinityWeight: '0.20',
+          interestWeight: '0.15',
+          hashtagWeight: '0.12',
+          locationWeight: '0.12',
+          recencyWeight: '0.11',
+          velocityWeight: '0.08',
+          recencyDecayHours: 24,
+          velocityWindowMinutes: 120,
+        };
+
+        const userPrefs = await this.getUserFeedPreferences(userId);
+        const followedHashtags = await this.getFollowedHashtags(userId);
+        const followedUsers = await db.select({ followedId: follows.followedId })
+          .from(follows)
+          .where(eq(follows.followerId, userId));
+        const followedUserIds = new Set(followedUsers.map(f => f.followedId));
+        const followedHashtagIds = new Set(followedHashtags.map(f => f.hashtagId));
+
+        const recentPosts = await db.select().from(posts)
+          .orderBy(desc(posts.createdAt))
+          .limit(100);
+
+        const scored: (Post & { score: number })[] = [];
+
+        for (const post of recentPosts) {
+          let score = 0;
+
+          const likeCount = Number(post.likeCount || 0);
+          const commentCount = Number(post.commentCount || 0);
+          const engagementScore = (likeCount * 1 + commentCount * 2) / 10;
+          score += engagementScore * Number(userPrefs?.engagementWeight || weights.engagementWeight);
+
+          if (followedUserIds.has(post.userId)) {
+            score += 10 * Number(userPrefs?.affinityWeight || weights.affinityWeight);
+          }
+
+          const postHashtagList = await this.getPostHashtags(post.id);
+          const hasFollowedHashtag = postHashtagList.some(ph => followedHashtagIds.has(ph.hashtagId));
+          if (hasFollowedHashtag) {
+            score += 5 * Number(userPrefs?.hashtagWeight || weights.hashtagWeight);
+          }
+
+          const hoursAgo = (Date.now() - new Date(post.createdAt || Date.now()).getTime()) / (1000 * 60 * 60);
+          const recencyDecay = Math.max(0, 1 - (hoursAgo / Number(weights.recencyDecayHours)));
+          score += recencyDecay * 10 * Number(userPrefs?.recencyWeight || weights.recencyWeight);
+
+          if (latitude && longitude && post.latitude && post.longitude) {
+            const distance = Math.sqrt(
+              Math.pow(Number(post.latitude) - latitude, 2) +
+              Math.pow(Number(post.longitude) - longitude, 2)
+            );
+            const locationScore = Math.max(0, 1 - (distance / 0.5));
+            score += locationScore * 5 * Number(userPrefs?.locationWeight || weights.locationWeight);
+          }
+
+          const velocity = await this.getPostVelocity(post.id, Number(weights.velocityWindowMinutes));
+          score += (velocity / 10) * Number(userPrefs?.velocityWeight || weights.velocityWeight);
+
+          scored.push({ ...post, score });
+        }
+
+        scored.sort((a, b) => b.score - a.score);
+        return scored.slice(offset, offset + limit);
+      }
+    }
+  }
+
+  async updateHashtagMetrics(hashtagId: number): Promise<void> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const todayUsage = await db.select({ count: sql<number>`count(*)` })
+      .from(postHashtags)
+      .where(and(
+        eq(postHashtags.hashtagId, hashtagId),
+        sql`DATE(${postHashtags.createdAt}) = ${today}`
+      ));
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    
+    const [yesterdayMetric] = await db.select()
+      .from(hashtagMetricsDaily)
+      .where(and(
+        eq(hashtagMetricsDaily.hashtagId, hashtagId),
+        eq(hashtagMetricsDaily.date, yesterdayStr)
+      ));
+
+    const todayCount = Number(todayUsage[0]?.count || 0);
+    const yesterdayCount = Number(yesterdayMetric?.usageCount || 0);
+    const growthRate = yesterdayCount > 0 
+      ? ((todayCount - yesterdayCount) / yesterdayCount) * 100 
+      : (todayCount > 0 ? 100 : 0);
+
+    await db.insert(hashtagMetricsDaily)
+      .values({
+        hashtagId,
+        date: today,
+        usageCount: todayCount,
+        growthRate: growthRate.toFixed(2),
+      })
+      .onConflictDoNothing();
+  }
+
+  async seedInitialHashtags(): Promise<void> {
+    const existingCount = await db.select({ count: sql<number>`count(*)` }).from(hashtags);
+    if (Number(existingCount[0]?.count || 0) > 0) return;
+
+    const defaultHashtags = [
+      { name: 'travel', translations: { ko: '여행', ja: '旅行', zh: '旅行', fr: 'voyage', es: 'viaje' } },
+      { name: 'food', translations: { ko: '음식', ja: '料理', zh: '美食', fr: 'cuisine', es: 'comida' } },
+      { name: 'culture', translations: { ko: '문화', ja: '文化', zh: '文化', fr: 'culture', es: 'cultura' } },
+      { name: 'seoul', translations: { ko: '서울', ja: 'ソウル', zh: '首尔', fr: 'séoul', es: 'seúl' } },
+      { name: 'korea', translations: { ko: '한국', ja: '韓国', zh: '韩国', fr: 'corée', es: 'corea' } },
+      { name: 'photography', translations: { ko: '사진', ja: '写真', zh: '摄影', fr: 'photographie', es: 'fotografía' } },
+      { name: 'nature', translations: { ko: '자연', ja: '自然', zh: '自然', fr: 'nature', es: 'naturaleza' } },
+      { name: 'cafe', translations: { ko: '카페', ja: 'カフェ', zh: '咖啡厅', fr: 'café', es: 'café' } },
+      { name: 'nightlife', translations: { ko: '나이트라이프', ja: 'ナイトライフ', zh: '夜生活', fr: 'vie nocturne', es: 'vida nocturna' } },
+      { name: 'streetfood', translations: { ko: '길거리음식', ja: '屋台料理', zh: '街头小吃', fr: 'street food', es: 'comida callejera' } },
+    ];
+
+    for (const tag of defaultHashtags) {
+      const [hashtag] = await db.insert(hashtags).values({ name: tag.name }).returning();
+      
+      for (const [lang, translated] of Object.entries(tag.translations)) {
+        await db.insert(hashtagTranslations).values({
+          hashtagId: hashtag.id,
+          languageCode: lang,
+          translatedName: translated,
+        });
+      }
+    }
+
+    const existingPosts = await db.select().from(posts).limit(100);
+    for (const post of existingPosts) {
+      const content = `${post.title || ''} ${post.content || ''} ${(post.tags || []).map(t => `#${t}`).join(' ')}`;
+      await this.parseAndLinkHashtags(post.id, content);
+    }
   }
 }
 
