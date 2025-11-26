@@ -79,7 +79,7 @@ export default function Feed() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editPost, setEditPost] = useState<Post | null>(null);
   const [editExperience, setEditExperience] = useState<Experience | null>(null);
-  const [useVirtualization, setUseVirtualization] = useState(false);
+  const [useVirtualization, setUseVirtualization] = useState(true);
   const [failedImages, setFailedImages] = useState(new Set<number>());
   const [filter, setFilter] = useState<FilterType>('all');
   const [feedMode, setFeedMode] = useState<FeedMode>('smart');
@@ -178,7 +178,7 @@ export default function Feed() {
       : allItems.filter(item => item.type === 'experience');
 
   // 포스트 수가 많으면 자동으로 가상화 활성화
-  const shouldUseVirtualization = filteredItems.length > 50 || useVirtualization;
+  const shouldUseVirtualization = filteredItems.length > 20 || useVirtualization;
   const postGroups = groupSimilarPosts(posts);
 
   const likeMutation = useMutation({
