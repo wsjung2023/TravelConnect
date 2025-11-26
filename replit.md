@@ -8,6 +8,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### DB-Based POI Filter System (November 26, 2025)
+- **하드코딩 제거**: 기존 하드코딩된 POI 필터를 완전한 DB 기반 아키텍처로 마이그레이션
+- **새 DB 스키마**: poi_categories, poi_types, poi_category_translations, poi_type_translations 테이블 추가
+- **다국어 지원**: 6개 언어 (en, ko, ja, zh, fr, es) POI 카테고리/타입 번역 지원
+- **9개 POI 카테고리**: food_drink, lodging, culture, shopping, transport, nature, utilities, open_to_meet, serendipity
+- **27개 POI 타입**: 각 카테고리별 세부 타입 (restaurant, cafe, museum, park 등)
+- **그룹핑 UI**: 2-level 확장/축소 가능한 필터 인터페이스
+- **API 엔드포인트**: GET /api/poi/categories?lang={lang}, POST /api/poi/seed
+
 ### AI Model Configuration Enhancement (November 17, 2025)
 - **환경 변수 기반 AI 모델 선택**: 관리자가 비용 절감을 위해 AI 모델을 동적으로 변경할 수 있도록 개선
 - **서비스별 개별 설정 지원**: CineMap, Mini Concierge, AI Concierge 각각 다른 모델 사용 가능
