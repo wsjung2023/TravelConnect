@@ -1,0 +1,392 @@
+[Replit VibeCoding 프롬프트 – Tourgether / TravelConnect 개선계획 v1.0]
+
+역할:
+너는 이 Replit 프로젝트(TravelConnect-main, Tourgether)의 시니어 풀스택 & 아키텍트다.
+기존 지도/피드/채팅/예약 기능을 최대한 존중하면서,
+"실제 돈이 오가는 플랫폼"으로 만들기 위해 아래 개선 계획을 단계적으로 구현해라.
+
+핵심 목표 (비즈니스 관점):
+M1. 여행자를 위한 Trip Pass (트립 단위 AI 패스) 과금 구조
+M2. 호스트(로컬 가이드)를 위한 구독 플랜 + 예약 수수료 구조
+M3. 사용자 간 거래(구매대행/가이드 등)를 위한 계약금/중도금/잔금(분할 결제) 구조
+M4. 위 모든 결제/정산 흐름을 PortOne(V2 API)와 연동할 준비
+
+0) 아래 내용을 기반으로 pricing_dev_update.md 로 먼저 만들고 확인 받고 개발해.
+
+
+========================================
+1. 공통 Billing/Usage 스키마 도입
+========================================
+
+[1-1] billing_plans 테이블
+shared/schema.ts 에 다음 구조로 billing_plans 테이블(또는 Drizzle 모델)을 추가/정의하라.
+
+- id (varchar, PK)         // 예: 'tg_traveler_free', 'tg_trip_pass_basic'
+- app (varchar)            // 기본값 'tourgether'
+- name (varchar)
+- type (varchar)           // 'subscription' | 'one_time'
+- target (varchar)         // 'traveler' | 'host'
+- priceMonthlyKrw (integer, nullable)
+- priceKrw (integer, nullable)
+- features (jsonb)         // 한도/수수료/옵션 등
+- isActive (boolean, default true)
+- createdAt, updatedAt
+
+[1-2] user_subscriptions 테이블
+- id (serial PK)
+- userId (FK → users.id)
+- planId (FK → billing_plans.id)
+- app (varchar, default 'tourgether')
+- target (varchar)         // 'traveler' or 'host'
+- status (varchar)         // 'pending' | 'active' | 'canceled'
+- portoneCustomerUid (varchar, nullable)
+- portoneMerchantUid (varchar, nullable)
+- startedAt (timestamp, nullable)
+- renewsAt (timestamp, nullable)
+- canceledAt (timestamp, nullable)
+- createdAt, updatedAt
+
+[1-3] user_usage 테이블
+- id (serial PK)
+- userId (FK → users.id)
+- app (varchar, default 'tourgether')
+- usageKey (varchar)       // 예: 'ai_message', 'translation', 'concierge'
+- usedInPeriod (integer)
+- limitInPeriod (integer)
+- periodStart (timestamp)
+- periodEnd (timestamp)
+- createdAt, updatedAt
+
+[1-4] user_trip_passes 테이블 (여행자 Trip Pass)
+- id (serial PK)
+- userId (FK → users.id)
+- tripId (FK → trips.id, nullable)
+- planId (FK → billing_plans.id)       // 예: 'tg_trip_pass_basic'
+- validFrom (timestamp)
+- validUntil (timestamp)
+- aiMessageLimit (integer)
+- aiMessageUsed (integer)
+- translationLimit (integer)
+- translationUsed (integer)
+- conciergeCallsLimit (integer)
+- conciergeCallsUsed (integer)
+- createdAt, updatedAt
+
+[1-5] bookings / payments 확장
+- bookings 테이블에 아래 컬럼 추가:
+  - platformFeeAmount (numeric/decimal, nullable)
+  - hostPayoutAmount (numeric/decimal, nullable)
+- payments 테이블의 provider 필드 주석에 'portone' 추가.
+  - metadata(jsonb)에 PortOne storeId / merchant_uid / paymentId / custom type(booking, trip_pass, contract_stage 등)을 넣을 수 있게 사용할 것.
+
+========================================
+2. 요금제 설계값 Seed (여행자/호스트)
+========================================
+
+서버 초기화 로직(예: server/db.ts 또는 별도 seed 스크립트)에 billing_plans를 upsert하는 함수 작성.
+
+[2-1] 여행자용 플랜
+
+1) 기본 Free
+- id: 'tg_traveler_free'
+- target: 'traveler'
+- type: 'subscription'
+- priceMonthlyKrw: 0
+- features:
+  - ai_message_limit_day: 5
+  - ai_message_limit_month: 60
+  - translation_limit_month: 100
+
+2) Trip Pass (트립 단위 유료 패스)
+- id: 'tg_trip_pass_basic'
+- target: 'traveler'
+- type: 'one_time'
+- priceKrw: 4900
+- features:
+  - duration_days: 7                 // 여행기간+약간의 버퍼
+  - ai_message_limit: 300
+  - translation_limit: 500
+  - concierge_calls_limit: 100
+
+[2-2] 호스트용 플랜
+
+1) Host Free
+- id: 'tg_host_free'
+- target: 'host'
+- type: 'subscription'
+- priceMonthlyKrw: 0
+- features:
+  - max_experiences: 3
+  - platform_fee_rate: 0.15
+  - highlight_level: 0
+  - ai_translation_languages: 1
+
+2) Host Basic
+- id: 'tg_host_basic'
+- priceMonthlyKrw: 9900
+- features:
+  - max_experiences: 10
+  - platform_fee_rate: 0.13
+  - highlight_level: 1
+  - ai_translation_languages: 2
+  - basic_insight_report: true
+
+3) Host Pro
+- id: 'tg_host_pro'
+- priceMonthlyKrw: 29900
+- features:
+  - max_experiences: 9999
+  - platform_fee_rate: 0.10
+  - highlight_level: 2
+  - ai_translation_languages: 4
+  - advanced_insight_report: true
+  - ai_listing_optimizer: true
+
+========================================
+3. PortOne 클라이언트 및 환경 변수
+========================================
+
+[3-1] .env 설정 가정
+- PORTONE_API_SECRET
+- PORTONE_MERCHANT_ID
+- PORTONE_STORE_ID
+- PORTONE_WEBHOOK_SECRET
+
+[3-2] PortOne 클라이언트
+server/services/portoneClient.ts 파일을 만들고 V2 REST API용 헬퍼를 구현하라.
+
+필수 함수(인터페이스 형태만 구현해도 됨):
+- createSubscriptionCheckout(plan, user)
+  - 호스트 구독(Host Basic/Pro) 정기 결제창 URL 생성
+- createOneTimeCheckout(item, user)
+  - Trip Pass, 예약 결제, 계약금/중도금/잔금 각각에 대한 1회 결제창 URL 생성
+- getPayment(paymentId)
+  - 결제 상태 조회
+- cancelSubscription(merchantUid or billingKey)
+  - 정기 구독 취소(추후 사용용)
+
+Authorization 헤더, baseURL, 에러 처리까지 기본 골격 구현.
+
+========================================
+4. 결제/구독/Trip Pass 라우트
+========================================
+
+server/routes.ts 또는 라우트 모듈에 아래 API를 추가하라.
+
+[4-1] 호스트 구독 결제 (정기 결제)
+
+- POST /api/billing/host/create-checkout-session
+  - body: { planId }  // 'tg_host_basic' 또는 'tg_host_pro'
+  - 인증: user.userType에 'host' 포함 여부 확인
+  - billing_plans에서 target='host', type='subscription'인 plan인지 검증
+  - PortOne createSubscriptionCheckout 호출 → redirectUrl 받기
+  - user_subscriptions에 status='pending' 레코드 생성
+  - 응답: { redirectUrl }
+
+[4-2] 여행자 Trip Pass 결제 (일회 결제)
+
+- POST /api/billing/trip-pass/create-session
+  - body: { planId, tripId }
+  - 인증: traveler
+  - billing_plans에서 target='traveler', type='one_time'인지 확인
+  - PortOne createOneTimeCheckout 호출 → redirectUrl
+  - payments에:
+    - provider='portone'
+    - amount=plan.priceKrw
+    - status='pending'
+    - metadata: { type: 'trip_pass', userId, tripId, planId }
+  - 응답: { redirectUrl }
+
+[4-3] 예약 결제 (경험 예약 1회 결제)
+
+- POST /api/bookings/:id/pay
+  - id로 bookings 조회
+  - status='pending', paymentStatus='pending'인지 검증
+  - totalPrice, currency 기반 PortOne 1회 결제 checkout 생성
+  - payments에:
+    - provider='portone'
+    - bookingId
+    - amount=totalPrice
+    - status='pending'
+    - metadata: { type: 'booking' }
+  - 응답: { redirectUrl }
+
+[4-4] PortOne 웹훅 엔드포인트
+
+- POST /api/billing/portone-webhook
+  - PORTONE_WEBHOOK_SECRET 기반 시그니처 검증
+  - event payload에서 paymentId, metadata.type 등을 파싱
+  - portoneClient.getPayment로 최종 결제 상태 확인
+  - metadata.type별 처리:
+
+  (a) type='host_subscription'
+    - 결제 성공:
+      - user_subscriptions의 pending 레코드를 찾아 status='active', planId 설정
+      - startedAt, renewsAt 설정
+
+  (b) type='trip_pass'
+    - payments.status='paid' 갱신
+    - user_trip_passes에 레코드 생성:
+      - userId, tripId, planId
+      - validFrom = now
+      - validUntil = now + features.duration_days
+      - aiMessageLimit/translationLimit/conciergeCallsLimit 초기화
+
+  (c) type='booking'
+    - payments.status='paid'
+    - bookings.paymentStatus='paid', status='confirmed', paidAt 설정
+    - host의 활성 플랜(platform_fee_rate)을 조회
+    - platformFeeAmount = totalPrice * platform_fee_rate
+    - hostPayoutAmount = totalPrice - platformFeeAmount
+    - bookings에 두 필드 저장
+
+========================================
+5. AI 사용량 / Trip Pass 연동 (미니 컨시어지/번역/시네맵)
+========================================
+
+[5-1] 공통 미들웨어: checkTravelerAiUsage
+
+server/middleware/checkTravelerAiUsage.ts (또는 유사 파일)을 추가:
+
+- 입력:
+  - req.user (traveler)
+  - optional tripId
+  - usageType: 'ai_message' | 'translation' | 'concierge'
+- 로직:
+  1) 현재 날짜 기준 user_trip_passes 중 validFrom ≤ now ≤ validUntil인 활성 Pass 조회
+  2) Pass가 있으면:
+     - usageType에 해당하는 Used/Limit 필드 비교
+     - limit 초과 시 HTTP 402 반환
+     - 아니면 사용량 +1 업데이트 후 통과
+  3) Pass가 없으면:
+     - traveler_free 플랜 기준 user_usage에서 day/month 한도 체크
+     - 한도 내면 +1 증가 후 통과
+     - 한도 초과 시 HTTP 402 + "Trip Pass 필요" 에러 반환
+
+[5-2] 적용 대상
+- miniConcierge (서버 측 mini concierge/세렌디피티 함수 라우트)
+- translate (번역 API 라우트)
+- cinemap/시네맵(여행 타임라인/스토리 생성용) 라우트
+
+각 라우트에서 OpenAI 호출 전에 checkTravelerAiUsage를 거치도록 미들웨어로 연결.
+
+========================================
+6. 호스트 구독 플랜과 수수료 연동
+========================================
+
+[6-1] getHostEffectivePlan(helper)
+server/services/billingHelpers.ts 등에 다음 헬퍼 생성:
+
+- getHostEffectivePlan(hostId):
+  - user_subscriptions에서 hostId의 active 구독 조회
+  - 없으면 tg_host_free 플랜을 기본으로 사용
+  - plan.features.platform_fee_rate, max_experiences, highlight_level 등 반환
+
+[6-2] 경험 등록/노출 제약
+- 호스트가 새로운 experience를 생성할 때:
+  - hostPlan.features.max_experiences 이상이면 403 에러 반환
+- 리스트 정렬:
+  - highlight_level 높은 호스트/경험을 상단에 노출할 수 있도록 sorting 옵션 추가
+
+[6-3] 예약 수수료 계산
+- PortOne 웹훅에서 booking 결제 성공 처리 시:
+  - getHostEffectivePlan으로 해당 host의 수수료율(platform_fee_rate) 확보
+  - bookings.platformFeeAmount, bookings.hostPayoutAmount 계산 및 저장
+
+========================================
+7. 계약금/중도금/잔금(분할 결제) 구조 도입
+========================================
+
+[7-1] contracts 및 contract_stages 스키마
+
+1) contracts 테이블
+- id (serial PK)
+- bookingId (FK → bookings.id, nullable)   // 특정 예약과 연결
+- requesterId (FK → users.id)              // 보통 traveler
+- providerId (FK → users.id)               // 보통 host/가이드/구매대행자
+- title (varchar)
+- totalAmount (numeric)
+- currency (varchar)
+- status (varchar)                          // 'draft', 'active', 'completed', 'canceled'
+- notes (text, nullable)
+- createdAt, updatedAt
+
+2) contract_stages 테이블
+- id (serial PK)
+- contractId (FK → contracts.id)
+- name (varchar)                            // 'deposit', 'middle', 'final' 등
+- order (integer)                           // 1, 2, 3...
+- amount (numeric)
+- dueDate (timestamp, nullable)             // 예정 결제일
+- paymentId (FK → payments.id, nullable)    // 해당 단계의 PortOne 결제와 연결
+- status (varchar)                          // 'pending', 'paid', 'canceled', 'refunded'
+- createdAt, updatedAt
+
+[7-2] MVP 분할 결제 플로우 (패턴 A: 각각 별도 결제)
+
+- POST /api/contracts
+  - body: bookingId(선택), totalAmount, stages 정보(비율/금액), providerId 등
+  - contracts + contract_stages 생성
+- GET /api/contracts/:id
+  - 계약 상세 조회 (각 stage 금액/상태 포함)
+
+- POST /api/contracts/:id/pay-stage
+  - body: { stageId }
+  - 해당 stage 조회:
+    - status='pending'인지 확인
+  - PortOne createOneTimeCheckout 호출 (amount=stage.amount)
+  - payments에:
+    - provider='portone'
+    - amount=stage.amount
+    - status='pending'
+    - metadata: { type: 'contract_stage', contractId, stageId }
+  - redirectUrl 응답
+
+- PortOne 웹훅 처리에서:
+  - metadata.type === 'contract_stage' 인 경우:
+    - 해당 stage의 status='paid', paymentId 연결
+    - 모든 stage가 paid이면 contracts.status='completed'로 변경
+
+[7-3] 향후 고급 버전 (예약결제/빌링키 기반 중도금/잔금 자동결제)
+- 지금 단계에서는 구현하지 않고 TODO로 남겨두되,
+  - contracts 테이블에 billingKey, autoScheduleEnabled 같은 필드 추가할 수 있는 여지를 남겨둔다.
+- 나중에:
+  - 첫 결제 시 빌링키 발급 → 중도금/잔금을 서버 cron 또는 PortOne 예약결제 API로 자동 청구하도록 확장.
+
+========================================
+8. 프론트엔드 최소 UI 개선
+========================================
+
+[8-1] 여행자 측
+- Trip 상세/편집 화면:
+  - "AI Trip Pass (4,900원)로 이 여행 업그레이드" 버튼 추가
+  - 클릭 시 /api/billing/trip-pass/create-session 호출 후 redirectUrl로 이동
+- AI 미니컨시어지/번역 UI:
+  - 402 응답(한도 초과) 시 Trip Pass 소개 모달 + 바로 구매 버튼 표시
+
+[8-2] 호스트 측
+- "/host/pricing" 페이지:
+  - Host Free / Basic / Pro 카드와 상세 혜택(경험 개수, 수수료율, AI 도구)을 보여줌
+  - "구독하기" 버튼 → /api/billing/host/create-checkout-session 호출
+
+[8-3] 계약(분할결제) UI (MVP)
+- 특정 예약/맞춤 여행 제안 화면에:
+  - "계약 생성" 버튼 → 총 금액/스테이지(계약금/중도금/잔금) 입력 폼
+  - 계약 상세뷰:
+    - 각 단계 금액, 결제 상태, 결제 버튼 표시
+  - 각 단계 결제 버튼 클릭 시 /api/contracts/:id/pay-stage(stageId) 호출 → redirectUrl로 PortOne 결제창 이동
+
+========================================
+9. 구현 방식에 대한 요구
+========================================
+
+- 기존 코드 구조(Drizzle, Express/Node, React 등)를 우선 분석하고, 완전히 갈아엎지 말 것.
+- 데이터베이스 변경 후, Drizzle 마이그레이션 파일/ db push 흐름이 깨지지 않게 마이그레이션 설계.
+- 구현은 아래 순서대로 점진적으로 진행하라:
+  1) 스키마 추가 (billing_plans, user_subscriptions, user_usage, user_trip_passes, contracts, contract_stages, bookings 확장)
+  2) billing_plans seed 코드 작성
+  3) PortOne 클라이언트 기본 뼈대 구현
+  4) Trip Pass 결제 → AI 사용량 연동 → 정상 동작 확인
+  5) 호스트 구독 + 수수료 연동
+  6) 계약/분할결제(계약금/중도금/잔금) 라우트 및 웹훅 연동
+- 각 단계마다 TypeScript 타입 에러가 없이 빌드/테스트가 통과하도록 수정하라.
