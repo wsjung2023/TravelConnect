@@ -241,6 +241,580 @@ hostPayoutAmount: decimal('host_payout_amount', { precision: 10, scale: 2 }),
 
 ---
 
+## 2.8 P2P 거래 핵심 스키마 (에스크로/정산/분쟁)
+
+> ⚠️ **중요**: Tourgether는 일반 B2C 앱과 달리 **사용자 간 거래(P2P)**가 핵심입니다.
+> 여행자 → 플랫폼 → 호스트로 자금이 흐르며, 신뢰와 안전이 최우선입니다.
+
+### 2.8.1 escrow_accounts (에스크로 계좌)
+
+```typescript
+export const escrowAccounts = pgTable('escrow_accounts', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  accountType: varchar('account_type').notNull(),       // 'traveler' | 'host' | 'platform'
+  
+  // 잔액 관리
+  availableBalance: decimal('available_balance', { precision: 15, scale: 2 }).default('0'),
+  pendingBalance: decimal('pending_balance', { precision: 15, scale: 2 }).default('0'),    // 에스크로 보류 중
+  withdrawableBalance: decimal('withdrawable_balance', { precision: 15, scale: 2 }).default('0'), // 출금 가능
+  
+  // 통화
+  currency: varchar('currency').default('KRW'),
+  
+  // 상태
+  status: varchar('status').default('active'),          // 'active' | 'frozen' | 'suspended'
+  frozenReason: varchar('frozen_reason'),               // 동결 사유
+  frozenAt: timestamp('frozen_at'),
+  
+  // KYC/KYB 상태 (호스트용)
+  kycStatus: varchar('kyc_status').default('pending'),  // 'pending' | 'verified' | 'rejected'
+  kycVerifiedAt: timestamp('kyc_verified_at'),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+```
+
+### 2.8.2 escrow_transactions (에스크로 거래)
+
+```typescript
+export const escrowTransactions = pgTable('escrow_transactions', {
+  id: serial('id').primaryKey(),
+  bookingId: integer('booking_id').references(() => bookings.id),
+  contractId: integer('contract_id').references(() => contracts.id),
+  stageId: integer('stage_id').references(() => contractStages.id),
+  
+  // 당사자
+  payerId: varchar('payer_id').notNull().references(() => users.id),      // 여행자
+  payeeId: varchar('payee_id').notNull().references(() => users.id),      // 호스트
+  
+  // 금액 분배
+  grossAmount: decimal('gross_amount', { precision: 12, scale: 2 }).notNull(),   // 총 결제액
+  platformFeeAmount: decimal('platform_fee_amount', { precision: 10, scale: 2 }).notNull(), // 플랫폼 수수료
+  hostPayoutAmount: decimal('host_payout_amount', { precision: 12, scale: 2 }).notNull(),   // 호스트 정산액
+  currency: varchar('currency').default('KRW'),
+  
+  // 에스크로 상태 (핵심!)
+  escrowStatus: varchar('escrow_status').default('pending'),
+  // 'pending'        → 결제 대기
+  // 'authorized'     → 결제 승인됨 (아직 캡처 안함)
+  // 'captured'       → 결제 캡처됨 (에스크로 보류)
+  // 'held'           → 에스크로 홀드 중 (서비스 제공 대기)
+  // 'release_pending'→ 릴리스 대기 (서비스 완료, 정산 대기)
+  // 'released'       → 호스트에게 정산 완료
+  // 'refunded'       → 환불 완료
+  // 'disputed'       → 분쟁 중
+  
+  // 타임라인
+  authorizedAt: timestamp('authorized_at'),
+  capturedAt: timestamp('captured_at'),
+  heldUntil: timestamp('held_until'),                   // 에스크로 보류 만료 시점
+  releaseScheduledAt: timestamp('release_scheduled_at'), // 정산 예정 시점
+  releasedAt: timestamp('released_at'),
+  refundedAt: timestamp('refunded_at'),
+  
+  // PortOne 연동
+  portonePaymentId: varchar('portone_payment_id'),
+  portoneTransferId: varchar('portone_transfer_id'),    // 호스트 정산 시
+  
+  // 메타데이터
+  metadata: jsonb('metadata'),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_escrow_booking').on(table.bookingId),
+  index('IDX_escrow_status').on(table.escrowStatus),
+  index('IDX_escrow_payee').on(table.payeeId),
+]);
+```
+
+### 2.8.3 payouts (호스트 정산)
+
+```typescript
+export const payouts = pgTable('payouts', {
+  id: serial('id').primaryKey(),
+  hostId: varchar('host_id').notNull().references(() => users.id),
+  
+  // 정산 기간
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  
+  // 금액
+  grossAmount: decimal('gross_amount', { precision: 15, scale: 2 }).notNull(),    // 총 거래액
+  totalFees: decimal('total_fees', { precision: 12, scale: 2 }).notNull(),        // 총 수수료
+  netAmount: decimal('net_amount', { precision: 15, scale: 2 }).notNull(),        // 순 정산액
+  currency: varchar('currency').default('KRW'),
+  
+  // 포함된 거래 수
+  transactionCount: integer('transaction_count').notNull(),
+  
+  // 상태
+  status: varchar('status').default('pending'),
+  // 'pending'     → 정산 대기
+  // 'processing'  → 정산 처리 중
+  // 'completed'   → 정산 완료
+  // 'failed'      → 정산 실패
+  // 'on_hold'     → 보류 (분쟁 등)
+  
+  // 정산 정보
+  bankCode: varchar('bank_code'),
+  accountNumber: varchar('account_number'),             // 암호화 저장 필수
+  accountHolderName: varchar('account_holder_name'),
+  
+  // PortOne 연동
+  portoneTransferId: varchar('portone_transfer_id'),
+  portoneTransferStatus: varchar('portone_transfer_status'),
+  
+  // 타임라인
+  scheduledAt: timestamp('scheduled_at'),
+  processedAt: timestamp('processed_at'),
+  completedAt: timestamp('completed_at'),
+  failedAt: timestamp('failed_at'),
+  failureReason: varchar('failure_reason'),
+  
+  // 메타데이터
+  metadata: jsonb('metadata'),                          // 포함된 거래 ID 목록 등
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_payout_host').on(table.hostId),
+  index('IDX_payout_status').on(table.status),
+  index('IDX_payout_period').on(table.periodStart, table.periodEnd),
+]);
+```
+
+### 2.8.4 dispute_cases (분쟁 케이스)
+
+```typescript
+export const disputeCases = pgTable('dispute_cases', {
+  id: serial('id').primaryKey(),
+  caseNumber: varchar('case_number').notNull().unique(), // 'DIS-2025-00001'
+  
+  // 관련 거래
+  bookingId: integer('booking_id').references(() => bookings.id),
+  contractId: integer('contract_id').references(() => contracts.id),
+  escrowTransactionId: integer('escrow_transaction_id').references(() => escrowTransactions.id),
+  
+  // 당사자
+  initiatorId: varchar('initiator_id').notNull().references(() => users.id),     // 분쟁 제기자
+  respondentId: varchar('respondent_id').notNull().references(() => users.id),   // 상대방
+  
+  // 분쟁 유형
+  disputeType: varchar('dispute_type').notNull(),
+  // 'service_not_provided'  → 서비스 미제공
+  // 'service_quality'       → 서비스 품질 불만
+  // 'unauthorized_charge'   → 무단 청구
+  // 'cancellation_refund'   → 취소/환불 분쟁
+  // 'host_no_show'          → 호스트 노쇼
+  // 'traveler_no_show'      → 여행자 노쇼
+  // 'other'                 → 기타
+  
+  // 금액
+  disputedAmount: decimal('disputed_amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency').default('KRW'),
+  
+  // 상태
+  status: varchar('status').default('open'),
+  // 'open'             → 접수됨
+  // 'under_review'     → 검토 중
+  // 'awaiting_response'→ 상대방 응답 대기
+  // 'mediation'        → 중재 진행 중
+  // 'resolved_favor_initiator' → 제기자 승
+  // 'resolved_favor_respondent'→ 상대방 승
+  // 'resolved_partial' → 부분 합의
+  // 'closed'           → 종료
+  
+  // 결과
+  resolutionType: varchar('resolution_type'),
+  // 'full_refund'      → 전액 환불
+  // 'partial_refund'   → 부분 환불
+  // 'no_refund'        → 환불 없음
+  // 'credit'           → 크레딧 제공
+  // 'mutual_agreement' → 상호 합의
+  
+  refundAmount: decimal('refund_amount', { precision: 12, scale: 2 }),
+  creditAmount: decimal('credit_amount', { precision: 12, scale: 2 }),
+  
+  // 내용
+  description: text('description').notNull(),
+  initiatorEvidence: jsonb('initiator_evidence'),       // 증거 파일 URL 등
+  respondentEvidence: jsonb('respondent_evidence'),
+  adminNotes: text('admin_notes'),
+  resolutionNotes: text('resolution_notes'),
+  
+  // SLA 관리
+  responseDeadline: timestamp('response_deadline'),     // 상대방 응답 기한
+  resolutionDeadline: timestamp('resolution_deadline'), // 해결 기한
+  escalatedAt: timestamp('escalated_at'),               // 에스컬레이션 시점
+  
+  // 타임라인
+  respondedAt: timestamp('responded_at'),
+  resolvedAt: timestamp('resolved_at'),
+  closedAt: timestamp('closed_at'),
+  
+  // 담당자
+  assignedAdminId: varchar('assigned_admin_id'),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_dispute_status').on(table.status),
+  index('IDX_dispute_initiator').on(table.initiatorId),
+]);
+```
+
+### 2.8.5 host_verifications (호스트 인증)
+
+```typescript
+export const hostVerifications = pgTable('host_verifications', {
+  id: serial('id').primaryKey(),
+  hostId: varchar('host_id').notNull().references(() => users.id),
+  
+  // 인증 유형
+  verificationType: varchar('verification_type').notNull(),
+  // 'identity'           → 신원 인증 (신분증)
+  // 'business'           → 사업자 인증
+  // 'bank_account'       → 계좌 인증
+  // 'address'            → 주소 인증
+  // 'phone'              → 전화번호 인증
+  // 'background_check'   → 신원조회 (선택)
+  
+  // 상태
+  status: varchar('status').default('pending'),
+  // 'pending'    → 제출 대기
+  // 'submitted'  → 제출됨
+  // 'reviewing'  → 검토 중
+  // 'verified'   → 인증 완료
+  // 'rejected'   → 거부됨
+  // 'expired'    → 만료됨
+  
+  // 제출 정보
+  documentType: varchar('document_type'),               // 'passport', 'id_card', 'business_license'
+  documentNumber: varchar('document_number'),           // 암호화 저장
+  documentImageUrl: varchar('document_image_url'),      // 암호화 저장
+  
+  // 검토 결과
+  verifiedAt: timestamp('verified_at'),
+  verifiedBy: varchar('verified_by'),                   // 관리자 ID
+  rejectedAt: timestamp('rejected_at'),
+  rejectionReason: varchar('rejection_reason'),
+  expiresAt: timestamp('expires_at'),                   // 인증 만료일
+  
+  // 메타데이터
+  metadata: jsonb('metadata'),                          // 추가 검증 정보
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_host_verify_host').on(table.hostId),
+  index('IDX_host_verify_type_status').on(table.verificationType, table.status),
+]);
+```
+
+### 2.8.6 fraud_signals (사기 탐지 신호)
+
+```typescript
+export const fraudSignals = pgTable('fraud_signals', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').references(() => users.id),
+  bookingId: integer('booking_id').references(() => bookings.id),
+  paymentId: integer('payment_id').references(() => payments.id),
+  
+  // 신호 유형
+  signalType: varchar('signal_type').notNull(),
+  // 'velocity_limit'         → 단시간 다량 거래
+  // 'unusual_amount'         → 비정상 금액
+  // 'new_account_high_value' → 신규 계정 고액 거래
+  // 'location_mismatch'      → 위치 불일치
+  // 'multiple_cards'         → 다수 카드 사용
+  // 'chargeback_history'     → 차지백 이력
+  // 'suspicious_pattern'     → 의심 패턴
+  
+  // 위험 점수
+  riskScore: decimal('risk_score', { precision: 5, scale: 2 }).notNull(),  // 0-100
+  riskLevel: varchar('risk_level').notNull(),           // 'low' | 'medium' | 'high' | 'critical'
+  
+  // 상세
+  description: text('description'),
+  rawData: jsonb('raw_data'),                           // 탐지에 사용된 원본 데이터
+  
+  // 조치
+  actionTaken: varchar('action_taken'),
+  // 'none'              → 조치 없음 (모니터링)
+  // 'flagged'           → 플래그 지정
+  // 'manual_review'     → 수동 검토 요청
+  // 'blocked'           → 거래 차단
+  // 'account_suspended' → 계정 정지
+  
+  actionTakenBy: varchar('action_taken_by'),            // 'system' | admin_id
+  actionTakenAt: timestamp('action_taken_at'),
+  
+  // 해결
+  isResolved: boolean('is_resolved').default(false),
+  resolvedBy: varchar('resolved_by'),
+  resolvedAt: timestamp('resolved_at'),
+  resolutionNotes: text('resolution_notes'),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_fraud_user').on(table.userId),
+  index('IDX_fraud_risk').on(table.riskLevel),
+]);
+```
+
+---
+
+## 2.9 P2P 거래 플로우 (⭐ 핵심)
+
+### 2.9.1 일반 예약 결제 플로우
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    P2P 예약 결제 라이프사이클                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  1️⃣ 예약 요청                                                           │
+│  ┌─────────┐      ┌─────────┐      ┌─────────┐                         │
+│  │ 여행자   │ ──▶ │ 플랫폼   │ ──▶ │ 호스트   │                         │
+│  └─────────┘      └─────────┘      └─────────┘                         │
+│       │                │                │                              │
+│       │ 결제 시도      │                │ 예약 확인                     │
+│       ▼                ▼                ▼                              │
+│  2️⃣ 결제 승인 (Authorization)                                          │
+│  ┌─────────────────────────────────────┐                               │
+│  │  PortOne → 카드사 승인              │                               │
+│  │  상태: 'authorized'                 │                               │
+│  │  ※ 아직 실제 청구 X (홀드만)         │                               │
+│  └─────────────────────────────────────┘                               │
+│       │                                                                │
+│       ▼                                                                │
+│  3️⃣ 에스크로 홀드 (Capture)                                             │
+│  ┌─────────────────────────────────────┐                               │
+│  │  결제 캡처 → 에스크로 계좌로 이동    │                               │
+│  │  상태: 'held'                       │                               │
+│  │  ※ 호스트에게 아직 정산 X           │                               │
+│  │  ※ 서비스 제공 대기                 │                               │
+│  └─────────────────────────────────────┘                               │
+│       │                                                                │
+│       │  [서비스 제공 완료 확인]                                         │
+│       ▼                                                                │
+│  4️⃣ 릴리스 대기 (Release Pending)                                      │
+│  ┌─────────────────────────────────────┐                               │
+│  │  서비스 완료 후 일정 기간 대기       │                               │
+│  │  (여행자 불만 제기 기간: 24-72시간)  │                               │
+│  │  상태: 'release_pending'            │                               │
+│  └─────────────────────────────────────┘                               │
+│       │                                                                │
+│       │  [대기 기간 종료 & 분쟁 없음]                                    │
+│       ▼                                                                │
+│  5️⃣ 호스트 정산 (Released)                                             │
+│  ┌─────────────────────────────────────┐                               │
+│  │  총액: 50,000원                     │                               │
+│  │  - 플랫폼 수수료 (12%): 6,000원     │                               │
+│  │  = 호스트 정산액: 44,000원          │                               │
+│  │  상태: 'released'                   │                               │
+│  └─────────────────────────────────────┘                               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.9.2 계약 기반 분할 결제 플로우
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    계약 분할 결제 플로우                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  총 계약금: 1,000,000원                                                  │
+│  ├─ 계약금 (30%): 300,000원 ─────────▶ 계약 체결 시 즉시 결제            │
+│  ├─ 중도금 (40%): 400,000원 ─────────▶ 서비스 시작 시 결제               │
+│  └─ 잔금 (30%): 300,000원 ──────────▶ 서비스 완료 후 결제                │
+│                                                                         │
+│  ┌────────────────────────────────────────────────────────────────┐     │
+│  │  Stage 1: 계약금                                                │     │
+│  │  ├─ 여행자 결제 → 에스크로 홀드                                  │     │
+│  │  ├─ 호스트 서비스 준비 확인                                      │     │
+│  │  ├─ 릴리스 조건: 서비스 시작일 도래                              │     │
+│  │  └─ 정산: 서비스 시작 후 24시간 내                               │     │
+│  └────────────────────────────────────────────────────────────────┘     │
+│                         │                                              │
+│                         ▼                                              │
+│  ┌────────────────────────────────────────────────────────────────┐     │
+│  │  Stage 2: 중도금                                                │     │
+│  │  ├─ 결제 기한: 서비스 시작 D-3                                   │     │
+│  │  ├─ 미결제 시: 자동 알림 → 24시간 후 계약 취소 가능               │     │
+│  │  ├─ 릴리스 조건: 서비스 50% 진행 확인                            │     │
+│  │  └─ 정산: Stage 완료 후 48시간 내                                │     │
+│  └────────────────────────────────────────────────────────────────┘     │
+│                         │                                              │
+│                         ▼                                              │
+│  ┌────────────────────────────────────────────────────────────────┐     │
+│  │  Stage 3: 잔금                                                  │     │
+│  │  ├─ 결제 기한: 서비스 완료 시                                    │     │
+│  │  ├─ 여행자 확인: 서비스 완료 확인 버튼                           │     │
+│  │  ├─ 자동 확인: 72시간 내 응답 없으면 자동 완료 처리              │     │
+│  │  ├─ 릴리스 조건: 서비스 완료 확인                                │     │
+│  │  └─ 정산: 완료 확인 후 48시간 내                                 │     │
+│  └────────────────────────────────────────────────────────────────┘     │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.9.3 정산 배치 프로세스
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    정산 배치 프로세스 (매일)                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  🕐 매일 02:00 KST - 정산 배치 실행                                       │
+│                                                                         │
+│  Step 1: 정산 대상 수집                                                  │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │  SELECT * FROM escrow_transactions                          │        │
+│  │  WHERE escrow_status = 'release_pending'                    │        │
+│  │    AND release_scheduled_at <= NOW()                        │        │
+│  │    AND NOT EXISTS (분쟁 케이스)                               │        │
+│  └─────────────────────────────────────────────────────────────┘        │
+│                         │                                              │
+│                         ▼                                              │
+│  Step 2: 호스트별 그룹화                                                 │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │  호스트 A: 3건, 총 150,000원, 수수료 18,000원                 │        │
+│  │  호스트 B: 1건, 총 50,000원, 수수료 6,000원                   │        │
+│  │  호스트 C: 5건, 총 280,000원, 수수료 33,600원                 │        │
+│  └─────────────────────────────────────────────────────────────┘        │
+│                         │                                              │
+│                         ▼                                              │
+│  Step 3: KYC 및 계좌 검증                                                │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │  - 호스트 KYC 상태 확인 (verified 필수)                       │        │
+│  │  - 정산 계좌 유효성 확인                                      │        │
+│  │  - 최소 정산 금액 확인 (예: 10,000원 이상)                    │        │
+│  │  ※ 미충족 시: 다음 정산 주기로 이월                           │        │
+│  └─────────────────────────────────────────────────────────────┘        │
+│                         │                                              │
+│                         ▼                                              │
+│  Step 4: PortOne Transfer API 호출                                      │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │  POST /transfers                                             │        │
+│  │  {                                                           │        │
+│  │    "amount": 132000,                                         │        │
+│  │    "bankCode": "004",                                        │        │
+│  │    "accountNumber": "***-***-****",                          │        │
+│  │    "accountHolderName": "홍길동"                              │        │
+│  │  }                                                           │        │
+│  └─────────────────────────────────────────────────────────────┘        │
+│                         │                                              │
+│                         ▼                                              │
+│  Step 5: 결과 기록 및 알림                                               │
+│  ┌─────────────────────────────────────────────────────────────┐        │
+│  │  - payouts 테이블 업데이트                                    │        │
+│  │  - escrow_transactions 상태 → 'released'                     │        │
+│  │  - 호스트에게 정산 완료 알림 (이메일/푸시)                     │        │
+│  │  - 정산 명세서 PDF 생성                                       │        │
+│  └─────────────────────────────────────────────────────────────┘        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2.10 신뢰 & 안전 (Trust & Safety) ⚠️
+
+### 2.10.1 호스트 검증 필수 요건
+
+| 인증 유형 | 필수 여부 | 설명 | 정산 가능 조건 |
+|----------|----------|------|--------------|
+| 📱 전화번호 인증 | ✅ 필수 | SMS 인증 코드 | 모든 정산 |
+| 🪪 신원 인증 | ✅ 필수 | 신분증 (여권/주민등록증) | 월 100만원 이상 |
+| 🏢 사업자 인증 | 🟡 선택 | 사업자등록증 | 수수료 할인 혜택 |
+| 🏦 계좌 인증 | ✅ 필수 | 1원 입금 인증 | 모든 정산 |
+
+### 2.10.2 사기 탐지 규칙
+
+| 규칙 | 조건 | 위험 레벨 | 자동 조치 |
+|------|------|----------|----------|
+| 단시간 다량 예약 | 1시간 내 5건 이상 | 🔴 Critical | 자동 차단 |
+| 신규 계정 고액 거래 | 가입 24시간 내 50만원+ | 🟠 High | 수동 검토 |
+| 위치 불일치 | IP와 예약지 국가 상이 | 🟡 Medium | 플래그 |
+| 다수 카드 사용 | 24시간 내 3개+ 카드 | 🟠 High | 수동 검토 |
+| 차지백 이력 | 최근 90일 내 차지백 | 🔴 Critical | 결제 차단 |
+
+### 2.10.3 분쟁 해결 SLA
+
+| 분쟁 유형 | 초기 응답 | 해결 목표 | 자동 에스컬레이션 |
+|----------|----------|----------|-----------------|
+| 서비스 미제공 | 4시간 | 48시간 | 24시간 후 |
+| 품질 불만 | 24시간 | 72시간 | 48시간 후 |
+| 환불 요청 | 12시간 | 48시간 | 36시간 후 |
+| 노쇼 (호스트) | 즉시 | 24시간 | 12시간 후 |
+
+### 2.10.4 환불 정책 매트릭스
+
+| 취소 시점 | 여행자 환불 | 호스트 정산 | 플랫폼 수수료 |
+|----------|-----------|-----------|-------------|
+| 서비스 7일+ 전 | 100% | 0% | 환불 |
+| 서비스 3-7일 전 | 80% | 15% | 5% 유지 |
+| 서비스 1-3일 전 | 50% | 45% | 5% 유지 |
+| 서비스 24시간 내 | 0% | 95% | 5% 유지 |
+| 호스트 취소 | 100% + 10% 크레딧 | 0% | 0% |
+
+---
+
+## 2.11 한국 법적 준수사항 🇰🇷
+
+### 2.11.1 필수 신고/등록
+
+| 요건 | 설명 | 기한/조건 |
+|------|------|----------|
+| **통신판매중개업 신고** | 플랫폼으로서 필수 | 서비스 개시 전 |
+| **전자상거래법 고지** | 중개자 책임 범위 명시 | 이용약관 필수 기재 |
+| **에스크로 제도** | 5만원 이상 거래 시 의무 | 여행/숙박 포함 |
+| **PG사 계약** | 에스크로 또는 보증보험 | PortOne 통해 해결 |
+
+### 2.11.2 필수 표시 사항 (Footer/결제 화면)
+
+```
+[중개자 정보]
+상호: 투게더 주식회사 | 대표: OOO
+사업자등록번호: 123-45-67890
+통신판매업신고: 제2024-서울OO-0000호
+통신판매중개업신고: 제2024-서울OO-0001호
+
+주소: 서울특별시 OO구 OO로 123
+고객센터: 1234-5678 | support@tourgether.com
+
+[중개자 책임 안내]
+투게더는 통신판매중개자로서 거래 당사자가 아니며,
+호스트가 등록한 상품 정보 및 거래에 대한 책임은 해당 호스트에게 있습니다.
+
+[결제 안전 안내]
+본 서비스는 에스크로 결제를 지원하며, 서비스 완료 전까지
+결제 금액이 안전하게 보호됩니다.
+```
+
+### 2.11.3 환불 정책 필수 안내
+
+PG사 심사 및 법적 요건 충족을 위해 `/refund` 페이지 필수:
+
+```
+[환불 규정]
+1. 서비스 7일 전 취소: 전액 환불
+2. 서비스 3-7일 전 취소: 80% 환불
+3. 서비스 1-3일 전 취소: 50% 환불
+4. 서비스 24시간 내 취소: 환불 불가
+5. 호스트 사유 취소: 전액 환불 + 10% 보상 크레딧
+
+※ 천재지변, 질병 등 불가항력 사유 시 별도 협의
+※ 분쟁 발생 시 플랫폼 중재 절차 진행
+```
+
+---
+
 ## 3. 신규 스키마 설계 - Part B: 분석용 데이터 웨어하우스
 
 ### 3.1 설계 원칙
