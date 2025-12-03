@@ -1,8 +1,15 @@
 # Tourgether Billing System 개발 계획서 v1.1
 
 **작성일**: 2025년 11월 26일  
-**수정일**: 2025년 11월 30일  
+**수정일**: 2025년 12월 3일  
 **목표**: 실제 돈이 오가는 플랫폼으로 전환 + 빅데이터 분석 기반 구축
+
+> 📌 **Tourgether의 고유한 특성**:
+> - 일반 B2C 앱과 달리 **사용자 간 거래(P2P)** 중심
+> - 여행자 → **에스크로** → 호스트 자금 흐름
+> - 계약 기반 분할 결제 (계약금/중도금/잔금)
+> - 플랫폼 수수료 자동 징수 (10-15%)
+> - 신뢰 & 안전이 핵심 (KYC, 분쟁 해결, 사기 탐지)
 
 ---
 
@@ -66,6 +73,168 @@ app.post('/api/admin/billing-plans', requireAdmin, async (req, res) => {
 - [ ] Mini Concierge / AI Concierge / CineMap
 - [ ] 알림 시스템
 - [ ] 프로필 관리
+
+---
+
+## 0.5 PortOne V2 시행착오 교훈 (⭐ 매우 중요)
+
+> 이 섹션은 VidDigest Hub 프로젝트에서 실제 PortOne V2 연동 시 겪은 시행착오를 기반으로 작성되었습니다.
+> **이 교훈들을 무시하면 2개월 후 자동결제가 중단되거나, 해지 후에도 결제가 계속됩니다.**
+
+### 0.5.1 정기결제 스케줄은 1회성! (가장 중요)
+
+**핵심 개념:** PortOne V2의 정기결제 스케줄은 **1회성**입니다. 한 번 등록된 스케줄은 해당 날짜에 1회만 실행됩니다. 매월 자동결제를 위해서는 **Webhook에서 매번 다음 달 스케줄을 새로 등록**해야 합니다.
+
+```
+1월 1일: 첫 결제 + 2월 스케줄 등록
+    ↓
+2월 1일: PortOne 스케줄 실행 → Webhook 수신 → 3월 스케줄 등록 (필수!)
+    ↓
+3월 1일: PortOne 스케줄 실행 → Webhook 수신 → 4월 스케줄 등록 (필수!)
+    ↓
+... 무한 반복
+```
+
+**❌ 잘못된 구현 (2개월 후 자동결제 중단):**
+```typescript
+private async handlePaymentPaid(data: any): Promise<void> {
+  // 기간만 연장하고 끝 → 3개월째부터 자동결제 안 됨!
+  await db.update(userSubscriptions).set({
+    currentPeriodEnd: newPeriodEnd,
+  });
+}
+```
+
+**✅ 올바른 구현:**
+```typescript
+private async handlePaymentPaid(data: any): Promise<void> {
+  // 1. 해지 예정인 구독은 갱신하지 않음!
+  if (subscription.canceledAt) {
+    console.log('[PortOne] Subscription canceled, not renewing');
+    return;
+  }
+
+  // 2. 구독 기간 연장
+  await db.update(userSubscriptions).set({
+    status: 'active',
+    currentPeriodStart: subscription.currentPeriodEnd,
+    currentPeriodEnd: newPeriodEnd,
+  });
+
+  // 3. ⭐ 다음 달 자동결제 스케줄 등록 (핵심!)
+  if (subscription.billingKeyId) {
+    const nextPaymentId = `payment_${subscription.id}_${Date.now()}`;
+    await this.schedulePayment({
+      paymentId: nextPaymentId,
+      billingKey: subscription.billingKeyId,
+      scheduledAt: newPeriodEnd,
+      // ...
+    });
+    
+    // 새 스케줄 ID 저장
+    await db.update(userSubscriptions).set({
+      portoneScheduleId: scheduleResult.scheduleId,
+    });
+  }
+}
+```
+
+### 0.5.2 스케줄 취소 API 엔드포인트 (주의!)
+
+PortOne V2 문서가 혼란스럽습니다. 아래가 **실제 동작하는** 엔드포인트입니다:
+
+| 기능 | HTTP 메서드 | 엔드포인트 |
+|------|-----------|-----------|
+| 스케줄 등록 | `POST` | `/payments/{paymentId}/schedule` |
+| 스케줄 조회 | `GET` | `/payments/{paymentId}/schedule` |
+| 스케줄 취소 | `DELETE` | `/payment-schedules/{scheduleId}` |
+
+**⚠️ 흔한 실수:**
+- ❌ `POST /payment-schedules/{scheduleId}/revoke` → 404 에러
+- ✅ `DELETE /payment-schedules/{scheduleId}` → 정상 동작
+
+### 0.5.3 필수 DB 필드: portoneScheduleId
+
+`paymentId`와 `scheduleId`는 다릅니다! 별도 필드가 필요합니다:
+
+```typescript
+export const userSubscriptions = pgTable('user_subscriptions', {
+  // ... 기존 필드들 ...
+  
+  // ⭐ 스케줄 관리용 필드 (필수!)
+  portoneScheduleId: text('portone_schedule_id'),  // 현재 예약된 스케줄 ID
+  billingKeyId: text('billing_key_id'),             // 정기결제용 빌링키
+  
+  // 해지 관리용
+  canceledAt: timestamp('canceled_at', { withTimezone: true }),
+});
+```
+
+### 0.5.4 해지 워크플로우
+
+사용자가 "해지"를 요청하면 **즉시 해지하지 않고**, 현재 결제 기간이 끝날 때까지 사용 가능하게 합니다:
+
+```
+사용자 "해지" 요청
+    ↓
+1. canceledAt = now() 설정 (status는 "active" 유지!)
+2. PortOne 스케줄 취소 (다음 달 결제 안 되게)
+3. 사용자에게 "X월 X일까지 사용 가능" 안내
+    ↓
+기간 종료 시
+4. status = "canceled" 또는 "expired"로 변경
+5. 서비스 이용 불가
+```
+
+### 0.5.5 Webhook에서 canceledAt 체크 (필수!)
+
+**❌ 누락 시 문제:** 해지 후에도 자동결제가 계속 발생
+
+```typescript
+private async handlePaymentPaid(data: any): Promise<void> {
+  // ⭐ 해지 예정인 구독은 갱신하지 않음!
+  if (subscription.canceledAt) {
+    console.log('[PortOne] Subscription is canceled, not renewing');
+    return;  // 여기서 종료! → 다음 스케줄 등록 안 됨 → 자동결제 중단
+  }
+  
+  // ... 나머지 로직 ...
+}
+```
+
+### 0.5.6 결제 수단별 필수 설정
+
+| 결제 수단 | 필수 설정 | 주의사항 |
+|----------|----------|---------|
+| KG이니시스 (카드) | `billingKeyMethod: 'CARD'` | 테스트 MID는 SMS 미발송 |
+| 카카오페이 | `billingKeyMethod: 'EASY_PAY'`, `windowType: { pc: 'IFRAME', mobile: 'REDIRECTION' }` | windowType 미설정 시 에러! |
+| PayPal | `uiType: 'PAYPAL_RT'`, `loadIssueBillingKeyUI` 사용 | React DOM 충돌 방지 위해 수동 DOM 관리 필수 |
+
+### 0.5.7 관리자 1원 테스트 결제
+
+개발/테스트 시 관리자 계정은 1원으로 결제:
+
+```typescript
+const isTestPayment = isAdminEmail(params.userEmail);
+const paymentAmount = isTestPayment ? 1 : plan.priceMonthlyKrw;
+
+if (isTestPayment) {
+  console.log(`[PortOne] Admin test payment: ${params.userEmail} - 1원`);
+}
+```
+
+### 0.5.8 자주 발생하는 에러 & 해결
+
+| 에러 | 원인 | 해결 |
+|------|------|------|
+| "알려지지 않은 credential" | 채널 키 불일치 | PortOne 콘솔에서 채널 키 확인 |
+| "NotFoundError: removeChild" | PayPal SDK vs React DOM 충돌 | PayPal 컨테이너 수동 관리 |
+| SMS 인증 미수신 | 테스트 MID | 실서비스 MID 발급 |
+| 카카오페이 windowType 에러 | windowType 미설정 | `{ pc: 'IFRAME', mobile: 'REDIRECTION' }` |
+| 2개월 후 자동결제 중단 | Webhook에서 다음 스케줄 미등록 | 섹션 0.5.1 참조 |
+| 해지 후에도 결제 계속 | canceledAt 체크 누락 | 섹션 0.5.5 참조 |
+| 스케줄 취소 실패 (404) | 잘못된 API 엔드포인트 | `DELETE /payment-schedules/{id}` 사용 |
+| 스케줄 조회 실패 | paymentId vs scheduleId 혼동 | portoneScheduleId 별도 컬럼 사용 |
 
 ---
 
@@ -1575,23 +1744,44 @@ Mini Concierge:
 |------|------|------|
 | PortOne 클라이언트 | `server/services/portoneClient.ts` | V2 REST API 래퍼 |
 | 빌링 헬퍼 | `server/services/billingHelpers.ts` | 플랜 조회, 수수료 계산, 사용량 관리 |
+| 에스크로 서비스 | `server/services/escrowService.ts` | P2P 에스크로 관리 |
+| 정산 서비스 | `server/services/settlementService.ts` | 호스트 정산 배치 |
+| 분쟁 서비스 | `server/services/disputeService.ts` | 분쟁 케이스 관리 |
 | 사용량 미들웨어 | `server/middleware/checkTravelerAiUsage.ts` | AI 사용량 체크 |
 | 분석 수집기 | `server/services/analyticsCollector.ts` | 이벤트 수집 및 집계 |
+| 이메일 서비스 | `server/services/emailService.ts` | Resend API 래퍼 |
 
 **핵심 함수:**
 
 ```typescript
-// portoneClient.ts
-createSubscriptionCheckout(plan, user): Promise<{ redirectUrl: string }>
-createOneTimeCheckout(item, user): Promise<{ redirectUrl: string }>
-getPayment(paymentId): Promise<PaymentInfo>
-verifyWebhookSignature(payload, signature): boolean
+// portoneClient.ts - ⚠️ 섹션 0.5 시행착오 교훈 반드시 참고!
+createPayment(billingKey, amount, ...): Promise<PaymentResult>
+schedulePayment(paymentId, billingKey, scheduledAt, ...): Promise<{ scheduleId }>
+cancelSchedule(scheduleId): Promise<void>  // ⚠️ DELETE 메서드 사용!
+getSchedule(scheduleId): Promise<ScheduleInfo>
+handleWebhookPaymentPaid(data): Promise<void>  // ⚠️ 다음 스케줄 등록 필수!
 
 // billingHelpers.ts
 getHostEffectivePlan(hostId): Promise<BillingPlan>
 calculatePlatformFee(totalPrice, plan): { feeAmount, payoutAmount }
 checkAndIncrementUsage(userId, usageKey): Promise<boolean>
 getActiveTripPass(userId): Promise<TripPass | null>
+
+// escrowService.ts - P2P 거래 핵심
+createEscrowTransaction(booking): Promise<EscrowTransaction>
+capturePayment(escrowId): Promise<void>
+scheduleRelease(escrowId, releaseAt): Promise<void>
+processRelease(escrowId): Promise<void>
+
+// settlementService.ts - 호스트 정산
+runDailySettlement(): Promise<SettlementReport>  // 매일 02:00 KST
+createPayout(hostId, transactions): Promise<Payout>
+transferToHost(payout): Promise<TransferResult>
+
+// disputeService.ts - 분쟁 관리
+createDispute(initiator, booking, type): Promise<DisputeCase>
+assignAdmin(caseId, adminId): Promise<void>
+resolveDispute(caseId, resolution): Promise<void>
 
 // analyticsCollector.ts
 trackFeatureUsage(featureCode, regionId, metadata): void
@@ -1600,35 +1790,94 @@ aggregateHourlyMetrics(): Promise<void>
 aggregateDailyMetrics(): Promise<void>
 ```
 
+**⚠️ Phase 3 필수 체크리스트 (시행착오 기반):**
+
+| 항목 | 체크 | 관련 섹션 |
+|------|------|----------|
+| Webhook에서 다음 스케줄 등록 | [ ] | 0.5.1 |
+| canceledAt 체크 후 스케줄 등록 | [ ] | 0.5.5 |
+| portoneScheduleId 별도 컬럼 | [ ] | 0.5.3 |
+| 스케줄 취소 시 DELETE 메서드 | [ ] | 0.5.2 |
+| 관리자 1원 테스트 결제 | [ ] | 0.5.7 |
+| 카카오페이 windowType 설정 | [ ] | 0.5.6 |
+| PayPal DOM 수동 관리 | [ ] | 0.5.6 |
+
 **의존성**: Phase 1, 2 완료
 
 ### Phase 4: API 엔드포인트 (2-3일)
 
 **목표**: REST API 구축
 
+#### 4.1 빌링 API
+
 | 엔드포인트 | 메소드 | 설명 |
 |-----------|--------|------|
 | `/api/billing/plans` | GET | 요금제 목록 조회 |
-| `/api/billing/host/create-checkout-session` | POST | 호스트 구독 결제창 생성 |
-| `/api/billing/trip-pass/create-session` | POST | Trip Pass 결제창 생성 |
+| `/api/billing/host/subscribe` | POST | 호스트 구독 시작 (빌링키로 결제) |
+| `/api/billing/host/cancel` | POST | 호스트 구독 해지 |
+| `/api/billing/host/resume` | POST | 호스트 구독 해지 취소 |
+| `/api/billing/trip-pass/purchase` | POST | Trip Pass 구매 |
 | `/api/billing/usage` | GET | 사용량 조회 |
+| `/api/billing/portone/config` | GET | 프론트엔드용 PortOne 설정 |
+| `/api/billing/portone/status` | GET | PortOne 설정 상태 확인 |
 | `/api/billing/portone-webhook` | POST | PortOne 웹훅 수신 |
+
+#### 4.2 P2P 거래 API (에스크로/정산/분쟁)
+
+| 엔드포인트 | 메소드 | 설명 |
+|-----------|--------|------|
+| `/api/bookings/:id/pay` | POST | 예약 결제 (에스크로) |
+| `/api/bookings/:id/confirm-completion` | POST | 서비스 완료 확인 (릴리스 트리거) |
 | `/api/contracts` | POST/GET | 계약 생성/조회 |
 | `/api/contracts/:id` | GET | 계약 상세 조회 |
 | `/api/contracts/:id/pay-stage` | POST | 분할 결제 실행 |
-| `/api/bookings/:id/pay` | POST | 예약 결제 실행 |
-| `/api/admin/billing-plans` | CRUD | 관리자: 요금제 관리 |
-| `/api/admin/analytics/destinations` | GET | 관리자: 목적지 분석 |
-| `/api/admin/analytics/ai-usage` | GET | 관리자: AI 사용량 분석 |
+| `/api/disputes` | POST/GET | 분쟁 제기/목록 조회 |
+| `/api/disputes/:id` | GET/PATCH | 분쟁 상세/응답 |
+| `/api/host/payouts` | GET | 호스트 정산 내역 조회 |
+| `/api/host/escrow-balance` | GET | 에스크로 잔액 조회 |
 
-**웹훅 처리 흐름:**
+#### 4.3 관리자 API
+
+| 엔드포인트 | 메소드 | 설명 |
+|-----------|--------|------|
+| `/api/admin/billing-plans` | CRUD | 요금제 관리 |
+| `/api/admin/schedule/:id` | GET | 스케줄 조회 (PortOne) |
+| `/api/admin/cancel-schedule` | POST | 스케줄 취소 (PortOne) |
+| `/api/admin/disputes` | GET | 전체 분쟁 목록 |
+| `/api/admin/disputes/:id/assign` | POST | 분쟁 담당자 지정 |
+| `/api/admin/disputes/:id/resolve` | POST | 분쟁 해결 |
+| `/api/admin/settlements` | GET | 정산 내역 조회 |
+| `/api/admin/settlements/run` | POST | 수동 정산 실행 |
+| `/api/admin/host-verifications` | GET/PATCH | 호스트 인증 관리 |
+| `/api/admin/fraud-signals` | GET | 사기 탐지 신호 조회 |
+| `/api/admin/analytics/destinations` | GET | 목적지 분석 |
+| `/api/admin/analytics/ai-usage` | GET | AI 사용량 분석 |
+
+**웹훅 처리 흐름 (⚠️ 0.5.1 필수 참고):**
 
 ```
-PortOne Webhook → Signature 검증 → metadata.type 분기
-├─ host_subscription → user_subscriptions 활성화
-├─ trip_pass → user_trip_passes 생성
-├─ booking → bookings/payments 업데이트, 수수료 계산
-└─ contract_stage → contract_stages 업데이트
+PortOne Webhook → Signature 검증 → data.type 분기
+├─ Transaction.Paid (정기결제 성공)
+│   ├─ ⚠️ canceledAt 체크 (해지 예정이면 return)
+│   ├─ 구독 기간 연장
+│   ├─ ⭐ 다음 스케줄 등록 (필수!)
+│   └─ 이메일 알림
+│
+├─ Transaction.Paid (P2P 예약 결제)
+│   ├─ 에스크로 트랜잭션 생성
+│   ├─ 상태: 'captured' → 'held'
+│   ├─ 릴리스 스케줄 등록
+│   └─ 호스트 알림
+│
+├─ Transaction.Paid (계약 분할결제)
+│   ├─ contract_stages 상태 업데이트
+│   ├─ 에스크로 홀드
+│   └─ 다음 스테이지 알림
+│
+└─ Transaction.Cancelled / Refunded
+    ├─ 에스크로 반환
+    ├─ 수수료 정산 취소
+    └─ 사용자 알림
 ```
 
 **의존성**: Phase 3 완료
@@ -1661,17 +1910,45 @@ PortOne Webhook → Signature 검증 → metadata.type 분기
 ## 6. 환경 변수 설정
 
 ```bash
-# PortOne V2 API
-PORTONE_API_SECRET=your_api_secret
-PORTONE_MERCHANT_ID=your_merchant_id
-PORTONE_STORE_ID=your_store_id
+# PortOne V2 API (필수)
+PORTONE_API_SECRET=your_portone_api_secret
+PORTONE_STORE_ID=store-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# 결제 채널별 키 (PG사별 설정)
+PORTONE_CHANNEL_KEY=channel-key-xxxxx          # KG이니시스 (카드)
+PORTONE_KAKAOPAY_CHANNEL_KEY=channel-key-xxxxx # 카카오페이
+PORTONE_PAYPAL_CHANNEL_KEY=channel-key-xxxxx   # PayPal (선택)
+
+# Webhook 검증 (선택)
 PORTONE_WEBHOOK_SECRET=your_webhook_secret
+
+# 이메일 알림 (Resend)
+RESEND_API_KEY=re_xxxxx
+
+# 관리자 계정 (테스트용 1원 결제)
+ADMIN_EMAILS=admin1@example.com,admin2@example.com
 
 # 기능 플래그 (점진적 롤아웃용)
 BILLING_ENABLED=false
 USAGE_LIMITS_ENABLED=false
 ANALYTICS_ENABLED=false
+ESCROW_ENABLED=false
+SETTLEMENT_ENABLED=false
 ```
+
+### 6.1 채널 키 확인 방법
+
+1. [PortOne 콘솔](https://admin.portone.io) → 결제 연동 → 채널 관리
+2. 각 채널의 "채널 키" 복사
+3. 채널 키는 `channel-key-`로 시작
+
+### 6.2 PG사별 계약 필요
+
+| PG사 | 계약 형태 | 테스트 MID |
+|------|----------|-----------|
+| KG이니시스 | 정기결제(빌링) 별도 계약 | `INIBillTst` |
+| 카카오페이 | 정기결제 계약 | `TCSUBSCRIP` |
+| PayPal | RT(Reference Transaction) 승인 필요 | Sandbox 계정 |
 
 ---
 
@@ -1684,23 +1961,34 @@ server/
 │   ├── feedScoringService.ts       # 기존
 │   ├── portoneClient.ts            # 🆕 PortOne V2 클라이언트
 │   ├── billingHelpers.ts           # 🆕 빌링 헬퍼 함수
+│   ├── escrowService.ts            # 🆕 P2P 에스크로 관리
+│   ├── settlementService.ts        # 🆕 호스트 정산 배치
+│   ├── disputeService.ts           # 🆕 분쟁 케이스 관리
+│   ├── emailService.ts             # 🆕 이메일 알림 (Resend)
 │   └── analyticsCollector.ts       # 🆕 분석 데이터 수집기
+├── config/
+│   └── admin.ts                    # 🆕 관리자 이메일 설정
 ├── middleware/
-│   └── checkTravelerAiUsage.ts     # 🆕 AI 사용량 체크
+│   ├── checkTravelerAiUsage.ts     # 🆕 AI 사용량 체크
+│   └── adminMiddleware.ts          # 🆕 관리자 권한 체크
 ├── db/
 │   ├── seed.ts                     # 🆕 빌링 Seed 데이터
 │   └── seedAnalytics.ts            # 🆕 분석 차원 Seed 데이터
 ├── jobs/
-│   └── analyticsAggregator.ts      # 🆕 분석 집계 배치 작업
+│   ├── analyticsAggregator.ts      # 🆕 분석 집계 배치 작업
+│   └── settlementBatch.ts          # 🆕 정산 배치 (매일 02:00 KST)
 ├── routes/
 │   ├── trips.ts                    # 기존
 │   ├── billing.ts                  # 🆕 빌링 라우트
+│   ├── escrow.ts                   # 🆕 에스크로 라우트
+│   ├── disputes.ts                 # 🆕 분쟁 라우트
+│   ├── adminBilling.ts             # 🆕 관리자 빌링 라우트
 │   └── analytics.ts                # 🆕 분석 라우트 (관리자용)
 ├── routes.ts                       # 기존 (라우터 마운트 추가)
-└── storage.ts                      # 기존 (빌링/분석 메소드 추가)
+└── storage.ts                      # 기존 (빌링/분석/에스크로 메소드 추가)
 
 shared/
-└── schema.ts                       # 빌링 + 분석 테이블 추가
+└── schema.ts                       # 빌링 + 분석 + P2P 거래 테이블 추가
 ```
 
 ---
@@ -1712,7 +2000,10 @@ shared/
 | 대상 | 테스트 항목 |
 |------|------------|
 | billingHelpers | 수수료 계산, 플랜 조회, 사용량 증가 |
-| portoneClient | API 호출 mock, 서명 검증 |
+| portoneClient | API 호출 mock, 서명 검증, 스케줄 등록/취소 |
+| escrowService | 에스크로 생성, 릴리스, 반환 |
+| settlementService | 정산 계산, 배치 처리 |
+| disputeService | 분쟁 생성, 상태 전이, SLA 체크 |
 | checkTravelerAiUsage | 한도 체크, Pass 우선순위 |
 | analyticsCollector | 이벤트 수집, 집계 정확성 |
 
@@ -1720,19 +2011,34 @@ shared/
 
 | 시나리오 | 검증 항목 |
 |---------|----------|
-| 호스트 구독 플로우 | 결제창 생성 → 웹훅 → 구독 활성화 |
+| 호스트 구독 플로우 | 빌링키 발급 → 첫 결제 → 스케줄 등록 → 웹훅 → 다음 스케줄 등록 |
+| 호스트 구독 해지 | canceledAt 설정 → 스케줄 취소 → 기간 종료 시 서비스 중단 |
 | Trip Pass 구매 | 결제 → Pass 생성 → AI 사용 가능 |
-| 분할 결제 | 계약금 → 중도금 → 잔금 순차 결제 |
-| 예약 결제 | 결제 → 수수료 계산 → 정산 금액 저장 |
+| P2P 에스크로 플로우 | 결제 → 에스크로 홀드 → 서비스 완료 → 릴리스 대기 → 정산 |
+| 분할 결제 | 계약금 → 중도금 → 잔금 순차 결제 (각 단계 에스크로) |
+| 분쟁 처리 | 분쟁 제기 → 관리자 배정 → 증거 수집 → 해결 → 환불/정산 |
+| 정산 배치 | 릴리스 대기 트랜잭션 수집 → 수수료 차감 → 호스트 정산 |
 | 분석 집계 | 이벤트 발생 → 시간별 집계 → 일별 롤업 |
 
 ### 8.3 E2E 테스트
 
 ```
+# 사용량 제한
 1. 무료 사용자 → AI 사용 5회 → 6회째 402 에러 확인
 2. Trip Pass 구매 → AI 300회 사용 가능 확인
 3. 호스트 Basic 구독 → 경험 10개 등록 가능 확인
 4. 호스트 Free → 11번째 경험 등록 시 403 에러 확인
+
+# 정기결제 시행착오 검증 (⚠️ 중요!)
+5. 구독 시작 → Webhook에서 다음 스케줄 등록되었는지 DB 확인
+6. 구독 해지 → canceledAt 설정 확인 + 스케줄 취소 확인
+7. 해지 후 Webhook 수신 시 → 다음 스케줄 등록 안 되는지 확인
+
+# P2P 거래
+8. 예약 결제 → 에스크로 홀드 확인 → 호스트 잔액 미증가 확인
+9. 서비스 완료 확인 → 72시간 대기 → 자동 릴리스 확인
+10. 서비스 완료 전 취소 → 전액 환불 + 에스크로 반환 확인
+11. 분쟁 제기 → 릴리스 차단 확인 → 관리자 해결 후 정산 확인
 ```
 
 ### 8.4 기존 기능 회귀 테스트
