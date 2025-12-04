@@ -1,7 +1,26 @@
-# Tourgether - Local Travel Experiences Platform
+# Tourgether - 여행 공유경제 SNS 플랫폼
 
 ## Overview
-Tourgether is a full-stack web application designed to connect travelers with local hosts and authentic travel experiences. The platform facilitates discovery of unique activities, booking with local hosts, sharing travel content, and real-time communication. Its vision is to provide a seamless and secure environment for immersive local travel, offering features like location-based experience discovery, social interaction, and robust authentication.
+Tourgether는 여행과 만남을 주제로 한 **피드 기반 SNS**이자 **공유경제 플랫폼**입니다. 
+
+**핵심 정체성:**
+- 🎯 **SNS가 핵심** - 이커머스가 아님, 모든 것은 피드에서 시작
+- 🔄 **양방향 공유경제** - 여행자도, 로컬가이드도 누구나 돈을 벌 수 있음
+- 🗺️ **지도 중심 발견** - 사람, 장소, 이벤트를 지도에서 탐색
+- 💬 **DM으로 만남 연결** - 온라인에서 오프라인으로 자연스럽게 이어짐
+- 🔒 **안전한 계약 구조** - P2P 거래의 신뢰와 보호
+
+**공유경제 플로우:**
+1. 여행자가 "이런 여행 하고싶어요" 요구사항을 피드에 등록
+2. 로컬가이드가 맞춤 플랜을 제안
+3. DM에서 협의 → 안전한 계약 체결 (에스크로)
+4. 온라인/오프라인 서비스 제공 → 정산
+
+**누구나 돈을 벌 수 있는 서비스:**
+- 온라인: 예약대행, 정보제공, 가이드, 통역
+- 오프라인: 차량, 숙박, 어드벤처, 쇼핑대행
+- 이벤트 주최/참여
+- 셀프 보따리상 (구매대행)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -70,8 +89,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Features
 - **Authentication System**: Replit Auth and JWT-based email/password, secure session management, automatic user profile creation.
-- **Experience Management**: Categorized experiences (tours, food, activities, tips), booking system, host management, geographic discovery.
-- **Social Features**: Content sharing with location tagging, like system, trip planning.
+- **SNS Core (피드 기반)**: 여행 포스트 공유, 좋아요/댓글, 위치 태깅, 타임라인, 트립 플래닝.
+- **공유경제 플로우**: 여행자 요구사항 등록 → 로컬가이드 맞춤 제안 → DM 협의 → 안전 계약(에스크로) → 정산.
+- **서비스 제안 시스템**: 로컬가이드의 플랜/서비스 등록, 카테고리별 분류 (투어, 음식, 액티비티, 쇼핑대행 등).
 - **Real-time Communication**: Enhanced 3-panel chat system with threaded messaging, real-time WebSocket updates, heartbeat mechanism, and optimistic UI updates.
 - **Mobile Experience**: Progressive Web App (PWA) with responsive design, touch navigation, and real-time responsive behavior.
 - **Map Integration**: Custom Google Maps styling, SVG markers, theme-based color coding, interactive info windows, zoom-level responsive clustering, POI filtering, and direct feed creation from map clicks.
