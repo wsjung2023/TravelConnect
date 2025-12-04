@@ -197,6 +197,9 @@ export const bookings = pgTable('bookings', {
   guestName: varchar('guest_name'), // 예약자 이름 (비회원 예약 지원)
   guestEmail: varchar('guest_email'), // 예약자 이메일
   guestPhone: varchar('guest_phone'), // 예약자 연락처
+  // P2P 에스크로 정산 필드 (Phase 1 확장)
+  platformFeeAmount: decimal('platform_fee_amount', { precision: 10, scale: 2 }), // 플랫폼 수수료
+  hostPayoutAmount: decimal('host_payout_amount', { precision: 10, scale: 2 }), // 호스트 정산액
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [
@@ -2270,6 +2273,219 @@ export const disputes = pgTable('disputes', {
 ]);
 
 // =====================================================
+// 빌링 시스템 테이블 (Phase 1)
+// =====================================================
+
+// 요금제 정의 (마스터 데이터 - 관리자가 DB에서 관리)
+export const billingPlans = pgTable('billing_plans', {
+  id: varchar('id', { length: 50 }).primaryKey(), // 'tg_traveler_free', 'tg_trip_pass_basic' 등
+  app: varchar('app', { length: 50 }).default('tourgether'),
+  name: varchar('name', { length: 100 }).notNull(),
+  nameKo: varchar('name_ko', { length: 100 }),
+  nameJa: varchar('name_ja', { length: 100 }),
+  nameZh: varchar('name_zh', { length: 100 }),
+  nameFr: varchar('name_fr', { length: 100 }),
+  nameEs: varchar('name_es', { length: 100 }),
+  description: text('description'),
+  descriptionKo: text('description_ko'),
+  type: varchar('type', { length: 20 }).notNull(), // 'subscription' | 'one_time'
+  target: varchar('target', { length: 20 }).notNull(), // 'traveler' | 'host'
+  priceMonthlyKrw: integer('price_monthly_krw'), // 월 구독료 (원)
+  priceKrw: integer('price_krw'), // 1회성 가격 (Trip Pass용)
+  features: jsonb('features'), // 한도/수수료/옵션 JSON
+  sortOrder: integer('sort_order').default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 사용자 구독 (호스트 월 구독용)
+export const userSubscriptions = pgTable('user_subscriptions', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  planId: varchar('plan_id', { length: 50 }).notNull().references(() => billingPlans.id),
+  app: varchar('app', { length: 50 }).default('tourgether'),
+  target: varchar('target', { length: 20 }).notNull(), // 'traveler' | 'host'
+  status: varchar('status', { length: 20 }).default('pending'), // 'pending' | 'active' | 'canceled' | 'expired'
+  // PortOne 연동 필드 (섹션 0.5.3 참고 - 필수!)
+  billingKeyId: text('billing_key_id'), // 정기결제용 빌링키
+  portoneCustomerUid: varchar('portone_customer_uid', { length: 100 }),
+  portoneMerchantUid: varchar('portone_merchant_uid', { length: 100 }),
+  portoneScheduleId: text('portone_schedule_id'), // 현재 예약된 스케줄 ID (필수!)
+  // 구독 기간
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  startedAt: timestamp('started_at'),
+  renewsAt: timestamp('renews_at'),
+  canceledAt: timestamp('canceled_at'), // 해지 예정 (기간 끝까지 사용 가능)
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_user_subscriptions_user').on(table.userId),
+  index('idx_user_subscriptions_status').on(table.status),
+  index('idx_user_subscriptions_plan').on(table.planId),
+]);
+
+// 사용량 추적 (Free 플랜 한도 관리용)
+export const userUsage = pgTable('user_usage', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  app: varchar('app', { length: 50 }).default('tourgether'),
+  usageKey: varchar('usage_key', { length: 50 }).notNull(), // 'ai_message', 'translation', 'concierge'
+  usedInPeriod: integer('used_in_period').default(0),
+  limitInPeriod: integer('limit_in_period').notNull(),
+  periodStart: timestamp('period_start').notNull(),
+  periodEnd: timestamp('period_end').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_user_usage_user').on(table.userId),
+  index('idx_user_usage_key').on(table.usageKey),
+  index('idx_user_usage_period').on(table.periodStart, table.periodEnd),
+]);
+
+// 여행자 Trip Pass (1회성 AI 크레딧)
+export const userTripPasses = pgTable('user_trip_passes', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  tripId: integer('trip_id').references(() => trips.id), // 여행과 연결 (선택)
+  planId: varchar('plan_id', { length: 50 }).notNull().references(() => billingPlans.id),
+  // 유효 기간
+  validFrom: timestamp('valid_from').notNull(),
+  validUntil: timestamp('valid_until').notNull(),
+  // 사용량 한도
+  aiMessageLimit: integer('ai_message_limit').notNull(),
+  aiMessageUsed: integer('ai_message_used').default(0),
+  translationLimit: integer('translation_limit').notNull(),
+  translationUsed: integer('translation_used').default(0),
+  conciergeCallsLimit: integer('concierge_calls_limit').notNull(),
+  conciergeCallsUsed: integer('concierge_calls_used').default(0),
+  // 결제 정보
+  paymentId: integer('payment_id').references(() => payments.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_user_trip_passes_user').on(table.userId),
+  index('idx_user_trip_passes_valid').on(table.validFrom, table.validUntil),
+]);
+
+// 계약 단계/분할 결제 (에스크로 마일스톤)
+export const contractStages = pgTable('contract_stages', {
+  id: serial('id').primaryKey(),
+  contractId: integer('contract_id').notNull().references(() => contracts.id),
+  name: varchar('name', { length: 50 }).notNull(), // 'deposit', 'middle', 'final'
+  stageOrder: integer('stage_order').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  dueDate: timestamp('due_date'),
+  paymentId: integer('payment_id').references(() => payments.id),
+  status: varchar('status', { length: 20 }).default('pending'), // 'pending' | 'paid' | 'canceled' | 'refunded'
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_contract_stages_contract').on(table.contractId),
+  index('idx_contract_stages_status').on(table.status),
+]);
+
+// 에스크로 계좌 (사용자별 잔액 관리)
+export const escrowAccounts = pgTable('escrow_accounts', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  accountType: varchar('account_type', { length: 20 }).notNull(), // 'traveler' | 'host' | 'platform'
+  // 잔액 관리
+  availableBalance: decimal('available_balance', { precision: 15, scale: 2 }).default('0'),
+  pendingBalance: decimal('pending_balance', { precision: 15, scale: 2 }).default('0'), // 에스크로 보류 중
+  withdrawableBalance: decimal('withdrawable_balance', { precision: 15, scale: 2 }).default('0'), // 출금 가능
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  // 상태
+  status: varchar('status', { length: 20 }).default('active'), // 'active' | 'frozen' | 'suspended'
+  frozenReason: varchar('frozen_reason', { length: 200 }),
+  frozenAt: timestamp('frozen_at'),
+  // KYC/KYB 상태 (호스트용)
+  kycStatus: varchar('kyc_status', { length: 20 }).default('pending'), // 'pending' | 'verified' | 'rejected'
+  kycVerifiedAt: timestamp('kyc_verified_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_escrow_accounts_user').on(table.userId),
+  index('idx_escrow_accounts_type').on(table.accountType),
+]);
+
+// 호스트 정산
+export const payouts = pgTable('payouts', {
+  id: serial('id').primaryKey(),
+  hostId: varchar('host_id').notNull().references(() => users.id),
+  // 정산 기간
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  // 금액
+  grossAmount: decimal('gross_amount', { precision: 15, scale: 2 }).notNull(), // 총 거래액
+  totalFees: decimal('total_fees', { precision: 12, scale: 2 }).notNull(), // 총 수수료
+  netAmount: decimal('net_amount', { precision: 15, scale: 2 }).notNull(), // 순 정산액
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  transactionCount: integer('transaction_count').notNull(),
+  // 상태
+  status: varchar('status', { length: 20 }).default('pending'), // 'pending' | 'processing' | 'completed' | 'failed' | 'on_hold'
+  // 정산 정보
+  bankCode: varchar('bank_code', { length: 20 }),
+  accountNumber: varchar('account_number', { length: 50 }), // 암호화 저장 필수
+  accountHolderName: varchar('account_holder_name', { length: 100 }),
+  // PortOne 연동
+  portoneTransferId: varchar('portone_transfer_id', { length: 100 }),
+  portoneTransferStatus: varchar('portone_transfer_status', { length: 50 }),
+  // 타임라인
+  scheduledAt: timestamp('scheduled_at'),
+  processedAt: timestamp('processed_at'),
+  completedAt: timestamp('completed_at'),
+  failedAt: timestamp('failed_at'),
+  failureReason: text('failure_reason'),
+  metadata: jsonb('metadata'), // 포함된 거래 ID 목록 등
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_payouts_host').on(table.hostId),
+  index('idx_payouts_status').on(table.status),
+  index('idx_payouts_period').on(table.periodStart, table.periodEnd),
+]);
+
+// 결제 거래 로그 (상세 기록)
+export const paymentTransactions = pgTable('payment_transactions', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  // 결제 유형
+  paymentType: varchar('payment_type', { length: 30 }).notNull(), // 'booking', 'trip_pass', 'host_subscription', 'contract_stage'
+  // 관련 엔티티
+  bookingId: integer('booking_id').references(() => bookings.id),
+  tripPassId: integer('trip_pass_id').references(() => userTripPasses.id),
+  subscriptionId: integer('subscription_id').references(() => userSubscriptions.id),
+  contractStageId: integer('contract_stage_id').references(() => contractStages.id),
+  // 금액
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  // PortOne 연동
+  portonePaymentId: varchar('portone_payment_id', { length: 100 }),
+  portoneMerchantUid: varchar('portone_merchant_uid', { length: 100 }),
+  paymentMethod: varchar('payment_method', { length: 50 }), // 'card', 'kakaopay', 'paypal'
+  // 상태
+  status: varchar('status', { length: 20 }).default('pending'), // 'pending' | 'paid' | 'failed' | 'refunded' | 'partial_refunded'
+  failureReason: text('failure_reason'),
+  // 환불 정보
+  refundedAmount: decimal('refunded_amount', { precision: 12, scale: 2 }),
+  refundedAt: timestamp('refunded_at'),
+  refundReason: text('refund_reason'),
+  // 메타데이터
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_payment_transactions_user').on(table.userId),
+  index('idx_payment_transactions_type').on(table.paymentType),
+  index('idx_payment_transactions_status').on(table.status),
+  index('idx_payment_transactions_portone').on(table.portonePaymentId),
+]);
+
+// =====================================================
 // Zod 스키마 및 타입 정의 (새 테이블들)
 // =====================================================
 
@@ -2337,6 +2553,70 @@ export const insertDisputeSchema = createInsertSchema(disputes).omit({
   updatedAt: true,
 });
 
+// =====================================================
+// 빌링 시스템 Zod 스키마 (Phase 1)
+// =====================================================
+
+export const insertBillingPlanSchema = createInsertSchema(billingPlans).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+  id: true,
+  startedAt: true,
+  canceledAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserUsageSchema = createInsertSchema(userUsage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserTripPassSchema = createInsertSchema(userTripPasses).omit({
+  id: true,
+  aiMessageUsed: true,
+  translationUsed: true,
+  conciergeCallsUsed: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContractStageSchema = createInsertSchema(contractStages).omit({
+  id: true,
+  paidAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEscrowAccountSchema = createInsertSchema(escrowAccounts).omit({
+  id: true,
+  frozenAt: true,
+  kycVerifiedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPayoutSchema = createInsertSchema(payouts).omit({
+  id: true,
+  scheduledAt: true,
+  processedAt: true,
+  completedAt: true,
+  failedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentTransactionSchema = createInsertSchema(paymentTransactions).omit({
+  id: true,
+  refundedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // 타입 정의
 export type Translation = typeof translations.$inferSelect;
 export type InsertTranslation = z.infer<typeof insertTranslationSchema>;
@@ -2357,6 +2637,24 @@ export type EscrowTransaction = typeof escrowTransactions.$inferSelect;
 export type InsertEscrowTransaction = z.infer<typeof insertEscrowTransactionSchema>;
 export type Dispute = typeof disputes.$inferSelect;
 export type InsertDispute = z.infer<typeof insertDisputeSchema>;
+
+// 빌링 시스템 타입 정의 (Phase 1)
+export type BillingPlan = typeof billingPlans.$inferSelect;
+export type InsertBillingPlan = z.infer<typeof insertBillingPlanSchema>;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type UserUsage = typeof userUsage.$inferSelect;
+export type InsertUserUsage = z.infer<typeof insertUserUsageSchema>;
+export type UserTripPass = typeof userTripPasses.$inferSelect;
+export type InsertUserTripPass = z.infer<typeof insertUserTripPassSchema>;
+export type ContractStage = typeof contractStages.$inferSelect;
+export type InsertContractStage = z.infer<typeof insertContractStageSchema>;
+export type EscrowAccount = typeof escrowAccounts.$inferSelect;
+export type InsertEscrowAccount = z.infer<typeof insertEscrowAccountSchema>;
+export type Payout = typeof payouts.$inferSelect;
+export type InsertPayout = z.infer<typeof insertPayoutSchema>;
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = z.infer<typeof insertPaymentTransactionSchema>;
 
 // 관계 정의
 export const travelRequestsRelations = relations(travelRequests, ({ one, many }) => ({
@@ -2432,5 +2730,99 @@ export const analyticsSessionsRelations = relations(analyticsSessions, ({ one })
   user: one(users, {
     fields: [analyticsSessions.userId],
     references: [users.id],
+  }),
+}));
+
+// =====================================================
+// 빌링 시스템 관계 정의 (Phase 1)
+// =====================================================
+
+export const billingPlansRelations = relations(billingPlans, ({ many }) => ({
+  subscriptions: many(userSubscriptions),
+  tripPasses: many(userTripPasses),
+}));
+
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSubscriptions.userId],
+    references: [users.id],
+  }),
+  plan: one(billingPlans, {
+    fields: [userSubscriptions.planId],
+    references: [billingPlans.id],
+  }),
+}));
+
+export const userUsageRelations = relations(userUsage, ({ one }) => ({
+  user: one(users, {
+    fields: [userUsage.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userTripPassesRelations = relations(userTripPasses, ({ one }) => ({
+  user: one(users, {
+    fields: [userTripPasses.userId],
+    references: [users.id],
+  }),
+  trip: one(trips, {
+    fields: [userTripPasses.tripId],
+    references: [trips.id],
+  }),
+  plan: one(billingPlans, {
+    fields: [userTripPasses.planId],
+    references: [billingPlans.id],
+  }),
+  payment: one(payments, {
+    fields: [userTripPasses.paymentId],
+    references: [payments.id],
+  }),
+}));
+
+export const contractStagesRelations = relations(contractStages, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [contractStages.contractId],
+    references: [contracts.id],
+  }),
+  payment: one(payments, {
+    fields: [contractStages.paymentId],
+    references: [payments.id],
+  }),
+}));
+
+export const escrowAccountsRelations = relations(escrowAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [escrowAccounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const payoutsRelations = relations(payouts, ({ one }) => ({
+  host: one(users, {
+    fields: [payouts.hostId],
+    references: [users.id],
+  }),
+}));
+
+export const paymentTransactionsRelations = relations(paymentTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [paymentTransactions.userId],
+    references: [users.id],
+  }),
+  booking: one(bookings, {
+    fields: [paymentTransactions.bookingId],
+    references: [bookings.id],
+  }),
+  tripPass: one(userTripPasses, {
+    fields: [paymentTransactions.tripPassId],
+    references: [userTripPasses.id],
+  }),
+  subscription: one(userSubscriptions, {
+    fields: [paymentTransactions.subscriptionId],
+    references: [userSubscriptions.id],
+  }),
+  contractStage: one(contractStages, {
+    fields: [paymentTransactions.contractStageId],
+    references: [contractStages.id],
   }),
 }));

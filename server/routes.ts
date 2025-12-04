@@ -5859,5 +5859,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // Billing Plans API (Phase 1)
+  // ==========================================
+
+  // 빌링 플랜 목록 조회
+  app.get('/api/billing/plans', async (req: Request, res: Response) => {
+    try {
+      const target = req.query.target as 'traveler' | 'host' | undefined;
+      const type = req.query.type as 'subscription' | 'one_time' | undefined;
+      const lang = (req.query.lang as string) || 'en';
+      
+      const plans = await storage.getBillingPlans(target, type);
+      
+      const localizedPlans = plans.map(plan => ({
+        ...plan,
+        name: (plan as Record<string, unknown>)[`name${lang.charAt(0).toUpperCase()}${lang.slice(1)}` as keyof typeof plan] || plan.name,
+        description: (plan as Record<string, unknown>)[`description${lang.charAt(0).toUpperCase()}${lang.slice(1)}` as keyof typeof plan] || plan.description,
+      }));
+      
+      res.json({ plans: localizedPlans });
+    } catch (error) {
+      console.error('Error fetching billing plans:', error);
+      res.status(500).json({ message: 'Failed to fetch billing plans' });
+    }
+  });
+
+  // 특정 빌링 플랜 조회
+  app.get('/api/billing/plans/:id', async (req: Request, res: Response) => {
+    try {
+      const plan = await storage.getBillingPlanById(req.params.id);
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+      res.json({ plan });
+    } catch (error) {
+      console.error('Error fetching billing plan:', error);
+      res.status(500).json({ message: 'Failed to fetch billing plan' });
+    }
+  });
+
+  // 빌링 플랜 시드 데이터 생성 (관리자 전용)
+  app.post('/api/billing/seed', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { seedBillingPlans } = await import('./services/billingService');
+      const result = await seedBillingPlans();
+      res.json({ 
+        message: 'Billing plans seeded successfully',
+        ...result
+      });
+    } catch (error) {
+      console.error('Error seeding billing plans:', error);
+      res.status(500).json({ message: 'Failed to seed billing plans' });
+    }
+  });
+
   return httpServer;
 }

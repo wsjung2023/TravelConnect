@@ -143,6 +143,31 @@ import {
   type InsertUserFeedPreferences,
   type FeedAlgorithmWeights,
   type InsertFeedAlgorithmWeights,
+  // 빌링 시스템 (Phase 1)
+  billingPlans,
+  userSubscriptions,
+  userUsage,
+  userTripPasses,
+  contractStages,
+  escrowAccounts,
+  payouts,
+  paymentTransactions,
+  type BillingPlan,
+  type InsertBillingPlan,
+  type UserSubscription,
+  type InsertUserSubscription,
+  type UserUsage,
+  type InsertUserUsage,
+  type UserTripPass,
+  type InsertUserTripPass,
+  type ContractStage,
+  type InsertContractStage,
+  type EscrowAccount,
+  type InsertEscrowAccount,
+  type Payout,
+  type InsertPayout,
+  type PaymentTransaction,
+  type InsertPaymentTransaction,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc, lte, inArray, ne } from 'drizzle-orm';
@@ -512,6 +537,55 @@ export interface IStorage {
   // Hashtag metrics
   updateHashtagMetrics(hashtagId: number): Promise<void>;
   seedInitialHashtags(): Promise<void>;
+  
+  // =====================================================
+  // 빌링 시스템 (Phase 1)
+  // =====================================================
+  
+  // Billing Plans (요금제)
+  getBillingPlans(target?: 'traveler' | 'host', type?: 'subscription' | 'one_time'): Promise<BillingPlan[]>;
+  getBillingPlanById(id: string): Promise<BillingPlan | undefined>;
+  createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan>;
+  updateBillingPlan(id: string, updates: Partial<InsertBillingPlan>): Promise<BillingPlan | undefined>;
+  
+  // User Subscriptions (사용자 구독)
+  getUserSubscription(userId: string, target?: 'traveler' | 'host'): Promise<UserSubscription | undefined>;
+  createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  updateUserSubscription(id: number, updates: Partial<InsertUserSubscription>): Promise<UserSubscription | undefined>;
+  cancelUserSubscription(id: number): Promise<UserSubscription | undefined>;
+  
+  // User Usage (사용량 추적)
+  getUserUsage(userId: string, usageKey: string): Promise<UserUsage | undefined>;
+  createUserUsage(usage: InsertUserUsage): Promise<UserUsage>;
+  incrementUserUsage(userId: string, usageKey: string): Promise<UserUsage | undefined>;
+  resetUserUsagePeriod(userId: string, usageKey: string, newPeriodEnd: Date): Promise<UserUsage | undefined>;
+  
+  // User Trip Passes (Trip Pass)
+  getActiveTripPass(userId: string): Promise<UserTripPass | undefined>;
+  getUserTripPasses(userId: string): Promise<UserTripPass[]>;
+  createUserTripPass(tripPass: InsertUserTripPass): Promise<UserTripPass>;
+  incrementTripPassUsage(id: number, usageKey: 'ai_message' | 'translation' | 'concierge'): Promise<UserTripPass | undefined>;
+  
+  // Contract Stages (계약 단계)
+  getContractStages(contractId: number): Promise<ContractStage[]>;
+  createContractStage(stage: InsertContractStage): Promise<ContractStage>;
+  updateContractStageStatus(id: number, status: string, paymentId?: number): Promise<ContractStage | undefined>;
+  
+  // Escrow Accounts (에스크로 계좌)
+  getEscrowAccount(userId: string): Promise<EscrowAccount | undefined>;
+  createEscrowAccount(account: InsertEscrowAccount): Promise<EscrowAccount>;
+  updateEscrowBalance(userId: string, balanceUpdates: { pending?: string; available?: string; withdrawable?: string }): Promise<EscrowAccount | undefined>;
+  
+  // Payouts (호스트 정산)
+  getPayouts(hostId: string, limit?: number): Promise<Payout[]>;
+  createPayout(payout: InsertPayout): Promise<Payout>;
+  updatePayoutStatus(id: number, status: string, transferId?: string): Promise<Payout | undefined>;
+  
+  // Payment Transactions (결제 거래)
+  getPaymentTransactions(userId: string, limit?: number): Promise<PaymentTransaction[]>;
+  getPaymentTransactionByPortoneId(portonePaymentId: string): Promise<PaymentTransaction | undefined>;
+  createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction>;
+  updatePaymentTransactionStatus(id: number, status: string, portonePaymentId?: string): Promise<PaymentTransaction | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4004,6 +4078,306 @@ export class DatabaseStorage implements IStorage {
       const content = `${post.title || ''} ${post.content || ''} ${(post.tags || []).map(t => `#${t}`).join(' ')}`;
       await this.parseAndLinkHashtags(post.id, content);
     }
+  }
+
+  // =====================================================
+  // 빌링 시스템 구현 (Phase 1)
+  // =====================================================
+
+  // Billing Plans (요금제)
+  async getBillingPlans(target?: 'traveler' | 'host', type?: 'subscription' | 'one_time'): Promise<BillingPlan[]> {
+    let query = db.select().from(billingPlans).where(eq(billingPlans.isActive, true));
+    
+    if (target) {
+      query = query.where(eq(billingPlans.target, target)) as typeof query;
+    }
+    if (type) {
+      query = query.where(eq(billingPlans.type, type)) as typeof query;
+    }
+    
+    return query.orderBy(asc(billingPlans.sortOrder));
+  }
+
+  async getBillingPlanById(id: string): Promise<BillingPlan | undefined> {
+    const [plan] = await db.select().from(billingPlans).where(eq(billingPlans.id, id));
+    return plan;
+  }
+
+  async createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan> {
+    const [created] = await db.insert(billingPlans).values(plan).returning();
+    return created;
+  }
+
+  async updateBillingPlan(id: string, updates: Partial<InsertBillingPlan>): Promise<BillingPlan | undefined> {
+    const [updated] = await db
+      .update(billingPlans)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(billingPlans.id, id))
+      .returning();
+    return updated;
+  }
+
+  // User Subscriptions (사용자 구독)
+  async getUserSubscription(userId: string, target?: 'traveler' | 'host'): Promise<UserSubscription | undefined> {
+    let conditions = [eq(userSubscriptions.userId, userId), eq(userSubscriptions.status, 'active')];
+    if (target) {
+      conditions.push(eq(userSubscriptions.target, target));
+    }
+    const [sub] = await db.select().from(userSubscriptions).where(and(...conditions));
+    return sub;
+  }
+
+  async createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription> {
+    const [created] = await db.insert(userSubscriptions).values(subscription).returning();
+    return created;
+  }
+
+  async updateUserSubscription(id: number, updates: Partial<InsertUserSubscription>): Promise<UserSubscription | undefined> {
+    const [updated] = await db
+      .update(userSubscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async cancelUserSubscription(id: number): Promise<UserSubscription | undefined> {
+    const [updated] = await db
+      .update(userSubscriptions)
+      .set({ canceledAt: new Date(), updatedAt: new Date() })
+      .where(eq(userSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+
+  // User Usage (사용량 추적)
+  async getUserUsage(userId: string, usageKey: string): Promise<UserUsage | undefined> {
+    const now = new Date();
+    const [usage] = await db
+      .select()
+      .from(userUsage)
+      .where(
+        and(
+          eq(userUsage.userId, userId),
+          eq(userUsage.usageKey, usageKey),
+          lte(userUsage.periodStart, now),
+          gte(userUsage.periodEnd, now)
+        )
+      );
+    return usage;
+  }
+
+  async createUserUsage(usage: InsertUserUsage): Promise<UserUsage> {
+    const [created] = await db.insert(userUsage).values(usage).returning();
+    return created;
+  }
+
+  async incrementUserUsage(userId: string, usageKey: string): Promise<UserUsage | undefined> {
+    const current = await this.getUserUsage(userId, usageKey);
+    if (!current) return undefined;
+    
+    const [updated] = await db
+      .update(userUsage)
+      .set({ 
+        usedInPeriod: (current.usedInPeriod || 0) + 1,
+        updatedAt: new Date() 
+      })
+      .where(eq(userUsage.id, current.id))
+      .returning();
+    return updated;
+  }
+
+  async resetUserUsagePeriod(userId: string, usageKey: string, newPeriodEnd: Date): Promise<UserUsage | undefined> {
+    const current = await this.getUserUsage(userId, usageKey);
+    if (!current) return undefined;
+    
+    const [updated] = await db
+      .update(userUsage)
+      .set({ 
+        usedInPeriod: 0,
+        periodStart: new Date(),
+        periodEnd: newPeriodEnd,
+        updatedAt: new Date() 
+      })
+      .where(eq(userUsage.id, current.id))
+      .returning();
+    return updated;
+  }
+
+  // User Trip Passes (Trip Pass)
+  async getActiveTripPass(userId: string): Promise<UserTripPass | undefined> {
+    const now = new Date();
+    const [pass] = await db
+      .select()
+      .from(userTripPasses)
+      .where(
+        and(
+          eq(userTripPasses.userId, userId),
+          lte(userTripPasses.validFrom, now),
+          gte(userTripPasses.validUntil, now)
+        )
+      )
+      .orderBy(desc(userTripPasses.validUntil))
+      .limit(1);
+    return pass;
+  }
+
+  async getUserTripPasses(userId: string): Promise<UserTripPass[]> {
+    return db
+      .select()
+      .from(userTripPasses)
+      .where(eq(userTripPasses.userId, userId))
+      .orderBy(desc(userTripPasses.createdAt));
+  }
+
+  async createUserTripPass(tripPass: InsertUserTripPass): Promise<UserTripPass> {
+    const [created] = await db.insert(userTripPasses).values(tripPass).returning();
+    return created;
+  }
+
+  async incrementTripPassUsage(id: number, usageKey: 'ai_message' | 'translation' | 'concierge'): Promise<UserTripPass | undefined> {
+    const [pass] = await db.select().from(userTripPasses).where(eq(userTripPasses.id, id));
+    if (!pass) return undefined;
+
+    const fieldMap = {
+      'ai_message': 'aiMessageUsed',
+      'translation': 'translationUsed',
+      'concierge': 'conciergeCallsUsed'
+    } as const;
+
+    const field = fieldMap[usageKey];
+    const currentValue = pass[field] || 0;
+
+    const [updated] = await db
+      .update(userTripPasses)
+      .set({ 
+        [field]: currentValue + 1,
+        updatedAt: new Date() 
+      })
+      .where(eq(userTripPasses.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Contract Stages (계약 단계)
+  async getContractStages(contractId: number): Promise<ContractStage[]> {
+    return db
+      .select()
+      .from(contractStages)
+      .where(eq(contractStages.contractId, contractId))
+      .orderBy(asc(contractStages.stageOrder));
+  }
+
+  async createContractStage(stage: InsertContractStage): Promise<ContractStage> {
+    const [created] = await db.insert(contractStages).values(stage).returning();
+    return created;
+  }
+
+  async updateContractStageStatus(id: number, status: string, paymentId?: number): Promise<ContractStage | undefined> {
+    const updates: Partial<ContractStage> = { 
+      status, 
+      updatedAt: new Date() 
+    };
+    if (paymentId) {
+      updates.paymentId = paymentId;
+      updates.paidAt = new Date();
+    }
+    
+    const [updated] = await db
+      .update(contractStages)
+      .set(updates)
+      .where(eq(contractStages.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Escrow Accounts (에스크로 계좌)
+  async getEscrowAccount(userId: string): Promise<EscrowAccount | undefined> {
+    const [account] = await db.select().from(escrowAccounts).where(eq(escrowAccounts.userId, userId));
+    return account;
+  }
+
+  async createEscrowAccount(account: InsertEscrowAccount): Promise<EscrowAccount> {
+    const [created] = await db.insert(escrowAccounts).values(account).returning();
+    return created;
+  }
+
+  async updateEscrowBalance(userId: string, balanceUpdates: { pending?: string; available?: string; withdrawable?: string }): Promise<EscrowAccount | undefined> {
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (balanceUpdates.pending !== undefined) updates.pendingBalance = balanceUpdates.pending;
+    if (balanceUpdates.available !== undefined) updates.availableBalance = balanceUpdates.available;
+    if (balanceUpdates.withdrawable !== undefined) updates.withdrawableBalance = balanceUpdates.withdrawable;
+    
+    const [updated] = await db
+      .update(escrowAccounts)
+      .set(updates)
+      .where(eq(escrowAccounts.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  // Payouts (호스트 정산)
+  async getPayouts(hostId: string, limit: number = 50): Promise<Payout[]> {
+    return db
+      .select()
+      .from(payouts)
+      .where(eq(payouts.hostId, hostId))
+      .orderBy(desc(payouts.createdAt))
+      .limit(limit);
+  }
+
+  async createPayout(payout: InsertPayout): Promise<Payout> {
+    const [created] = await db.insert(payouts).values(payout).returning();
+    return created;
+  }
+
+  async updatePayoutStatus(id: number, status: string, transferId?: string): Promise<Payout | undefined> {
+    const updates: Record<string, unknown> = { status, updatedAt: new Date() };
+    if (transferId) updates.portoneTransferId = transferId;
+    if (status === 'completed') updates.completedAt = new Date();
+    if (status === 'failed') updates.failedAt = new Date();
+    
+    const [updated] = await db
+      .update(payouts)
+      .set(updates)
+      .where(eq(payouts.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Payment Transactions (결제 거래)
+  async getPaymentTransactions(userId: string, limit: number = 50): Promise<PaymentTransaction[]> {
+    return db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.userId, userId))
+      .orderBy(desc(paymentTransactions.createdAt))
+      .limit(limit);
+  }
+
+  async getPaymentTransactionByPortoneId(portonePaymentId: string): Promise<PaymentTransaction | undefined> {
+    const [tx] = await db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.portonePaymentId, portonePaymentId));
+    return tx;
+  }
+
+  async createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction> {
+    const [created] = await db.insert(paymentTransactions).values(transaction).returning();
+    return created;
+  }
+
+  async updatePaymentTransactionStatus(id: number, status: string, portonePaymentId?: string): Promise<PaymentTransaction | undefined> {
+    const updates: Record<string, unknown> = { status, updatedAt: new Date() };
+    if (portonePaymentId) updates.portonePaymentId = portonePaymentId;
+    
+    const [updated] = await db
+      .update(paymentTransactions)
+      .set(updates)
+      .where(eq(paymentTransactions.id, id))
+      .returning();
+    return updated;
   }
 }
 
