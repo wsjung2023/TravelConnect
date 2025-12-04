@@ -225,16 +225,273 @@ if (isTestPayment) {
 
 ### 0.5.8 자주 발생하는 에러 & 해결
 
-| 에러 | 원인 | 해결 |
-|------|------|------|
-| "알려지지 않은 credential" | 채널 키 불일치 | PortOne 콘솔에서 채널 키 확인 |
-| "NotFoundError: removeChild" | PayPal SDK vs React DOM 충돌 | PayPal 컨테이너 수동 관리 |
-| SMS 인증 미수신 | 테스트 MID | 실서비스 MID 발급 |
-| 카카오페이 windowType 에러 | windowType 미설정 | `{ pc: 'IFRAME', mobile: 'REDIRECTION' }` |
-| 2개월 후 자동결제 중단 | Webhook에서 다음 스케줄 미등록 | 섹션 0.5.1 참조 |
-| 해지 후에도 결제 계속 | canceledAt 체크 누락 | 섹션 0.5.5 참조 |
-| 스케줄 취소 실패 (404) | 잘못된 API 엔드포인트 | `DELETE /payment-schedules/{id}` 사용 |
-| 스케줄 조회 실패 | paymentId vs scheduleId 혼동 | portoneScheduleId 별도 컬럼 사용 |
+| # | 에러 | 원인 | 해결 |
+|---|------|------|------|
+| 1 | "알려지지 않은 credential" | 채널 키 불일치 | PortOne 콘솔에서 채널 키 확인 |
+| 2 | "NotFoundError: removeChild" | PayPal SDK vs React DOM 충돌 | PayPal 컨테이너 수동 관리 |
+| 3 | SMS 인증 미수신 | 테스트 MID | 실서비스 MID 발급 |
+| 4 | 카카오페이 windowType 에러 | windowType 미설정 | `{ pc: 'IFRAME', mobile: 'REDIRECTION' }` |
+| 5 | PayPal "카드 입력으로 이동" | Sandbox 계정에 결제 수단 미등록 | developer.paypal.com에서 잔액/카드 등록 |
+| 6 | 스케줄 취소 실패 (404) | 잘못된 API 엔드포인트 | `DELETE /payment-schedules/{id}` 사용 |
+| 7 | 2개월 후 자동결제 중단 | Webhook에서 다음 스케줄 미등록 | 섹션 0.5.1 참조 |
+| 8 | 해지 후에도 결제 계속 | canceledAt 체크 누락 | 섹션 0.5.5 참조 |
+| 9 | 스케줄 취소 시 "이미 처리됨" | SUCCEEDED/REVOKED 상태 취소 시도 | SCHEDULED 상태만 취소 가능 |
+| 10 | 스케줄 조회 실패 | paymentId vs scheduleId 혼동 | portoneScheduleId 별도 컬럼 사용 |
+| 11 | 구독 해지 시 즉시 Free 전환 | `billingService.cancelSubscription()` 호출 | 섹션 0.6.1 참조 |
+| 12 | PayPal 환불 시 수수료 미처리 | 3% 수수료 차감 미적용 | 환불 로직에서 PayPal 여부 확인 |
+
+---
+
+## 0.6 구독 해지 vs 환불 - 핵심 개념 분리 (⭐⭐⭐ CRITICAL!)
+
+> ⚠️ **이 섹션이 가장 중요합니다!** 구독 해지와 환불을 혼동하면 심각한 버그가 발생합니다.
+
+### 0.6.1 개념 비교표
+
+| 기능 | 구독 해지 (Cancel) | 환불 (Refund) |
+|------|-------------------|---------------|
+| **트리거** | 사용자가 "구독 해지" 버튼 클릭 | 관리자가 환불 요청 승인 |
+| **결제 취소** | ❌ 안함 (이미 결제된 금액 유지) | ✅ 실제 결제 취소 |
+| **현재 플랜** | ✅ 유지 (currentPeriodEnd까지) | ❌ 즉시 Free 전환 |
+| **사용량 한도** | ✅ 유지 | Free 플랜 한도로 변경 |
+| **다음 결제** | ❌ 중단 (스케줄 취소) | ❌ 중단 |
+| **DB 변경** | `canceledAt` 설정만 | `status='cancelled'`, `planId='free'` |
+
+### 0.6.2 잘못된 구현 (버그 원인)
+
+```typescript
+// ❌ 잘못된 구현 - 구독 해지에서 즉시 Free 전환
+router.post('/cancel', async (req, res) => {
+  await portoneService.cancelSubscription(subscriptionId);
+  await billingService.cancelSubscription(subscriptionId); // ❌ 이거 하면 안됨!
+});
+```
+
+### 0.6.3 올바른 구현
+
+```typescript
+// ✅ 올바른 구현 - 구독 해지
+router.post('/cancel', async (req, res) => {
+  // canceledAt 설정 + 다음 결제 스케줄 취소만
+  // 현재 플랜/사용량은 그대로 유지!
+  await portoneService.cancelSubscription(subscriptionId, userEmail);
+  
+  res.json({ 
+    message: `구독 해지가 예약되었습니다. ${periodEndDate}까지 현재 플랜을 이용하실 수 있습니다.`
+  });
+});
+
+// ✅ 올바른 구현 - 환불 승인 (관리자)
+router.post('/admin/refunds/:id/approve', async (req, res) => {
+  // 1. PortOne API로 실제 결제 취소
+  await portoneService.cancelPayment(paymentId, reason);
+  
+  // 2. 이때만 Free 플랜 전환 + 사용량 한도 업데이트
+  await billingService.cancelSubscription(subscriptionId);
+});
+```
+
+### 0.6.4 핵심 함수 역할 분리
+
+#### portoneService.cancelSubscription() - 해지 예약
+```typescript
+// 역할: 다음 자동결제 중단 + canceledAt 설정
+// 현재 플랜은 유지함!
+async cancelSubscription(subscriptionId: string, userEmail?: string) {
+  // 1. canceledAt만 설정 (status, planId 변경 안함!)
+  await db.update(userSubscriptions)
+    .set({ canceledAt: new Date() })
+    .where(eq(userSubscriptions.id, subscriptionId));
+  
+  // 2. 예정된 다음 결제 스케줄 취소
+  if (subscription.portoneScheduleId) {
+    await this.cancelSchedule(subscription.portoneScheduleId);
+  }
+  
+  // 3. 해지 예정 이메일 발송
+  await emailService.sendSubscriptionCanceled({...});
+}
+```
+
+#### billingService.cancelSubscription() - 즉시 Free 전환
+```typescript
+// 역할: 즉시 Free 플랜 전환 + 사용량 한도 업데이트
+// 환불 승인 시에만 호출!
+async cancelSubscription(subscriptionId: string) {
+  // 1. 구독을 Free 플랜으로 변경
+  await db.update(userSubscriptions)
+    .set({ 
+      status: 'cancelled',
+      planId: 'app_free',
+      canceledAt: new Date()
+    })
+    .where(eq(userSubscriptions.id, subscriptionId));
+  
+  // 2. 사용량 한도를 Free 플랜 기준으로 업데이트
+  const freePlan = await this.getPlanById('app_free');
+  await this.updateUserUsageLimits(userId, freePlan);
+}
+```
+
+### 0.6.5 함수 호출 시점 정리
+
+| 상황 | portoneService.cancelSubscription | billingService.cancelSubscription |
+|------|-----------------------------------|-----------------------------------|
+| 구독 해지 버튼 클릭 | ✅ 호출 | ❌ 호출 안함 |
+| 환불 요청 승인 | - | ✅ 호출 |
+| currentPeriodEnd 도달 시 (스케줄러) | - | ✅ 호출 |
+
+---
+
+## 0.7 환불 정책 (한국 전자상거래법 준수)
+
+### 0.7.1 환불 규칙
+
+| 조건 | 환불율 | 비고 |
+|------|--------|------|
+| 결제 후 7일 이내 + 미사용 | 100% | 청약철회 기간 |
+| 결제 후 7일 이내 + 일부 사용 | 일할 계산 | 사용일수 차감 |
+| 결제 후 7일 초과 | 일할 계산 | 잔여 기간 기준 |
+| PayPal 결제 | 환불액 - 3% | PayPal 수수료 |
+
+### 0.7.2 환불 계산 함수
+
+```typescript
+async calculateRefundAmount(subscriptionId: string) {
+  const subscription = await this.getSubscriptionById(subscriptionId);
+  const payment = await storage.getPaymentTransactionBySubscriptionId(subscriptionId);
+  
+  const now = new Date();
+  const paymentDate = new Date(payment.createdAt);
+  const periodEnd = new Date(subscription.currentPeriodEnd);
+  
+  const daysSincePayment = Math.floor((now - paymentDate) / (1000 * 60 * 60 * 24));
+  const totalDays = Math.floor((periodEnd - paymentDate) / (1000 * 60 * 60 * 24));
+  const remainingDays = Math.max(0, totalDays - daysSincePayment);
+  
+  // 7일 이내 전액 환불 (청약철회)
+  if (daysSincePayment <= 7) {
+    return { refundAmount: payment.amount, refundType: 'full', reason: '청약철회 (7일 이내)' };
+  }
+  
+  // 일할 계산
+  const dailyRate = payment.amount / totalDays;
+  const refundAmount = Math.floor(dailyRate * remainingDays);
+  
+  return { refundAmount, refundType: 'partial', reason: `일할 계산: ${remainingDays}일 잔여` };
+}
+```
+
+### 0.7.3 악용 방지 정책
+
+```typescript
+// 환불 시 사용량은 유지 (Free 한도 적용)
+// 결제 → 사용 → 환불 → 리셋 악용 방지
+async cancelSubscription(subscriptionId: string) {
+  // 플랜은 Free로 전환
+  await db.update(userSubscriptions).set({ planId: 'app_free' });
+  
+  // 사용량 한도만 Free로 변경 (사용량 자체는 유지!)
+  await db.update(userUsage).set({ limitInPeriod: freePlan.features.limit });
+  // usedInPeriod는 리셋 안함!
+}
+```
+
+---
+
+## 0.8 업그레이드 시 자동 환불 로직
+
+### 0.8.1 문제 상황
+- 사용자가 Basic(₩4,900) 결제 → 바로 Pro(₩9,900)로 업그레이드
+- Basic 결제금이 플랫폼에 귀속되면 안됨 → 자동 환불 필요
+
+### 0.8.2 구현
+
+```typescript
+async createSubscription(params) {
+  // 1. 기존 구독 확인
+  const existingSubscription = await this.getUserSubscription(params.userId);
+  let upgradeRefundResult = null;
+  
+  // 2. 유료 → 유료 업그레이드인 경우 기존 결제 환불
+  if (existingSubscription && !existingSubscription.planId.includes('free')) {
+    const lastPayment = await storage.getPaymentTransactionBySubscriptionId(
+      existingSubscription.id
+    );
+    
+    if (lastPayment && lastPayment.status !== 'refunded') {
+      try {
+        await portoneService.cancelPayment(
+          lastPayment.portonePaymentId,
+          `업그레이드로 인한 자동 환불: ${existingSubscription.planId} → ${params.planId}`
+        );
+        
+        // PayPal 수수료 로깅
+        if (lastPayment.paymentMethod === 'paypal') {
+          const fee = lastPayment.amount * 0.03;
+          console.log(`[Billing] PayPal refund fee: ${fee} USD`);
+        }
+        
+        upgradeRefundResult = { success: true, refundedAmount: lastPayment.amount };
+      } catch (error) {
+        upgradeRefundResult = { success: false, error: error.message };
+        // 환불 실패해도 업그레이드는 진행 (로깅 후 수동 처리)
+      }
+    }
+  }
+  
+  // 3. 새 구독 생성
+  const newSubscription = await this.processNewSubscription(params);
+  return { ...newSubscription, upgradeRefundResult };
+}
+```
+
+---
+
+## 0.9 PG사 심사 필수 페이지
+
+> KG이니시스 등 PG사 심사 통과를 위해 반드시 구현해야 하는 페이지들
+
+### 0.9.1 필수 페이지 목록
+
+| 페이지 | 경로 | 내용 |
+|--------|------|------|
+| 이용약관 | `/terms` | 서비스 이용 조건과 절차 |
+| 개인정보처리방침 | `/privacy` | 개인정보 수집/이용/보관 정책 |
+| 환불정책 | `/refund` | 환불 조건, 절차, 기간 |
+
+### 0.9.2 Footer 필수 정보
+
+```tsx
+<footer className="text-sm text-gray-600">
+  <p>상호명: [회사명] | 대표: [대표자명]</p>
+  <p>사업자등록번호: 000-00-00000</p>
+  <p>통신판매업신고: 제0000-서울XX-0000호</p>
+  <p>주소: [사업장 주소]</p>
+  <p>이메일: support@example.com | 전화: 02-0000-0000</p>
+  <a href="/terms">이용약관</a> | <a href="/privacy">개인정보처리방침</a> | <a href="/refund">환불정책</a>
+</footer>
+```
+
+### 0.9.3 결제 전 동의 체크박스
+
+```tsx
+<div className="space-y-2">
+  <label className="flex items-center gap-2">
+    <Checkbox checked={agreedToTerms} onCheckedChange={setAgreedToTerms} required />
+    <span>[필수] 이용약관 및 결제에 동의합니다</span>
+  </label>
+  
+  <label className="flex items-center gap-2">
+    <Checkbox checked={agreedToRefund} onCheckedChange={setAgreedToRefund} required />
+    <span>[필수] 환불정책을 확인하였습니다</span>
+  </label>
+</div>
+
+<Button onClick={handlePayment} disabled={!agreedToTerms || !agreedToRefund}>
+  결제하기
+</Button>
+```
 
 ---
 
@@ -1905,6 +2162,34 @@ PortOne Webhook → Signature 검증 → data.type 분기
 
 **의존성**: Phase 4 완료
 
+### Phase 6: PG사 심사 준비 (1일)
+
+**목표**: KG이니시스/카카오페이 심사 통과용 필수 페이지 구축
+
+| 작업 | 파일 | 우선순위 |
+|------|------|----------|
+| 이용약관 페이지 | `client/src/pages/TermsPage.tsx` | 🔴 필수 |
+| 개인정보처리방침 페이지 | `client/src/pages/PrivacyPage.tsx` | 🔴 필수 |
+| 환불정책 페이지 | `client/src/pages/RefundPolicyPage.tsx` | 🔴 필수 |
+| Footer 사업자 정보 추가 | `client/src/components/layout/Footer.tsx` | 🔴 필수 |
+| 결제 전 동의 체크박스 | `client/src/components/billing/CheckoutDialog.tsx` | 🔴 필수 |
+
+**⚠️ Phase 6 체크리스트 (심사 탈락 방지):**
+
+| 항목 | 체크 | 비고 |
+|------|------|------|
+| 이용약관 제1조~제N조 형식 | [ ] | 법적 구속력 |
+| 개인정보 수집항목 명시 | [ ] | 이메일, 결제정보 등 |
+| 개인정보 보관기간 명시 | [ ] | 탈퇴 후 5년 등 |
+| 환불 7일 청약철회 명시 | [ ] | 전자상거래법 |
+| 일할 계산 환불 명시 | [ ] | |
+| 사업자등록번호 Footer | [ ] | 000-00-00000 |
+| 통신판매업신고번호 Footer | [ ] | 제0000-서울XX-0000호 |
+| 이용약관 동의 체크박스 | [ ] | 필수 |
+| 환불정책 확인 체크박스 | [ ] | 필수 |
+
+**의존성**: Phase 5 완료
+
 ---
 
 ## 6. 환경 변수 설정
@@ -2039,6 +2324,16 @@ shared/
 9. 서비스 완료 확인 → 72시간 대기 → 자동 릴리스 확인
 10. 서비스 완료 전 취소 → 전액 환불 + 에스크로 반환 확인
 11. 분쟁 제기 → 릴리스 차단 확인 → 관리자 해결 후 정산 확인
+
+# 구독 해지 vs 환불 분리 (⭐ 섹션 0.6 필수!)
+12. 구독 해지 클릭 → canceledAt만 설정 + 플랜 유지 확인
+13. 구독 해지 → currentPeriodEnd 도달 전까지 서비스 이용 가능 확인
+14. 환불 승인 → 즉시 Free 플랜 전환 + 사용량 한도 변경 확인
+15. 환불 승인 → PortOne API 결제 취소 호출 확인
+
+# 업그레이드 시 자동 환불 (섹션 0.8)
+16. Basic→Pro 업그레이드 → Basic 결제금 자동 환불 확인
+17. PayPal 환불 시 3% 수수료 로깅 확인
 ```
 
 ### 8.4 기존 기능 회귀 테스트
