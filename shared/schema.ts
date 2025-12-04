@@ -2029,3 +2029,408 @@ export const userFeedPreferencesRelations = relations(userFeedPreferences, ({ on
     references: [users.id],
   }),
 }));
+
+// =====================================================
+// 📌 DB 기반 i18n 시스템 (글로벌 10억+ 사용자 확장성)
+// =====================================================
+
+// 번역 테이블 - 모든 사용자 대면 텍스트의 DB 기반 관리
+export const translations = pgTable('translations', {
+  id: serial('id').primaryKey(),
+  namespace: varchar('namespace', { length: 50 }).notNull().default('common'), // common, ui, validation, toast, server
+  key: varchar('key', { length: 255 }).notNull(), // 번역 키 (예: 'feed.title', 'button.submit')
+  locale: varchar('locale', { length: 10 }).notNull(), // en, ko, ja, zh, fr, es
+  value: text('value').notNull(), // 번역된 텍스트
+  isReviewed: boolean('is_reviewed').default(false), // 검토 완료 여부
+  version: integer('version').default(1), // 버전 관리
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_translations_namespace_locale').on(table.namespace, table.locale),
+  index('idx_translations_key').on(table.key),
+]);
+
+// 지원 언어 목록
+export const supportedLocales = pgTable('supported_locales', {
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 10 }).notNull().unique(), // en, ko, ja, zh, fr, es
+  name: varchar('name', { length: 100 }).notNull(), // English, 한국어, 日本語
+  nativeName: varchar('native_name', { length: 100 }).notNull(), // English, 한국어, 日本語
+  isActive: boolean('is_active').default(true),
+  isRTL: boolean('is_rtl').default(false), // 오른쪽에서 왼쪽 언어 (아랍어, 히브리어 등)
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// =====================================================
+// 📊 분석 시스템 (빅데이터 기반 의사결정)
+// =====================================================
+
+// 사용자 행동 이벤트 (실시간 수집)
+export const analyticsEvents = pgTable('analytics_events', {
+  id: serial('id').primaryKey(),
+  sessionId: varchar('session_id', { length: 100 }),
+  userId: varchar('user_id').references(() => users.id),
+  eventType: varchar('event_type', { length: 50 }).notNull(), // page_view, click, scroll, engagement
+  eventCategory: varchar('event_category', { length: 50 }).notNull(), // feed, map, dm, profile, contract
+  eventAction: varchar('event_action', { length: 100 }).notNull(), // post_view, like, comment, proposal_send
+  eventLabel: varchar('event_label', { length: 255 }), // 추가 컨텍스트
+  eventValue: decimal('event_value', { precision: 10, scale: 2 }), // 수치 값 (예: 계약 금액)
+  referenceId: integer('reference_id'), // 관련 엔티티 ID (post_id, contract_id 등)
+  referenceType: varchar('reference_type', { length: 50 }), // post, contract, proposal
+  metadata: jsonb('metadata'), // 추가 데이터 (디바이스, 위치 등)
+  latitude: decimal('latitude', { precision: 10, scale: 8 }),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }),
+  userAgent: varchar('user_agent', { length: 500 }),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_analytics_events_user').on(table.userId),
+  index('idx_analytics_events_session').on(table.sessionId),
+  index('idx_analytics_events_type').on(table.eventType),
+  index('idx_analytics_events_category').on(table.eventCategory),
+  index('idx_analytics_events_created').on(table.createdAt),
+]);
+
+// 사용자 세션 (방문 추적)
+export const analyticsSessions = pgTable('analytics_sessions', {
+  id: varchar('id', { length: 100 }).primaryKey(), // 세션 ID
+  userId: varchar('user_id').references(() => users.id),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  endedAt: timestamp('ended_at'),
+  durationSeconds: integer('duration_seconds'),
+  pageViews: integer('page_views').default(0),
+  interactions: integer('interactions').default(0),
+  deviceType: varchar('device_type', { length: 20 }), // mobile, tablet, desktop
+  browser: varchar('browser', { length: 50 }),
+  os: varchar('os', { length: 50 }),
+  country: varchar('country', { length: 2 }),
+  city: varchar('city', { length: 100 }),
+  referrer: varchar('referrer', { length: 500 }),
+  landingPage: varchar('landing_page', { length: 255 }),
+  exitPage: varchar('exit_page', { length: 255 }),
+  isNewUser: boolean('is_new_user').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_analytics_sessions_user').on(table.userId),
+  index('idx_analytics_sessions_started').on(table.startedAt),
+]);
+
+// 일별 집계 (배치 처리)
+export const analyticsDailyRollups = pgTable('analytics_daily_rollups', {
+  id: serial('id').primaryKey(),
+  date: date('date').notNull(),
+  metricType: varchar('metric_type', { length: 50 }).notNull(), // dau, sessions, posts, contracts, revenue
+  metricValue: decimal('metric_value', { precision: 15, scale: 2 }).notNull(),
+  dimension: varchar('dimension', { length: 50 }), // 분석 차원 (country, device, category)
+  dimensionValue: varchar('dimension_value', { length: 100 }), // 차원 값 (KR, mobile, tour)
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_analytics_rollups_date').on(table.date),
+  index('idx_analytics_rollups_type').on(table.metricType),
+]);
+
+// =====================================================
+// 🔄 공유경제 플로우 (피드 기반 제안/계약 시스템)
+// =====================================================
+
+// 여행자 요구사항 (피드 확장) - "이런 여행 하고싶어요"
+export const travelRequests = pgTable('travel_requests', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  postId: integer('post_id').references(() => posts.id), // 피드 포스트와 연결
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description').notNull(),
+  destination: varchar('destination', { length: 255 }),
+  latitude: decimal('latitude', { precision: 10, scale: 8 }),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }),
+  startDate: date('start_date'),
+  endDate: date('end_date'),
+  budgetMin: decimal('budget_min', { precision: 10, scale: 2 }),
+  budgetMax: decimal('budget_max', { precision: 10, scale: 2 }),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  serviceTypes: text('service_types').array(), // ['guide', 'transport', 'shopping']
+  languages: text('languages').array(), // 원하는 가이드 언어
+  groupSize: integer('group_size').default(1),
+  status: varchar('status', { length: 20 }).default('open'), // open, matched, closed, expired
+  proposalCount: integer('proposal_count').default(0),
+  viewCount: integer('view_count').default(0),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_travel_requests_user').on(table.userId),
+  index('idx_travel_requests_status').on(table.status),
+  index('idx_travel_requests_destination').on(table.destination),
+]);
+
+// 로컬가이드 제안 응답 - 맞춤 플랜 제안
+export const proposals = pgTable('proposals', {
+  id: serial('id').primaryKey(),
+  requestId: integer('request_id').references(() => travelRequests.id),
+  experienceId: integer('experience_id').references(() => experiences.id), // 기존 서비스 연결 (선택)
+  guideId: varchar('guide_id').notNull().references(() => users.id), // 제안하는 로컬가이드
+  travelerId: varchar('traveler_id').notNull().references(() => users.id), // 요청한 여행자
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description').notNull(),
+  proposedPrice: decimal('proposed_price', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  includesItems: text('includes_items').array(), // 포함 사항
+  duration: integer('duration'), // 분 단위
+  availableDates: date('available_dates').array(),
+  meetingPoint: varchar('meeting_point', { length: 255 }),
+  status: varchar('status', { length: 20 }).default('pending'), // pending, accepted, rejected, withdrawn
+  messageThread: varchar('message_thread', { length: 100 }), // DM 대화 연결
+  viewedAt: timestamp('viewed_at'),
+  respondedAt: timestamp('responded_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_proposals_request').on(table.requestId),
+  index('idx_proposals_guide').on(table.guideId),
+  index('idx_proposals_status').on(table.status),
+]);
+
+// 계약 (양자 합의 기반) - DM 협의 후 체결
+export const contracts = pgTable('contracts', {
+  id: serial('id').primaryKey(),
+  proposalId: integer('proposal_id').references(() => proposals.id),
+  travelerId: varchar('traveler_id').notNull().references(() => users.id),
+  guideId: varchar('guide_id').notNull().references(() => users.id),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description').notNull(),
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  platformFeeRate: decimal('platform_fee_rate', { precision: 5, scale: 2 }).default('12.00'), // 12%
+  platformFeeAmount: decimal('platform_fee_amount', { precision: 10, scale: 2 }),
+  guidePayoutAmount: decimal('guide_payout_amount', { precision: 10, scale: 2 }),
+  serviceDate: date('service_date'),
+  serviceStartTime: varchar('service_start_time', { length: 10 }),
+  serviceEndTime: varchar('service_end_time', { length: 10 }),
+  meetingPoint: varchar('meeting_point', { length: 255 }),
+  meetingLatitude: decimal('meeting_latitude', { precision: 10, scale: 8 }),
+  meetingLongitude: decimal('meeting_longitude', { precision: 11, scale: 8 }),
+  cancelPolicy: varchar('cancel_policy', { length: 20 }).default('moderate'), // flexible, moderate, strict
+  status: varchar('status', { length: 20 }).default('pending'), // pending, confirmed, in_progress, completed, cancelled, disputed
+  termsAcceptedByTraveler: boolean('terms_accepted_by_traveler').default(false),
+  termsAcceptedByGuide: boolean('terms_accepted_by_guide').default(false),
+  confirmedAt: timestamp('confirmed_at'),
+  startedAt: timestamp('started_at'),
+  completedAt: timestamp('completed_at'),
+  cancelledAt: timestamp('cancelled_at'),
+  cancelReason: text('cancel_reason'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_contracts_traveler').on(table.travelerId),
+  index('idx_contracts_guide').on(table.guideId),
+  index('idx_contracts_status').on(table.status),
+  index('idx_contracts_service_date').on(table.serviceDate),
+]);
+
+// 에스크로 거래 (마일스톤 결제)
+export const escrowTransactions = pgTable('escrow_transactions', {
+  id: serial('id').primaryKey(),
+  contractId: integer('contract_id').notNull().references(() => contracts.id),
+  milestoneType: varchar('milestone_type', { length: 20 }).notNull(), // deposit (계약금), midterm (중도금), final (잔금)
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('KRW'),
+  status: varchar('status', { length: 20 }).default('pending'), // pending, funded, released, refunded, disputed
+  paymentMethod: varchar('payment_method', { length: 50 }), // card, bank_transfer
+  paymentId: varchar('payment_id', { length: 100 }), // 외부 결제 ID (PortOne 등)
+  fundedAt: timestamp('funded_at'),
+  releasedAt: timestamp('released_at'),
+  refundedAt: timestamp('refunded_at'),
+  refundReason: text('refund_reason'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_escrow_contract').on(table.contractId),
+  index('idx_escrow_status').on(table.status),
+]);
+
+// 분쟁 기록
+export const disputes = pgTable('disputes', {
+  id: serial('id').primaryKey(),
+  contractId: integer('contract_id').notNull().references(() => contracts.id),
+  raisedBy: varchar('raised_by').notNull().references(() => users.id),
+  reason: varchar('reason', { length: 50 }).notNull(), // no_show, quality, safety, other
+  description: text('description').notNull(),
+  evidence: text('evidence').array(), // 증거 이미지/파일 URL
+  status: varchar('status', { length: 20 }).default('open'), // open, investigating, resolved, escalated
+  resolution: text('resolution'),
+  resolvedBy: varchar('resolved_by').references(() => users.id), // 관리자
+  refundAmount: decimal('refund_amount', { precision: 10, scale: 2 }),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_disputes_contract').on(table.contractId),
+  index('idx_disputes_status').on(table.status),
+]);
+
+// =====================================================
+// Zod 스키마 및 타입 정의 (새 테이블들)
+// =====================================================
+
+export const insertTranslationSchema = createInsertSchema(translations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSupportedLocaleSchema = createInsertSchema(supportedLocales).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAnalyticsEventSchema = createInsertSchema(analyticsEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAnalyticsSessionSchema = createInsertSchema(analyticsSessions).omit({
+  createdAt: true,
+});
+
+export const insertTravelRequestSchema = createInsertSchema(travelRequests).omit({
+  id: true,
+  proposalCount: true,
+  viewCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertProposalSchema = createInsertSchema(proposals).omit({
+  id: true,
+  viewedAt: true,
+  respondedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContractSchema = createInsertSchema(contracts).omit({
+  id: true,
+  platformFeeAmount: true,
+  guidePayoutAmount: true,
+  confirmedAt: true,
+  startedAt: true,
+  completedAt: true,
+  cancelledAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEscrowTransactionSchema = createInsertSchema(escrowTransactions).omit({
+  id: true,
+  fundedAt: true,
+  releasedAt: true,
+  refundedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDisputeSchema = createInsertSchema(disputes).omit({
+  id: true,
+  resolvedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// 타입 정의
+export type Translation = typeof translations.$inferSelect;
+export type InsertTranslation = z.infer<typeof insertTranslationSchema>;
+export type SupportedLocale = typeof supportedLocales.$inferSelect;
+export type InsertSupportedLocale = z.infer<typeof insertSupportedLocaleSchema>;
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = z.infer<typeof insertAnalyticsEventSchema>;
+export type AnalyticsSession = typeof analyticsSessions.$inferSelect;
+export type InsertAnalyticsSession = z.infer<typeof insertAnalyticsSessionSchema>;
+export type AnalyticsDailyRollup = typeof analyticsDailyRollups.$inferSelect;
+export type TravelRequest = typeof travelRequests.$inferSelect;
+export type InsertTravelRequest = z.infer<typeof insertTravelRequestSchema>;
+export type Proposal = typeof proposals.$inferSelect;
+export type InsertProposal = z.infer<typeof insertProposalSchema>;
+export type Contract = typeof contracts.$inferSelect;
+export type InsertContract = z.infer<typeof insertContractSchema>;
+export type EscrowTransaction = typeof escrowTransactions.$inferSelect;
+export type InsertEscrowTransaction = z.infer<typeof insertEscrowTransactionSchema>;
+export type Dispute = typeof disputes.$inferSelect;
+export type InsertDispute = z.infer<typeof insertDisputeSchema>;
+
+// 관계 정의
+export const travelRequestsRelations = relations(travelRequests, ({ one, many }) => ({
+  user: one(users, {
+    fields: [travelRequests.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [travelRequests.postId],
+    references: [posts.id],
+  }),
+  proposals: many(proposals),
+}));
+
+export const proposalsRelations = relations(proposals, ({ one }) => ({
+  request: one(travelRequests, {
+    fields: [proposals.requestId],
+    references: [travelRequests.id],
+  }),
+  experience: one(experiences, {
+    fields: [proposals.experienceId],
+    references: [experiences.id],
+  }),
+  guide: one(users, {
+    fields: [proposals.guideId],
+    references: [users.id],
+  }),
+}));
+
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
+  proposal: one(proposals, {
+    fields: [contracts.proposalId],
+    references: [proposals.id],
+  }),
+  traveler: one(users, {
+    fields: [contracts.travelerId],
+    references: [users.id],
+  }),
+  guide: one(users, {
+    fields: [contracts.guideId],
+    references: [users.id],
+  }),
+  escrowTransactions: many(escrowTransactions),
+  disputes: many(disputes),
+}));
+
+export const escrowTransactionsRelations = relations(escrowTransactions, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [escrowTransactions.contractId],
+    references: [contracts.id],
+  }),
+}));
+
+export const disputesRelations = relations(disputes, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [disputes.contractId],
+    references: [contracts.id],
+  }),
+  raisedByUser: one(users, {
+    fields: [disputes.raisedBy],
+    references: [users.id],
+  }),
+}));
+
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [analyticsEvents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const analyticsSessionsRelations = relations(analyticsSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [analyticsSessions.userId],
+    references: [users.id],
+  }),
+}));

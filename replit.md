@@ -25,6 +25,50 @@ Tourgether는 여행과 만남을 주제로 한 **피드 기반 SNS**이자 **�
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+---
+
+## 🚨 개발 핵심 원칙 (모든 개발자 필독!)
+
+### 원칙 1: SNS 정체성 유지 (절대 이커머스 아님!)
+
+> **현재 앱의 "놀이터 같은 SNS" 분위기를 절대 잃지 마세요!**
+
+| ✅ DO | ❌ DON'T |
+|-------|----------|
+| 피드에서 여행 스토리 공유 | 상품 리스팅 페이지 |
+| DM으로 자연스러운 협의 | 장바구니, 결제 버튼 |
+| 지도에서 사람/장소 발견 | 카테고리별 상품 목록 |
+| 프로필로 연결되는 관계 | 판매자-구매자 분리 |
+
+**체크리스트 (모든 기능 개발 시):**
+- [ ] 이 기능이 피드/DM/지도에서 시작되는가?
+- [ ] 사용자가 "쇼핑몰에 온 것 같다"고 느낄 수 있는가?
+- [ ] 용어가 "상품/구매/주문"이 아닌 "제안/계약/서비스"인가?
+- [ ] UI가 놀이터처럼 가볍고 재미있는가?
+
+### 원칙 2: 글로벌 10억+ 사용자 확장성 (DB 기반 i18n)
+
+> **모든 사용자 대면 텍스트는 DB 기반으로!**
+
+| ✅ DO | ❌ DON'T |
+|-------|----------|
+| DB translations 테이블 사용 | 코드에 한글/영어 하드코딩 |
+| translation key 사용 | 직접 문자열 입력 |
+| 새 언어 추가 = DB insert만 | 새 언어 = 코드 수정 필요 |
+
+**체크리스트 (모든 UI 개발 시):**
+- [ ] 사용자에게 보이는 모든 텍스트가 t('key') 형태인가?
+- [ ] 새로운 텍스트 추가 시 translations 테이블에 등록했는가?
+- [ ] 6개 언어 (en, ko, ja, zh, fr, es) 번역을 모두 추가했는가?
+
+**현재 i18n 구조:**
+- 6개 언어: en, ko, ja, zh, fr, es
+- 5개 네임스페이스: common, ui, validation, toast, server
+- 파일 위치: `client/public/locales/{lang}/{namespace}.json`
+- DB 확장: `translations` 테이블 (하이브리드 - 파일 fallback)
+
+---
+
 ## Recent Changes
 
 ### Performance Optimization (November 26, 2025)
