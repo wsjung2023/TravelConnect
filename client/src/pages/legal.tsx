@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, FileText, Shield, MapPin, Cookie, Code, Edit, Save, X, Receipt } from 'lucide-react';
 import { Link } from 'wouter';
+import Footer from '@/components/Footer';
 
 const legalDocuments = {
   privacy: {
@@ -117,6 +118,7 @@ function LegalDocumentList() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
@@ -414,6 +416,7 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
