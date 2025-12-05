@@ -1132,6 +1132,52 @@ Tourgether 플랫폼의 모든 핵심 기능을 실제 사용자 시나리오를
 - [ ] DB Admin
 - [ ] SQL 쿼리
 
+#### Payment & Billing (Phase 6-8)
+- [ ] PortOne SDK 동적 로드
+- [ ] 결제 준비/완료 API
+- [ ] 빌링키 등록/삭제/목록
+- [ ] 기본 결제수단 설정
+- [ ] 결제 내역 조회
+- [ ] 웹훅 서명 검증
+
+#### Subscription & Trip Pass (Phase 9-10)
+- [ ] 구독 플랜 선택
+- [ ] 정기 결제 자동화
+- [ ] 결제 실패 재시도 (3회)
+- [ ] Trip Pass 구매
+- [ ] AI 사용량 체크
+
+#### Escrow & Settlement (Phase 12)
+- [ ] 에스크로 생성/펀딩/릴리스
+- [ ] 호스트별 정산 그룹화
+- [ ] KYC 검증 필터링
+- [ ] 최소 금액 필터링 (10,000원)
+- [ ] PortOne Transfer API 연동
+- [ ] 정산 배치 스케줄러
+
+#### Split Payment (Phase 13)
+- [ ] 분할 결제 플랜 설정 (single/two_step/three_step)
+- [ ] 마일스톤 생성 (deposit/interim/final)
+- [ ] 비율 검증 (합계 100%)
+- [ ] 부분 환불 처리
+- [ ] 전체 환불 처리
+- [ ] 마일스톤 릴리스
+
+#### Dispute Management (Phase 14)
+- [ ] 분쟁 생성 (7가지 유형)
+- [ ] 증거 제출
+- [ ] 상태 전이 (open → under_review → resolved)
+- [ ] SLA 기반 우선순위
+- [ ] 담당자 배정
+- [ ] 에스크로 연동 (disputed 상태)
+
+#### Analytics Data Warehouse (Phase 15)
+- [ ] 차원 테이블 동기화 (dim_*)
+- [ ] 팩트 테이블 ETL (fact_*)
+- [ ] SCD Type 2 이력 관리
+- [ ] 전체/증분 ETL
+- [ ] 대시보드 메트릭 조회
+
 ---
 
 ## 성능 테스트
@@ -1284,6 +1330,23 @@ Tourgether 플랫폼의 모든 핵심 기능을 실제 사용자 시나리오를
 - Load Testing
 - Security Testing
 - Browser Compatibility
+
+### Phase 6: 결제 시스템 (Week 6)
+- PG사 심사 준비 (TC-P6-1 ~ TC-P6-2)
+- PortOne 결제 통합 (TC-P7-1 ~ TC-P7-5)
+- 빌링키 관리 (TC-P8-1 ~ TC-P8-5)
+
+### Phase 7: 정기 결제 & 에스크로 (Week 7)
+- 정기 결제 자동화 (TC-P10-1 ~ TC-P10-3)
+- 에스크로 시스템
+
+### Phase 8: 정산 & 분할 결제 (Week 8)
+- 호스트 정산 배치 (TC-P12-1 ~ TC-P12-5)
+- 계약 분할 결제 (TC-P13-1 ~ TC-P13-5)
+
+### Phase 9: 분쟁 & 분석 (Week 9)
+- 분쟁 관리 시스템 (Phase 14)
+- 분석 데이터 웨어하우스 (TC-P15-1 ~ TC-P15-8)
 
 ---
 
@@ -2796,9 +2859,161 @@ curl -X POST /api/admin/analytics/etl/daily \
 | `server/services/analyticsETLService.ts` | ETL 비즈니스 로직 |
 | `server/routes.ts` | Analytics API 엔드포인트 |
 
+### 15.8 테스트 시나리오
+
+#### TC-P15-1: 전체 ETL 실행 (초기 데이터 로드)
+
+**사전 조건:**
+- 관리자 계정으로 로그인
+- 기존 사용자, 게시물, 거래 데이터 존재
+
+**테스트 절차:**
+1. `POST /api/admin/analytics/etl/full` 호출
+   - startDate: "2024-01-01"
+   - endDate: "2024-12-31"
+2. ETL 결과 확인
+
+**예상 결과:**
+- 차원 테이블 동기화 완료
+  - dim_date: 365개 날짜 레코드
+  - dim_users: 모든 사용자 동기화
+  - dim_locations: 게시물 위치 추출
+  - dim_service_types: 기본 서비스 타입 생성
+- 팩트 테이블 로드 완료
+  - fact_transactions: 모든 결제 기록
+  - fact_user_activities: 사용자 활동 기록
+  - fact_bookings: 예약 기록
+- fact_daily_metrics 집계 완료
+
+#### TC-P15-2: 일별 증분 ETL 실행
+
+**사전 조건:**
+- 전체 ETL 완료 상태
+- 어제 새로운 거래/활동 데이터 존재
+
+**테스트 절차:**
+1. `POST /api/admin/analytics/etl/daily` 호출
+2. 증분 처리 결과 확인
+
+**예상 결과:**
+- 어제 날짜만 처리
+- 신규 데이터만 추가 (중복 방지)
+- 일별 메트릭 갱신
+
+#### TC-P15-3: 차원 테이블 동기화 (SCD Type 2)
+
+**사전 조건:**
+- 기존 사용자 A의 dim_users 레코드 존재
+- 사용자 A의 프로필 변경 (이메일, 위치 등)
+
+**테스트 절차:**
+1. `POST /api/admin/analytics/sync-dimensions` 호출
+2. dim_users 변경 이력 확인
+
+**예상 결과:**
+- 기존 레코드: `isCurrent = false`, `expirationDate = 변경 시점`
+- 새 레코드: `isCurrent = true`, `version = 기존 + 1`
+- 변경 속성 반영: email, country, city, languages, verificationLevel
+
+#### TC-P15-4: 대시보드 요약 조회
+
+**사전 조건:**
+- 분석 데이터 로드 완료
+
+**테스트 절차:**
+1. `GET /api/admin/analytics/dashboard` 호출
+2. 응답 데이터 검증
+
+**예상 결과:**
+```json
+{
+  "totalUsers": 1234,
+  "totalTransactions": 567,
+  "totalGMV": "12345678.00",
+  "recentMetrics": [
+    {"date": "2024-12-04", "dau": 150, "gmv": "500000", "newUsers": 10},
+    {"date": "2024-12-03", "dau": 145, "gmv": "480000", "newUsers": 8}
+  ]
+}
+```
+
+#### TC-P15-5: 일별 메트릭 조회 (기간 필터)
+
+**테스트 절차:**
+1. `GET /api/admin/analytics/daily-metrics?startDate=2024-12-01&endDate=2024-12-05` 호출
+2. 기간 내 데이터 확인
+
+**예상 결과:**
+- 5일치 메트릭 반환
+- 각 날짜별: dau, newUsers, postsCreated, messagesCount, bookingsCreated, bookingsCompleted, bookingsCancelled, transactionVolume, gmv
+
+#### TC-P15-6: 거래 분석 조회 (필터 적용)
+
+**테스트 절차:**
+1. `GET /api/admin/analytics/transactions?startDate=2024-11-01&endDate=2024-11-30&transactionType=payment` 호출
+2. 필터된 거래 목록 확인
+
+**예상 결과:**
+- 11월 결제 거래만 반환
+- 각 거래: dateKey, userDimId, locationDimId, amount, currency, status
+
+#### TC-P15-7: 예약 분석 조회
+
+**테스트 절차:**
+1. `GET /api/admin/analytics/bookings?status=completed` 호출
+2. 완료된 예약 통계 확인
+
+**예상 결과:**
+- 완료 상태 예약만 반환
+- 통계: 총 건수, 총 금액, 평균 금액
+
+#### TC-P15-8: 분쟁 분석 조회
+
+**테스트 절차:**
+1. `GET /api/admin/analytics/disputes?startDate=2024-10-01&endDate=2024-12-31` 호출
+2. 분쟁 통계 확인
+
+**예상 결과:**
+- 분쟁 유형별 건수
+- 해결률, 평균 처리 시간
+- 환불 금액 통계
+
+### 15.9 체크리스트
+
+#### 차원 테이블 (Dimensions)
+- [ ] dim_date 날짜 생성 및 휴일 표시
+- [ ] dim_users SCD Type 2 이력 관리
+- [ ] dim_locations 위치 파싱 및 저장
+- [ ] dim_service_types 기본 타입 생성
+
+#### 팩트 테이블 (Facts)
+- [ ] fact_transactions 거래 데이터 로드
+- [ ] fact_user_activities 활동 데이터 로드
+- [ ] fact_bookings 예약 데이터 로드
+- [ ] fact_daily_metrics 일별 집계
+- [ ] fact_disputes 분쟁 데이터 로드
+
+#### ETL 프로세스
+- [ ] 전체 ETL 실행 (Full)
+- [ ] 일별 증분 ETL (Daily)
+- [ ] 차원 동기화 (Sync Dimensions)
+- [ ] 중복 방지 로직
+- [ ] 오류 처리 및 로깅
+
+#### API 엔드포인트
+- [ ] 관리자 권한 검증
+- [ ] 기간 필터 동작
+- [ ] 페이지네이션
+- [ ] 응답 형식 표준화
+
+#### 성능
+- [ ] ETL 실행 시간 < 5분 (10만 레코드 기준)
+- [ ] 대시보드 조회 < 2초
+- [ ] 메트릭 조회 < 1초
+
 ---
 
-**문서 버전**: 2.0  
+**문서 버전**: 2.1  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
