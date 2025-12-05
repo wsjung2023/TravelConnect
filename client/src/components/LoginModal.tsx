@@ -216,6 +216,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="firstName"
+                      data-testid="input-firstName"
                       placeholder={t('login.firstName')}
                       value={formData.firstName}
                       onChange={(e) =>
@@ -231,6 +232,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="lastName"
+                      data-testid="input-lastName"
                       placeholder={t('login.lastName')}
                       value={formData.lastName}
                       onChange={(e) =>
@@ -249,6 +251,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
+                  data-testid="input-email"
                   type="email"
                   placeholder="your@email.com"
                   value={formData.email}
@@ -267,6 +270,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
+                  data-testid="input-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('login.passwordPlaceholder')}
                   value={formData.password}
@@ -292,6 +296,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
             <Button
               type="submit"
+              data-testid="button-submit-auth"
               className="w-full travel-button"
               disabled={loginMutation.isPending || registerMutation.isPending}
             >
@@ -306,6 +311,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
           <div className="text-center">
             <button
               type="button"
+              data-testid="button-toggle-auth-mode"
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-blue-600 hover:underline"
             >

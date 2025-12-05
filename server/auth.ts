@@ -138,7 +138,8 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   }
 
   // 3. 개발 환경에서 기본 사용자 생성 (테스트용)
-  if (process.env.NODE_ENV === 'development') {
+  // SKIP_DEV_AUTO_LOGIN=true 로 설정하면 자동 로그인 비활성화 (E2E 테스트용)
+  if (process.env.NODE_ENV === 'development' && process.env.SKIP_DEV_AUTO_LOGIN !== 'true') {
     console.log(`[AUTH] Development mode - checking session:`, req.session ? 'EXISTS' : 'NOT EXISTS');
     console.log(`[AUTH] Session ID:`, req.sessionID || 'undefined');
     
