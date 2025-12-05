@@ -61,8 +61,13 @@ router.get('/plans', async (req: Request, res: Response) => {
 // 특정 요금제의 상세 정보를 조회합니다.
 router.get('/plans/:id', async (req: Request, res: Response) => {
   try {
+    const planId = req.params.id;
+    if (!planId) {
+      return res.status(400).json({ error: 'Plan ID is required' });
+    }
+    
     // getBillingPlanById 메서드 사용
-    const plan = await storage.getBillingPlanById(req.params.id);
+    const plan = await storage.getBillingPlanById(planId);
     if (!plan) {
       return res.status(404).json({ error: 'Plan not found' });
     }
@@ -121,12 +126,16 @@ router.post('/subscription', authenticateHybrid, async (req: AuthRequest, res: R
     }
 
     // 구독 생성 (createUserSubscription 사용)
+    const now = new Date();
+    const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30일 후
     const subscription = await storage.createUserSubscription({
       userId: req.user.id,
       planId,
+      target: 'host', // host subscription
       status: 'active',
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30일 후
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+      renewsAt: periodEnd,
     });
 
     res.status(201).json({ subscription });
@@ -225,12 +234,18 @@ router.post('/trip-pass/purchase', authenticateHybrid, async (req: AuthRequest, 
 
     // Trip Pass 유형 확인 (7일, 14일 등)
     const tripPassDays = tripPassType === 'extended' ? 14 : 7;
+    const now = new Date();
+    const validUntil = new Date(now.getTime() + tripPassDays * 24 * 60 * 60 * 1000);
 
     // createUserTripPass 메서드 사용
     const tripPass = await storage.createUserTripPass({
       userId: req.user.id,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + tripPassDays * 24 * 60 * 60 * 1000),
+      planId: 'trip_pass_7d', // Default plan ID
+      validFrom: now,
+      validUntil,
+      aiMessageLimit: 100,
+      translationLimit: 100,
+      conciergeCallsLimit: 10,
     });
 
     res.status(201).json({ tripPass });
@@ -360,12 +375,14 @@ router.post('/billing-key', authenticateHybrid, requirePaymentEnv, async (req: A
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { billingKey, cardInfo } = req.body;
+    const { billingKey, cardName, cardNumber, cardType } = req.body;
 
     const result = await storage.createBillingKey({
       userId: req.user.id,
       billingKey,
-      cardInfo,
+      cardName: cardName || null,
+      cardNumber: cardNumber || null,
+      cardType: cardType || null,
       isDefault: true,
     });
 
@@ -383,11 +400,17 @@ router.post('/billing-key', authenticateHybrid, requirePaymentEnv, async (req: A
 // 빌링 키를 삭제합니다.
 router.delete('/billing-keys/:id', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    await storage.deleteBillingKey(parseInt(req.params.id), req.user.id);
+    const billingKeyId = parseInt(req.params.id);
+    if (isNaN(billingKeyId)) {
+      return res.status(400).json({ error: 'Invalid billing key ID' });
+    }
+
+    await storage.deleteBillingKey(billingKeyId, userId);
     res.json({ message: 'Billing key deleted' });
   } catch (error) {
     console.error('빌링 키 삭제 오류:', error);
@@ -402,11 +425,17 @@ router.delete('/billing-keys/:id', authenticateHybrid, async (req: AuthRequest, 
 // 특정 빌링 키를 기본 결제 수단으로 설정합니다.
 router.put('/billing-keys/:id/default', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    await storage.setDefaultBillingKey(parseInt(req.params.id), req.user.id);
+    const billingKeyId = parseInt(req.params.id);
+    if (isNaN(billingKeyId)) {
+      return res.status(400).json({ error: 'Invalid billing key ID' });
+    }
+
+    await storage.setDefaultBillingKey(billingKeyId, userId);
     res.json({ message: 'Default billing key updated' });
   } catch (error) {
     console.error('기본 빌링 키 설정 오류:', error);
@@ -447,11 +476,11 @@ router.get('/history', authenticateHybrid, async (req: AuthRequest, res: Respons
     const transactions = await storage.getPaymentTransactions(req.user.id);
     const history = transactions.map(tx => ({
       id: tx.id,
-      type: tx.type,
+      type: tx.paymentType,
       amount: parseFloat(tx.amount),
       status: tx.status,
       createdAt: tx.createdAt,
-      description: tx.description || `${tx.type} 결제`,
+      description: `${tx.paymentType} 결제`,
     }));
 
     res.json(history);
