@@ -107,6 +107,19 @@ Preferred communication style: Simple, everyday language.
 - **성능 향상**: 더 자연스러운 대화, 향상된 추론 능력, 2-3배 빠른 속도
 - **비용 효율**: GPT-5 대비 토큰 사용량 50% 절감
 
+### Phase 5: AI Usage Limits (December 5, 2025)
+- **미들웨어 구현**: `checkAiUsage` 미들웨어로 Trip Pass 및 Free tier 제한 적용
+- **Free Tier 한도 (월별)**:
+  - AI Messages: 5회 (AI Concierge, CineMap)
+  - Translation: 10회 (DM 번역)
+  - Concierge: 3회 (Mini Concierge)
+- **Trip Pass 지원**: 유효기간 내 Pass 보유 시 더 높은 한도 적용
+- **Admin 바이패스**: 관리자는 사용량 제한 없이 서비스 이용 가능
+- **사용량 조회**: `/api/billing/usage` 엔드포인트로 현재 사용량 확인
+- **402 응답**: 한도 초과 시 적절한 오류 코드와 업그레이드 제안 반환
+- **Drizzle ORM 사용**: 올바른 camelCase 컬럼 참조로 사용량 증가 추적
+- **상세 문서**: `docs/integrationtest.md` Phase 5 섹션 참고
+
 ## System Architecture
 
 ### Frontend
