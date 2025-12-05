@@ -25,7 +25,6 @@
  */
 
 import { Router, Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import { storage } from '../storage';
 import {
   authenticateToken,
@@ -33,37 +32,16 @@ import {
   AuthRequest,
 } from '../auth';
 import { UpdateProfileOpenSchema, PortfolioModeSchema } from '@shared/api/schema';
+// 공통 미들웨어 사용 - 중복 코드 제거
+import { validateBody, apiLimiter } from '../middleware';
 
 // ============================================
 // 라우터 초기화
 // ============================================
 const router = Router();
 
-// API Rate Limiter
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 100,
-  message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
-});
-
-// 스키마 검증 미들웨어
-function validateSchema(schema: any) {
-  return (req: any, res: Response, next: Function) => {
-    try {
-      const result = schema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({
-          message: 'Validation failed',
-          errors: result.error.errors,
-        });
-      }
-      req.validatedData = result.data;
-      next();
-    } catch (error) {
-      return res.status(400).json({ message: 'Invalid request body' });
-    }
-  };
-}
+// 레거시 호환을 위한 별칭 (기존 코드와의 호환성 유지)
+const validateSchema = validateBody;
 
 // ============================================
 // 프로필 공개 상태 조회
