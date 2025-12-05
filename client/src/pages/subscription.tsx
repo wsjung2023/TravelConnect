@@ -147,7 +147,9 @@ export default function SubscriptionPage() {
       'active': t('status_active'),
       'canceling': t('status_canceling'),
       'completed': t('status_completed'),
-      'cancelled': t('status_canceling'),
+      'cancelled': t('status_cancelled'),
+      'expired': t('status_expired'),
+      'pending': t('status_pending'),
       'failed': t('payment_failed')
     };
     // Return translated label if available, otherwise return the original status
@@ -546,7 +548,18 @@ export default function SubscriptionPage() {
                         <div>
                           <p className="font-medium">{payment.description}</p>
                           <p className="text-sm text-gray-500">
-                            {formatDate(payment.createdAt, i18n.language === 'ko' ? 'yyyy년 M월 d일 HH:mm' : 'MMM d, yyyy HH:mm')}
+                            {(() => {
+                              const lang = i18n.language.split('-')[0];
+                              const timeFormats: Record<string, string> = {
+                                ko: 'yyyy년 M월 d일 HH:mm',
+                                en: 'MMM d, yyyy HH:mm',
+                                ja: 'yyyy年M月d日 HH:mm',
+                                zh: 'yyyy年M月d日 HH:mm',
+                                fr: 'd MMM yyyy HH:mm',
+                                es: 'd MMM yyyy HH:mm'
+                              };
+                              return formatDate(payment.createdAt, timeFormats[lang] || timeFormats.en);
+                            })()}
                           </p>
                         </div>
                         <div className="text-right">
