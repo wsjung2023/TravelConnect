@@ -349,7 +349,7 @@ export async function etlTransactions(targetDate: Date): Promise<{ processed: nu
         transactionType: payment.type || 'payment',
         grossAmount: payment.amount,
         netAmount: payment.amount,
-        currency: payment.currency || 'KRW',
+        currency: payment.currency || 'USD',
         status: payment.status,
         paymentMethod: payment.paymentMethod,
         paymentGateway: payment.pgProvider,
@@ -400,7 +400,7 @@ export async function etlTransactions(targetDate: Date): Promise<{ processed: nu
         netAmount: escrow.amount,
         platformFee: escrow.platformFee,
         hostEarnings: escrow.hostAmount,
-        currency: escrow.currency || 'KRW',
+        currency: escrow.currency || 'USD',
         status: escrow.status,
         transactionTimestamp: escrow.createdAt || new Date(),
       });
@@ -468,7 +468,7 @@ export async function etlBookings(targetDate: Date): Promise<{ processed: number
         guestCount: booking.guestCount || 1,
         totalPrice: booking.totalPrice,
         finalPrice: booking.totalPrice,
-        currency: 'KRW',
+        currency: 'USD',
         bookingTimestamp: booking.createdAt || new Date(),
         serviceTimestamp: booking.bookingDate ? new Date(booking.bookingDate) : null,
       });

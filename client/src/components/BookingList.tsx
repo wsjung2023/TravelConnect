@@ -342,7 +342,7 @@ export default function BookingList({ role }: BookingListProps) {
                             <div className="flex items-center gap-1 text-lg font-semibold">
                               <CreditCard className="w-4 h-4" />
                               <span data-testid={`booking-price-${booking.id}`}>
-                                {booking.slot?.currency || 'KRW'} {totalPrice.toLocaleString()}
+                                ${totalPrice.toFixed(2)} {booking.slot?.currency && booking.slot.currency !== 'USD' ? booking.slot.currency : ''}
                               </span>
                             </div>
                             <div className="text-sm text-muted-foreground">

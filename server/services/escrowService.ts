@@ -97,7 +97,7 @@ class EscrowService {
         title: params.title,
         description: params.description,
         totalAmount: params.totalAmountKrw.toString(),
-        currency: 'KRW',
+        currency: 'USD',
         platformFeeRate: PLATFORM_FEE_RATE.toString(),
         platformFeeAmount: platformFeeAmount.toString(),
         guidePayoutAmount: guidePayoutAmount.toString(),
@@ -125,7 +125,7 @@ class EscrowService {
           name: 'deposit',
           stageOrder: 1,
           amount: depositAmount.toString(),
-          currency: 'KRW',
+          currency: 'USD',
           status: 'pending',
         },
         {
@@ -133,7 +133,7 @@ class EscrowService {
           name: 'final',
           stageOrder: 2,
           amount: finalAmount.toString(),
-          currency: 'KRW',
+          currency: 'USD',
           status: 'pending',
         },
       ]);
@@ -322,7 +322,7 @@ class EscrowService {
         paymentId,
         orderName,
         amount: parseInt(stage.amount),
-        currency: stage.currency || 'KRW',
+        currency: stage.currency || 'USD',
       };
     } catch (error) {
       console.error('[Escrow] initiateStagePayment error:', error);
@@ -374,7 +374,7 @@ class EscrowService {
         contractId: contract.id,
         milestoneType: stage.name as 'deposit' | 'midterm' | 'final',
         amount: paidAmount.toString(),
-        currency: 'KRW',
+        currency: 'USD',
         status: 'funded',
         paymentId: portonePaymentId,
         fundedAt: new Date(),
@@ -735,7 +735,7 @@ class EscrowService {
         availableBalance: '0',
         pendingBalance: '0',
         withdrawableBalance: '0',
-        currency: 'KRW',
+        currency: 'USD',
         status: 'active',
         kycStatus: 'pending',
       }).returning();
@@ -808,7 +808,7 @@ class EscrowService {
         hostId: contract.guideId,
         contractId: contractId,
         amount: guideAmount.toString(),
-        currency: 'KRW',
+        currency: 'USD',
         platformFee: platformFee.toString(),
         status: 'pending',
         payoutMethod: 'bank_transfer',

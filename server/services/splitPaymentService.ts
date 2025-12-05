@@ -223,7 +223,7 @@ class SplitPaymentService {
         amount: milestone.amount.toString(),
         refundedAmount: '0',
         outstandingAmount: milestone.amount.toString(),
-        currency: 'KRW',
+        currency: 'USD',
         status: 'pending',
         platformFee: platformFee.toString(),
         dueDate: milestone.dueDate,
@@ -395,7 +395,7 @@ class SplitPaymentService {
       await db.insert(escrowAccounts).values({
         userId: contract.guideId,
         accountType: 'host',
-        currency: 'KRW',
+        currency: 'USD',
         pendingBalance: amount.toString(),
         withdrawableBalance: '0',
         kycStatus: 'pending',

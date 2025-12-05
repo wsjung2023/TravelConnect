@@ -87,7 +87,7 @@ export const experiences = pgTable('experiences', {
   title: varchar('title').notNull(),
   description: text('description').notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  currency: varchar('currency').default('KRW'),
+  currency: varchar('currency').default('USD'),
   location: varchar('location').notNull(),
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
@@ -262,7 +262,7 @@ export const experienceSlots = pgTable('experience_slots', {
   endAt: timestamp('end_at').notNull(),
   capacity: integer('capacity').notNull(),
   priceOverride: decimal('price_override', { precision: 10, scale: 2 }), // null이면 기본 가격 사용
-  currency: varchar('currency').default('KRW'),
+  currency: varchar('currency').default('USD'),
   remaining: integer('remaining').notNull(), // 남은 자리
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
@@ -282,7 +282,7 @@ export const payments = pgTable('payments', {
   intentId: varchar('intent_id'), // 결제 프로바이더의 결제 Intent ID
   chargeId: varchar('charge_id'), // 실제 차지 ID
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-  currency: varchar('currency').default('KRW'),
+  currency: varchar('currency').default('USD'),
   status: varchar('status').default('pending'), // pending, authorized, captured, failed, refunded
   receiptUrl: varchar('receipt_url'), // 영수증 URL
   metadata: jsonb('metadata'), // 프로바이더별 추가 정보
@@ -807,7 +807,7 @@ export const helpRequests = pgTable('help_requests', {
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
   budgetMin: decimal('budget_min', { precision: 10, scale: 2 }),
   budgetMax: decimal('budget_max', { precision: 10, scale: 2 }),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   deadline: timestamp('deadline'),
   urgencyLevel: varchar('urgency_level', { length: 20 }).default('normal'), // 'urgent', 'normal', 'flexible'
   status: varchar('status', { length: 20 }).default('open'), // 'open', 'assigned', 'completed', 'cancelled'
@@ -825,7 +825,7 @@ export const requestResponses = pgTable('request_responses', {
   responderId: varchar('responder_id').notNull().references(() => users.id),
   message: text('message').notNull(),
   offeredPrice: decimal('offered_price', { precision: 10, scale: 2 }),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   estimatedCompletionTime: varchar('estimated_completion_time', { length: 50 }),
   status: varchar('status', { length: 20 }).default('pending'), // 'pending', 'accepted', 'rejected', 'withdrawn'
   attachments: text('attachments').array(),
@@ -841,7 +841,7 @@ export const serviceTemplates = pgTable('service_templates', {
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description').notNull(),
   basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   durationHours: integer('duration_hours'),
   maxParticipants: integer('max_participants').default(1),
   includes: text('includes').array(),
@@ -862,7 +862,7 @@ export const servicePackages = pgTable('service_packages', {
   description: text('description').notNull(),
   totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
   originalPrice: decimal('original_price', { precision: 10, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   discountPercentage: integer('discount_percentage').default(0),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
@@ -923,7 +923,7 @@ export const disputeCases = pgTable('dispute_cases', {
   // 'other' → 기타
   // 금액
   disputedAmount: decimal('disputed_amount', { precision: 12, scale: 2 }),
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   // 내용
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description').notNull(),
@@ -1374,7 +1374,7 @@ export const purchaseRequests = pgTable('purchase_requests', {
   productUrl: text('product_url'), // 상품 링크
   productImages: text('product_images').array(),
   estimatedPrice: decimal('estimated_price', { precision: 10, scale: 2 }),
-  currency: varchar('currency').default('KRW'),
+  currency: varchar('currency').default('USD'),
   quantity: integer('quantity').default(1),
   urgency: varchar('urgency').default('normal'), // urgent, normal, flexible
   deliveryAddress: text('delivery_address'),
@@ -1604,7 +1604,7 @@ export const slots = pgTable('slots', {
   // 가격 관리
   basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
   peakPrice: decimal('peak_price', { precision: 10, scale: 2 }), // 피크 시간 가격
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   isPeakSlot: boolean('is_peak_slot').default(false),
   
   // 반복 설정
@@ -2408,7 +2408,7 @@ export const travelRequests = pgTable('travel_requests', {
   endDate: date('end_date'),
   budgetMin: decimal('budget_min', { precision: 10, scale: 2 }),
   budgetMax: decimal('budget_max', { precision: 10, scale: 2 }),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   serviceTypes: text('service_types').array(), // ['guide', 'transport', 'shopping']
   languages: text('languages').array(), // 원하는 가이드 언어
   groupSize: integer('group_size').default(1),
@@ -2434,7 +2434,7 @@ export const proposals = pgTable('proposals', {
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description').notNull(),
   proposedPrice: decimal('proposed_price', { precision: 10, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   includesItems: text('includes_items').array(), // 포함 사항
   duration: integer('duration'), // 분 단위
   availableDates: date('available_dates').array(),
@@ -2460,7 +2460,7 @@ export const contracts = pgTable('contracts', {
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description').notNull(),
   totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   platformFeeRate: decimal('platform_fee_rate', { precision: 5, scale: 2 }).default('12.00'), // 12%
   platformFeeAmount: decimal('platform_fee_amount', { precision: 10, scale: 2 }),
   guidePayoutAmount: decimal('guide_payout_amount', { precision: 10, scale: 2 }),
@@ -2513,7 +2513,7 @@ export const escrowTransactions = pgTable('escrow_transactions', {
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   refundedAmount: decimal('refunded_amount', { precision: 10, scale: 2 }).default('0'), // 환불된 금액
   outstandingAmount: decimal('outstanding_amount', { precision: 10, scale: 2 }), // 미수금 (amount - refundedAmount)
-  currency: varchar('currency', { length: 3 }).default('KRW'),
+  currency: varchar('currency', { length: 3 }).default('USD'),
   status: varchar('status', { length: 20 }).default('pending'), // pending, funded, released, refunded, partial_refund, disputed, frozen
   paymentMethod: varchar('payment_method', { length: 50 }), // card, bank_transfer
   paymentId: varchar('payment_id', { length: 100 }), // 외부 결제 ID (PortOne 등)
@@ -2572,8 +2572,8 @@ export const billingPlans = pgTable('billing_plans', {
   descriptionKo: text('description_ko'),
   type: varchar('type', { length: 20 }).notNull(), // 'subscription' | 'one_time'
   target: varchar('target', { length: 20 }).notNull(), // 'traveler' | 'host'
-  priceMonthlyKrw: integer('price_monthly_krw'), // 월 구독료 (원)
-  priceKrw: integer('price_krw'), // 1회성 가격 (Trip Pass용)
+  priceMonthlyUsd: decimal('price_monthly_usd', { precision: 10, scale: 2 }), // 월 구독료 (USD)
+  priceUsd: decimal('price_usd', { precision: 10, scale: 2 }), // 1회성 가격 (Trip Pass용, USD)
   features: jsonb('features'), // 한도/수수료/옵션 JSON
   sortOrder: integer('sort_order').default(0),
   isActive: boolean('is_active').default(true),
@@ -2664,7 +2664,7 @@ export const contractStages = pgTable('contract_stages', {
   name: varchar('name', { length: 50 }).notNull(), // 'deposit', 'middle', 'final'
   stageOrder: integer('stage_order').notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   dueDate: timestamp('due_date'),
   paymentId: integer('payment_id').references(() => payments.id),
   status: varchar('status', { length: 20 }).default('pending'), // 'pending' | 'paid' | 'canceled' | 'refunded'
@@ -2685,7 +2685,7 @@ export const escrowAccounts = pgTable('escrow_accounts', {
   availableBalance: decimal('available_balance', { precision: 15, scale: 2 }).default('0'),
   pendingBalance: decimal('pending_balance', { precision: 15, scale: 2 }).default('0'), // 에스크로 보류 중
   withdrawableBalance: decimal('withdrawable_balance', { precision: 15, scale: 2 }).default('0'), // 출금 가능
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   // 상태
   status: varchar('status', { length: 20 }).default('active'), // 'active' | 'frozen' | 'suspended'
   frozenReason: varchar('frozen_reason', { length: 200 }),
@@ -2715,7 +2715,7 @@ export const payouts = pgTable('payouts', {
   grossAmount: decimal('gross_amount', { precision: 15, scale: 2 }).notNull(), // 총 거래액
   totalFees: decimal('total_fees', { precision: 12, scale: 2 }).notNull(), // 총 수수료
   netAmount: decimal('net_amount', { precision: 15, scale: 2 }).notNull(), // 순 정산액
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   transactionCount: integer('transaction_count').notNull(),
   // 상태
   status: varchar('status', { length: 20 }).default('pending'), // 'pending' | 'processing' | 'completed' | 'failed' | 'on_hold'
@@ -2754,7 +2754,7 @@ export const paymentTransactions = pgTable('payment_transactions', {
   contractStageId: integer('contract_stage_id').references(() => contractStages.id),
   // 금액
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   // PortOne 연동
   portonePaymentId: varchar('portone_payment_id', { length: 100 }),
   portoneMerchantUid: varchar('portone_merchant_uid', { length: 100 }),
@@ -3240,7 +3240,7 @@ export const factTransactions = pgTable('fact_transactions', {
   netAmount: decimal('net_amount', { precision: 15, scale: 2 }).notNull(),
   platformFee: decimal('platform_fee', { precision: 15, scale: 2 }).default('0'),
   hostEarnings: decimal('host_earnings', { precision: 15, scale: 2 }).default('0'),
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   // 상태 및 메타데이터
   status: varchar('status', { length: 30 }).notNull(),
   paymentMethod: varchar('payment_method', { length: 30 }),
@@ -3309,7 +3309,7 @@ export const factBookings = pgTable('fact_bookings', {
   totalPrice: decimal('total_price', { precision: 15, scale: 2 }).notNull(),
   discountAmount: decimal('discount_amount', { precision: 15, scale: 2 }).default('0'),
   finalPrice: decimal('final_price', { precision: 15, scale: 2 }).notNull(),
-  currency: varchar('currency', { length: 10 }).default('KRW'),
+  currency: varchar('currency', { length: 10 }).default('USD'),
   // 시간 메트릭
   leadTimeDays: integer('lead_time_days'), // 예약-서비스 간 일수
   durationMinutes: integer('duration_minutes'),

@@ -75,9 +75,16 @@ export default function Marketplace() {
     },
   });
 
-  const formatPrice = (price: string, currency: string) => {
-    const numPrice = parseInt(price);
-    return `${numPrice.toLocaleString()}${currency === 'KRW' ? t('marketplace.currency') : ' ' + currency}`;
+  const formatPrice = (price: string, currency: string = 'USD') => {
+    const numPrice = parseFloat(price);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency
+      }).format(numPrice);
+    } catch {
+      return `$${numPrice.toFixed(2)}`;
+    }
   };
 
   const formatDuration = (minutes: number) => {

@@ -164,7 +164,7 @@ class SubscriptionScheduler {
 
     // 플랜 정보 조회
     const plan = await this.getPlan(planId);
-    if (!plan || !plan.priceMonthlyKrw) {
+    if (!plan || !plan.priceMonthlyUsd) {
       console.log(`[Scheduler] 구독 ${id}: 플랜 정보 없음`);
       return { subscriptionId: id, userId, success: false, error: '구독 플랜 정보를 찾을 수 없습니다' };
     }
@@ -179,15 +179,16 @@ class SubscriptionScheduler {
     // 고유 결제 ID 생성
     const paymentId = `sub_${id}_${Date.now()}`;
 
-    console.log(`[Scheduler] 구독 ${id} 갱신 시도: ${plan.priceMonthlyKrw}원`);
+    const priceUsd = parseFloat(plan.priceMonthlyUsd);
+    console.log(`[Scheduler] 구독 ${id} 갱신 시도: $${priceUsd}`);
 
     // PortOne 빌링키 결제 실행
     const customerName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
     const result = await portoneClient.createPaymentWithBillingKey({
       paymentId,
       orderName: `${plan.nameKo || plan.name} 구독 갱신`,
-      amount: plan.priceMonthlyKrw,
-      currency: 'KRW',
+      amount: Math.round(priceUsd * 100), // USD cents for PortOne
+      currency: 'USD',
       billingKey: billingKey.billingKey,
       customer: {
         id: userId,
@@ -208,16 +209,18 @@ class SubscriptionScheduler {
         eventData: JSON.stringify({
           subscriptionId: id,
           planId,
-          amount: plan.priceMonthlyKrw,
+          amount: priceUsd,
+          currency: 'USD',
         }),
-        amount: plan.priceMonthlyKrw,
+        amount: Math.round(priceUsd * 100),
         status: 'success',
       });
 
       // 갱신 완료 알림
       await this.sendNotification(userId, 'subscription_renewed', {
         planName: plan.nameKo || plan.name,
-        amount: plan.priceMonthlyKrw,
+        amount: priceUsd,
+        currency: 'USD',
       });
 
       console.log(`[Scheduler] 구독 ${id} 갱신 성공`);
@@ -237,7 +240,7 @@ class SubscriptionScheduler {
           error: result.error,
           errorCode: result.errorCode,
         }),
-        amount: plan.priceMonthlyKrw,
+        amount: Math.round(priceUsd * 100),
         status: 'failed',
         errorMessage: result.error,
       });
@@ -366,10 +369,12 @@ class SubscriptionScheduler {
 
       for (const subscription of subscriptions) {
         const plan = await this.getPlan(subscription.planId);
+        const priceUsd = parseFloat(plan?.priceMonthlyUsd || '0');
         await this.sendNotification(subscription.userId, 'subscription_expiring', {
           daysUntilRenewal: days,
           planName: plan?.nameKo || plan?.name || '구독',
-          amount: plan?.priceMonthlyKrw || 0,
+          amount: priceUsd,
+          currency: 'USD',
         });
         sentCount++;
       }
@@ -393,7 +398,7 @@ class SubscriptionScheduler {
       switch (notificationType) {
         case 'subscription_renewed':
           title = '구독 갱신 완료';
-          message = `구독이 갱신되었습니다. (${data.planName}, ${(data.amount as number).toLocaleString()}원)`;
+          message = `구독이 갱신되었습니다. (${data.planName}, $${(data.amount as number).toFixed(2)})`;
           break;
         case 'subscription_expiring':
           title = '구독 갱신 예정';

@@ -30,7 +30,7 @@ export interface CreatePaymentParams {
   paymentId: string;           // 고유 결제 ID (merchant UID)
   orderName: string;           // 주문명 (예: "Trip Pass 3일권")
   amount: number;              // 결제 금액
-  currency?: 'KRW' | 'USD';    // 기본값: KRW
+  currency?: 'KRW' | 'USD';    // 기본값: USD (글로벌 플랫폼)
   customer: PaymentCustomer;
   billingKey?: string;         // 정기결제용 빌링키
   channelKey?: string;         // 채널 키 (결제 수단별)
@@ -41,7 +41,7 @@ export interface SchedulePaymentParams {
   billingKey: string;          // 빌링키 필수
   orderName: string;
   amount: number;
-  currency?: 'KRW' | 'USD';
+  currency?: 'KRW' | 'USD';    // 기본값: USD
   scheduledAt: Date;           // 결제 예정 시간
   customer: PaymentCustomer;
 }
@@ -230,7 +230,7 @@ class PortOneClient {
             billingKey: params.billingKey,
             orderName: params.orderName,
             amount: { total: params.amount },
-            currency: params.currency || 'KRW',
+            currency: params.currency || 'USD',
             customer: {
               id: params.customer.id,
               email: params.customer.email,
@@ -288,7 +288,7 @@ class PortOneClient {
               billingKey: params.billingKey,
               orderName: params.orderName,
               amount: { total: params.amount },
-              currency: params.currency || 'KRW',
+              currency: params.currency || 'USD',
               customer: {
                 id: params.customer.id,
                 email: params.customer.email,

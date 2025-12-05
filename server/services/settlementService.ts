@@ -193,7 +193,7 @@ class SettlementService {
         grossAmount: grossAmount.toString(),
         totalFees: platformFees.toString(),
         netAmount: group.totalAmount.toString(),
-        currency: 'KRW',
+        currency: 'USD',
         transactionCount: group.transactionCount,
         status: 'pending',
         bankCode: group.bankCode,

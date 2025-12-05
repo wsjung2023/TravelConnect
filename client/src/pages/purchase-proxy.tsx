@@ -23,7 +23,7 @@ const createRequestSchema = z.object({
   productDescription: z.string().optional(),
   productUrl: z.string().url().optional().or(z.literal('')),
   estimatedPrice: z.string().min(1, '예상 가격을 입력해주세요'),
-  currency: z.string().default('KRW'),
+  currency: z.string().default('USD'),
   quantity: z.number().min(1, '수량은 1개 이상이어야 합니다'),
   urgency: z.enum(['urgent', 'normal', 'flexible']).default('normal'),
   deliveryAddress: z.string().min(1, '배송 주소를 입력해주세요'),
@@ -148,7 +148,7 @@ export default function PurchaseProxyPage() {
   const requestForm = useForm<CreateRequestForm>({
     resolver: zodResolver(createRequestSchema),
     defaultValues: {
-      currency: 'KRW',
+      currency: 'USD',
       quantity: 1,
       urgency: 'normal',
     },

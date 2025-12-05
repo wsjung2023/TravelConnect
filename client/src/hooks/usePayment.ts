@@ -104,7 +104,7 @@ export function usePayment() {
         paymentId: paymentData.paymentId,
         orderName: paymentData.orderName,
         totalAmount: paymentData.totalAmount,
-        currency: 'KRW',
+        currency: 'USD',
         payMethod: 'CARD',
         customer: {
           fullName: paymentData.customerName,

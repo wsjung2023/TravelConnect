@@ -2183,7 +2183,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   )}
                   {item.price && (
                     <p className="text-xs font-semibold text-purple-600 mt-1">
-                      {Number(item.price).toLocaleString()} {item.currency || 'KRW'}
+                      ${Number(item.price).toFixed(2)} {item.currency && item.currency !== 'USD' ? item.currency : ''}
                     </p>
                   )}
                 </div>

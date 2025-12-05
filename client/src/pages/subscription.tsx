@@ -43,7 +43,8 @@ interface Plan {
   id: number;
   name: string;
   price: number;
-  priceKrw?: number;
+  priceUsd?: number;
+  priceMonthlyUsd?: string;
   type?: string;
   period: string;
   features: string[] | { [key: string]: string | number | boolean } | null;
@@ -128,16 +129,16 @@ export default function SubscriptionPage() {
     return format(dateObj, pattern, { locale });
   };
 
-  // Format amount with currency (fully locale-aware)
-  const formatAmount = (amount: number) => {
+  // Format amount with currency (fully locale-aware, USD default)
+  const formatAmount = (amount: number, currency: string = 'USD') => {
     try {
       return new Intl.NumberFormat(i18n.language, {
         style: 'currency',
-        currency: 'KRW'
+        currency: currency
       }).format(amount);
     } catch {
       // Fallback if locale not supported
-      return `₩${amount.toLocaleString()}`;
+      return `$${amount.toFixed(2)}`;
     }
   };
 
@@ -458,7 +459,7 @@ export default function SubscriptionPage() {
                       </CardTitle>
                       <CardDescription>
                         <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {formatAmount(plan.priceKrw || plan.price || 0)}
+                          {formatAmount(plan.priceUsd || parseFloat(plan.priceMonthlyUsd || '0') || plan.price || 0)}
                         </span>
                         <span className="text-gray-500">
                           /{plan.type === 'subscription' ? t('per_month') : (plan.period || t('per_time'))}
@@ -492,7 +493,8 @@ export default function SubscriptionPage() {
                       ) : (
                         <PaymentButton
                           type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
-                          amount={plan.priceKrw || plan.price || 0}
+                          amount={Math.round((plan.priceUsd || parseFloat(plan.priceMonthlyUsd || '0') || plan.price || 0) * 100)}
+                          currency="USD"
                           orderName={plan.name}
                           planId={plan.id}
                           billingKeyId={selectedBillingKeyId || undefined}

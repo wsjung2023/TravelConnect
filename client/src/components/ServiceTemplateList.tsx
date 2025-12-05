@@ -73,9 +73,9 @@ function ServiceTemplateCard({ template, onEdit, onDelete, onView }: ServiceTemp
 
   const formatPrice = (price: string | number) => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    return new Intl.NumberFormat('ko-KR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'KRW',
+      currency: 'USD',
     }).format(numPrice);
   };
 

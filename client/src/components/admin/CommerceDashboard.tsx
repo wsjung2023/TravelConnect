@@ -110,9 +110,16 @@ export default function CommerceDashboard() {
     enabled: selectedTab === 'payments',
   });
 
-  const formatPrice = (price: string, currency: string) => {
-    const numPrice = parseInt(price);
-    return `${numPrice.toLocaleString()}${currency === 'KRW' ? '원' : ' ' + currency}`;
+  const formatPrice = (price: string, currency: string = 'USD') => {
+    const numPrice = parseFloat(price);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency
+      }).format(numPrice);
+    } catch {
+      return `$${numPrice.toFixed(2)}`;
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -231,7 +238,7 @@ export default function CommerceDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="text-total-revenue">
-                    {formatPrice(stats.totalRevenue.toString(), 'KRW')}
+                    {formatPrice(stats.totalRevenue.toString(), 'USD')}
                   </div>
                   <p className="text-xs text-muted-foreground">{t('ui.dashboard.descriptions.cumulativeRevenue')}</p>
                 </CardContent>
@@ -423,7 +430,7 @@ export default function CommerceDashboard() {
                         {booking.participants}명
                       </TableCell>
                       <TableCell data-testid={`text-booking-price-${booking.id}`}>
-                        {formatPrice(booking.totalPrice, 'KRW')}
+                        {formatPrice(booking.totalPrice, 'USD')}
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(booking.status)}>

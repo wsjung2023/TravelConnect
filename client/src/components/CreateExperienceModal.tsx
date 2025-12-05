@@ -192,7 +192,7 @@ export default function CreateExperienceModal({
       title: title.trim(),
       description: description.trim(),
       price: price,
-      currency: 'KRW',
+      currency: 'USD',
       location: location.trim(),
       latitude: locationCoords?.lat?.toString(),
       longitude: locationCoords?.lng?.toString(),

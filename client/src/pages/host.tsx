@@ -104,9 +104,16 @@ export default function HostDashboard() {
     enabled: !!user && user.isHost,
   });
 
-  const formatPrice = (price: string, currency: string) => {
-    const numPrice = parseInt(price);
-    return `${numPrice.toLocaleString()}${currency === 'KRW' ? '원' : ' ' + currency}`;
+  const formatPrice = (price: string, currency: string = 'USD') => {
+    const numPrice = parseFloat(price);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency
+      }).format(numPrice);
+    } catch {
+      return `$${numPrice.toFixed(2)}`;
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -448,7 +455,7 @@ export default function HostDashboard() {
                           </TableCell>
                           <TableCell>{booking.participants}{t('experiencePage.people')}</TableCell>
                           <TableCell>
-                            {formatPrice(booking.totalPrice, 'KRW')}
+                            {formatPrice(booking.totalPrice, 'USD')}
                           </TableCell>
                           <TableCell>
                             <Badge className={getStatusColor(booking.status)}>

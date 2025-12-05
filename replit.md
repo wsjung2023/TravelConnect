@@ -59,6 +59,15 @@ Preferred communication style: Simple, everyday language.
 - **Contract Split Payment**: Supports installment payments (deposit/milestones) for P2P contracts with payment plans (single, two-step, three-step) and partial/full refund tracking.
 - **Host Settlement Batch System**: Automated daily settlement for hosts using PortOne Transfer API, with KYC verification and minimum payout conditions, managed by a cron scheduler.
 
+### Currency System (2025-12 Update)
+- **Base Currency**: USD (US Dollar) - Global platform standard
+- **Pricing Tiers**: Clean USD-based pricing
+  - Trip Pass: $4.99 (3-day), $9.99 (7-day), $19.99 (30-day)
+  - Subscriptions: $14.99-$49.99/month
+- **Currency Support**: USD primary, KRW fallback for legacy data
+- **Payment Gateway**: PortOne with Stripe/PayPal/Adyen for multi-currency support
+- **Price Display**: All frontend components use `Intl.NumberFormat` with `en-US` locale and `USD` currency
+
 ### Performance Optimization (2024-12)
 - **Database Indexes**: 40+ indexes added across 10 tables (posts, experiences, comments, likes, follows, notifications, timelines, trips, conversations, users) for frequently queried columns.
 - **Caching Layer**: LRU cache implementation for:

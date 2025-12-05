@@ -5974,15 +5974,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const priceMonthly = plan.priceMonthlyKrw || 0;
-      if (priceMonthly > 0) {
+      const priceMonthlyUsd = parseFloat(plan.priceMonthlyUsd || '0');
+      if (priceMonthlyUsd > 0) {
         const paymentId = `sub_${req.user.id}_${Date.now()}`;
         const paymentResult = await portoneClient.createPaymentWithBillingKey({
           paymentId,
           billingKey: billingKeyId,
           orderName: plan.name,
-          amount: priceMonthly,
-          currency: 'KRW',
+          amount: Math.round(priceMonthlyUsd * 100), // USD cents
+          currency: 'USD',
           customer: { id: req.user.id },
         });
         

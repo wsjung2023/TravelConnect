@@ -13,24 +13,24 @@ export default function SlotBrowser() {
   });
 
   // 안전한 가격 포맷팅 (화폐 코드 예외 처리 포함)
-  const formatPrice = (priceStr: string | null, currency: string | null = 'KRW') => {
-    if (!priceStr) return '가격 정보 없음';
+  const formatPrice = (priceStr: string | null, currency: string | null = 'USD') => {
+    if (!priceStr) return 'No price info';
     const price = parseFloat(priceStr);
-    if (isNaN(price)) return '가격 정보 없음';
+    if (isNaN(price)) return 'No price info';
     
     try {
-      return new Intl.NumberFormat('ko-KR', {
+      return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: currency || 'KRW',
-        minimumFractionDigits: 0,
+        currency: currency || 'USD',
+        minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(price);
     } catch (error) {
-      // 유효하지 않은 화폐 코드인 경우 KRW로 fallback
-      return new Intl.NumberFormat('ko-KR', {
+      // 유효하지 않은 화폐 코드인 경우 USD로 fallback
+      return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'KRW',
-        minimumFractionDigits: 0,
+        currency: 'USD',
+        minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(price);
     }

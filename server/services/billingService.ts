@@ -3,7 +3,7 @@ import type { InsertBillingPlan } from '@shared/schema';
 
 const BILLING_PLANS: InsertBillingPlan[] = [
   // =====================================================
-  // 여행자용 플랜 (Traveler Plans)
+  // 여행자용 플랜 (Traveler Plans) - USD Pricing
   // =====================================================
   
   // Free 플랜 (기본)
@@ -19,8 +19,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '가벼운 여행자를 위한 기본 기능',
     target: 'traveler',
     type: 'subscription',
-    priceMonthlyKrw: 0,
-    priceKrw: null,
+    priceMonthlyUsd: '0',
+    priceUsd: null,
     features: {
       ai_messages: 30,
       ai_messages_period: 'monthly',
@@ -52,8 +52,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '활동적인 여행자를 위한 향상된 기능',
     target: 'traveler',
     type: 'subscription',
-    priceMonthlyKrw: 14900,
-    priceKrw: null,
+    priceMonthlyUsd: '14.99',
+    priceUsd: null,
     features: {
       ai_messages: 100,
       ai_messages_period: 'monthly',
@@ -87,8 +87,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '활동적인 여행자를 위한 향상된 기능 - 연간 결제 (17% 할인)',
     target: 'traveler',
     type: 'subscription',
-    priceMonthlyKrw: null,
-    priceKrw: 149000,
+    priceMonthlyUsd: null,
+    priceUsd: '149.99',
     features: {
       ai_messages: 100,
       ai_messages_period: 'monthly',
@@ -123,8 +123,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '파워 여행자를 위한 무제한 기능',
     target: 'traveler',
     type: 'subscription',
-    priceMonthlyKrw: 39900,
-    priceKrw: null,
+    priceMonthlyUsd: '29.99',
+    priceUsd: null,
     features: {
       ai_messages: -1,
       ai_messages_period: 'unlimited',
@@ -158,8 +158,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '파워 여행자를 위한 무제한 기능 - 연간 결제 (17% 할인)',
     target: 'traveler',
     type: 'subscription',
-    priceMonthlyKrw: null,
-    priceKrw: 399000,
+    priceMonthlyUsd: null,
+    priceUsd: '249.99',
     features: {
       ai_messages: -1,
       ai_messages_period: 'unlimited',
@@ -194,8 +194,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '24시간 전체 AI 기능 이용',
     target: 'traveler',
     type: 'one_time',
-    priceMonthlyKrw: null,
-    priceKrw: 4900,
+    priceMonthlyUsd: null,
+    priceUsd: '4.99',
     features: {
       duration_days: 1,
       ai_messages: 50,
@@ -219,8 +219,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '72시간 전체 AI 기능 이용 - 30% 할인',
     target: 'traveler',
     type: 'one_time',
-    priceMonthlyKrw: null,
-    priceKrw: 9900,
+    priceMonthlyUsd: null,
+    priceUsd: '9.99',
     features: {
       duration_days: 3,
       ai_messages: 150,
@@ -245,8 +245,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '1주일 전체 AI 기능 이용 - 45% 할인',
     target: 'traveler',
     type: 'one_time',
-    priceMonthlyKrw: null,
-    priceKrw: 19900,
+    priceMonthlyUsd: null,
+    priceUsd: '19.99',
     features: {
       duration_days: 7,
       ai_messages: 400,
@@ -259,7 +259,7 @@ const BILLING_PLANS: InsertBillingPlan[] = [
   },
 
   // =====================================================
-  // 호스트용 플랜 (Host Plans)
+  // 호스트용 플랜 (Host Plans) - USD Pricing
   // =====================================================
   
   // Host Free 플랜
@@ -275,8 +275,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '새로운 호스트를 위한 기본 기능',
     target: 'host',
     type: 'subscription',
-    priceMonthlyKrw: 0,
-    priceKrw: null,
+    priceMonthlyUsd: '0',
+    priceUsd: null,
     features: {
       service_listings: 3,
       platform_commission: 15,
@@ -304,8 +304,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '전문 호스트를 위한 향상된 기능',
     target: 'host',
     type: 'subscription',
-    priceMonthlyKrw: 29900,
-    priceKrw: null,
+    priceMonthlyUsd: '19.99',
+    priceUsd: null,
     features: {
       service_listings: 15,
       platform_commission: 10,
@@ -334,8 +334,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '전문 호스트를 위한 향상된 기능 - 연간 결제 (17% 할인)',
     target: 'host',
     type: 'subscription',
-    priceMonthlyKrw: null,
-    priceKrw: 299000,
+    priceMonthlyUsd: null,
+    priceUsd: '199.99',
     features: {
       service_listings: 15,
       platform_commission: 10,
@@ -365,8 +365,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '비즈니스 호스트를 위한 프리미엄 기능',
     target: 'host',
     type: 'subscription',
-    priceMonthlyKrw: 79900,
-    priceKrw: null,
+    priceMonthlyUsd: '49.99',
+    priceUsd: null,
     features: {
       service_listings: -1,
       platform_commission: 7,
@@ -396,8 +396,8 @@ const BILLING_PLANS: InsertBillingPlan[] = [
     descriptionKo: '비즈니스 호스트를 위한 프리미엄 기능 - 연간 결제 (17% 할인)',
     target: 'host',
     type: 'subscription',
-    priceMonthlyKrw: null,
-    priceKrw: 799000,
+    priceMonthlyUsd: null,
+    priceUsd: '499.99',
     features: {
       service_listings: -1,
       platform_commission: 7,
@@ -416,15 +416,21 @@ const BILLING_PLANS: InsertBillingPlan[] = [
   }
 ];
 
-export async function seedBillingPlans(): Promise<{ created: number; skipped: number }> {
+export async function seedBillingPlans(): Promise<{ created: number; skipped: number; updated: number }> {
   let created = 0;
   let skipped = 0;
+  let updated = 0;
   
   for (const plan of BILLING_PLANS) {
     const existing = await storage.getBillingPlanById(plan.id);
     if (existing) {
-      console.log(`[Billing Seed] Skipping existing plan: ${plan.id}`);
-      skipped++;
+      // Update existing plan with new USD prices
+      await storage.updateBillingPlan(plan.id, {
+        priceMonthlyUsd: plan.priceMonthlyUsd,
+        priceUsd: plan.priceUsd,
+      });
+      console.log(`[Billing Seed] Updated plan with USD pricing: ${plan.id}`);
+      updated++;
       continue;
     }
     
@@ -433,8 +439,8 @@ export async function seedBillingPlans(): Promise<{ created: number; skipped: nu
     created++;
   }
   
-  console.log(`[Billing Seed] Complete: ${created} created, ${skipped} skipped`);
-  return { created, skipped };
+  console.log(`[Billing Seed] Complete: ${created} created, ${updated} updated, ${skipped} skipped`);
+  return { created, skipped, updated };
 }
 
 export function getBillingPlanDefinitions(): InsertBillingPlan[] {

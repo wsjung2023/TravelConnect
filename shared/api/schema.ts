@@ -246,7 +246,7 @@ export const CreateSlotSchema = z.object({
   // 가격 관리
   basePrice: z.number().min(0, '가격은 0 이상이어야 합니다'),
   peakPrice: z.number().min(0, '피크 가격은 0 이상이어야 합니다').optional(),
-  currency: z.string().length(3, '통화 코드는 3자리여야 합니다').default('KRW'),
+  currency: z.string().length(3, '통화 코드는 3자리여야 합니다').default('USD'),
   isPeakSlot: z.boolean().default(false),
   
   // 반복 설정
