@@ -407,7 +407,12 @@ router.delete('/billing-keys/:id', authenticateHybrid, async (req: AuthRequest, 
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const billingKeyId = parseInt(req.params.id);
+    const idParam = req.params.id;
+    if (!idParam) {
+      return res.status(400).json({ error: 'Billing key ID is required' });
+    }
+
+    const billingKeyId = parseInt(idParam);
     if (isNaN(billingKeyId)) {
       return res.status(400).json({ error: 'Invalid billing key ID' });
     }
@@ -432,7 +437,12 @@ router.put('/billing-keys/:id/default', authenticateHybrid, async (req: AuthRequ
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const billingKeyId = parseInt(req.params.id);
+    const idParam = req.params.id;
+    if (!idParam) {
+      return res.status(400).json({ error: 'Billing key ID is required' });
+    }
+
+    const billingKeyId = parseInt(idParam);
     if (isNaN(billingKeyId)) {
       return res.status(400).json({ error: 'Invalid billing key ID' });
     }
@@ -496,21 +506,31 @@ router.get('/history', authenticateHybrid, async (req: AuthRequest, res: Respons
 // PortOne 통합 테스트 (개발 전용)
 // ============================================
 // POST /api/billing/test-payment
-// PortOne API 연동을 테스트합니다.
+// PortOne API 연동을 테스트합니다 (KG이니시스, 카카오페이, 페이팔).
 router.post('/test-payment', async (req: Request, res: Response) => {
   try {
     const { portoneClient } = await import('../services/portoneClient');
+    
+    console.log('\n===== PortOne 통합 테스트 시작 =====\n');
     
     // Step 1: 환경 변수 확인
     const envCheck = {
       PORTONE_API_SECRET: !!process.env.PORTONE_API_SECRET,
       PORTONE_STORE_ID: !!process.env.PORTONE_STORE_ID,
-      PORTONE_CHANNEL_KEY: !!process.env.PORTONE_CHANNEL_KEY,
+      PORTONE_CHANNEL_KEY: !!process.env.PORTONE_CHANNEL_KEY, // KG이니시스
       PORTONE_KAKAOPAY_CHANNEL_KEY: !!process.env.PORTONE_KAKAOPAY_CHANNEL_KEY,
       PORTONE_PAYPAL_CHANNEL_KEY: !!process.env.PORTONE_PAYPAL_CHANNEL_KEY,
     };
 
-    console.log('[Test] PortOne 환경 변수 확인:', envCheck);
+    console.log('[Test] 환경 변수 확인:', envCheck);
+
+    // 채널 키 상세 정보 (앞부분만 표시)
+    const channelInfo = {
+      kgInicis: process.env.PORTONE_CHANNEL_KEY?.substring(0, 30) + '...',
+      kakaoPay: process.env.PORTONE_KAKAOPAY_CHANNEL_KEY?.substring(0, 30) + '...',
+      paypal: process.env.PORTONE_PAYPAL_CHANNEL_KEY?.substring(0, 30) + '...',
+    };
+    console.log('[Test] 채널 키 (앞부분):', channelInfo);
 
     // Step 2: PortOne 초기화
     const isConfigured = portoneClient.isConfigured();
@@ -524,17 +544,21 @@ router.post('/test-payment', async (req: Request, res: Response) => {
       });
     }
 
-    // Step 3: 테스트 결제 ID 생성
+    // Step 3: 공개 설정 조회
+    const publicConfig = portoneClient.getPublicConfig();
+    console.log('[Test] 공개 설정:', publicConfig);
+
+    // Step 4: 테스트 결제 ID 생성
     const testPaymentId = `test_payment_${Date.now()}`;
     console.log('[Test] 테스트 결제 ID 생성:', testPaymentId);
 
-    // Step 4: 결제 조회 테스트 (존재하지 않는 결제 ID)
-    console.log('[Test] 결제 조회 테스트 시작...');
+    // Step 5: 결제 조회 API 테스트 (존재하지 않는 결제 ID로 API 연결 확인)
+    console.log('[Test] 결제 조회 API 테스트 시작...');
     const getResult = await portoneClient.getPayment(testPaymentId);
     console.log('[Test] 결제 조회 결과:', getResult);
 
-    // Step 5: 결제 취소 테스트 (존재하지 않는 결제 ID)
-    console.log('[Test] 결제 취소 테스트 시작...');
+    // Step 6: 결제 취소 API 테스트 (존재하지 않는 결제 ID로 API 연결 확인)
+    console.log('[Test] 결제 취소 API 테스트 시작...');
     const cancelResult = await portoneClient.cancelPayment(
       testPaymentId,
       'Test cancellation',
@@ -542,25 +566,51 @@ router.post('/test-payment', async (req: Request, res: Response) => {
     );
     console.log('[Test] 결제 취소 결과:', cancelResult);
 
+    console.log('\n===== PortOne 통합 테스트 완료 =====\n');
+
     // 테스트 결과 반환
     res.json({
       success: true,
-      message: 'PortOne API 테스트 완료',
+      message: 'PortOne API 테스트 완료 (KG이니시스, 카카오페이, 페이팔)',
+      timestamp: new Date().toISOString(),
       config: {
         envCheck,
+        channelInfo,
         isConfigured,
         storeId: process.env.PORTONE_STORE_ID?.substring(0, 20) + '...',
+        publicConfig,
       },
-      testResults: {
+      apiTests: {
         testPaymentId,
         getPayment: {
+          tested: true,
           success: getResult.success,
           error: getResult.error,
           errorCode: getResult.errorCode,
+          note: '존재하지 않는 결제 ID로 API 연결 테스트. 404 에러는 정상입니다.',
         },
         cancelPayment: {
+          tested: true,
           success: cancelResult.success,
           error: cancelResult.error,
+          note: '존재하지 않는 결제 ID로 API 연결 테스트. 404 에러는 정상입니다.',
+        },
+      },
+      channelStatus: {
+        kgInicis: {
+          configured: envCheck.PORTONE_CHANNEL_KEY,
+          key: channelInfo.kgInicis,
+          note: 'KG이니시스 (이니시스 테스트 키)',
+        },
+        kakaoPay: {
+          configured: envCheck.PORTONE_KAKAOPAY_CHANNEL_KEY,
+          key: channelInfo.kakaoPay,
+          note: '카카오페이 (실제 키)',
+        },
+        paypal: {
+          configured: envCheck.PORTONE_PAYPAL_CHANNEL_KEY,
+          key: channelInfo.paypal,
+          note: '페이팔 (실제 키)',
         },
       },
     });
