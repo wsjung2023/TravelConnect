@@ -1705,20 +1705,162 @@ CREATE TABLE billing_keys (
 
 ---
 
-## Phase 9: 프로덕션 배포 준비 (예정)
+## Phase 9: 프로덕션 배포 준비 (진행 중)
 
-### 체크리스트
-- [ ] 모든 환경 변수 프로덕션 값 설정
-- [ ] PORTONE_WEBHOOK_SECRET 설정
-- [ ] HTTPS 적용 확인
-- [ ] 에러 모니터링 (Sentry) 설정
-- [ ] 결제 로그 백업 정책
-- [ ] PG사 심사 제출
-- [ ] 웹훅 URL 등록: `https://[도메인]/api/webhooks/portone`
+### 9.1 목표
+
+프로덕션 환경에서 안전하고 안정적인 결제 서비스 운영을 위한 준비
+
+### 9.2 필수 구현 항목
+
+| 작업 | 파일 | 우선순위 | 상태 |
+|------|------|----------|------|
+| 웹훅 서명 검증 구현 | `server/routes.ts` | 🔴 필수 | ✅ 완료 |
+| 결제 로그 테이블 추가 | `shared/schema.ts` | 🔴 필수 | ✅ 완료 |
+| 결제 로그 Storage 메서드 | `server/storage.ts` | 🔴 필수 | ✅ 완료 |
+| 웹훅 이벤트 로그 기록 | `server/routes.ts` | 🔴 필수 | ✅ 완료 |
+| 환경 변수 검증 미들웨어 | `server/routes.ts` | 🟡 중요 | 예정 |
+| Sentry 결제 에러 추적 | `server/routes.ts` | 🟡 중요 | 예정 |
+| 프로덕션 체크리스트 문서화 | `docs/` | 🟢 권장 | 예정 |
+
+### 9.3 웹훅 서명 검증
+
+```typescript
+// PortOne 웹훅 서명 검증
+import crypto from 'crypto';
+
+const verifyWebhookSignature = (
+  payload: string, 
+  signature: string, 
+  secret: string
+): boolean => {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+};
+```
+
+### 9.4 결제 로그 테이블
+
+```typescript
+// paymentLogs 테이블 - 모든 결제 이벤트 기록
+export const paymentLogs = pgTable('payment_logs', {
+  id: serial('id').primaryKey(),
+  paymentId: text('payment_id').notNull(),
+  userId: text('user_id').references(() => users.id),
+  eventType: text('event_type').notNull(), // PAYMENT_READY, PAYMENT_PAID, PAYMENT_FAILED, WEBHOOK_RECEIVED
+  eventData: text('event_data'), // JSON 문자열
+  amount: integer('amount'),
+  status: text('status'),
+  errorMessage: text('error_message'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+### 9.5 환경 변수 체크리스트
+
+**필수 환경 변수:**
+```bash
+# PortOne 결제 (프로덕션)
+PORTONE_STORE_ID=store_xxx
+PORTONE_CHANNEL_KEY=channel_xxx
+PORTONE_API_SECRET=secret_xxx
+PORTONE_WEBHOOK_SECRET=webhook_secret_xxx
+
+# Sentry 에러 모니터링
+SENTRY_DSN=https://xxx@sentry.io/xxx
+
+# 프로덕션 환경
+NODE_ENV=production
+```
+
+### 9.6 테스트 체크리스트
+
+- [x] 웹훅 서명 검증 테스트 ✅
+- [x] 결제 로그 저장 테스트 ✅
+- [ ] 환경 변수 누락 시 에러 처리
+- [ ] Sentry 에러 전송 확인
+- [ ] HTTPS 강제 리다이렉트 확인
+- [ ] 결제 실패 시 알림 발송
+
+### 9.8 구현 완료 (December 5, 2025)
+
+**구현 파일:**
+- `shared/schema.ts` - paymentLogs 테이블 스키마
+- `server/storage.ts` - 결제 로그 CRUD 메서드
+- `server/routes.ts` - 웹훅 이벤트 로그 기록
+
+**paymentLogs 테이블:**
+```sql
+CREATE TABLE payment_logs (
+  id SERIAL PRIMARY KEY,
+  payment_id TEXT NOT NULL,
+  user_id TEXT REFERENCES users(id),
+  event_type TEXT NOT NULL,
+  event_data TEXT,
+  amount INTEGER,
+  status TEXT,
+  error_message TEXT,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**기록되는 이벤트 타입:**
+- `WEBHOOK_PAYMENT_PAID` - 결제 성공
+- `WEBHOOK_PAYMENT_CANCELLED` - 결제 취소
+- `WEBHOOK_PAYMENT_FAILED` - 결제 실패
+- `WEBHOOK_BILLINGKEY_ISSUED` - 빌링키 발급
+- `WEBHOOK_BILLINGKEY_DELETED` - 빌링키 삭제
+
+**Storage 메서드:**
+- `createPaymentLog(data)` - 결제 로그 생성
+- `getPaymentLogsByPaymentId(paymentId)` - 결제 ID로 로그 조회
+- `getPaymentLogsByUserId(userId, limit)` - 사용자 ID로 로그 조회
+
+### 9.7 PG사 심사 제출 가이드
+
+**심사 필수 서류:**
+1. 사업자등록증
+2. 통신판매업신고증
+3. 이용약관 URL
+4. 개인정보처리방침 URL
+5. 환불정책 URL
+6. 서비스 소개서
+
+**심사 전 확인 사항:**
+- [ ] 모든 법적 문서 URL 접근 가능
+- [ ] Footer에 사업자 정보 표시
+- [ ] 결제 전 동의 체크박스 동작
+- [ ] 테스트 결제 성공 확인
 
 ---
 
-**문서 버전**: 1.2  
+## Phase 10: 정기 결제 (구독) 자동화 (예정)
+
+### 10.1 목표
+
+Trip Pass 및 구독 플랜의 정기 결제 자동화
+
+### 10.2 예정 작업
+
+- [ ] 구독 스케줄러 구현 (매일 자정 실행)
+- [ ] 결제 실패 시 재시도 로직 (3회까지)
+- [ ] 결제 실패 알림 발송
+- [ ] 구독 만료 전 알림 (7일, 3일, 1일 전)
+- [ ] 구독 갱신 실패 시 서비스 제한
+
+---
+
+**문서 버전**: 1.3  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]

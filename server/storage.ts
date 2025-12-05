@@ -153,6 +153,7 @@ import {
   payouts,
   paymentTransactions,
   billingKeys,
+  paymentLogs,
   type BillingPlan,
   type InsertBillingPlan,
   type UserSubscription,
@@ -171,6 +172,8 @@ import {
   type InsertPaymentTransaction,
   type BillingKey,
   type InsertBillingKey,
+  type PaymentLog,
+  type InsertPaymentLog,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc, lte, inArray, ne } from 'drizzle-orm';
@@ -596,6 +599,11 @@ export interface IStorage {
   createBillingKey(data: InsertBillingKey): Promise<BillingKey>;
   deleteBillingKey(id: number, userId: string): Promise<boolean>;
   setDefaultBillingKey(id: number, userId: string): Promise<boolean>;
+  
+  // Payment Logs (결제 로그)
+  createPaymentLog(data: InsertPaymentLog): Promise<PaymentLog>;
+  getPaymentLogsByPaymentId(paymentId: string): Promise<PaymentLog[]>;
+  getPaymentLogsByUserId(userId: string, limit?: number): Promise<PaymentLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4457,6 +4465,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(billingKeys.id, id));
     
     return true;
+  }
+  
+  // Payment Logs (결제 로그)
+  async createPaymentLog(data: InsertPaymentLog): Promise<PaymentLog> {
+    const [log] = await db.insert(paymentLogs).values(data).returning();
+    return log;
+  }
+  
+  async getPaymentLogsByPaymentId(paymentId: string): Promise<PaymentLog[]> {
+    return await db
+      .select()
+      .from(paymentLogs)
+      .where(eq(paymentLogs.paymentId, paymentId))
+      .orderBy(desc(paymentLogs.createdAt));
+  }
+  
+  async getPaymentLogsByUserId(userId: string, limit: number = 50): Promise<PaymentLog[]> {
+    return await db
+      .select()
+      .from(paymentLogs)
+      .where(eq(paymentLogs.userId, userId))
+      .orderBy(desc(paymentLogs.createdAt))
+      .limit(limit);
   }
 }
 

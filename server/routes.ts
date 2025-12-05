@@ -6807,10 +6807,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { type, data } = body;
       console.log(`[Webhook] Received event: ${type}`);
       
+      // 웹훅 이벤트 로그 기록 (공통)
+      const logWebhookEvent = async (
+        paymentId: string, 
+        eventType: string, 
+        eventData: any, 
+        amount?: number, 
+        status?: string,
+        errorMessage?: string,
+        userId?: string
+      ) => {
+        try {
+          await storage.createPaymentLog({
+            paymentId,
+            userId: userId || null,
+            eventType,
+            eventData: JSON.stringify(eventData),
+            amount: amount || null,
+            status: status || null,
+            errorMessage: errorMessage || null,
+            ipAddress: req.ip || req.headers['x-forwarded-for'] as string || null,
+            userAgent: req.headers['user-agent'] || null,
+          });
+        } catch (logError) {
+          console.error('[Webhook] Failed to save payment log:', logError);
+        }
+      };
+      
       switch (type) {
         case 'Transaction.Paid': {
           const { paymentId, amount, customData } = data;
           console.log(`[Webhook] Payment confirmed: ${paymentId}, Amount: ${amount?.total}`);
+          
+          // 결제 성공 로그 기록
+          await logWebhookEvent(
+            paymentId,
+            'WEBHOOK_PAYMENT_PAID',
+            data,
+            amount?.total,
+            'PAID',
+            null,
+            customData?.userId
+          );
           
           if (customData?.contractId && customData?.stageId) {
             const result = await escrowService.handlePaymentComplete(
@@ -6834,29 +6872,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case 'Transaction.Cancelled': {
           const { paymentId, cancelledAmount, customData } = data;
           console.log(`[Webhook] Payment cancelled: ${paymentId}, Refunded: ${cancelledAmount?.total}`);
+          
+          // 결제 취소 로그 기록
+          await logWebhookEvent(
+            paymentId,
+            'WEBHOOK_PAYMENT_CANCELLED',
+            data,
+            cancelledAmount?.total,
+            'CANCELLED',
+            null,
+            customData?.userId
+          );
           break;
         }
         
         case 'Transaction.Failed': {
           const { paymentId, failReason, customData } = data;
           console.error(`[Webhook] Payment failed: ${paymentId}, Reason: ${failReason}`);
+          
+          // 결제 실패 로그 기록
+          await logWebhookEvent(
+            paymentId,
+            'WEBHOOK_PAYMENT_FAILED',
+            data,
+            null,
+            'FAILED',
+            failReason,
+            customData?.userId
+          );
           break;
         }
         
         case 'BillingKey.Issued': {
           const { billingKey, customerId } = data;
           console.log(`[Webhook] Billing key issued: ${billingKey?.substring(0, 20)}... for ${customerId}`);
+          
+          // 빌링키 발급 로그 기록
+          await logWebhookEvent(
+            `billing_${customerId}_${Date.now()}`,
+            'WEBHOOK_BILLINGKEY_ISSUED',
+            { billingKeyPrefix: billingKey?.substring(0, 8), customerId },
+            null,
+            'ISSUED',
+            null,
+            customerId
+          );
           break;
         }
         
         case 'BillingKey.Deleted': {
           const { billingKey, customerId } = data;
           console.log(`[Webhook] Billing key deleted for customer: ${customerId}`);
+          
+          // 빌링키 삭제 로그 기록
+          await logWebhookEvent(
+            `billing_${customerId}_${Date.now()}`,
+            'WEBHOOK_BILLINGKEY_DELETED',
+            { customerId },
+            null,
+            'DELETED',
+            null,
+            customerId
+          );
           break;
         }
         
         default:
           console.log(`[Webhook] Unhandled event type: ${type}`);
+          
+          // 미처리 이벤트도 로그 기록
+          await logWebhookEvent(
+            `unknown_${Date.now()}`,
+            `WEBHOOK_${type}`,
+            data,
+            null,
+            'RECEIVED',
+            null,
+            null
+          );
       }
       
       res.json({ received: true });

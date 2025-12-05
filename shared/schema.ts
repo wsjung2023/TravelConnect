@@ -284,6 +284,26 @@ export const billingKeys = pgTable('billing_keys', {
   index('IDX_billing_keys_user_id').on(table.userId),
 ]);
 
+// 결제 로그 (모든 결제 이벤트 기록)
+export const paymentLogs = pgTable('payment_logs', {
+  id: serial('id').primaryKey(),
+  paymentId: text('payment_id').notNull(),              // PortOne 결제 ID
+  userId: text('user_id').references(() => users.id),   // 결제 사용자
+  eventType: text('event_type').notNull(),              // PAYMENT_READY, PAYMENT_PAID, PAYMENT_FAILED, WEBHOOK_RECEIVED
+  eventData: text('event_data'),                        // JSON 문자열 (상세 데이터)
+  amount: integer('amount'),                            // 결제 금액
+  status: text('status'),                               // 결제 상태
+  errorMessage: text('error_message'),                  // 에러 메시지
+  ipAddress: text('ip_address'),                        // 요청 IP
+  userAgent: text('user_agent'),                        // User-Agent
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('IDX_payment_logs_payment_id').on(table.paymentId),
+  index('IDX_payment_logs_user_id').on(table.userId),
+  index('IDX_payment_logs_event_type').on(table.eventType),
+  index('IDX_payment_logs_created_at').on(table.createdAt),
+]);
+
 export const conversations = pgTable('conversations', {
   id: serial('id').primaryKey(),
   participant1Id: varchar('participant1_id')
@@ -656,6 +676,11 @@ export const insertBillingKeySchema = createInsertSchema(billingKeys).omit({
   updatedAt: true,
 });
 
+export const insertPaymentLogSchema = createInsertSchema(paymentLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -684,6 +709,8 @@ export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
 export type InsertBillingKey = z.infer<typeof insertBillingKeySchema>;
 export type BillingKey = typeof billingKeys.$inferSelect;
+export type InsertPaymentLog = z.infer<typeof insertPaymentLogSchema>;
+export type PaymentLog = typeof paymentLogs.$inferSelect;
 
 // 새로운 테이블들 - 업그레이드용
 
