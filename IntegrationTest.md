@@ -2594,7 +2594,134 @@ pending → funded → released → [정산 대상]
 
 ---
 
-**문서 버전**: 1.8  
+## Phase 14: 분쟁 관리 시스템 (Dispute Management)
+
+### 14.1 개요
+
+P2P 거래에서 발생하는 분쟁을 체계적으로 처리하는 시스템입니다.
+
+**분쟁 플로우:**
+```
+분쟁 생성 → 접수(open) → 검토(under_review) → 증거 요청 → 중재 → 해결/종료
+```
+
+### 14.2 분쟁 유형
+
+| 유형 | 설명 |
+|------|------|
+| `service_not_provided` | 서비스 미제공 |
+| `service_quality` | 서비스 품질 불만 |
+| `unauthorized_charge` | 무단 청구 |
+| `cancellation_refund` | 취소/환불 분쟁 |
+| `host_no_show` | 호스트 노쇼 |
+| `traveler_no_show` | 여행자 노쇼 |
+| `other` | 기타 |
+
+### 14.3 분쟁 상태 전이
+
+```
+open ──────────► under_review ──────────► evidence_requested
+  │                   │                          │
+  │                   ▼                          ▼
+  │            awaiting_response ───────► mediation
+  │                   │                          │
+  │                   ▼                          ▼
+  └──► withdrawn    escalated ───────────► resolved_*
+                        │                       │
+                        └───────────────────────▼
+                                            closed
+```
+
+**해결 유형:**
+- `resolved_favor_initiator`: 제기자 승리
+- `resolved_favor_respondent`: 상대방 승리
+- `resolved_partial`: 부분 해결
+
+### 14.4 SLA (서비스 수준 협약)
+
+| 우선순위 | 응답 기한 |
+|---------|----------|
+| urgent | 4시간 |
+| high | 24시간 |
+| normal | 48시간 |
+| low | 72시간 |
+
+### 14.5 API 엔드포인트
+
+#### 사용자 API
+
+| 메서드 | 엔드포인트 | 설명 |
+|--------|-----------|------|
+| POST | `/api/disputes` | 분쟁 생성 |
+| GET | `/api/disputes` | 내 분쟁 목록 |
+| GET | `/api/disputes/:id` | 분쟁 상세 (증거, 활동 포함) |
+| POST | `/api/disputes/:id/evidence` | 증거 제출 |
+| POST | `/api/disputes/:id/withdraw` | 분쟁 철회 |
+| POST | `/api/disputes/:id/comment` | 코멘트 추가 |
+
+#### 관리자 API
+
+| 메서드 | 엔드포인트 | 설명 |
+|--------|-----------|------|
+| GET | `/api/admin/disputes` | 분쟁 목록 조회 |
+| GET | `/api/admin/disputes/stats` | 분쟁 통계 |
+| POST | `/api/admin/disputes/:id/assign` | 담당자 배정 |
+| POST | `/api/admin/disputes/:id/status` | 상태 변경 |
+| POST | `/api/admin/disputes/:id/resolve` | 분쟁 해결 |
+| POST | `/api/admin/disputes/:id/escalate` | 상위 단계 전달 |
+| POST | `/api/admin/disputes/check-sla` | SLA 위반 체크 |
+
+### 14.6 분쟁 생성 예시
+
+```bash
+curl -X POST /api/disputes \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "respondentId": "host_123",
+    "contractId": 456,
+    "escrowTransactionId": 789,
+    "disputeType": "service_not_provided",
+    "disputedAmount": "50000",
+    "title": "서비스 미제공",
+    "description": "예약된 투어가 진행되지 않았습니다."
+  }'
+```
+
+### 14.7 분쟁 해결 예시
+
+```bash
+curl -X POST /api/admin/disputes/1/resolve \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resolutionType": "full_refund",
+    "resolutionSummary": "호스트 귀책으로 인한 전액 환불",
+    "refundAmount": "50000",
+    "favoredParty": "initiator"
+  }'
+```
+
+### 14.8 에스크로 연동
+
+- 분쟁 생성 시 관련 에스크로 트랜잭션이 `disputed` 상태로 변경
+- 분쟁 해결 시 환불 유형에 따라:
+  - `full_refund`: 전액 환불, 호스트 잔액 차감
+  - `partial_refund`: 부분 환불, 해당 금액만 차감
+  - `no_refund`: 환불 없음, 에스크로 상태 유지
+- 분쟁 철회 시 에스크로 상태 `funded`로 복원
+
+### 14.9 구현 파일
+
+| 파일 | 설명 |
+|------|------|
+| `shared/schema.ts` | dispute_cases, dispute_evidence, dispute_activities 테이블 |
+| `server/services/disputeService.ts` | 분쟁 비즈니스 로직 |
+| `server/routes.ts` | API 엔드포인트 |
+
+---
+
+**문서 버전**: 1.9  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
@@ -2615,3 +2742,4 @@ pending → funded → released → [정산 대상]
 | Phase 11 | 프로덕션 배포 체크리스트 | ✅ 완료 |
 | Phase 12 | 호스트 정산 배치 시스템 | ✅ 완료 |
 | Phase 13 | 계약 분할 결제 시스템 | ✅ 완료 |
+| Phase 14 | 분쟁 관리 시스템 | ✅ 완료 |
