@@ -1,7 +1,7 @@
 # Tourgether 결제 시스템 통합 테스트 가이드
 
 **작성일**: 2025년 12월 5일  
-**버전**: Phase 2 완료
+**버전**: Phase 6 완료, Phase 7 진행 중
 
 ---
 
@@ -501,7 +501,7 @@ KG이니시스/카카오페이 심사 통과를 위한 필수 페이지 및 UI �
 
 **구현 파일:**
 - `client/public/legal/refund_policy_ko.md` - 환불정책 마크다운
-- `client/src/pages/legal.tsx` - 법적 문서 뷰어 (환불정책 추가)
+- `client/src/pages/legal.tsx` - 법적 문서 뷰어 (환불정책 추가, Footer 통합)
 - `client/src/components/Footer.tsx` - 사업자 정보 추가
 - `client/src/components/PaymentAgreement.tsx` - 결제 동의 체크박스
 - `client/src/components/BookingModal.tsx` - PaymentAgreement 통합
@@ -513,3 +513,164 @@ KG이니시스/카카오페이 심사 통과를 위한 필수 페이지 및 UI �
 - P2P 서비스 취소 시점별 환불율
 - 에스크로 보호 규정
 - 일할 계산 방식 명시
+
+**Footer 배치:**
+- `/legal` 페이지: 법적 고지 목록 하단에 Footer 표시
+- `/legal/:type` 페이지: 개별 문서 하단에 Footer 표시
+- 홈페이지: BottomNavigation 사용 (모바일 SNS UI)
+- Landing 페이지: Footer 표시 (비로그인 상태)
+
+---
+
+## 11. Phase 7: 프론트엔드 결제 통합
+
+### 11.1 목표
+
+PortOne JavaScript SDK를 활용한 결제 UI 구현 및 사용자 경험 완성
+
+### 11.2 필수 구현 항목
+
+| 작업 | 파일 | 우선순위 | 상태 |
+|------|------|----------|------|
+| PortOne SDK 설치 | `index.html` 또는 동적 로드 | 🔴 필수 | ⏳ 대기 |
+| 결제창 호출 컴포넌트 | `client/src/components/PaymentButton.tsx` | 🔴 필수 | ⏳ 대기 |
+| 빌링키 발급 UI | `client/src/components/BillingKeyForm.tsx` | 🔴 필수 | ⏳ 대기 |
+| 구독 관리 페이지 | `client/src/pages/subscription.tsx` | 🟡 중요 | ⏳ 대기 |
+| 결제 완료 콜백 처리 | `client/src/hooks/usePayment.ts` | 🔴 필수 | ⏳ 대기 |
+| 에러 처리 및 재시도 UI | 각 컴포넌트 | 🟡 중요 | ⏳ 대기 |
+
+### 11.3 PortOne SDK 연동 방식
+
+```typescript
+// 1. SDK 동적 로드 (추천)
+const loadPortOneSDK = () => {
+  return new Promise((resolve, reject) => {
+    if (window.PortOne) {
+      resolve(window.PortOne);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdn.portone.io/v2/browser-sdk.js';
+    script.onload = () => resolve(window.PortOne);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+
+// 2. 결제창 호출
+const requestPayment = async (paymentData) => {
+  const PortOne = await loadPortOneSDK();
+  const response = await PortOne.requestPayment({
+    storeId: process.env.PORTONE_STORE_ID,
+    channelKey: process.env.PORTONE_CHANNEL_KEY,
+    paymentId: paymentData.paymentId,
+    orderName: paymentData.orderName,
+    totalAmount: paymentData.amount,
+    currency: 'KRW',
+    payMethod: 'CARD',
+    customer: {
+      fullName: paymentData.customerName,
+      email: paymentData.customerEmail,
+    },
+  });
+  return response;
+};
+```
+
+### 11.4 결제 플로우 (프론트엔드)
+
+```
+1. 사용자가 결제 버튼 클릭
+   ↓
+2. 백엔드에서 결제 준비 (POST /api/billing/prepare-payment)
+   - paymentId 생성
+   - 결제 정보 DB 저장
+   ↓
+3. PortOne SDK 결제창 호출
+   - requestPayment() 실행
+   - 사용자가 결제 수단 선택 및 결제 완료
+   ↓
+4. 결제 결과 수신 (클라이언트)
+   - 성공: txId, paymentId 반환
+   - 실패: 에러 메시지 반환
+   ↓
+5. 백엔드에 결제 확인 요청 (POST /api/billing/confirm-payment)
+   - paymentId, txId 전송
+   - 백엔드에서 PortOne API로 결제 상태 확인
+   ↓
+6. 결과에 따른 UI 처리
+   - 성공: 성공 메시지, 페이지 이동
+   - 실패: 에러 메시지, 재시도 안내
+```
+
+### 11.5 구독 관리 페이지 기능
+
+```
+/subscription 페이지 구성:
+
+1. 현재 구독 상태
+   - 플랜 이름, 가격, 다음 결제일
+   - 취소 버튼
+
+2. Trip Pass 정보
+   - 잔여 기간, 사용량 현황
+   - 추가 구매 버튼
+
+3. 결제 수단 관리
+   - 등록된 카드 목록
+   - 카드 추가/삭제
+
+4. 결제 내역
+   - 최근 결제 목록
+   - 영수증 다운로드
+```
+
+### 11.6 에러 처리
+
+| 에러 코드 | 원인 | 처리 방안 |
+|----------|------|----------|
+| `CARD_DECLINED` | 카드 거절 | "다른 카드로 결제해주세요" |
+| `INSUFFICIENT_BALANCE` | 잔액 부족 | "잔액을 확인해주세요" |
+| `NETWORK_ERROR` | 네트워크 오류 | "다시 시도해주세요" |
+| `USER_CANCEL` | 사용자 취소 | 결제 페이지로 복귀 |
+| `TIMEOUT` | 시간 초과 | "다시 시도해주세요" |
+
+### 11.7 테스트 체크리스트
+
+- [ ] PortOne SDK 로드 확인
+- [ ] 결제창 호출 동작
+- [ ] 결제 성공 콜백 처리
+- [ ] 결제 실패 에러 처리
+- [ ] 빌링키 발급 동작
+- [ ] 구독 생성 플로우
+- [ ] 구독 해지 동작
+- [ ] Trip Pass 구매 동작
+- [ ] 결제 내역 표시
+
+### 11.8 환경 변수 (프론트엔드)
+
+```
+VITE_PORTONE_STORE_ID=상점ID
+VITE_PORTONE_CHANNEL_KEY=채널키
+```
+
+---
+
+## 12. Phase 8: 프로덕션 배포 준비 (예정)
+
+### 12.1 체크리스트
+
+- [ ] 모든 환경 변수 프로덕션 값 설정
+- [ ] PORTONE_WEBHOOK_SECRET 프로덕션 시크릿 설정
+- [ ] HTTPS 적용 확인
+- [ ] 에러 모니터링 (Sentry) 설정
+- [ ] 결제 로그 백업 정책
+- [ ] PG사 심사 제출
+
+### 12.2 프로덕션 웹훅 URL
+
+```
+https://[도메인]/api/webhooks/portone
+```
+
+PortOne 관리자 콘솔에서 웹훅 URL 등록 필요

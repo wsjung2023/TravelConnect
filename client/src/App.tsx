@@ -48,6 +48,7 @@ const GuideProfile = lazy(() => import('@/pages/guide-profile'));
 const PublicPortfolio = lazy(() => import('@/pages/PublicPortfolio'));
 const PurchaseProxy = lazy(() => import('@/pages/purchase-proxy'));
 const SlotsPage = lazy(() => import('@/pages/slots'));
+const SubscriptionPage = lazy(() => import('@/pages/subscription'));
 
 // Simple loading component
 const LoadingSpinner = () => (
@@ -219,6 +220,14 @@ function Router() {
               component={() => (
                 <Suspense fallback={<LoadingSpinner />}>
                   <SlotsPage />
+                </Suspense>
+              )}
+            />
+            <Route
+              path="/subscription"
+              component={() => (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <SubscriptionPage />
                 </Suspense>
               )}
             />

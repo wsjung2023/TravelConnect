@@ -6155,6 +6155,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 결제 설정 정보 (프론트엔드용)
+  app.get('/api/billing/config', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      res.json({
+        storeId: process.env.PORTONE_STORE_ID || 'store_test',
+        channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
+      });
+    } catch (error) {
+      console.error('Error fetching billing config:', error);
+      res.status(500).json({ message: 'Failed to fetch billing config' });
+    }
+  });
+
+  // 결제 준비 (paymentId 생성)
+  app.post('/api/billing/prepare-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { type, planId, tripPassId, contractId, stageId, amount } = req.body;
+      
+      const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      res.json({
+        paymentId,
+        storeId: process.env.PORTONE_STORE_ID || 'store_test',
+        channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
+      });
+    } catch (error) {
+      console.error('Error preparing payment:', error);
+      res.status(500).json({ message: 'Failed to prepare payment' });
+    }
+  });
+
+  // 결제 확인 (PortOne 결제 완료 후)
+  app.post('/api/billing/confirm-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { paymentId, txId, type, contractId, stageId } = req.body;
+      
+      if (type === 'trip_pass') {
+        res.json({ 
+          success: true, 
+          message: 'Trip Pass payment confirmed'
+        });
+      } else if (type === 'subscription') {
+        res.json({ 
+          success: true, 
+          message: 'Subscription payment confirmed'
+        });
+      } else if (type === 'contract' && contractId && stageId) {
+        const { escrowService } = await import('./services/escrowService');
+        const result = await escrowService.handlePaymentComplete({
+          contractId,
+          stageId,
+          portonePaymentId: paymentId,
+          paidAmount: 0,
+        });
+        
+        if (!result.success) {
+          return res.status(400).json({ message: result.error });
+        }
+        
+        res.json({ 
+          success: true, 
+          message: 'Contract payment confirmed'
+        });
+      } else {
+        res.status(400).json({ message: 'Invalid payment type' });
+      }
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      res.status(500).json({ message: 'Failed to confirm payment' });
+    }
+  });
+
+  // 빌링키 목록 조회 (Phase 7 스텁 - 추후 DB 테이블 추가 필요)
+  app.get('/api/billing/billing-keys', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching billing keys:', error);
+      res.status(500).json({ message: 'Failed to fetch billing keys' });
+    }
+  });
+
+  // 빌링키 등록 (Phase 7 스텁)
+  app.post('/api/billing/billing-key', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { billingKey, cardName, cardNumber } = req.body;
+      
+      res.json({ 
+        success: true,
+        billingKey: {
+          id: 1,
+          billingKey,
+          cardName: cardName || '카드',
+          cardNumber: cardNumber || '****',
+          isDefault: true,
+        },
+        message: 'Billing key registered'
+      });
+    } catch (error) {
+      console.error('Error registering billing key:', error);
+      res.status(500).json({ message: 'Failed to register billing key' });
+    }
+  });
+
+  // 빌링키 삭제 (Phase 7 스텁)
+  app.delete('/api/billing/billing-keys/:id', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      res.json({ 
+        success: true,
+        message: 'Billing key deleted'
+      });
+    } catch (error) {
+      console.error('Error deleting billing key:', error);
+      res.status(500).json({ message: 'Failed to delete billing key' });
+    }
+  });
+
+  // 기본 빌링키 설정 (Phase 7 스텁)
+  app.put('/api/billing/billing-keys/:id/default', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      res.json({ 
+        success: true,
+        message: 'Default billing key updated'
+      });
+    } catch (error) {
+      console.error('Error setting default billing key:', error);
+      res.status(500).json({ message: 'Failed to set default billing key' });
+    }
+  });
+
+  // 사용자 Trip Pass 목록
+  app.get('/api/billing/trip-passes', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const tripPasses = await storage.getUserTripPasses(req.user.id);
+      res.json(tripPasses || []);
+    } catch (error) {
+      console.error('Error fetching user trip passes:', error);
+      res.status(500).json({ message: 'Failed to fetch trip passes' });
+    }
+  });
+
+  // 결제 내역 조회 (Phase 7 스텁 - PaymentTransactions 테이블 사용)
+  app.get('/api/billing/history', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const transactions = await storage.getPaymentTransactions(req.user.id);
+      const history = transactions.map(tx => ({
+        id: tx.id,
+        type: tx.type,
+        amount: parseFloat(tx.amount),
+        status: tx.status,
+        createdAt: tx.createdAt,
+        description: tx.description || `${tx.type} 결제`,
+      }));
+      res.json(history);
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+      res.status(500).json({ message: 'Failed to fetch payment history' });
+    }
+  });
+
   // ============================================
   // 에스크로/계약 관련 API
   // ============================================
