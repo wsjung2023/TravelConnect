@@ -71,6 +71,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Phase 13: Contract Split Payment System (December 5, 2025)
+- **분할 결제**: P2P 계약에서 계약금/중도금/잔금 분할 결제 지원
+- **결제 플랜**: single (일시불), two_step (30/70%), three_step (30/30/40%)
+- **마일스톤 관리**: 각 단계별 납부 기한, 결제 상태, 자동 진행
+- **부분/전체 환불**: refundedAmount, outstandingAmount 추적
+- **API 엔드포인트**:
+  - `POST /api/contracts/:id/split-payment`: 분할 결제 설정
+  - `GET /api/contracts/:id/payment-summary`: 결제 요약 조회
+  - `POST /api/escrow/:transactionId/pay`: 마일스톤 결제
+  - `POST /api/escrow/:transactionId/release`: 마일스톤 릴리스
+  - `POST /api/escrow/:transactionId/partial-refund`: 부분 환불
+  - `POST /api/contracts/:id/full-refund`: 전체 환불
+- **구현 파일**: `server/services/splitPaymentService.ts`
+
 ### Phase 12: Host Settlement Batch System (December 5, 2025)
 - **호스트 정산 자동화**: 릴리스된 에스크로 트랜잭션을 매일 자동 정산
 - **정산 조건**: KYC verified + 최소 10,000원 이상

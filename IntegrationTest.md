@@ -2345,7 +2345,256 @@ SETTLEMENT_ENABLED=true
 
 ---
 
-**문서 버전**: 1.7  
+## Phase 13: 계약 분할 결제 시스템 ✅ 완료
+
+### 13.1 목표
+
+P2P 계약에서 계약금/중도금/잔금 분할 결제를 지원하여 양측의 리스크를 분산하고 결제 유연성 제공
+
+### 13.2 핵심 개념
+
+**분할 결제 플로우:**
+```
+계약 생성 → 결제 플랜 선택 → 마일스톤 생성 → 계약금 결제 → 
+중도금 결제(선택) → 잔금 결제 → 서비스 완료 → 마일스톤 릴리스 → 정산
+```
+
+**결제 플랜 유형:**
+| 플랜 | 계약금 | 중도금 | 잔금 | 사용 사례 |
+|------|--------|--------|------|-----------|
+| single | 100% | 0% | 0% | 소액 일시불 |
+| two_step | 30% | 0% | 70% | 일반 투어/서비스 |
+| three_step | 30% | 30% | 40% | 장기/고가 여행 패키지 |
+
+**비율 검증:**
+- `depositRate + interimRate + finalRate = 100%`
+- two_step: `interimRate = 0` 필수
+- three_step: `interimRate > 0` 필수
+
+### 13.3 DB 스키마 확장
+
+#### contracts 테이블 추가 필드
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| paymentType | varchar(10) | 결제 유형 (full/split) |
+| paymentPlan | varchar(15) | 결제 플랜 (single/two_step/three_step) |
+| depositRate | decimal(5,2) | 계약금 비율 (기본 30%) |
+| interimRate | decimal(5,2) | 중도금 비율 (기본 0%) |
+| finalRate | decimal(5,2) | 잔금 비율 (기본 70%) |
+| depositAmount | decimal(10,2) | 계약금 금액 (캐시) |
+| interimAmount | decimal(10,2) | 중도금 금액 (캐시) |
+| finalAmount | decimal(10,2) | 잔금 금액 (캐시) |
+| depositDueDate | date | 계약금 납부 기한 |
+| interimDueDate | date | 중도금 납부 기한 |
+| finalDueDate | date | 잔금 납부 기한 |
+| currentMilestone | varchar(20) | 현재 마일스톤 (deposit/interim/final/completed) |
+
+#### escrowTransactions 테이블 추가 필드
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| refundedAmount | decimal(10,2) | 환불된 금액 |
+| outstandingAmount | decimal(10,2) | 미수금 |
+| dueDate | date | 납부 기한 |
+
+**milestoneType 값:**
+- `deposit`: 계약금
+- `interim`: 중도금
+- `final`: 잔금
+
+**status 확장:**
+- `partial_refund`: 부분 환불됨
+
+### 13.4 서비스 아키텍처
+
+#### splitPaymentService.ts
+
+| 메서드 | 설명 |
+|--------|------|
+| `validateConfig()` | 분할 결제 설정 검증 (비율 합계 100% 등) |
+| `getDefaultRates()` | 플랜별 기본 비율 반환 |
+| `calculateMilestoneAmounts()` | 총액에서 마일스톤 금액 계산 |
+| `setupSplitPayment()` | 계약에 분할 결제 설정 적용 |
+| `createMilestoneTransactions()` | 마일스톤별 에스크로 트랜잭션 생성 |
+| `getContractPaymentSummary()` | 계약 결제 요약 조회 |
+| `processMilestonePayment()` | 마일스톤 결제 처리 |
+| `advanceMilestone()` | 다음 마일스톤으로 진행 |
+| `releaseMilestone()` | 마일스톤 릴리스 (서비스 완료 후) |
+| `processPartialRefund()` | 부분 환불 처리 |
+| `processFullRefund()` | 전체 환불 처리 |
+| `getOverdueMilestones()` | 납부 기한 지난 마일스톤 조회 |
+| `checkAllMilestonesComplete()` | 모든 마일스톤 완료 확인 |
+| `completeContract()` | 계약 완료 처리 |
+
+### 13.5 API 엔드포인트
+
+#### 분할 결제 설정
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/contracts/:id/split-payment` | 분할 결제 설정 적용 |
+| GET | `/api/contracts/:id/payment-summary` | 결제 요약 조회 |
+
+#### 마일스톤 관리
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/escrow/:transactionId/pay` | 마일스톤 결제 처리 |
+| POST | `/api/escrow/:transactionId/release` | 마일스톤 릴리스 |
+| POST | `/api/escrow/:transactionId/partial-refund` | 부분 환불 |
+
+#### 계약 관리
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/contracts/:id/full-refund` | 전체 환불 |
+| POST | `/api/contracts/:id/complete` | 계약 완료 |
+
+#### 관리자 API
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/api/admin/overdue-milestones` | 연체 마일스톤 조회 |
+
+### 13.6 테스트 시나리오
+
+#### TC-P13-1: 2단계 분할 결제 성공
+
+**사전 조건:**
+- 여행자와 가이드 간 계약 생성 (totalAmount: 100,000원)
+
+**테스트 절차:**
+1. `POST /api/contracts/:id/split-payment` 호출
+   - paymentPlan: "two_step"
+   - depositDueDate: 오늘
+   - finalDueDate: 서비스일
+2. 계약금(30,000원) 결제
+3. 잔금(70,000원) 결제
+4. 서비스 완료 후 릴리스
+
+**예상 결과:**
+- 2개의 escrowTransaction 생성 (deposit, final)
+- 계약금 결제 → currentMilestone: "final"
+- 잔금 결제 → currentMilestone: "completed"
+- 릴리스 후 정산 대상 포함
+
+#### TC-P13-2: 3단계 분할 결제
+
+**사전 조건:**
+- 장기 투어 계약 (totalAmount: 500,000원)
+
+**테스트 절차:**
+1. three_step 플랜 설정
+   - depositRate: 30, interimRate: 30, finalRate: 40
+2. 각 단계별 결제 진행
+3. 마일스톤 진행 확인
+
+**예상 결과:**
+- 3개의 escrowTransaction 생성
+- 금액: 150,000 + 150,000 + 200,000 = 500,000
+- 순차적 마일스톤 진행
+
+#### TC-P13-3: 부분 환불
+
+**사전 조건:**
+- 계약금 결제 완료 (30,000원, status: funded)
+
+**테스트 절차:**
+1. `POST /api/escrow/:id/partial-refund`
+   - amount: 10,000
+   - reason: "서비스 범위 축소"
+2. 환불 결과 확인
+
+**예상 결과:**
+- refundedAmount: 10,000
+- outstandingAmount: 20,000
+- status: "partial_refund"
+
+#### TC-P13-4: 전체 환불 (계약 취소)
+
+**사전 조건:**
+- 계약금 + 중도금 결제 완료
+
+**테스트 절차:**
+1. `POST /api/contracts/:id/full-refund`
+   - reason: "불가피한 취소"
+2. 계약 상태 확인
+
+**예상 결과:**
+- 모든 funded 트랜잭션 환불됨
+- contract status: "cancelled"
+- 호스트 pendingBalance 조정
+
+#### TC-P13-5: 비율 검증 실패
+
+**테스트 절차:**
+1. `POST /api/contracts/:id/split-payment`
+   - depositRate: 30, interimRate: 30, finalRate: 50 (합계 110%)
+
+**예상 결과:**
+- 400 에러: "Rate sum must be 100%"
+
+### 13.7 마일스톤 상태 전이
+
+```
+pending → funded → released → [정산 대상]
+    ↓         ↓
+    └→ refunded (전체 환불)
+              ↓
+        partial_refund (부분 환불)
+```
+
+### 13.8 구현 파일
+
+| 파일 | 역할 |
+|------|------|
+| `server/services/splitPaymentService.ts` | 분할 결제 비즈니스 로직 |
+| `server/routes.ts` | API 엔드포인트 추가 |
+| `shared/schema.ts` | contracts/escrowTransactions 확장 |
+
+### 13.9 정산과의 연동
+
+- 분할 결제된 각 마일스톤은 개별 escrowTransaction
+- `released` 상태의 트랜잭션만 정산 대상
+- 호스트 정산 시 모든 릴리스된 마일스톤 합산
+- 부분 환불 시 `amount - refundedAmount`로 정산
+
+### 13.10 보안 및 정합성
+
+#### 권한 검증
+
+| 엔드포인트 | 권한 | 역할 제한 |
+|-----------|------|----------|
+| `split-payment` | 계약 당사자 | 양측 모두 |
+| `payment-summary` | 계약 당사자 | 양측 모두 |
+| `pay` | 계약 여행자 | traveler만 |
+| `release` | 계약 여행자 | traveler만 |
+| `partial-refund` | 계약 당사자 | 양측 모두 |
+| `full-refund` | 계약 당사자 | 양측 모두 |
+| `complete` | 계약 여행자 | traveler만 |
+| `overdue-milestones` | 관리자 | admin만 |
+
+#### Idempotency 보장
+
+| 메커니즘 | 설명 |
+|----------|------|
+| paymentId 중복 체크 | DB에서 기존 paymentId 존재 여부 확인 |
+| 릴리스 중복 방지 | `released` 상태에서 재요청 시 거부 |
+| 금액 검증 필수 | paidAmount 필수, ±0.01 허용 오차 |
+
+#### 잔액 관리
+
+| 상태 | 동작 |
+|------|------|
+| 결제(funded) | pending 잔액 증가 |
+| 릴리스(released) | pending → withdrawable 이동 |
+| 부분환불 | pending 또는 withdrawable 차감 |
+| 전체환불 | 모든 funded/released 잔액 차감 |
+
+---
+
+**문서 버전**: 1.8  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
@@ -2365,3 +2614,4 @@ SETTLEMENT_ENABLED=true
 | Phase 10 | 정기 결제 자동화 | ✅ 완료 |
 | Phase 11 | 프로덕션 배포 체크리스트 | ✅ 완료 |
 | Phase 12 | 호스트 정산 배치 시스템 | ✅ 완료 |
+| Phase 13 | 계약 분할 결제 시스템 | ✅ 완료 |

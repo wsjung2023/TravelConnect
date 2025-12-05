@@ -2257,6 +2257,21 @@ export const contracts = pgTable('contracts', {
   platformFeeRate: decimal('platform_fee_rate', { precision: 5, scale: 2 }).default('12.00'), // 12%
   platformFeeAmount: decimal('platform_fee_amount', { precision: 10, scale: 2 }),
   guidePayoutAmount: decimal('guide_payout_amount', { precision: 10, scale: 2 }),
+  
+  // 분할 결제 설정 (Phase 13)
+  paymentType: varchar('payment_type', { length: 10 }).default('full'), // full (일시불), split (분할)
+  paymentPlan: varchar('payment_plan', { length: 15 }).default('single'), // single, two_step (계약금+잔금), three_step (계약금+중도금+잔금)
+  depositRate: decimal('deposit_rate', { precision: 5, scale: 2 }).default('30.00'), // 계약금 비율 (기본 30%)
+  interimRate: decimal('interim_rate', { precision: 5, scale: 2 }).default('0.00'), // 중도금 비율 (two_step일 때 0)
+  finalRate: decimal('final_rate', { precision: 5, scale: 2 }).default('70.00'), // 잔금 비율 (기본 70%, three_step일 때 40%)
+  depositAmount: decimal('deposit_amount', { precision: 10, scale: 2 }), // 계약금 금액 (캐시용)
+  interimAmount: decimal('interim_amount', { precision: 10, scale: 2 }), // 중도금 금액 (캐시용)
+  finalAmount: decimal('final_amount', { precision: 10, scale: 2 }), // 잔금 금액 (캐시용)
+  depositDueDate: date('deposit_due_date'), // 계약금 납부 기한
+  interimDueDate: date('interim_due_date'), // 중도금 납부 기한
+  finalDueDate: date('final_due_date'), // 잔금 납부 기한 (보통 서비스 완료 후)
+  currentMilestone: varchar('current_milestone', { length: 20 }).default('deposit'), // deposit, interim, final, completed
+  
   serviceDate: date('service_date'),
   serviceStartTime: varchar('service_start_time', { length: 10 }),
   serviceEndTime: varchar('service_end_time', { length: 10 }),
@@ -2279,20 +2294,25 @@ export const contracts = pgTable('contracts', {
   index('idx_contracts_guide').on(table.guideId),
   index('idx_contracts_status').on(table.status),
   index('idx_contracts_service_date').on(table.serviceDate),
+  index('idx_contracts_payment_type').on(table.paymentType),
+  index('idx_contracts_current_milestone').on(table.currentMilestone),
 ]);
 
 // 에스크로 거래 (마일스톤 결제)
 export const escrowTransactions = pgTable('escrow_transactions', {
   id: serial('id').primaryKey(),
   contractId: integer('contract_id').notNull().references(() => contracts.id),
-  milestoneType: varchar('milestone_type', { length: 20 }).notNull(), // deposit (계약금), midterm (중도금), final (잔금)
+  milestoneType: varchar('milestone_type', { length: 20 }).notNull(), // deposit (계약금), interim (중도금), final (잔금)
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  refundedAmount: decimal('refunded_amount', { precision: 10, scale: 2 }).default('0'), // 환불된 금액
+  outstandingAmount: decimal('outstanding_amount', { precision: 10, scale: 2 }), // 미수금 (amount - refundedAmount)
   currency: varchar('currency', { length: 3 }).default('KRW'),
-  status: varchar('status', { length: 20 }).default('pending'), // pending, funded, released, refunded, disputed, frozen
+  status: varchar('status', { length: 20 }).default('pending'), // pending, funded, released, refunded, partial_refund, disputed, frozen
   paymentMethod: varchar('payment_method', { length: 50 }), // card, bank_transfer
   paymentId: varchar('payment_id', { length: 100 }), // 외부 결제 ID (PortOne 등)
   platformFee: decimal('platform_fee', { precision: 10, scale: 2 }), // 플랫폼 수수료
   payoutId: integer('payout_id'), // 정산 ID (정산 시 연결)
+  dueDate: date('due_date'), // 납부 기한
   fundedAt: timestamp('funded_at'),
   releasedAt: timestamp('released_at'),
   refundedAt: timestamp('refunded_at'),
@@ -2303,6 +2323,8 @@ export const escrowTransactions = pgTable('escrow_transactions', {
   index('idx_escrow_contract').on(table.contractId),
   index('idx_escrow_status').on(table.status),
   index('idx_escrow_payout').on(table.payoutId),
+  index('idx_escrow_milestone').on(table.milestoneType),
+  index('idx_escrow_due_date').on(table.dueDate),
 ]);
 
 // 분쟁 기록

@@ -6854,6 +6854,337 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // 분할 결제 API (Phase 13)
+  // ============================================
+
+  // 헬퍼 함수: 계약 소유자 검증
+  async function verifyContractOwnership(contractId: number, userId: string): Promise<{ authorized: boolean; contract?: any; role?: 'traveler' | 'guide' }> {
+    const { escrowService } = await import('./services/escrowService');
+    const result = await escrowService.getContract(contractId);
+    
+    if (!result.success || !result.contract) {
+      return { authorized: false };
+    }
+    
+    const contract = result.contract;
+    if (contract.travelerId === userId) {
+      return { authorized: true, contract, role: 'traveler' };
+    }
+    if (contract.guideId === userId) {
+      return { authorized: true, contract, role: 'guide' };
+    }
+    
+    return { authorized: false };
+  }
+
+  // 헬퍼 함수: 에스크로 트랜잭션 소유자 검증
+  async function verifyEscrowTransactionOwnership(transactionId: number, userId: string): Promise<{ authorized: boolean; transaction?: any; contract?: any; role?: 'traveler' | 'guide' }> {
+    const { db } = await import('./db');
+    const { escrowTransactions, contracts } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const [tx] = await db.select().from(escrowTransactions).where(eq(escrowTransactions.id, transactionId));
+    if (!tx) return { authorized: false };
+    
+    const [contract] = await db.select().from(contracts).where(eq(contracts.id, tx.contractId));
+    if (!contract) return { authorized: false };
+    
+    if (contract.travelerId === userId) {
+      return { authorized: true, transaction: tx, contract, role: 'traveler' };
+    }
+    if (contract.guideId === userId) {
+      return { authorized: true, transaction: tx, contract, role: 'guide' };
+    }
+    
+    return { authorized: false };
+  }
+
+  // 분할 결제 설정 적용 (가이드 또는 여행자만 가능)
+  app.post('/api/contracts/:id/split-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const contractId = parseInt(req.params.id);
+      
+      // 계약 소유자 검증
+      const ownership = await verifyContractOwnership(contractId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to modify this contract' });
+      }
+
+      const { paymentPlan, depositRate, interimRate, finalRate, depositDueDate, interimDueDate, finalDueDate } = req.body;
+
+      if (!paymentPlan || !['single', 'two_step', 'three_step'].includes(paymentPlan)) {
+        return res.status(400).json({ message: 'Valid payment plan required (single, two_step, three_step)' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const defaultRates = splitPaymentService.getDefaultRates(paymentPlan);
+
+      const config = {
+        paymentPlan,
+        depositRate: depositRate ?? defaultRates.deposit,
+        interimRate: interimRate ?? defaultRates.interim,
+        finalRate: finalRate ?? defaultRates.final,
+        depositDueDate,
+        interimDueDate,
+        finalDueDate,
+      };
+
+      const result = await splitPaymentService.setupSplitPayment(contractId, config);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ success: true, message: 'Split payment configured successfully' });
+    } catch (error) {
+      console.error('Error setting up split payment:', error);
+      res.status(500).json({ message: 'Failed to setup split payment' });
+    }
+  });
+
+  // 계약 결제 요약 조회 (계약 당사자만 가능)
+  app.get('/api/contracts/:id/payment-summary', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const contractId = parseInt(req.params.id);
+      
+      // 계약 소유자 검증
+      const ownership = await verifyContractOwnership(contractId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to view this contract' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const summary = await splitPaymentService.getContractPaymentSummary(contractId);
+
+      if (!summary) {
+        return res.status(404).json({ message: 'Contract not found' });
+      }
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error fetching payment summary:', error);
+      res.status(500).json({ message: 'Failed to fetch payment summary' });
+    }
+  });
+
+  // 마일스톤 결제 처리 (여행자만 가능)
+  app.post('/api/escrow/:transactionId/pay', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const transactionId = parseInt(req.params.transactionId);
+      
+      // 트랜잭션 소유자 검증 (여행자만 결제 가능)
+      const ownership = await verifyEscrowTransactionOwnership(transactionId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to pay this milestone' });
+      }
+      if (ownership.role !== 'traveler') {
+        return res.status(403).json({ message: 'Only the traveler can make payments' });
+      }
+
+      const { paymentId, paymentMethod, paidAmount } = req.body;
+
+      if (!paymentId || !paymentMethod) {
+        return res.status(400).json({ message: 'Payment ID and method required' });
+      }
+
+      if (paidAmount === undefined || paidAmount === null || typeof paidAmount !== 'number') {
+        return res.status(400).json({ message: 'Paid amount is required and must be a number' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const result = await splitPaymentService.processMilestonePayment(transactionId, paymentId, paymentMethod, paidAmount);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ 
+        success: true, 
+        nextMilestone: result.nextMilestone,
+        message: 'Milestone payment processed successfully' 
+      });
+    } catch (error) {
+      console.error('Error processing milestone payment:', error);
+      res.status(500).json({ message: 'Failed to process milestone payment' });
+    }
+  });
+
+  // 마일스톤 릴리스 (서비스 완료 승인 - 여행자만 가능)
+  app.post('/api/escrow/:transactionId/release', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const transactionId = parseInt(req.params.transactionId);
+      
+      // 트랜잭션 소유자 검증 (여행자만 릴리스 가능)
+      const ownership = await verifyEscrowTransactionOwnership(transactionId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to release this milestone' });
+      }
+      if (ownership.role !== 'traveler') {
+        return res.status(403).json({ message: 'Only the traveler can release milestones' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const result = await splitPaymentService.releaseMilestone(transactionId);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ success: true, message: 'Milestone released successfully' });
+    } catch (error) {
+      console.error('Error releasing milestone:', error);
+      res.status(500).json({ message: 'Failed to release milestone' });
+    }
+  });
+
+  // 부분 환불 처리 (양측 모두 가능 - 협의 후)
+  app.post('/api/escrow/:transactionId/partial-refund', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const transactionId = parseInt(req.params.transactionId);
+      
+      // 트랜잭션 소유자 검증 (계약 당사자만 환불 요청 가능)
+      const ownership = await verifyEscrowTransactionOwnership(transactionId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to process refund for this milestone' });
+      }
+
+      const { amount, reason } = req.body;
+
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Valid refund amount required' });
+      }
+
+      if (!reason) {
+        return res.status(400).json({ message: 'Refund reason required' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const result = await splitPaymentService.processPartialRefund(transactionId, amount, reason);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ 
+        success: true, 
+        newStatus: result.newStatus,
+        message: 'Partial refund processed successfully' 
+      });
+    } catch (error) {
+      console.error('Error processing partial refund:', error);
+      res.status(500).json({ message: 'Failed to process partial refund' });
+    }
+  });
+
+  // 전체 환불 처리 (양측 모두 가능)
+  app.post('/api/contracts/:id/full-refund', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const contractId = parseInt(req.params.id);
+      
+      // 계약 소유자 검증
+      const ownership = await verifyContractOwnership(contractId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to refund this contract' });
+      }
+
+      const { reason } = req.body;
+
+      if (!reason) {
+        return res.status(400).json({ message: 'Refund reason required' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const result = await splitPaymentService.processFullRefund(contractId, reason);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ 
+        success: true, 
+        refundedTransactions: result.refundedTransactions,
+        message: 'Full refund processed successfully' 
+      });
+    } catch (error) {
+      console.error('Error processing full refund:', error);
+      res.status(500).json({ message: 'Failed to process full refund' });
+    }
+  });
+
+  // 계약 완료 처리 (여행자만 가능)
+  app.post('/api/contracts/:id/complete', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const contractId = parseInt(req.params.id);
+      
+      // 계약 소유자 검증 (여행자만 완료 처리 가능)
+      const ownership = await verifyContractOwnership(contractId, req.user.id);
+      if (!ownership.authorized) {
+        return res.status(403).json({ message: 'Not authorized to complete this contract' });
+      }
+      if (ownership.role !== 'traveler') {
+        return res.status(403).json({ message: 'Only the traveler can complete contracts' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const result = await splitPaymentService.completeContract(contractId);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ success: true, message: 'Contract completed successfully' });
+    } catch (error) {
+      console.error('Error completing contract:', error);
+      res.status(500).json({ message: 'Failed to complete contract' });
+    }
+  });
+
+  // 납부 기한 지난 마일스톤 조회 (관리자용)
+  app.get('/api/admin/overdue-milestones', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id || !req.user?.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const { splitPaymentService } = await import('./services/splitPaymentService');
+      const overdue = await splitPaymentService.getOverdueMilestones();
+
+      res.json({ overdueCount: overdue.length, milestones: overdue });
+    } catch (error) {
+      console.error('Error fetching overdue milestones:', error);
+      res.status(500).json({ message: 'Failed to fetch overdue milestones' });
+    }
+  });
+
+  // ============================================
   // PortOne 웹훅 처리
   // ============================================
   
