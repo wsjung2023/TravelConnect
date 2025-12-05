@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar, Users, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
+import PaymentAgreement from '@/components/PaymentAgreement';
 import type { Experience, InsertBooking } from '@shared/schema';
 
 interface BookingModalProps {
@@ -24,10 +25,15 @@ export default function BookingModal({
   const [selectedDate, setSelectedDate] = useState('');
   const [participants, setParticipants] = useState(1);
   const [specialRequests, setSpecialRequests] = useState('');
+  const [agreementValid, setAgreementValid] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { t } = useTranslation('ui');
+
+  const handleAgreementChange = useCallback((isValid: boolean) => {
+    setAgreementValid(isValid);
+  }, []);
 
   const bookingMutation = useMutation({
     mutationFn: async (booking: InsertBooking) => {
@@ -69,6 +75,15 @@ export default function BookingModal({
       toast({
         title: t('booking.selectDate'),
         description: t('booking.selectDateDesc'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!agreementValid) {
+      toast({
+        title: '필수 동의 항목',
+        description: '결제를 진행하려면 모든 필수 항목에 동의해주세요.',
         variant: 'destructive',
       });
       return;
@@ -202,11 +217,18 @@ export default function BookingModal({
             </div>
           </div>
 
+          {/* Payment Agreement */}
+          <PaymentAgreement
+            totalAmount={totalPrice}
+            onAgreementChange={handleAgreementChange}
+          />
+
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={bookingMutation.isPending}
+            disabled={bookingMutation.isPending || !agreementValid}
             className="w-full travel-button h-12"
+            data-testid="button-booking-submit"
           >
             {bookingMutation.isPending ? (
               '예약 중...'

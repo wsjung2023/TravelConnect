@@ -424,50 +424,92 @@ KG이니시스/카카오페이 심사 통과를 위한 필수 페이지 및 UI �
 
 | 작업 | 파일 | 우선순위 | 상태 |
 |------|------|----------|------|
-| 이용약관 페이지 | `client/src/pages/TermsPage.tsx` | 🔴 필수 | 대기 |
-| 개인정보처리방침 페이지 | `client/src/pages/PrivacyPage.tsx` | 🔴 필수 | 대기 |
-| 환불정책 페이지 | `client/src/pages/RefundPolicyPage.tsx` | 🔴 필수 | 대기 |
-| Footer 사업자 정보 추가 | `client/src/components/layout/Footer.tsx` | 🔴 필수 | 대기 |
-| 결제 전 동의 체크박스 | `client/src/components/billing/PaymentAgreement.tsx` | 🔴 필수 | 대기 |
+| 이용약관 페이지 | `client/public/legal/terms_ko.md` + `client/src/pages/legal.tsx` | 🔴 필수 | ✅ 완료 |
+| 개인정보처리방침 페이지 | `client/public/legal/privacy_ko.md` + `client/src/pages/legal.tsx` | 🔴 필수 | ✅ 완료 |
+| 환불정책 페이지 | `client/public/legal/refund_policy_ko.md` + `client/src/pages/legal.tsx` | 🔴 필수 | ✅ 완료 |
+| Footer 사업자 정보 추가 | `client/src/components/Footer.tsx` | 🔴 필수 | ✅ 완료 |
+| 결제 전 동의 체크박스 | `client/src/components/PaymentAgreement.tsx` | 🔴 필수 | ✅ 완료 |
 
 ### 10.3 심사 탈락 방지 체크리스트
 
 | 항목 | 체크 | 비고 |
 |------|------|------|
-| 이용약관 제1조~제N조 형식 | [ ] | 법적 구속력 |
-| 개인정보 수집항목 명시 | [ ] | 이메일, 결제정보 등 |
-| 개인정보 보관기간 명시 | [ ] | 탈퇴 후 5년 등 |
-| 환불 7일 청약철회 명시 | [ ] | 전자상거래법 |
-| 일할 계산 환불 명시 | [ ] | |
-| 사업자등록번호 Footer | [ ] | 000-00-00000 |
-| 통신판매업신고번호 Footer | [ ] | 제0000-서울XX-0000호 |
-| 이용약관 동의 체크박스 | [ ] | 필수 |
-| 환불정책 확인 체크박스 | [ ] | 필수 |
+| 이용약관 제1조~제N조 형식 | [x] | 법적 구속력 |
+| 개인정보 수집항목 명시 | [x] | 이메일, 결제정보 등 |
+| 개인정보 보관기간 명시 | [x] | 탈퇴 후 5년 등 |
+| 환불 7일 청약철회 명시 | [x] | 전자상거래법 준수 |
+| 일할 계산 환불 명시 | [x] | 환불정책에 포함 |
+| 사업자등록번호 Footer | [x] | 000-00-00000 |
+| 통신판매업신고번호 Footer | [x] | 제0000-서울강남-0000호 |
+| 이용약관 동의 체크박스 | [x] | PaymentAgreement 컴포넌트 |
+| 환불정책 확인 체크박스 | [x] | PaymentAgreement 컴포넌트 |
 
-### 10.4 라우트 등록
+### 10.4 라우트 구조
+
+```
+/legal - 법적 고지 목록
+/legal/terms - 이용약관
+/legal/privacy - 개인정보처리방침
+/legal/refund - 환불정책
+/legal/location - 위치기반서비스 이용약관
+/legal/cookies - 쿠키정책
+/legal/oss - 오픈소스 라이선스
+```
+
+### 10.5 Footer 사업자 정보 (구현 완료)
+
+```
+상호명: 투게더 주식회사 | 대표: 홍길동
+사업자등록번호: 000-00-00000
+통신판매업신고: 제0000-서울강남-0000호
+주소: 서울특별시 강남구 테헤란로 000, 0층
+고객센터: 1234-5678 (평일 09:00~18:00)
+이메일: support@tourgether.com
+
+※ 투게더는 통신판매중개자로서 거래 당사자가 아니며, 
+로컬가이드가 등록한 서비스 정보 및 거래에 대한 책임은 해당 로컬가이드에게 있습니다.
+```
+
+### 10.6 PaymentAgreement 컴포넌트 구현 내용
 
 ```typescript
-// App.tsx에 추가할 라우트
-<Route path="/terms" component={TermsPage} />
-<Route path="/privacy" component={PrivacyPage} />
-<Route path="/refund" component={RefundPolicyPage} />
+// 결제 전 필수 동의 사항
+1. 결제 금액 확인 [필수]
+2. 환불 정책 동의 [필수] - /legal/refund 링크
+3. 서비스 이용약관 동의 [필수] - /legal/terms 링크
+4. 개인정보 제3자 제공 동의 [필수] - PG사/로컬가이드
+
+// 사용법
+<PaymentAgreement
+  totalAmount={totalPrice}
+  onAgreementChange={(isValid) => setAgreementValid(isValid)}
+/>
+
+// BookingModal에 적용 완료
 ```
 
-### 10.5 Footer 필수 정보
+### 10.7 테스트 체크리스트
 
-```
-상호명: [회사명] | 대표: [대표자명]
-사업자등록번호: 000-00-00000
-통신판매업신고: 제0000-서울XX-0000호
-주소: [사업장 주소]
-이메일: support@example.com | 전화: 02-0000-0000
-```
+- [x] `/legal/terms` 페이지 접근 가능 ✅
+- [x] `/legal/privacy` 페이지 접근 가능 ✅
+- [x] `/legal/refund` 페이지 접근 가능 ✅
+- [x] Footer에 사업자 정보 표시 ✅
+- [x] 결제 전 동의 체크박스 작동 ✅
+- [ ] 6개 언어 지원 확인 (향후 작업)
 
-### 10.6 테스트 체크리스트
+### 10.8 구현 완료 (December 5, 2025)
 
-- [ ] `/terms` 페이지 접근 가능
-- [ ] `/privacy` 페이지 접근 가능
-- [ ] `/refund` 페이지 접근 가능
-- [ ] Footer에 사업자 정보 표시
-- [ ] 결제 전 동의 체크박스 작동
-- [ ] 6개 언어 지원 확인
+**구현 파일:**
+- `client/public/legal/refund_policy_ko.md` - 환불정책 마크다운
+- `client/src/pages/legal.tsx` - 법적 문서 뷰어 (환불정책 추가)
+- `client/src/components/Footer.tsx` - 사업자 정보 추가
+- `client/src/components/PaymentAgreement.tsx` - 결제 동의 체크박스
+- `client/src/components/BookingModal.tsx` - PaymentAgreement 통합
+
+**환불정책 주요 내용:**
+- 제1조~제12조 체계적 구성
+- 청약철회 7일 이내 전액 환불 (전자상거래법 준수)
+- Trip Pass 사용율별 환불율 테이블
+- P2P 서비스 취소 시점별 환불율
+- 에스크로 보호 규정
+- 일할 계산 방식 명시
