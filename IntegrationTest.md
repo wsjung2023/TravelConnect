@@ -1968,7 +1968,7 @@ const SCHEDULER_CRON = '0 0 * * *';
 
 ---
 
-## Phase 11: 프로덕션 배포 체크리스트 (진행 중)
+## Phase 11: 프로덕션 배포 체크리스트 ✅ 완료
 
 ### 11.1 목표
 
@@ -1976,26 +1976,49 @@ PG사 심사 통과 및 안전한 프로덕션 배포를 위한 최종 점검
 
 ### 11.2 필수 체크리스트
 
-#### 11.2.1 환경 변수 검증
+#### 11.2.1 환경 변수 검증 ✅
 
-| 환경 변수 | 용도 | 필수 여부 |
-|----------|------|----------|
-| `PORTONE_API_SECRET` | PortOne API 인증 | 🔴 필수 |
-| `PORTONE_STORE_ID` | 상점 ID | 🔴 필수 |
-| `PORTONE_CHANNEL_KEY` | 결제 채널 키 (KG이니시스) | 🔴 필수 |
-| `PORTONE_WEBHOOK_SECRET` | 웹훅 서명 검증 | 🔴 필수 |
-| `DATABASE_URL` | PostgreSQL 연결 | 🔴 필수 |
+| 환경 변수 | 용도 | 필수 여부 | 상태 |
+|----------|------|----------|------|
+| `PORTONE_API_SECRET` | PortOne API 인증 | 🔴 필수 | ✅ 검증됨 |
+| `PORTONE_STORE_ID` | 상점 ID | 🔴 필수 | ✅ 검증됨 |
+| `PORTONE_CHANNEL_KEY` | 결제 채널 키 (KG이니시스) | 🔴 필수 | ✅ 검증됨 |
+| `PORTONE_WEBHOOK_SECRET` | 웹훅 서명 검증 | 🔴 필수 | ✅ 검증됨 |
+| `DATABASE_URL` | PostgreSQL 연결 | 🔴 필수 | ✅ 검증됨 |
+| `OPENAI_API_KEY` | AI 서비스 | ⚪ 선택 | ✅ 검증됨 |
+| `GOOGLE_TRANSLATE_API_KEY` | 번역 서비스 | ⚪ 선택 | ✅ 검증됨 |
 
-#### 11.2.2 법적 문서 URL
+**구현 파일:** `server/middleware/envCheck.ts`
+
+**주요 기능:**
+- `validateStartupEnv()`: 서버 시작 시 필수 환경 변수 검증
+- `requirePaymentEnv`: 결제 API 호출 전 검증 미들웨어
+- `requireAiEnv`: AI API 호출 전 검증 미들웨어
+- `getEnvStatus()`: 관리자용 환경 변수 상태 조회
+- `logEnvStatus()`: 환경 변수 상태 로그 출력
+
+#### 11.2.2 법적 문서 URL ✅
 
 | 문서 | URL 패턴 | 상태 |
 |------|----------|------|
-| 이용약관 | `/terms` | 예정 |
-| 개인정보처리방침 | `/privacy` | 예정 |
-| 환불정책 | `/refund-policy` | 예정 |
-| 전자상거래 표시사항 | Footer | 예정 |
+| 이용약관 | `/legal/terms` | ✅ 완료 |
+| 개인정보처리방침 | `/legal/privacy` | ✅ 완료 |
+| 환불정책 | `/legal/refund` | ✅ 완료 |
+| 위치기반서비스 약관 | `/legal/location` | ✅ 완료 |
+| 쿠키 정책 | `/legal/cookies` | ✅ 완료 |
+| 오픈소스 라이선스 | `/legal/oss` | ✅ 완료 |
+| 전자상거래 표시사항 | Footer | ✅ 완료 |
 
-#### 11.2.3 보안 점검
+**구현 파일:**
+- `client/src/pages/legal.tsx` (법적 문서 페이지)
+- `client/public/legal/*.md` (마크다운 문서 6개)
+
+**특징:**
+- 관리자 편집 모드 지원 (`?admin=true`)
+- ReactMarkdown 렌더링
+- 다크모드 지원
+
+#### 11.2.3 보안 점검 ✅
 
 | 항목 | 설명 | 상태 |
 |------|------|------|
@@ -2003,13 +2026,17 @@ PG사 심사 통과 및 안전한 프로덕션 배포를 위한 최종 점검
 | 빌링키 마스킹 | 앞 8자리만 로그 기록 | ✅ 완료 |
 | 카드번호 비저장 | 16자리 저장 차단 | ✅ 완료 |
 | 관리자 권한 | isAdmin 검증 | ✅ 완료 |
-| Rate Limiting | API 요청 제한 | 예정 |
+| Rate Limiting | API 요청 제한 | ✅ 완료 |
+
+**Rate Limiting 설정 (`server/index.ts`):**
+- 일반 API: 1분당 120회
+- 인증 API: 1분당 20회
 
 #### 11.2.4 에러 추적
 
 | 항목 | 도구 | 상태 |
 |------|------|------|
-| 서버 에러 | Sentry | 예정 |
+| 서버 에러 | Sentry (@sentry/node 설치됨) | ⚪ 설정 대기 |
 | 결제 실패 로그 | paymentLogs 테이블 | ✅ 완료 |
 | 웹훅 이벤트 | paymentLogs 테이블 | ✅ 완료 |
 
@@ -2022,28 +2049,61 @@ PG사 심사 통과 및 안전한 프로덕션 배포를 위한 최종 점검
 3. 대표자 신분증 사본
 4. 통장 사본 (정산용)
 
-#### 11.3.2 웹사이트 요구사항
+#### 11.3.2 웹사이트 요구사항 ✅
 
 | 요구사항 | 상세 | 상태 |
 |----------|------|------|
 | SSL 인증서 | HTTPS 필수 | ✅ Replit 제공 |
-| 사업자 정보 | Footer에 표시 | 예정 |
+| 사업자 정보 | Footer에 표시 | ✅ 완료 |
 | 결제 동의 | 체크박스 동작 | ✅ 완료 |
-| 환불 안내 | 명확한 정책 | 예정 |
+| 환불 안내 | 명확한 정책 | ✅ 완료 |
 
-### 11.4 구현 예정 항목
+**Footer 사업자 정보 (`client/src/components/Footer.tsx`):**
+- 상호명: 투게더 주식회사
+- 대표: 홍길동
+- 사업자등록번호: 000-00-00000
+- 통신판매업신고: 제0000-서울강남-0000호
+- 주소: 서울특별시 강남구 테헤란로 000, 0층
+- 고객센터: 1234-5678 (평일 09:00~18:00)
+- 통신판매중개자 면책 고지
 
-| 작업 | 파일 | 우선순위 |
-|------|------|----------|
-| 환경 변수 검증 미들웨어 | `server/middleware/envCheck.ts` | 🔴 필수 |
-| 법적 문서 페이지 | `client/src/pages/legal/` | 🔴 필수 |
-| Footer 사업자 정보 | `client/src/components/Footer.tsx` | 🔴 필수 |
-| Rate Limiting | `server/middleware/rateLimit.ts` | 🟡 중요 |
-| Sentry 연동 | `server/sentry.ts` | 🟡 중요 |
+### 11.4 구현 완료 항목
+
+| 작업 | 파일 | 상태 |
+|------|------|------|
+| 환경 변수 검증 미들웨어 | `server/middleware/envCheck.ts` | ✅ 완료 |
+| 법적 문서 페이지 | `client/src/pages/legal.tsx` | ✅ 완료 |
+| 법적 문서 마크다운 | `client/public/legal/*.md` | ✅ 완료 |
+| Footer 사업자 정보 | `client/src/components/Footer.tsx` | ✅ 완료 |
+| Rate Limiting | `server/index.ts` | ✅ 완료 |
+| Sentry 패키지 | `@sentry/node`, `@sentry/react` | ✅ 설치됨 |
+
+### 11.5 남은 작업
+
+| 작업 | 우선순위 | 비고 |
+|------|----------|------|
+| Sentry DSN 설정 | 🟡 중요 | 프로덕션 배포 시 설정 |
+| 실제 사업자 정보 업데이트 | 🔴 필수 | 법인 설립 후 |
+| PG사 심사 제출 | 🔴 필수 | 서류 준비 후 |
 
 ---
 
-**문서 버전**: 1.5  
+**문서 버전**: 1.6  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
+
+---
+
+## 구현 완료 요약
+
+| Phase | 제목 | 상태 |
+|-------|------|------|
+| Phase 1-4 | 기본 기능 및 인증 | ✅ 완료 |
+| Phase 5 | AI 사용량 제한 | ✅ 완료 |
+| Phase 6 | 결제 시스템 기반 | ✅ 완료 |
+| Phase 7 | Trip Pass | ✅ 완료 |
+| Phase 8 | 정기 구독 | ✅ 완료 |
+| Phase 9 | 에스크로 시스템 | ✅ 완료 |
+| Phase 10 | 정기 결제 자동화 | ✅ 완료 |
+| Phase 11 | 프로덕션 배포 체크리스트 | ✅ 완료 |

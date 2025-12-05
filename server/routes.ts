@@ -42,6 +42,7 @@ import {
   AuthRequest,
 } from './auth';
 import { checkAiUsage, getUserAiUsageStats } from './middleware/checkAiUsage';
+import { requirePaymentEnv, requireAiEnv, getEnvStatus } from './middleware/envCheck';
 import {
   insertExperienceSchema,
   insertPostSchema,
@@ -4257,7 +4258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post('/api/ai/concierge/message', authenticateToken, checkAiUsage('ai_message'), async (req: AuthRequest, res) => {
+  app.post('/api/ai/concierge/message', authenticateToken, requireAiEnv, checkAiUsage('ai_message'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -4365,7 +4366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post('/api/mini-concierge/generate', authenticateToken, checkAiUsage('concierge'), async (req: AuthRequest, res) => {
+  app.post('/api/mini-concierge/generate', authenticateToken, requireAiEnv, checkAiUsage('concierge'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -4652,7 +4653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/cinemap/jobs', authenticateToken, checkAiUsage('ai_message'), async (req: AuthRequest, res) => {
+  app.post('/api/cinemap/jobs', authenticateToken, requireAiEnv, checkAiUsage('ai_message'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -6141,6 +6142,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 관리자 환경 변수 상태 조회
+  app.get('/api/admin/env-status', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const status = getEnvStatus();
+      res.json({
+        success: true,
+        environment: process.env.NODE_ENV || 'development',
+        status
+      });
+    } catch (error) {
+      console.error('Error fetching env status:', error);
+      res.status(500).json({ message: 'Failed to fetch environment status' });
+    }
+  });
+
   // ============================================
   // Trip Pass (AI 크레딧) 관련 API
   // ============================================
@@ -6259,7 +6275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 결제 준비 (paymentId 생성)
-  app.post('/api/billing/prepare-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+  app.post('/api/billing/prepare-payment', authenticateHybrid, requirePaymentEnv, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -6281,7 +6297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 결제 확인 (PortOne 결제 완료 후)
-  app.post('/api/billing/confirm-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+  app.post('/api/billing/confirm-payment', authenticateHybrid, requirePaymentEnv, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -6347,7 +6363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 빌링키 등록 (Phase 8 - DB 연동)
-  app.post('/api/billing/billing-key', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+  app.post('/api/billing/billing-key', authenticateHybrid, requirePaymentEnv, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });

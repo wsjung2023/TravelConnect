@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/node';
 import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 import { storage } from './storage';
+import { validateStartupEnv, logEnvStatus } from './middleware/envCheck';
 
 // 예약 시스템 자동화 스케줄러 (보안 강화 및 성능 개선)
 function startBookingScheduler(storageInstance: typeof storage) {
@@ -115,6 +116,17 @@ if (process.env.SENTRY_DSN) {
     },
   });
   console.log('[Sentry] Initialized for', process.env.NODE_ENV || 'development');
+}
+
+// 환경 변수 검증 및 로그 출력
+logEnvStatus();
+const envValidation = validateStartupEnv();
+if (!envValidation.valid) {
+  console.error('❌ 환경 변수 검증 실패!');
+  if (process.env.NODE_ENV === 'production') {
+    console.error('프로덕션 환경에서 필수 환경 변수가 누락되었습니다. 서버를 시작하기 전에 설정해주세요.');
+    process.exit(1);
+  }
 }
 
 const app = express();
