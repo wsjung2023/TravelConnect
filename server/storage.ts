@@ -177,6 +177,7 @@ import {
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc, lte, inArray, ne } from 'drizzle-orm';
+import { cacheService } from './services/cache';
 
 // Interface for storage operations
 export interface IStorage {
@@ -4102,8 +4103,19 @@ export class DatabaseStorage implements IStorage {
   // 빌링 시스템 구현 (Phase 1)
   // =====================================================
 
-  // Billing Plans (요금제)
+  // ============================================
+  // Billing Plans (요금제) - 캐싱 적용
+  // ============================================
+  // 빌링 플랜은 자주 변경되지 않으므로 1시간 TTL로 캐싱
   async getBillingPlans(target?: 'traveler' | 'host', type?: 'subscription' | 'one_time'): Promise<BillingPlan[]> {
+    // 캐시 확인 (캐시 키: target:type)
+    const cached = cacheService.billingPlan.get(target, type);
+    if (cached) {
+      console.log('[Cache] 빌링 플랜 캐시 히트:', target || 'all', type || 'all');
+      return cached;
+    }
+
+    // 캐시 미스 - DB에서 조회
     let query = db.select().from(billingPlans).where(eq(billingPlans.isActive, true));
     
     if (target) {
@@ -4113,7 +4125,13 @@ export class DatabaseStorage implements IStorage {
       query = query.where(eq(billingPlans.type, type)) as typeof query;
     }
     
-    return query.orderBy(asc(billingPlans.sortOrder));
+    const plans = await query.orderBy(asc(billingPlans.sortOrder));
+    
+    // 캐시에 저장
+    cacheService.billingPlan.set(target, type, plans);
+    console.log('[Cache] 빌링 플랜 캐시 저장:', target || 'all', type || 'all', plans.length, '개');
+    
+    return plans;
   }
 
   async getBillingPlanById(id: string): Promise<BillingPlan | undefined> {
@@ -4132,6 +4150,12 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(billingPlans.id, id))
       .returning();
+    
+    // 플랜 업데이트 시 캐시 무효화
+    if (updated) {
+      cacheService.billingPlan.invalidate();
+    }
+    
     return updated;
   }
 
@@ -4248,8 +4272,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(userTripPasses.createdAt));
   }
 
+  // ============================================
+  // Trip Pass 생성 (캐시 무효화 포함)
+  // ============================================
   async createUserTripPass(tripPass: InsertUserTripPass): Promise<UserTripPass> {
     const [created] = await db.insert(userTripPasses).values(tripPass).returning();
+    
+    // Trip Pass 생성 시 해당 사용자의 캐시 무효화
+    // 새 Trip Pass로 인해 이전 캐시 데이터가 stale해지므로
+    cacheService.tripPass.invalidate(tripPass.userId);
+    cacheService.aiUsage.invalidate(tripPass.userId);
+    console.log('[Cache] Trip Pass 생성으로 캐시 무효화:', tripPass.userId);
+    
     return created;
   }
 

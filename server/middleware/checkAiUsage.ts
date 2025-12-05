@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { userTripPasses, userUsage } from '@shared/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { cacheService } from '../services/cache';
 
 interface AuthRequest extends Request {
   user?: {
@@ -19,7 +20,24 @@ const FREE_TIER_LIMITS: Record<UsageType, number> = {
   concierge: 3,
 };
 
+// ============================================
+// 활성 Trip Pass 조회 (캐싱 적용)
+// ============================================
+// Trip Pass 조회는 AI 요청마다 발생하므로 1분 TTL로 캐싱
 async function getActiveTripPass(userId: string) {
+  // 캐시 확인
+  const cached = cacheService.tripPass.get(userId);
+  if (cached !== undefined) {
+    // 캐시에 null이 저장된 경우도 유효 (Trip Pass 없음)
+    if (cached === null) {
+      console.log('[Cache] Trip Pass 캐시 히트 (없음):', userId);
+      return null;
+    }
+    console.log('[Cache] Trip Pass 캐시 히트:', userId);
+    return cached;
+  }
+
+  // 캐시 미스 - DB에서 조회
   const now = new Date();
   const [tripPass] = await db
     .select()
@@ -31,6 +49,10 @@ async function getActiveTripPass(userId: string) {
     ))
     .orderBy(sql`${userTripPasses.validUntil} DESC`)
     .limit(1);
+  
+  // 캐시에 저장 (Trip Pass 없는 경우 null 저장)
+  cacheService.tripPass.set(userId, tripPass || null);
+  console.log('[Cache] Trip Pass 캐시 저장:', userId, tripPass ? '있음' : '없음');
   
   return tripPass;
 }
@@ -67,7 +89,10 @@ async function getOrCreateUserUsage(userId: string, usageKey: UsageType) {
   return created;
 }
 
-async function incrementTripPassUsage(tripPassId: number, usageType: UsageType) {
+// ============================================
+// Trip Pass 사용량 증가 (캐시 무효화 포함)
+// ============================================
+async function incrementTripPassUsage(tripPassId: number, usageType: UsageType, userId: string) {
   switch (usageType) {
     case 'ai_message':
       await db
@@ -97,9 +122,16 @@ async function incrementTripPassUsage(tripPassId: number, usageType: UsageType) 
         .where(eq(userTripPasses.id, tripPassId));
       break;
   }
+  
+  // 사용량 변경 후 캐시 무효화
+  cacheService.tripPass.invalidate(userId);
+  cacheService.aiUsage.invalidate(userId);
 }
 
-async function incrementUserUsage(usageId: number) {
+// ============================================
+// 무료 사용량 증가 (캐시 무효화 포함)
+// ============================================
+async function incrementUserUsage(usageId: number, userId: string) {
   await db
     .update(userUsage)
     .set({
@@ -107,6 +139,9 @@ async function incrementUserUsage(usageId: number) {
       updatedAt: new Date(),
     })
     .where(eq(userUsage.id, usageId));
+  
+  // 사용량 변경 후 캐시 무효화
+  cacheService.aiUsage.invalidate(userId);
 }
 
 function getTripPassLimit(tripPass: typeof userTripPasses.$inferSelect, usageType: UsageType): number {
@@ -171,7 +206,7 @@ export function checkAiUsage(usageType: UsageType) {
           });
         }
         
-        await incrementTripPassUsage(tripPass.id, usageType);
+        await incrementTripPassUsage(tripPass.id, usageType, userId);
         
         (req as any).usageInfo = {
           source: 'trip_pass',
@@ -200,7 +235,7 @@ export function checkAiUsage(usageType: UsageType) {
         });
       }
       
-      await incrementUserUsage(usage.id);
+      await incrementUserUsage(usage.id, userId);
       
       (req as any).usageInfo = {
         source: 'free_tier',
@@ -216,14 +251,28 @@ export function checkAiUsage(usageType: UsageType) {
   };
 }
 
-export async function getUserAiUsageStats(userId: string) {
+// ============================================
+// AI 사용량 통계 조회 (캐싱 적용)
+// ============================================
+// 사용량 통계는 30초 TTL로 캐싱 (빈번한 요청 최적화)
+// skipCache: true 설정 시 캐시를 무시하고 DB에서 직접 조회 (사용량 변경 직후 정확한 데이터 필요 시)
+export async function getUserAiUsageStats(userId: string, options?: { skipCache?: boolean }) {
+  // skipCache 옵션이 없고 캐시가 있으면 캐시 사용
+  if (!options?.skipCache) {
+    const cached = cacheService.aiUsage.get(userId);
+    if (cached) {
+      console.log('[Cache] AI 사용량 통계 캐시 히트:', userId);
+      return cached;
+    }
+  }
+
   const now = new Date();
   
   const tripPass = await getActiveTripPass(userId);
   
   if (tripPass) {
-    return {
-      source: 'trip_pass',
+    const stats = {
+      source: 'trip_pass' as const,
       tripPassId: tripPass.id,
       validUntil: tripPass.validUntil,
       limits: {
@@ -244,6 +293,12 @@ export async function getUserAiUsageStats(userId: string) {
         },
       },
     };
+    
+    // 캐시에 저장
+    cacheService.aiUsage.set(userId, stats);
+    console.log('[Cache] AI 사용량 통계 캐시 저장 (Trip Pass):', userId);
+    
+    return stats;
   }
   
   const usageRecords = await db
@@ -275,8 +330,14 @@ export async function getUserAiUsageStats(userId: string) {
     }
   }
   
-  return {
-    source: 'free_tier',
+  const stats = {
+    source: 'free_tier' as const,
     limits: usageMap,
   };
+  
+  // 캐시에 저장
+  cacheService.aiUsage.set(userId, stats);
+  console.log('[Cache] AI 사용량 통계 캐시 저장 (Free tier):', userId);
+  
+  return stats;
 }

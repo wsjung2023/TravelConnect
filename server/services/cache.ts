@@ -63,19 +63,39 @@ class LRUCache<T> {
   }
 }
 
+// ============================================
+// 캐시 인스턴스 초기화
+// ============================================
+// 각 캐시는 용도에 맞는 최대 크기로 생성됨
 const feedScoreCache = new LRUCache<number>(5000);
 const translationCache = new LRUCache<Record<string, string>>(1000);
 const hashtagTrendingCache = new LRUCache<any[]>(100);
 const userAffinityCache = new LRUCache<Map<number, number>>(500);
 const feedResultCache = new LRUCache<any[]>(200);
 
+// 빌링 관련 캐시 - 자주 변경되지 않으므로 긴 TTL 사용
+const billingPlanCache = new LRUCache<any[]>(10);
+// Trip Pass 캐시 - 사용자별 활성 패스 정보
+const tripPassCache = new LRUCache<any>(1000);
+// AI 사용량 통계 캐시 - 짧은 TTL로 최신 데이터 유지
+const aiUsageStatsCache = new LRUCache<any>(2000);
+
+// ============================================
+// 캐시 TTL (Time To Live) 설정
+// ============================================
+// 각 데이터 유형에 맞는 캐시 유효 시간 (밀리초)
 const CACHE_TTL = {
-  FEED_SCORE: 5 * 60 * 1000,
-  TRANSLATION: 30 * 60 * 1000,
-  TRENDING_HASHTAGS: 5 * 60 * 1000,
-  USER_AFFINITY: 10 * 60 * 1000,
-  FEED_RESULT: 2 * 60 * 1000,
-  POI_CATEGORIES: 60 * 60 * 1000,
+  FEED_SCORE: 5 * 60 * 1000,       // 피드 점수: 5분
+  TRANSLATION: 30 * 60 * 1000,     // 번역: 30분
+  TRENDING_HASHTAGS: 5 * 60 * 1000, // 트렌딩 해시태그: 5분
+  USER_AFFINITY: 10 * 60 * 1000,   // 사용자 친화도: 10분
+  FEED_RESULT: 2 * 60 * 1000,      // 피드 결과: 2분
+  POI_CATEGORIES: 60 * 60 * 1000,  // POI 카테고리: 1시간
+  
+  // 빌링 관련 캐시 TTL
+  BILLING_PLAN: 60 * 60 * 1000,    // 빌링 플랜: 1시간 (자주 변경되지 않음)
+  TRIP_PASS: 60 * 1000,            // Trip Pass: 1분 (사용량 업데이트 고려)
+  AI_USAGE_STATS: 30 * 1000,       // AI 사용량: 30초 (빈번한 변경)
 };
 
 export const cacheService = {
@@ -147,20 +167,100 @@ export const cacheService = {
     }
   },
 
+  // ============================================
+  // 빌링 플랜 캐시
+  // ============================================
+  // 빌링 플랜은 자주 변경되지 않으므로 1시간 동안 캐싱
+  billingPlan: {
+    // 캐시에서 빌링 플랜 조회
+    get: (target?: string, type?: string): any[] | undefined => {
+      const key = `${target || 'all'}:${type || 'all'}`;
+      return billingPlanCache.get(key);
+    },
+    // 빌링 플랜 캐시에 저장
+    set: (target: string | undefined, type: string | undefined, plans: any[]): void => {
+      const key = `${target || 'all'}:${type || 'all'}`;
+      billingPlanCache.set(key, plans, CACHE_TTL.BILLING_PLAN);
+    },
+    // 빌링 플랜 캐시 무효화 (플랜 변경 시 호출)
+    invalidate: (): void => {
+      billingPlanCache.clear();
+      console.log('[Cache] 빌링 플랜 캐시 무효화');
+    }
+  },
+
+  // ============================================
+  // Trip Pass 캐시
+  // ============================================
+  // 활성 Trip Pass 정보 캐싱 (사용량 포함)
+  tripPass: {
+    // 사용자의 활성 Trip Pass 조회
+    get: (userId: string): any | undefined => {
+      return tripPassCache.get(userId);
+    },
+    // Trip Pass 캐시에 저장
+    set: (userId: string, tripPass: any): void => {
+      tripPassCache.set(userId, tripPass, CACHE_TTL.TRIP_PASS);
+    },
+    // 특정 사용자의 Trip Pass 캐시 무효화 (사용량 업데이트 후 호출)
+    invalidate: (userId: string): void => {
+      tripPassCache.delete(userId);
+    },
+    // 전체 Trip Pass 캐시 클리어
+    invalidateAll: (): void => {
+      tripPassCache.clear();
+      console.log('[Cache] Trip Pass 캐시 전체 무효화');
+    }
+  },
+
+  // ============================================
+  // AI 사용량 통계 캐시
+  // ============================================
+  // AI 사용량 통계는 30초 동안만 캐싱 (빈번한 업데이트)
+  aiUsage: {
+    // 사용자의 AI 사용량 통계 조회
+    get: (userId: string): any | undefined => {
+      return aiUsageStatsCache.get(userId);
+    },
+    // AI 사용량 통계 캐시에 저장
+    set: (userId: string, stats: any): void => {
+      aiUsageStatsCache.set(userId, stats, CACHE_TTL.AI_USAGE_STATS);
+    },
+    // 특정 사용자의 AI 사용량 캐시 무효화 (사용량 변경 후 호출)
+    invalidate: (userId: string): void => {
+      aiUsageStatsCache.delete(userId);
+    },
+    // 전체 AI 사용량 캐시 클리어
+    invalidateAll: (): void => {
+      aiUsageStatsCache.clear();
+    }
+  },
+
+  // ============================================
+  // 전체 캐시 관리
+  // ============================================
   invalidateAll: (): void => {
     feedScoreCache.clear();
     translationCache.clear();
     hashtagTrendingCache.clear();
     userAffinityCache.clear();
     feedResultCache.clear();
+    billingPlanCache.clear();
+    tripPassCache.clear();
+    aiUsageStatsCache.clear();
+    console.log('[Cache] 전체 캐시 무효화 완료');
   },
 
+  // 캐시 통계 조회 (모니터링/디버깅용)
   stats: () => ({
     feedScore: feedScoreCache.size(),
     translation: translationCache.size(),
     trendingHashtags: hashtagTrendingCache.size(),
     userAffinity: userAffinityCache.size(),
     feedResult: feedResultCache.size(),
+    billingPlan: billingPlanCache.size(),
+    tripPass: tripPassCache.size(),
+    aiUsage: aiUsageStatsCache.size(),
   })
 };
 
