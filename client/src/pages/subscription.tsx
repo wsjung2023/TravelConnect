@@ -478,7 +478,7 @@ export default function SubscriptionPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {paymentHistory.map((payment) => (
+                    {paymentHistory.map((payment: PaymentHistory) => (
                       <div
                         key={payment.id}
                         className="flex items-center justify-between py-3 border-b last:border-0"
