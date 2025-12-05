@@ -68,6 +68,13 @@ Preferred communication style: Simple, everyday language.
     - Feed Scores, Translations, Trending Hashtags: Various TTLs
 - **Common Middleware**: Extracted shared validation (`validateBody`, `validateQuery`, `validateParams`) and rate limiters (`apiLimiter`, `authLimiter`, `strictLimiter`, `uploadLimiter`) for consistency and code reuse.
 - **Modular Routers**: Feature-based router separation (auth, social, admin, billing, chat, contracts, experience, timeline, notification, profile, ai) from monolithic routes.ts.
+- **Repository Sub-interfaces**: Domain-specific interfaces (IUserRepository, ISocialRepository, IPaymentsRepository, etc.) for focused dependency injection and easier testing.
+- **Batch Processing**: Scheduled jobs with duplicate execution prevention:
+    - Settlement Batch: Daily 02:00 KST, PortOne Transfer API
+    - Expired Bookings: Every 5 minutes
+    - Completed Experiences: Hourly
+    - Slot Recalculation: Daily 03:00 KST
+    - Analytics ETL: Daily sync with Star Schema (dimensions + facts)
 
 ### Security Guidelines
 - Environment variables (Replit Secrets) must be used for sensitive data.

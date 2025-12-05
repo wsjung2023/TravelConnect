@@ -1,3 +1,38 @@
+/**
+ * ============================================
+ * 분석 ETL 서비스 (Analytics ETL Service)
+ * ============================================
+ * 
+ * 이 서비스는 분석 데이터 웨어하우스를 위한 ETL(추출-변환-적재) 작업을 담당합니다.
+ * 
+ * 아키텍처: Star Schema (스타 스키마)
+ * - Dimension Tables (차원 테이블):
+ *   - dimDate: 날짜 차원 (연, 월, 주, 요일 등)
+ *   - dimUsers: 사용자 차원 (SCD Type 2 적용)
+ *   - dimLocations: 위치 차원 (도시, 국가)
+ *   - dimServiceTypes: 서비스 유형 차원
+ * 
+ * - Fact Tables (팩트 테이블):
+ *   - factTransactions: 결제 거래 팩트
+ *   - factUserActivities: 사용자 활동 팩트
+ *   - factBookings: 예약 팩트
+ *   - factDailyMetrics: 일별 집계 메트릭스
+ *   - factDisputes: 분쟁 처리 팩트
+ * 
+ * ETL 작업 유형:
+ * 1. Full ETL (전체 동기화): 모든 차원 및 팩트 테이블 동기화
+ * 2. Daily ETL (일일 증분): 전일 데이터만 처리 (매일 실행)
+ * 
+ * 실행 주기:
+ * - Full ETL: 초기 설정 또는 재구축 시
+ * - Daily ETL: 매일 새벽 04:00 KST 권장
+ * 
+ * 성능 고려사항:
+ * - 대용량 데이터는 청크 단위로 처리
+ * - 중복 방지를 위한 upsert 패턴 사용
+ * - 인덱스 최적화된 쿼리 사용
+ */
+
 import { db } from '../db';
 import {
   dimDate,
@@ -25,10 +60,16 @@ import {
 } from '@shared/schema';
 import { eq, and, gte, lte, sql, desc, count, sum } from 'drizzle-orm';
 
+// ============================================
+// 상수 정의
+// ============================================
 const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// 배치 처리 청크 크기 (성능 최적화)
+const BATCH_CHUNK_SIZE = 100;
 
 export async function generateDateDimension(startYear: number, endYear: number): Promise<{ generated: number }> {
   let generated = 0;
