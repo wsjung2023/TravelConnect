@@ -42,8 +42,10 @@ interface Plan {
   id: number;
   name: string;
   price: number;
+  priceKrw?: number;
+  type?: string;
   period: string;
-  features: string[];
+  features: string[] | { [key: string]: string | number | boolean } | null;
   popular?: boolean;
 }
 
@@ -95,30 +97,34 @@ export default function SubscriptionPage() {
   const { cancelSubscription, isLoading: paymentLoading } = usePayment();
   const queryClient = useQueryClient();
 
-  const { data: plans = [], isLoading: plansLoading } = useQuery<Plan[]>({
+  const { data: plansData, isLoading: plansLoading } = useQuery<{ plans: Plan[] }>({
     queryKey: ['/api/billing/plans'],
     enabled: !!user,
   });
+  const plans = plansData?.plans || [];
 
-  const { data: subscription, isLoading: subLoading } = useQuery<Subscription | null>({
+  const { data: subscriptionData, isLoading: subLoading } = useQuery<{ subscription?: Subscription | null }>({
     queryKey: ['/api/billing/subscription'],
     enabled: !!user,
   });
+  const subscription = subscriptionData?.subscription || null;
 
-  const { data: tripPasses = [], isLoading: passLoading } = useQuery<TripPass[]>({
+  const { data: tripPassesData, isLoading: passLoading } = useQuery<TripPass[] | { tripPasses: TripPass[] }>({
     queryKey: ['/api/billing/trip-passes'],
     enabled: !!user,
   });
+  const tripPasses = Array.isArray(tripPassesData) ? tripPassesData : (tripPassesData?.tripPasses || []);
 
   const { data: usage, isLoading: usageLoading } = useQuery<UsageData>({
     queryKey: ['/api/billing/usage'],
     enabled: !!user,
   });
 
-  const { data: paymentHistory = [], isLoading: historyLoading } = useQuery<PaymentHistory[]>({
+  const { data: historyData, isLoading: historyLoading } = useQuery<PaymentHistory[] | { history: PaymentHistory[] }>({
     queryKey: ['/api/billing/history'],
     enabled: !!user,
   });
+  const paymentHistory = Array.isArray(historyData) ? historyData : (historyData as any)?.history || [];
 
   const handleCancelSubscription = async () => {
     const result = await cancelSubscription();
@@ -391,19 +397,30 @@ export default function SubscriptionPage() {
                       </CardTitle>
                       <CardDescription>
                         <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                          ₩{plan.price.toLocaleString()}
+                          ₩{(plan.priceKrw || plan.price || 0).toLocaleString()}
                         </span>
-                        <span className="text-gray-500">/{plan.period}</span>
+                        <span className="text-gray-500">
+                          /{plan.type === 'subscription' ? '월' : (plan.period || '회')}
+                        </span>
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {plan.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
+                        {(() => {
+                          const featureList = Array.isArray(plan.features) 
+                            ? plan.features 
+                            : plan.features && typeof plan.features === 'object'
+                              ? Object.entries(plan.features)
+                                  .filter(([_, v]) => v !== null && v !== undefined && v !== false)
+                                  .map(([k, v]) => typeof v === 'boolean' ? k : `${k}: ${v}`)
+                              : [];
+                          return featureList.map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span>{String(feature)}</span>
+                            </li>
+                          ));
+                        })()}
                       </ul>
                     </CardContent>
                     <CardFooter>
@@ -413,8 +430,8 @@ export default function SubscriptionPage() {
                         </Button>
                       ) : (
                         <PaymentButton
-                          type={plan.period === '월' ? 'subscription' : 'trip_pass'}
-                          amount={plan.price}
+                          type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                          amount={plan.priceKrw || plan.price || 0}
                           orderName={plan.name}
                           planId={plan.id}
                           billingKeyId={selectedBillingKeyId || undefined}
@@ -425,7 +442,7 @@ export default function SubscriptionPage() {
                           }}
                           className="w-full"
                         >
-                          {plan.period === '월' ? '구독하기' : '구매하기'}
+                          {plan.type === 'subscription' ? '구독하기' : '구매하기'}
                         </PaymentButton>
                       )}
                     </CardFooter>
