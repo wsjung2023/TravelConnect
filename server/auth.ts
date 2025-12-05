@@ -1,9 +1,44 @@
+/**
+ * ============================================
+ * 인증 모듈 (Authentication Module)
+ * ============================================
+ * 
+ * 이 모듈은 사용자 인증 및 권한 관리를 담당합니다.
+ * 
+ * 지원하는 인증 방식:
+ * 1. JWT (JSON Web Token) - API 클라이언트용
+ * 2. 세션 기반 - 웹 브라우저용
+ * 3. OAuth 2.0 (Google, Replit Auth) - 소셜 로그인
+ * 
+ * 보안 특징:
+ * - JWT 토큰은 HS256 알고리즘으로 서명
+ * - 비밀번호는 bcrypt로 12라운드 해싱
+ * - 토큰 만료: 7일
+ * - 세션 타임아웃: 24시간
+ * 
+ * 사용자 역할 (Roles):
+ * - user: 일반 사용자 (기본)
+ * - host: 가이드/호스트
+ * - admin: 관리자
+ * 
+ * 미들웨어:
+ * - authenticateToken: JWT 전용 인증
+ * - authenticateHybrid: JWT + 세션 통합 인증
+ * - requireAdmin: 관리자 권한 필요
+ * 
+ * 환경 변수 (필수):
+ * - JWT_SECRET: JWT 서명 키 (필수, openssl rand -hex 32)
+ */
+
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { storage } from './storage';
 
+// ============================================
 // Express Request 타입 확장
+// ============================================
+// 인증된 사용자 정보를 req.user에 저장하기 위한 타입 확장
 declare global {
   namespace Express {
     interface User {
@@ -24,6 +59,11 @@ declare global {
 
 export type AuthRequest = Request; // 호환성을 위한 타입 별칭
 
+// ============================================
+// JWT 설정
+// ============================================
+// JWT_SECRET은 토큰 서명에 사용되는 비밀 키
+// 보안상 반드시 환경 변수로 설정해야 함
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   console.error('❌ JWT_SECRET 환경변수가 설정되지 않았습니다.');
@@ -32,9 +72,14 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET은 필수 환경변수입니다. 보안상 fallback을 제거했습니다.');
 }
 
+// JWT 옵션: HS256 알고리즘, 7일 만료
 export const jwtOptions: jwt.SignOptions = { algorithm: 'HS256' as const, expiresIn: '7d' };
 
+// ============================================
 // JWT 토큰 생성
+// ============================================
+// 사용자 정보(id, email, role)를 페이로드에 포함한 JWT 생성
+// 클라이언트는 이 토큰을 Authorization 헤더에 Bearer 형식으로 전송
 export function generateToken(user: {
   id: string;
   email: string;
@@ -50,7 +95,11 @@ export function generateToken(user: {
   );
 }
 
+// ============================================
 // JWT 토큰 검증
+// ============================================
+// 토큰의 서명과 만료 시간을 검증
+// 유효한 토큰이면 디코딩된 페이로드 반환, 아니면 null
 export function verifyToken(token: string) {
   try {
     if (!JWT_SECRET) {
@@ -67,13 +116,22 @@ export function verifyToken(token: string) {
   }
 }
 
+// ============================================
 // 비밀번호 해싱
+// ============================================
+// bcrypt 알고리즘으로 비밀번호 해싱
+// 솔트 라운드 12: 보안과 성능의 균형점
+// 약 250ms 소요 (GPU 공격 방어에 효과적)
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12;
   return bcrypt.hash(password, saltRounds);
 }
 
+// ============================================
 // 비밀번호 검증
+// ============================================
+// 평문 비밀번호와 해시된 비밀번호 비교
+// 타이밍 공격 방지를 위해 상수 시간 비교 사용
 export async function comparePassword(
   password: string,
   hashedPassword: string
@@ -81,7 +139,12 @@ export async function comparePassword(
   return bcrypt.compare(password, hashedPassword);
 }
 
-// 인증 미들웨어
+// ============================================
+// 인증 미들웨어: JWT 전용
+// ============================================
+// Authorization 헤더에서 Bearer 토큰 추출 및 검증
+// 사용 예: app.get('/api/protected', authenticateToken, handler)
+// 성공 시 req.user에 사용자 정보 설정
 export const authenticateToken: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -105,7 +168,12 @@ export const authenticateToken: RequestHandler = async (req, res, next) => {
   next();
 };
 
-// 하이브리드 인증 미들웨어 (JWT + 세션 모두 지원)
+// ============================================
+// 인증 미들웨어: 하이브리드 (JWT + 세션)
+// ============================================
+// JWT 토큰과 세션 기반 인증을 모두 지원
+// 우선순위: JWT > 세션 > 인증 실패
+// 웹 브라우저(세션)와 API 클라이언트(JWT)를 동시 지원
 export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   console.log(`[AUTH] ${req.method} ${req.path} - Starting authentication`);
   console.log(`[AUTH] Session user:`, req.user ? 'PRESENT' : 'NOT PRESENT');

@@ -59,6 +59,16 @@ Preferred communication style: Simple, everyday language.
 - **Contract Split Payment**: Supports installment payments (deposit/milestones) for P2P contracts with payment plans (single, two-step, three-step) and partial/full refund tracking.
 - **Host Settlement Batch System**: Automated daily settlement for hosts using PortOne Transfer API, with KYC verification and minimum payout conditions, managed by a cron scheduler.
 
+### Performance Optimization (2024-12)
+- **Database Indexes**: 40+ indexes added across 10 tables (posts, experiences, comments, likes, follows, notifications, timelines, trips, conversations, users) for frequently queried columns.
+- **Caching Layer**: LRU cache implementation for:
+    - Billing Plans: 1 hour TTL (rarely changed)
+    - Trip Pass: 1 minute TTL (balance between freshness and performance)
+    - AI Usage Stats: 30 seconds TTL (frequently accessed)
+    - Feed Scores, Translations, Trending Hashtags: Various TTLs
+- **Common Middleware**: Extracted shared validation (`validateBody`, `validateQuery`, `validateParams`) and rate limiters (`apiLimiter`, `authLimiter`, `strictLimiter`, `uploadLimiter`) for consistency and code reuse.
+- **Modular Routers**: Feature-based router separation (auth, social, admin, billing, chat, contracts, experience, timeline, notification, profile, ai) from monolithic routes.ts.
+
 ### Security Guidelines
 - Environment variables (Replit Secrets) must be used for sensitive data.
 - Hardcoding of API keys, passwords, or secrets is strictly prohibited.
