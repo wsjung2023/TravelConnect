@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, FileText, Shield, MapPin, Cookie, Code, Edit, Save, X } from 'lucide-react';
+import { ArrowLeft, FileText, Shield, MapPin, Cookie, Code, Edit, Save, X, Receipt } from 'lucide-react';
 import { Link } from 'wouter';
 
 const legalDocuments = {
@@ -20,6 +20,12 @@ const legalDocuments = {
     file: '/legal/terms_ko.md',
     icon: FileText,
     description: '서비스 이용에 관한 약관 및 조건'
+  },
+  refund: {
+    title: '환불 정책',
+    file: '/legal/refund_policy_ko.md',
+    icon: Receipt,
+    description: '환불 조건, 절차 및 기간에 관한 정책'
   },
   location: {
     title: '위치기반서비스 이용약관',
