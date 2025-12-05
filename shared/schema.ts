@@ -27,7 +27,8 @@ export const sessions = pgTable(
   (table) => [index('IDX_session_expire').on(table.expire)]
 );
 
-// User storage table - 이메일/비밀번호 로그인 지원
+// 사용자 테이블: 인증, 프로필, 지도에서 자주 조회됨
+// 인덱스 추가: isHost, role, userType, 지리 좌표, openToMeet
 export const users = pgTable('users', {
   id: varchar('id').primaryKey().notNull(),
   email: varchar('email').unique().notNull(),
@@ -60,9 +61,24 @@ export const users = pgTable('users', {
   lastLocationUpdatedAt: timestamp('last_location_updated_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  // 호스트 필터링 최적화
+  index('IDX_users_is_host').on(table.isHost),
+  // 역할별 조회 최적화 (관리자 조회)
+  index('IDX_users_role').on(table.role),
+  // 사용자 유형별 조회 최적화
+  index('IDX_users_user_type').on(table.userType),
+  // 지도 기반 사용자 조회 최적화 (Serendipity 기능)
+  index('IDX_users_location').on(table.lastLatitude, table.lastLongitude),
+  // 만남 열린 사용자 조회 최적화
+  index('IDX_users_open_to_meet').on(table.openToMeet),
+  // 생성일 기준 정렬 최적화
+  index('IDX_users_created_at').on(table.createdAt),
+]);
 
 
+// 경험 테이블: 검색, 지도, 호스트 대시보드에서 자주 조회됨
+// 인덱스 추가: hostId, category, isActive, 지리 좌표
 export const experiences = pgTable('experiences', {
   id: serial('id').primaryKey(),
   hostId: varchar('host_id')
@@ -103,8 +119,21 @@ export const experiences = pgTable('experiences', {
   quickBookEnabled: boolean('quick_book_enabled').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  // 호스트별 경험 조회 최적화 (호스트 대시보드)
+  index('IDX_experiences_host_id').on(table.hostId),
+  // 카테고리별 검색 최적화
+  index('IDX_experiences_category').on(table.category),
+  // 활성 경험 필터링 최적화
+  index('IDX_experiences_is_active').on(table.isActive),
+  // 지도 기반 경험 조회 최적화
+  index('IDX_experiences_location').on(table.latitude, table.longitude),
+  // 평점순 정렬 최적화
+  index('IDX_experiences_rating').on(table.rating),
+]);
 
+// 포스트 테이블: 피드, 지도, 타임라인에서 자주 조회됨
+// 인덱스 추가: userId, createdAt, 지리 좌표, experienceId, timelineId
 export const posts = pgTable('posts', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id')
@@ -130,7 +159,18 @@ export const posts = pgTable('posts', {
   commentsCount: integer('comments_count').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  // 사용자별 포스트 조회 최적화 (프로필 페이지)
+  index('IDX_posts_user_id').on(table.userId),
+  // 피드 정렬을 위한 생성일 인덱스
+  index('IDX_posts_created_at').on(table.createdAt),
+  // 지도 기반 포스트 조회 최적화
+  index('IDX_posts_location').on(table.latitude, table.longitude),
+  // 타임라인 연결 포스트 조회
+  index('IDX_posts_timeline_id').on(table.timelineId),
+  // 경험 연결 포스트 조회
+  index('IDX_posts_experience_id').on(table.experienceId),
+]);
 
 export const postMedia = pgTable('post_media', {
   id: serial('id').primaryKey(),
@@ -304,6 +344,7 @@ export const paymentLogs = pgTable('payment_logs', {
   index('IDX_payment_logs_created_at').on(table.createdAt),
 ]);
 
+// 대화 테이블: 1:1 대화 조회에 자주 사용됨
 export const conversations = pgTable('conversations', {
   id: serial('id').primaryKey(),
   participant1Id: varchar('participant1_id')
@@ -315,7 +356,15 @@ export const conversations = pgTable('conversations', {
   lastMessageId: integer('last_message_id'),
   lastMessageAt: timestamp('last_message_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => [
+  // 참여자별 대화 조회 최적화
+  index('IDX_conversations_participant1').on(table.participant1Id),
+  index('IDX_conversations_participant2').on(table.participant2Id),
+  // 두 참여자 간 대화 찾기 최적화 (복합 인덱스)
+  index('IDX_conversations_participants').on(table.participant1Id, table.participant2Id),
+  // 최근 대화 정렬 최적화
+  index('IDX_conversations_last_message').on(table.lastMessageAt),
+]);
 
 // 채널 시스템 - 그룹 채팅, 토픽 채널, DM 통합 관리
 export const channels = pgTable('channels', {
@@ -408,6 +457,7 @@ export const reviews = pgTable('reviews', {
   index('IDX_reviews_guest_id').on(table.guestId),
 ]);
 
+// 댓글 테이블: 포스트별 댓글 조회에 자주 사용됨
 export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
   postId: integer('post_id')
@@ -418,8 +468,16 @@ export const comments = pgTable('comments', {
     .references(() => users.id),
   content: text('content').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => [
+  // 포스트별 댓글 조회 최적화
+  index('IDX_comments_post_id').on(table.postId),
+  // 사용자별 댓글 조회 최적화
+  index('IDX_comments_user_id').on(table.userId),
+  // 시간순 정렬 최적화
+  index('IDX_comments_created_at').on(table.createdAt),
+]);
 
+// 좋아요 테이블: 좋아요 확인 및 카운트에 자주 사용됨
 export const likes = pgTable('likes', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id')
@@ -429,9 +487,17 @@ export const likes = pgTable('likes', {
     .notNull()
     .references(() => posts.id),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => [
+  // 포스트별 좋아요 조회 최적화
+  index('IDX_likes_post_id').on(table.postId),
+  // 사용자별 좋아요 조회 최적화
+  index('IDX_likes_user_id').on(table.userId),
+  // 사용자-포스트 좋아요 중복 확인 최적화 (복합 인덱스)
+  index('IDX_likes_user_post').on(table.userId, table.postId),
+]);
 
 // 여행 타임라인 테이블 - 여행 단위 관리
+// 여행 타임라인 테이블: 사용자별 타임라인 조회에 자주 사용됨
 export const timelines = pgTable('timelines', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id')
@@ -447,8 +513,16 @@ export const timelines = pgTable('timelines', {
   totalDays: integer('total_days').default(1),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  // 사용자별 타임라인 조회 최적화
+  index('IDX_timelines_user_id').on(table.userId),
+  // 공개 타임라인 필터링 최적화
+  index('IDX_timelines_is_public').on(table.isPublic),
+  // 시작일 기준 정렬 최적화
+  index('IDX_timelines_start_date').on(table.startDate),
+]);
 
+// 여행 계획 테이블: 사용자별 여행 조회에 자주 사용됨
 export const trips = pgTable('trips', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id')
@@ -463,7 +537,14 @@ export const trips = pgTable('trips', {
   isPublic: boolean('is_public').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  // 사용자별 여행 조회 최적화
+  index('IDX_trips_user_id').on(table.userId),
+  // 공개 여행 필터링 최적화
+  index('IDX_trips_is_public').on(table.isPublic),
+  // 날짜 기준 정렬 최적화
+  index('IDX_trips_dates').on(table.startDate, table.endDate),
+]);
 
 // Relations
 
@@ -1061,6 +1142,7 @@ export type OnboardingProgress = typeof onboardingProgress.$inferSelect;
 export type InsertOnboardingProgress = z.infer<typeof insertOnboardingProgressSchema>;
 
 // 알림 시스템
+// 알림 테이블: 사용자별 알림 조회에 자주 사용됨
 export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
   userId: varchar('user_id')
@@ -1077,7 +1159,16 @@ export const notifications = pgTable('notifications', {
   relatedConversationId: integer('related_conversation_id').references(() => conversations.id), // 관련된 대화
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  // 사용자별 알림 조회 최적화
+  index('IDX_notifications_user_id').on(table.userId),
+  // 읽지 않은 알림 조회 최적화
+  index('IDX_notifications_is_read').on(table.isRead),
+  // 사용자별 읽지 않은 알림 조회 최적화 (복합 인덱스)
+  index('IDX_notifications_user_unread').on(table.userId, table.isRead),
+  // 시간순 정렬 최적화
+  index('IDX_notifications_created_at').on(table.createdAt),
+]);
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
@@ -1089,6 +1180,7 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // 팔로우/팔로잉 시스템
+// 팔로우 테이블: 팔로워/팔로잉 목록 조회에 자주 사용됨
 export const follows = pgTable('follows', {
   id: serial('id').primaryKey(),
   followerId: varchar('follower_id')
@@ -1098,7 +1190,14 @@ export const follows = pgTable('follows', {
     .notNull()
     .references(() => users.id), // 팔로우당하는 사용자
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => [
+  // 팔로워 목록 조회 최적화 (특정 사용자를 팔로우하는 사람들)
+  index('IDX_follows_following_id').on(table.followingId),
+  // 팔로잉 목록 조회 최적화 (특정 사용자가 팔로우하는 사람들)
+  index('IDX_follows_follower_id').on(table.followerId),
+  // 팔로우 관계 확인 최적화 (복합 인덱스)
+  index('IDX_follows_follower_following').on(table.followerId, table.followingId),
+]);
 
 export const insertFollowSchema = createInsertSchema(follows).omit({
   id: true,
