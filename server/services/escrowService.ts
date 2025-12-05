@@ -138,7 +138,7 @@ class EscrowService {
         },
       ]);
 
-      console.log(`[Escrow] Contract created: ${contract.id}, Total: ${params.totalAmountKrw} KRW`);
+      console.log(`[Escrow] Contract created: ${contract.id}, Total: ${params.totalAmountKrw} USD`);
 
       return {
         success: true,

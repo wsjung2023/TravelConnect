@@ -18,6 +18,7 @@ import { eq, and, sql, inArray } from 'drizzle-orm';
 import { db } from '../db';
 import {
   contracts,
+  contractStages,
   escrowTransactions,
   escrowAccounts,
   type Contract,
@@ -254,24 +255,47 @@ class SplitPaymentService {
       let paidAmount = 0;
       const milestones: MilestoneInfo[] = [];
 
-      for (const tx of transactions) {
-        const amount = parseFloat(tx.amount);
-        const refunded = parseFloat(tx.refundedAmount || '0');
-        const isPaid = ['funded', 'released'].includes(tx.status || '');
-        
-        if (isPaid) {
-          paidAmount += amount - refunded;
-        }
+      if (transactions.length > 0) {
+        for (const tx of transactions) {
+          const amount = parseFloat(tx.amount);
+          const refunded = parseFloat(tx.refundedAmount || '0');
+          const isPaid = ['funded', 'released'].includes(tx.status || '');
+          
+          if (isPaid) {
+            paidAmount += amount - refunded;
+          }
 
-        milestones.push({
-          type: tx.milestoneType as MilestoneType,
-          amount,
-          rate: this.calculateRate(amount, totalAmount),
-          dueDate: tx.dueDate,
-          status: tx.status || 'pending',
-          isPaid,
-          escrowTransactionId: tx.id,
-        });
+          milestones.push({
+            type: tx.milestoneType as MilestoneType,
+            amount,
+            rate: this.calculateRate(amount, totalAmount),
+            dueDate: tx.dueDate,
+            status: tx.status || 'pending',
+            isPaid,
+            escrowTransactionId: tx.id,
+          });
+        }
+      } else {
+        const stages = await db
+          .select()
+          .from(contractStages)
+          .where(eq(contractStages.contractId, contractId))
+          .orderBy(contractStages.stageOrder);
+
+        for (const stage of stages) {
+          const amount = parseFloat(stage.amount);
+          const stageType = stage.name === 'deposit' ? 'deposit' : 
+                           stage.name === 'interim' ? 'interim' : 'final';
+          
+          milestones.push({
+            type: stageType as MilestoneType,
+            amount,
+            rate: this.calculateRate(amount, totalAmount),
+            dueDate: null,
+            status: stage.status || 'pending',
+            isPaid: stage.status === 'paid',
+          });
+        }
       }
 
       const pendingMilestone = milestones.find(m => !m.isPaid);
