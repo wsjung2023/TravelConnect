@@ -1854,11 +1854,27 @@ Trip Pass 및 구독 플랜의 정기 결제 자동화
 
 | 작업 | 파일 | 우선순위 | 상태 |
 |------|------|----------|------|
-| 구독 스케줄러 서비스 | `server/services/subscriptionScheduler.ts` | 🔴 필수 | ⏳ 진행 중 |
-| 빌링키 기반 자동 결제 | `server/services/portoneClient.ts` | 🔴 필수 | ⏳ 진행 중 |
-| 결제 재시도 로직 (3회) | `server/services/subscriptionScheduler.ts` | 🔴 필수 | ⏳ 진행 중 |
-| 구독 만료 알림 | `server/services/subscriptionScheduler.ts` | 🟡 중요 | 예정 |
-| 갱신 실패 시 서비스 제한 | `server/routes.ts` | 🟡 중요 | 예정 |
+| 구독 스케줄러 서비스 | `server/services/subscriptionScheduler.ts` | 🔴 필수 | ✅ 완료 |
+| 빌링키 기반 자동 결제 | `server/services/portoneClient.ts` | 🔴 필수 | ✅ 완료 |
+| 결제 재시도 로직 (3회) | `server/services/subscriptionScheduler.ts` | 🔴 필수 | ✅ 완료 |
+| 구독 만료 알림 | `server/services/subscriptionScheduler.ts` | 🟡 중요 | ✅ 완료 |
+| 갱신 실패 시 서비스 제한 | `server/routes.ts` | 🟡 중요 | ✅ 완료 |
+
+### 10.8 API 엔드포인트 (관리자 전용)
+
+| 엔드포인트 | 메서드 | 설명 |
+|------------|--------|------|
+| `/api/admin/scheduler/run` | POST | 스케줄러 수동 실행 |
+| `/api/admin/subscription/:id/renew` | POST | 단일 구독 수동 갱신 |
+| `/api/admin/scheduler/send-reminders` | POST | 만료 예정 알림 발송 |
+
+### 10.9 DB 스키마 변경
+
+`user_subscriptions` 테이블에 추가된 필드:
+- `retry_count` (integer, default 0) - 결제 재시도 횟수
+- `last_retry_at` (timestamp) - 마지막 재시도 시간
+- `next_retry_at` (timestamp) - 다음 재시도 예정 시간
+- `last_payment_error` (text) - 마지막 결제 실패 사유
 
 ### 10.3 구독 스케줄러 설계
 

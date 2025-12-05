@@ -38,10 +38,12 @@ interface SchedulerStats {
 class SubscriptionScheduler {
   /**
    * 오늘 갱신 예정인 구독 조회
+   * (재시도 예정이 아닌 구독만 - 중복 방지)
    */
   async getSubscriptionsDueForRenewal(): Promise<typeof userSubscriptions.$inferSelect[]> {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
+    const now = new Date();
 
     const subscriptions = await db
       .select()
@@ -50,7 +52,11 @@ class SubscriptionScheduler {
         and(
           eq(userSubscriptions.status, 'active'),
           lte(userSubscriptions.renewsAt, today),
-          isNull(userSubscriptions.canceledAt)
+          isNull(userSubscriptions.canceledAt),
+          // 재시도 예정이 없거나, 재시도 예정 시간이 지난 경우만
+          sql`(${userSubscriptions.nextRetryAt} IS NULL OR ${userSubscriptions.nextRetryAt} <= ${now})`,
+          // 재시도 횟수가 최대에 도달하지 않은 경우만
+          sql`COALESCE(${userSubscriptions.retryCount}, 0) < ${MAX_RETRY_COUNT}`
         )
       );
 
@@ -128,10 +134,28 @@ class SubscriptionScheduler {
   async renewSubscription(subscription: typeof userSubscriptions.$inferSelect): Promise<RenewalResult> {
     const { id, userId, planId, billingKeyId } = subscription;
 
-    // 빌링키 확인
-    let billingKey = billingKeyId ? 
-      await db.select().from(billingKeys).where(eq(billingKeys.billingKey, billingKeyId)).limit(1).then(r => r[0]) :
-      await this.getDefaultBillingKey(userId);
+    // 빌링키 확인 (billingKeyId는 실제 PortOne 빌링키 값을 저장)
+    let billingKey: typeof billingKeys.$inferSelect | null = null;
+    
+    if (billingKeyId) {
+      // 구독에 지정된 빌링키로 조회 (billingKey 컬럼 값으로 조회)
+      const result = await db
+        .select()
+        .from(billingKeys)
+        .where(
+          and(
+            eq(billingKeys.userId, userId),
+            eq(billingKeys.billingKey, billingKeyId)
+          )
+        )
+        .limit(1);
+      billingKey = result[0] || null;
+    }
+    
+    // 지정된 빌링키가 없으면 기본 결제수단 사용
+    if (!billingKey) {
+      billingKey = await this.getDefaultBillingKey(userId);
+    }
 
     if (!billingKey) {
       console.log(`[Scheduler] 구독 ${id}: 빌링키 없음 - 건너뜀`);
