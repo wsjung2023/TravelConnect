@@ -2368,12 +2368,18 @@ export const userSubscriptions = pgTable('user_subscriptions', {
   startedAt: timestamp('started_at'),
   renewsAt: timestamp('renews_at'),
   canceledAt: timestamp('canceled_at'), // 해지 예정 (기간 끝까지 사용 가능)
+  // 자동 결제 재시도 관련
+  retryCount: integer('retry_count').default(0),      // 결제 재시도 횟수 (최대 3회)
+  lastRetryAt: timestamp('last_retry_at'),            // 마지막 재시도 시간
+  nextRetryAt: timestamp('next_retry_at'),            // 다음 재시도 예정 시간
+  lastPaymentError: text('last_payment_error'),       // 마지막 결제 실패 사유
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('idx_user_subscriptions_user').on(table.userId),
   index('idx_user_subscriptions_status').on(table.status),
   index('idx_user_subscriptions_plan').on(table.planId),
+  index('idx_user_subscriptions_renews_at').on(table.renewsAt),
 ]);
 
 // 사용량 추적 (Free 플랜 한도 관리용)
