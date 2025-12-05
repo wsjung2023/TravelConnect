@@ -37,7 +37,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { ko, enUS, ja, zhCN, fr, es, type Locale } from 'date-fns/locale';
 
 interface Plan {
   id: number;
@@ -95,9 +95,64 @@ export default function SubscriptionPage() {
   const [selectedBillingKeyId, setSelectedBillingKeyId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useTranslation('billing');
+  const { t, i18n } = useTranslation('billing');
   const { cancelSubscription, isLoading: paymentLoading } = usePayment();
   const queryClient = useQueryClient();
+
+  // Locale mapping for date-fns (normalize language codes)
+  const getDateLocale = () => {
+    const lang = i18n.language.split('-')[0]; // Extract primary language code
+    const localeMap: Record<string, Locale> = {
+      ko, en: enUS, ja, zh: zhCN, fr, es
+    };
+    return localeMap[lang] || enUS;
+  };
+
+  // Format date with current locale
+  const formatDate = (date: Date | string, formatStr?: string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const locale = getDateLocale();
+    const lang = i18n.language.split('-')[0]; // Extract primary language code
+    
+    // Default format patterns for each language
+    const defaultFormats: Record<string, string> = {
+      ko: 'yyyy년 M월 d일',
+      en: 'MMM d, yyyy',
+      ja: 'yyyy年M月d日',
+      zh: 'yyyy年M月d日',
+      fr: 'd MMM yyyy',
+      es: 'd MMM yyyy'
+    };
+    
+    const pattern = formatStr || defaultFormats[lang] || defaultFormats.en;
+    return format(dateObj, pattern, { locale });
+  };
+
+  // Format amount with currency (fully locale-aware)
+  const formatAmount = (amount: number) => {
+    try {
+      return new Intl.NumberFormat(i18n.language, {
+        style: 'currency',
+        currency: 'KRW'
+      }).format(amount);
+    } catch {
+      // Fallback if locale not supported
+      return `₩${amount.toLocaleString()}`;
+    }
+  };
+
+  // Get translated status
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'active': t('status_active'),
+      'canceling': t('status_canceling'),
+      'completed': t('status_completed'),
+      'cancelled': t('status_canceling'),
+      'failed': t('payment_failed')
+    };
+    // Return translated label if available, otherwise return the original status
+    return statusMap[status.toLowerCase()] || status;
+  };
 
   const { data: plansData, isLoading: plansLoading } = useQuery<{ plans: Plan[] }>({
     queryKey: ['/api/billing/plans'],
@@ -225,7 +280,7 @@ export default function SubscriptionPage() {
                     </CardTitle>
                     {usage.validUntil && (
                       <CardDescription>
-                        {t('validity_period')}: {format(new Date(usage.validUntil), 'yyyy년 M월 d일', { locale: ko })}까지
+                        {t('validity_period')}: {formatDate(usage.validUntil)}
                       </CardDescription>
                     )}
                   </CardHeader>
@@ -272,7 +327,7 @@ export default function SubscriptionPage() {
                     {usage.source === 'free_tier' && usage.limits.ai_message.periodEnd && (
                       <p className="text-xs text-gray-500 text-center">
                         {t('free_tier_reset_info', { 
-                          date: format(new Date(usage.limits.ai_message.periodEnd), 'yyyy년 M월 d일', { locale: ko })
+                          date: formatDate(usage.limits.ai_message.periodEnd)
                         })}
                       </p>
                     )}
@@ -300,7 +355,7 @@ export default function SubscriptionPage() {
                           {t('current_subscription')}
                         </span>
                         <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
-                          {subscription.status === 'active' ? t('status_active') : t('status_canceling')}
+                          {getStatusLabel(subscription.status)}
                         </Badge>
                       </CardTitle>
                     </CardHeader>
@@ -313,14 +368,14 @@ export default function SubscriptionPage() {
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">{t('next_billing_date')}</span>
                           <span className="font-medium">
-                            {format(new Date(subscription.currentPeriodEnd), 'yyyy년 M월 d일', { locale: ko })}
+                            {formatDate(subscription.currentPeriodEnd)}
                           </span>
                         </div>
                         {subscription.cancelledAt && (
                           <div className="flex justify-between text-amber-600">
                             <span>{t('cancellation_requested_date')}</span>
                             <span>
-                              {format(new Date(subscription.cancelledAt), 'yyyy년 M월 d일', { locale: ko })}
+                              {formatDate(subscription.cancelledAt)}
                             </span>
                           </div>
                         )}
@@ -339,7 +394,7 @@ export default function SubscriptionPage() {
                               <AlertDialogTitle>{t('cancel_subscription_confirm_title')}</AlertDialogTitle>
                               <AlertDialogDescription>
                                 {t('cancel_subscription_confirm_description', {
-                                  date: format(new Date(subscription.currentPeriodEnd), 'yyyy년 M월 d일', { locale: ko })
+                                  date: formatDate(subscription.currentPeriodEnd)
                                 })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -401,7 +456,7 @@ export default function SubscriptionPage() {
                       </CardTitle>
                       <CardDescription>
                         <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                          ₩{(plan.priceKrw || plan.price || 0).toLocaleString()}
+                          {formatAmount(plan.priceKrw || plan.price || 0)}
                         </span>
                         <span className="text-gray-500">
                           /{plan.type === 'subscription' ? t('per_month') : (plan.period || t('per_time'))}
@@ -491,15 +546,15 @@ export default function SubscriptionPage() {
                         <div>
                           <p className="font-medium">{payment.description}</p>
                           <p className="text-sm text-gray-500">
-                            {format(new Date(payment.createdAt), 'yyyy년 M월 d일 HH:mm', { locale: ko })}
+                            {formatDate(payment.createdAt, i18n.language === 'ko' ? 'yyyy년 M월 d일 HH:mm' : 'MMM d, yyyy HH:mm')}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="font-medium">
-                            ₩{payment.amount.toLocaleString()}
+                            {formatAmount(payment.amount)}
                           </p>
                           <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
-                            {payment.status === 'completed' ? t('status_completed') : payment.status}
+                            {getStatusLabel(payment.status)}
                           </Badge>
                         </div>
                       </div>
