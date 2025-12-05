@@ -2288,9 +2288,11 @@ export const escrowTransactions = pgTable('escrow_transactions', {
   milestoneType: varchar('milestone_type', { length: 20 }).notNull(), // deposit (계약금), midterm (중도금), final (잔금)
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   currency: varchar('currency', { length: 3 }).default('KRW'),
-  status: varchar('status', { length: 20 }).default('pending'), // pending, funded, released, refunded, disputed
+  status: varchar('status', { length: 20 }).default('pending'), // pending, funded, released, refunded, disputed, frozen
   paymentMethod: varchar('payment_method', { length: 50 }), // card, bank_transfer
   paymentId: varchar('payment_id', { length: 100 }), // 외부 결제 ID (PortOne 등)
+  platformFee: decimal('platform_fee', { precision: 10, scale: 2 }), // 플랫폼 수수료
+  payoutId: integer('payout_id'), // 정산 ID (정산 시 연결)
   fundedAt: timestamp('funded_at'),
   releasedAt: timestamp('released_at'),
   refundedAt: timestamp('refunded_at'),
@@ -2300,6 +2302,7 @@ export const escrowTransactions = pgTable('escrow_transactions', {
 }, (table) => [
   index('idx_escrow_contract').on(table.contractId),
   index('idx_escrow_status').on(table.status),
+  index('idx_escrow_payout').on(table.payoutId),
 ]);
 
 // 분쟁 기록
@@ -2461,6 +2464,10 @@ export const escrowAccounts = pgTable('escrow_accounts', {
   // KYC/KYB 상태 (호스트용)
   kycStatus: varchar('kyc_status', { length: 20 }).default('pending'), // 'pending' | 'verified' | 'rejected'
   kycVerifiedAt: timestamp('kyc_verified_at'),
+  // 정산 계좌 정보 (호스트용)
+  bankCode: varchar('bank_code', { length: 20 }), // 은행 코드 (004: KB국민, 088: 신한 등)
+  accountNumber: varchar('account_number', { length: 50 }), // 계좌번호 (암호화 저장 권장)
+  accountHolderName: varchar('account_holder_name', { length: 100 }), // 예금주
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [

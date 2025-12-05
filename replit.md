@@ -71,6 +71,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Phase 12: Host Settlement Batch System (December 5, 2025)
+- **호스트 정산 자동화**: 릴리스된 에스크로 트랜잭션을 매일 자동 정산
+- **정산 조건**: KYC verified + 최소 10,000원 이상
+- **Cron 스케줄러**: 매일 02:00 KST 자동 실행 (SETTLEMENT_ENABLED=true 필요)
+- **PortOne Transfer API**: 실제 은행 이체 통합
+- **Idempotency 보장**: payoutId=null인 트랜잭션만 처리, 롤백 메커니즘 포함
+- **관리자 API**:
+  - `GET /api/admin/settlements/status`: 스케줄러 상태 및 통계
+  - `POST /api/admin/settlements/run`: 수동 정산 실행
+  - `GET /api/admin/settlements`: 최근 정산 목록
+  - `POST /api/admin/settlements/:id/retry`: 실패 정산 재시도
+- **호스트 API**: `GET /api/host/payouts` - 본인 정산 내역 조회
+- **구현 파일**: `server/services/settlementService.ts`, `server/jobs/settlementBatch.ts`
+
 ### Performance Optimization (November 26, 2025)
 - **N+1 쿼리 문제 해결**: Smart/Popular 피드의 200+ 쿼리를 3개 배치 쿼리로 최적화
 - **성능 향상**: Smart Feed 4.7초 → 0.28초 (94% 향상, 목표 40% 초과 달성)

@@ -2088,7 +2088,264 @@ PG사 심사 통과 및 안전한 프로덕션 배포를 위한 최종 점검
 
 ---
 
-**문서 버전**: 1.6  
+## Phase 12: 호스트 정산 배치 시스템 ✅ 완료
+
+### 12.1 목표
+
+릴리스된 에스크로 트랜잭션을 호스트에게 자동으로 정산하는 배치 시스템 구현
+
+### 12.2 핵심 개념
+
+**정산 플로우:**
+```
+에스크로 릴리스 → 정산 대기 → 호스트별 그룹화 → KYC 검증 → 최소금액 필터링 → 
+PortOne Transfer API → 계좌 이체 → 정산 완료
+```
+
+**정산 조건:**
+- 에스크로 상태: `released`
+- payoutId: `null` (미정산)
+- KYC 상태: `verified`
+- 최소 금액: 10,000원 이상
+
+**플랫폼 수수료:**
+- P2P 거래: 12%
+- 수수료 = `grossAmount * 0.12`
+- 호스트 수령액 = `grossAmount - platformFee`
+
+### 12.3 DB 스키마
+
+#### payouts 테이블 (정산 기록)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | serial | PK |
+| hostId | varchar | 호스트 사용자 ID |
+| periodStart | date | 정산 기간 시작 |
+| periodEnd | date | 정산 기간 종료 |
+| grossAmount | decimal | 총 금액 |
+| totalFees | decimal | 플랫폼 수수료 |
+| netAmount | decimal | 호스트 수령액 |
+| currency | varchar | 통화 (KRW) |
+| transactionCount | integer | 트랜잭션 수 |
+| status | varchar | 상태 |
+| bankCode | varchar | 은행 코드 |
+| accountNumber | varchar | 계좌번호 |
+| accountHolderName | varchar | 예금주 |
+| portoneTransferId | varchar | PortOne 송금 ID |
+| portoneTransferStatus | varchar | PortOne 송금 상태 |
+| scheduledAt | timestamp | 예정일 |
+| processedAt | timestamp | 처리 시작일 |
+| completedAt | timestamp | 완료일 |
+| failedAt | timestamp | 실패일 |
+| failureReason | text | 실패 사유 |
+| metadata | jsonb | 트랜잭션 ID 목록 등 |
+
+**status 상태값:**
+- `pending`: 대기 중
+- `processing`: 처리 중
+- `completed`: 완료
+- `failed`: 실패
+- `on_hold`: 보류 (정보 불완전)
+
+#### escrowTransactions 확장
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| payoutId | integer | 정산 연결 (FK) |
+| platformFee | decimal | 플랫폼 수수료 |
+
+#### escrowAccounts 확장
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| bankCode | varchar | 은행 코드 |
+| accountNumber | varchar | 계좌번호 |
+| accountHolderName | varchar | 예금주명 |
+
+### 12.4 서비스 아키텍처
+
+#### settlementService.ts
+
+| 메서드 | 설명 |
+|--------|------|
+| `listReleasedTransactionsWithoutPayout()` | 미정산 릴리스 트랜잭션 조회 |
+| `groupByHostAndFilter()` | 호스트별 그룹화 및 KYC/최소금액 필터링 |
+| `createPayout()` | 정산 레코드 생성 |
+| `attachTransactionsToPayout()` | 에스크로 트랜잭션에 payoutId 연결 |
+| `moveToWithdrawable()` | pending → withdrawable 잔액 이동 |
+| `processPayout()` | PortOne Transfer API 호출 |
+| `deductFromWithdrawable()` | 출금 후 잔액 차감 |
+| `runDailySettlement()` | 일일 정산 배치 실행 |
+| `getHostPayouts()` | 호스트별 정산 내역 조회 |
+| `getSettlementStats()` | 정산 통계 조회 |
+| `retryFailedPayout()` | 실패 정산 재시도 |
+| `getRecentPayouts()` | 최근 정산 목록 조회 |
+
+#### portoneClient.ts 확장
+
+```typescript
+transferToBank(params: {
+  amount: number;
+  bankCode: string;
+  accountNumber: string;
+  accountHolderName: string;
+  reason: string;
+}): Promise<{
+  success: boolean;
+  transferId?: string;
+  error?: string;
+}>
+```
+
+#### settlementBatch.ts
+
+| 함수 | 설명 |
+|------|------|
+| `startSettlementScheduler()` | 스케줄러 시작 (02:00 KST) |
+| `stopSettlementScheduler()` | 스케줄러 중지 |
+| `runManualSettlement()` | 수동 정산 실행 |
+| `getSchedulerStatus()` | 스케줄러 상태 조회 |
+
+### 12.5 환경 변수
+
+| 변수 | 설명 | 기본값 |
+|------|------|--------|
+| `SETTLEMENT_ENABLED` | 정산 활성화 플래그 | `false` |
+
+**프로덕션에서 활성화:**
+```bash
+SETTLEMENT_ENABLED=true
+```
+
+### 12.6 API 엔드포인트
+
+#### 관리자 API
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/api/admin/settlements/status` | 스케줄러 상태 및 통계 |
+| POST | `/api/admin/settlements/run` | 수동 정산 실행 |
+| GET | `/api/admin/settlements` | 최근 정산 목록 |
+| POST | `/api/admin/settlements/:id/retry` | 실패 정산 재시도 |
+
+#### 호스트 API
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/api/host/payouts` | 본인 정산 내역 조회 |
+
+### 12.7 테스트 시나리오
+
+#### TC-P12-1: 일일 정산 성공 (정상 케이스)
+
+**사전 조건:**
+- 호스트 A: KYC verified, 은행 정보 등록
+- 릴리스된 에스크로 트랜잭션 3건 (총 50,000원)
+
+**테스트 절차:**
+1. 관리자로 로그인
+2. `POST /api/admin/settlements/run` 호출
+3. 정산 결과 확인
+
+**예상 결과:**
+- payout 레코드 생성 (status: completed)
+- 호스트 수령액: 44,000원 (50,000 - 12%)
+- portoneTransferId 생성
+- 에스크로 트랜잭션에 payoutId 연결
+
+#### TC-P12-2: KYC 미인증 호스트 스킵
+
+**사전 조건:**
+- 호스트 B: KYC pending
+- 릴리스된 에스크로 트랜잭션 2건
+
+**테스트 절차:**
+1. 수동 정산 실행
+2. 호스트 B 정산 여부 확인
+
+**예상 결과:**
+- 호스트 B 정산 건너뜀
+- summary.skippedKycCount = 1
+- 트랜잭션 payoutId 여전히 null
+
+#### TC-P12-3: 최소 금액 미달 스킵
+
+**사전 조건:**
+- 호스트 C: KYC verified
+- 릴리스된 에스크로 트랜잭션 1건 (5,000원)
+
+**테스트 절차:**
+1. 수동 정산 실행
+2. 호스트 C 정산 여부 확인
+
+**예상 결과:**
+- 호스트 C 정산 건너뜀 (최소 10,000원 미달)
+- summary.belowMinCount = 1
+- 다음 정산 주기까지 누적
+
+#### TC-P12-4: 은행 정보 누락 시 보류
+
+**사전 조건:**
+- 호스트 D: KYC verified, 은행 정보 미등록
+- 릴리스된 에스크로 트랜잭션 (20,000원)
+
+**테스트 절차:**
+1. 수동 정산 실행
+2. payout 상태 확인
+
+**예상 결과:**
+- payout 생성됨
+- status: `on_hold`
+- failureReason: "Bank account information incomplete"
+
+#### TC-P12-5: 실패 정산 재시도
+
+**사전 조건:**
+- 실패한 payout 레코드 (status: failed)
+
+**테스트 절차:**
+1. `POST /api/admin/settlements/:id/retry` 호출
+2. 정산 결과 확인
+
+**예상 결과:**
+- 정산 재시도
+- 성공 시 status: completed
+- 실패 시 status: failed 유지
+
+### 12.8 Idempotency 보장
+
+| 메커니즘 | 설명 |
+|----------|------|
+| payoutId 체크 | 이미 payoutId가 설정된 트랜잭션 제외 |
+| 트랜잭션 단위 연결 | 정산 생성 직후 트랜잭션에 payoutId 설정 |
+| 상태 기반 필터링 | released & payoutId=null 조건만 처리 |
+
+### 12.9 구현 파일
+
+| 파일 | 역할 |
+|------|------|
+| `server/services/settlementService.ts` | 정산 비즈니스 로직 |
+| `server/services/portoneClient.ts` | PortOne Transfer API 통합 |
+| `server/jobs/settlementBatch.ts` | Cron 스케줄러 |
+| `server/routes.ts` | API 라우트 추가 |
+| `server/index.ts` | 스케줄러 시작 |
+| `shared/schema.ts` | payouts 테이블 및 확장 |
+
+### 12.10 한국 세금 관련 고려사항
+
+**호스트 정산 시:**
+- 원천징수세 (3.3%): 사업소득세 + 지방소득세
+- 부가가치세: 호스트가 사업자인 경우 별도 신고
+- 세금계산서: 플랫폼 수수료에 대해 발행 필요
+
+**플랫폼 수익:**
+- 부가가치세 매출: 수수료의 10%
+- 수수료 12% 중 약 1.09%가 VAT
+
+---
+
+**문서 버전**: 1.7  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
@@ -2107,3 +2364,4 @@ PG사 심사 통과 및 안전한 프로덕션 배포를 위한 최종 점검
 | Phase 9 | 에스크로 시스템 | ✅ 완료 |
 | Phase 10 | 정기 결제 자동화 | ✅ 완료 |
 | Phase 11 | 프로덕션 배포 체크리스트 | ✅ 완료 |
+| Phase 12 | 호스트 정산 배치 시스템 | ✅ 완료 |

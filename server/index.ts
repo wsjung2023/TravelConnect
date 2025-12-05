@@ -94,6 +94,15 @@ function startBookingScheduler(storageInstance: typeof storage) {
   
   scheduleDaily();
   console.log('✅ Booking system scheduler started successfully');
+  
+  // 정산 스케줄러 시작 (동적 임포트)
+  import('./jobs/settlementBatch')
+    .then(({ startSettlementScheduler }) => {
+      startSettlementScheduler();
+    })
+    .catch((error) => {
+      console.error('❌ Settlement scheduler failed to start:', error);
+    });
 }
 
 // 글로벌 변수 초기화 (로그아웃 추적용)

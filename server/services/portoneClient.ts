@@ -83,6 +83,21 @@ export interface RefundResult {
   error?: string;
 }
 
+export interface TransferParams {
+  amount: number;
+  bankCode: string;
+  accountNumber: string;
+  accountHolderName: string;
+  reason?: string;
+}
+
+export interface TransferResult {
+  success: boolean;
+  transferId?: string;
+  status?: string;
+  error?: string;
+}
+
 class PortOneClient {
   private config: PortOneConfig | null = null;
 
@@ -465,6 +480,73 @@ class PortOneClient {
       return { success: true };
     } catch (error) {
       console.error('[PortOne] deleteBillingKey error:', error);
+      return { success: false, error: 'Network error' };
+    }
+  }
+
+  /**
+   * 호스트 정산용 계좌 이체 (Transfer API)
+   * 
+   * 참고: PortOne V2 Transfer API
+   * - 실제 프로덕션에서는 PortOne의 정산 API 사용 필요
+   * - 현재 구현은 개발/테스트용 Mock 포함
+   */
+  async transferToBank(params: TransferParams): Promise<TransferResult> {
+    if (!this.isConfigured()) {
+      return { success: false, error: 'PortOne not configured' };
+    }
+
+    const transferEnabled = process.env.TRANSFER_ENABLED === 'true';
+    
+    if (!transferEnabled) {
+      console.log('[PortOne] Transfer API disabled - returning mock success');
+      console.log(`[PortOne] Mock transfer: ${params.amount} KRW to ${params.bankCode} ${params.accountNumber.slice(-4)}`);
+      
+      return {
+        success: true,
+        transferId: `MOCK_TRF_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        status: 'completed',
+      };
+    }
+
+    try {
+      const response = await fetch(
+        `${PORTONE_API_URL}/transfers`,
+        {
+          method: 'POST',
+          headers: this.getHeaders(),
+          body: JSON.stringify({
+            storeId: this.config!.storeId,
+            amount: {
+              total: params.amount,
+            },
+            bankCode: params.bankCode,
+            accountNumber: params.accountNumber,
+            accountHolderName: params.accountHolderName,
+            reason: params.reason || 'Tourgether Settlement',
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('[PortOne] transferToBank failed:', data);
+        return {
+          success: false,
+          error: data.message || 'Transfer failed',
+        };
+      }
+
+      console.log(`[PortOne] Transfer successful: ${params.amount} KRW, ID: ${data.transferId}`);
+      
+      return {
+        success: true,
+        transferId: data.transferId,
+        status: data.status || 'completed',
+      };
+    } catch (error) {
+      console.error('[PortOne] transferToBank error:', error);
       return { success: false, error: 'Network error' };
     }
   }

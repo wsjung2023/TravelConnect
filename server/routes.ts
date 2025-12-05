@@ -7109,5 +7109,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // 호스트 정산 API (Phase 12)
+  // ============================================
+
+  // 정산 스케줄러 상태 조회 (관리자)
+  app.get('/api/admin/settlements/status', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { getSchedulerStatus } = await import('./jobs/settlementBatch');
+      const { settlementService } = await import('./services/settlementService');
+      
+      const schedulerStatus = getSchedulerStatus();
+      const stats = await settlementService.getSettlementStats();
+      
+      res.json({
+        scheduler: schedulerStatus,
+        stats,
+      });
+    } catch (error) {
+      console.error('Error fetching settlement status:', error);
+      res.status(500).json({ message: 'Failed to fetch settlement status' });
+    }
+  });
+
+  // 수동 정산 실행 (관리자)
+  app.post('/api/admin/settlements/run', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { runManualSettlement } = await import('./jobs/settlementBatch');
+      const result = await runManualSettlement();
+      
+      res.json({
+        success: result.success,
+        summary: result,
+      });
+    } catch (error) {
+      console.error('Error running manual settlement:', error);
+      res.status(500).json({ message: 'Failed to run settlement' });
+    }
+  });
+
+  // 최근 정산 목록 조회 (관리자)
+  app.get('/api/admin/settlements', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { settlementService } = await import('./services/settlementService');
+      const limit = parseInt(req.query.limit as string) || 50;
+      const payouts = await settlementService.getRecentPayouts(limit);
+      
+      res.json({ payouts });
+    } catch (error) {
+      console.error('Error fetching payouts:', error);
+      res.status(500).json({ message: 'Failed to fetch payouts' });
+    }
+  });
+
+  // 실패한 정산 재시도 (관리자)
+  app.post('/api/admin/settlements/:id/retry', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const payoutId = parseInt(req.params.id);
+      if (isNaN(payoutId)) {
+        return res.status(400).json({ message: 'Invalid payout ID' });
+      }
+      
+      const { settlementService } = await import('./services/settlementService');
+      const result = await settlementService.retryFailedPayout(payoutId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Payout retried successfully',
+      });
+    } catch (error) {
+      console.error('Error retrying payout:', error);
+      res.status(500).json({ message: 'Failed to retry payout' });
+    }
+  });
+
+  // 호스트 정산 내역 조회 (호스트 본인)
+  app.get('/api/host/payouts', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { settlementService } = await import('./services/settlementService');
+      const payouts = await settlementService.getHostPayouts(userId);
+      
+      res.json({ payouts });
+    } catch (error) {
+      console.error('Error fetching host payouts:', error);
+      res.status(500).json({ message: 'Failed to fetch payouts' });
+    }
+  });
+
   return httpServer;
 }
