@@ -3101,7 +3101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (process.env.NODE_ENV === 'development') {
     app.post('/api/test/create-token', async (req, res) => {
       try {
-        const { sub, email, first_name, last_name, role } = req.body;
+        const { sub, email, first_name, last_name, role, userType } = req.body;
         
         if (!sub || !email) {
           return res.status(400).json({ message: 'sub and email are required' });
@@ -3110,12 +3110,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 테스트 사용자 생성/업데이트
         const userId = sub;
         const userRole = (role === 'admin') ? 'admin' : 'user';
+        const validUserTypes = ['traveler', 'influencer', 'host'];
+        const resolvedUserType = validUserTypes.includes(userType) ? userType : 'traveler';
+        
         const testUser = {
           id: userId,
           email,
           firstName: first_name || 'Test',
           lastName: last_name || 'User', 
           role: userRole as 'admin' | 'user',
+          userType: resolvedUserType as 'traveler' | 'influencer' | 'host',
           profileImageUrl: null,
           bio: null,
           location: null,
