@@ -2721,7 +2721,84 @@ curl -X POST /api/admin/disputes/1/resolve \
 
 ---
 
-**문서 버전**: 1.9  
+---
+
+## Phase 15: 분석 데이터 웨어하우스 (Analytics Data Warehouse)
+
+### 15.1 개요
+
+비즈니스 인사이트를 위한 차원(Dimension) 테이블과 팩트(Fact) 테이블 기반 데이터 웨어하우스입니다.
+
+### 15.2 차원 테이블 (Dimension Tables)
+
+| 테이블 | 설명 |
+|--------|------|
+| `dim_date` | 날짜 차원 (연/월/주/일, 휴일 여부 등) |
+| `dim_users` | 사용자 차원 (SCD Type 2, 이력 관리) |
+| `dim_locations` | 위치 차원 (국가/도시/지역) |
+| `dim_service_types` | 서비스 유형 차원 (경험/가이드/숙박 등) |
+
+### 15.3 팩트 테이블 (Fact Tables)
+
+| 테이블 | 설명 |
+|--------|------|
+| `fact_transactions` | 거래 팩트 (결제, 환불, 에스크로) |
+| `fact_user_activities` | 사용자 활동 팩트 (로그인, 게시물, 메시지) |
+| `fact_bookings` | 예약 팩트 (예약 생성/완료/취소) |
+| `fact_daily_metrics` | 일별 집계 메트릭 (DAU, GMV, 거래 수) |
+| `fact_disputes` | 분쟁 팩트 (분쟁 유형별 통계) |
+
+### 15.4 API 엔드포인트
+
+| 메서드 | 엔드포인트 | 설명 |
+|--------|-----------|------|
+| POST | `/api/admin/analytics/etl/full` | 전체 ETL 실행 (초기화) |
+| POST | `/api/admin/analytics/etl/daily` | 일별 ETL 실행 |
+| POST | `/api/admin/analytics/sync-dimensions` | 차원 테이블 동기화 |
+| GET | `/api/admin/analytics/dashboard` | 대시보드 요약 |
+| GET | `/api/admin/analytics/daily-metrics` | 일별 메트릭 조회 |
+| GET | `/api/admin/analytics/transactions` | 거래 팩트 조회 |
+| GET | `/api/admin/analytics/bookings` | 예약 팩트 조회 |
+| GET | `/api/admin/analytics/disputes` | 분쟁 분석 조회 |
+
+### 15.5 ETL 프로세스
+
+```
+원본 데이터 → 차원 테이블 동기화 → 팩트 테이블 ETL → 일별 집계
+```
+
+**Full ETL**: 초기 데이터 로드 또는 전체 재처리
+```bash
+curl -X POST /api/admin/analytics/etl/full \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"startDate": "2024-01-01", "endDate": "2024-12-31"}'
+```
+
+**Daily ETL**: 일별 증분 처리 (어제 데이터)
+```bash
+curl -X POST /api/admin/analytics/etl/daily \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### 15.6 대시보드 지표
+
+- **DAU**: Daily Active Users
+- **GMV**: Gross Merchandise Value (총 거래액)
+- **신규 사용자 수**: 일별 가입자
+- **예약 현황**: 신규/완료/취소
+- **분쟁 현황**: 신규/해결
+
+### 15.7 구현 파일
+
+| 파일 | 설명 |
+|------|------|
+| `shared/schema.ts` | dim_*, fact_* 테이블 정의 |
+| `server/services/analyticsETLService.ts` | ETL 비즈니스 로직 |
+| `server/routes.ts` | Analytics API 엔드포인트 |
+
+---
+
+**문서 버전**: 2.0  
 **최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
@@ -2743,3 +2820,4 @@ curl -X POST /api/admin/disputes/1/resolve \
 | Phase 12 | 호스트 정산 배치 시스템 | ✅ 완료 |
 | Phase 13 | 계약 분할 결제 시스템 | ✅ 완료 |
 | Phase 14 | 분쟁 관리 시스템 | ✅ 완료 |
+| Phase 15 | 분석 데이터 웨어하우스 | ✅ 완료 |

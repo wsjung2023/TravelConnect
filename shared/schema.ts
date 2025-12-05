@@ -3019,3 +3019,313 @@ export const paymentTransactionsRelations = relations(paymentTransactions, ({ on
     references: [contractStages.id],
   }),
 }));
+
+// =====================================================
+// Analytics Data Warehouse - Dimension & Fact Tables
+// Phase 15: Business Intelligence Infrastructure
+// =====================================================
+
+// 날짜 차원 테이블 (Date Dimension)
+export const dimDate = pgTable('dim_date', {
+  dateKey: integer('date_key').primaryKey(), // YYYYMMDD 형식
+  fullDate: date('full_date').notNull().unique(),
+  year: integer('year').notNull(),
+  quarter: integer('quarter').notNull(), // 1-4
+  month: integer('month').notNull(), // 1-12
+  monthName: varchar('month_name', { length: 20 }).notNull(),
+  week: integer('week').notNull(), // 1-53
+  dayOfMonth: integer('day_of_month').notNull(), // 1-31
+  dayOfWeek: integer('day_of_week').notNull(), // 1-7 (일-토)
+  dayOfWeekName: varchar('day_of_week_name', { length: 20 }).notNull(),
+  dayOfYear: integer('day_of_year').notNull(), // 1-366
+  isWeekend: boolean('is_weekend').default(false),
+  isHoliday: boolean('is_holiday').default(false),
+  holidayName: varchar('holiday_name', { length: 100 }),
+  fiscalYear: integer('fiscal_year'),
+  fiscalQuarter: integer('fiscal_quarter'),
+}, (table) => [
+  index('idx_dim_date_year_month').on(table.year, table.month),
+  index('idx_dim_date_full').on(table.fullDate),
+]);
+
+// 사용자 차원 테이블 (User Dimension - SCD Type 2)
+export const dimUsers = pgTable('dim_users', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull(), // 원본 users.id
+  surrogateKey: varchar('surrogate_key', { length: 50 }).notNull().unique(),
+  username: varchar('username', { length: 100 }),
+  email: varchar('email', { length: 200 }),
+  userType: varchar('user_type', { length: 30 }), // traveler, host, influencer
+  role: varchar('role', { length: 20 }), // user, admin
+  tier: varchar('tier', { length: 20 }), // free, basic, premium
+  regionCode: varchar('region_code', { length: 50 }),
+  country: varchar('country', { length: 100 }),
+  city: varchar('city', { length: 100 }),
+  languagesSpoken: text('languages_spoken').array(),
+  verificationLevel: varchar('verification_level', { length: 20 }),
+  registrationDate: date('registration_date'),
+  // SCD Type 2 필드
+  effectiveDate: timestamp('effective_date').notNull(),
+  expirationDate: timestamp('expiration_date'),
+  isCurrent: boolean('is_current').default(true),
+  version: integer('version').default(1),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_dim_users_user_id').on(table.userId),
+  index('idx_dim_users_current').on(table.isCurrent),
+  index('idx_dim_users_type').on(table.userType),
+  index('idx_dim_users_tier').on(table.tier),
+]);
+
+// 위치 차원 테이블 (Location Dimension)
+export const dimLocations = pgTable('dim_locations', {
+  id: serial('id').primaryKey(),
+  locationKey: varchar('location_key', { length: 100 }).notNull().unique(),
+  country: varchar('country', { length: 100 }).notNull(),
+  countryCode: varchar('country_code', { length: 10 }),
+  region: varchar('region', { length: 100 }), // 주/도
+  city: varchar('city', { length: 100 }),
+  district: varchar('district', { length: 100 }), // 구/군
+  latitude: decimal('latitude', { precision: 10, scale: 7 }),
+  longitude: decimal('longitude', { precision: 10, scale: 7 }),
+  timezone: varchar('timezone', { length: 50 }),
+  population: integer('population'),
+  isMetro: boolean('is_metro').default(false), // 대도시 여부
+  touristRank: integer('tourist_rank'), // 관광지 순위
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_dim_locations_country').on(table.country),
+  index('idx_dim_locations_city').on(table.city),
+]);
+
+// 서비스 유형 차원 테이블 (Service Type Dimension)
+export const dimServiceTypes = pgTable('dim_service_types', {
+  id: serial('id').primaryKey(),
+  serviceTypeKey: varchar('service_type_key', { length: 50 }).notNull().unique(),
+  category: varchar('category', { length: 50 }).notNull(),
+  // 'experience', 'accommodation', 'transport', 'shopping', 'guide', 'translation'
+  subcategory: varchar('subcategory', { length: 50 }),
+  serviceName: varchar('service_name', { length: 100 }).notNull(),
+  serviceNameKo: varchar('service_name_ko', { length: 100 }),
+  description: text('description'),
+  isOnline: boolean('is_online').default(false), // 온라인/오프라인
+  avgDuration: integer('avg_duration'), // 평균 소요시간 (분)
+  priceRange: varchar('price_range', { length: 20 }), // low, medium, high, premium
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_dim_service_category').on(table.category),
+]);
+
+// 거래 팩트 테이블 (Transaction Fact)
+export const factTransactions = pgTable('fact_transactions', {
+  id: serial('id').primaryKey(),
+  transactionKey: varchar('transaction_key', { length: 100 }).notNull().unique(),
+  // 외래키 (차원 테이블 연결)
+  dateKey: integer('date_key').notNull(), // dim_date
+  userDimId: integer('user_dim_id'), // dim_users (구매자)
+  hostDimId: integer('host_dim_id'), // dim_users (판매자)
+  locationDimId: integer('location_dim_id'), // dim_locations
+  serviceTypeDimId: integer('service_type_dim_id'), // dim_service_types
+  // 원본 ID 참조
+  originalPaymentId: integer('original_payment_id'),
+  originalBookingId: integer('original_booking_id'),
+  originalContractId: integer('original_contract_id'),
+  originalEscrowId: integer('original_escrow_id'),
+  // 측정값 (Measures)
+  transactionType: varchar('transaction_type', { length: 30 }).notNull(),
+  // 'payment', 'refund', 'escrow_fund', 'escrow_release', 'payout', 'subscription'
+  grossAmount: decimal('gross_amount', { precision: 15, scale: 2 }).notNull(),
+  discountAmount: decimal('discount_amount', { precision: 15, scale: 2 }).default('0'),
+  netAmount: decimal('net_amount', { precision: 15, scale: 2 }).notNull(),
+  platformFee: decimal('platform_fee', { precision: 15, scale: 2 }).default('0'),
+  hostEarnings: decimal('host_earnings', { precision: 15, scale: 2 }).default('0'),
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  // 상태 및 메타데이터
+  status: varchar('status', { length: 30 }).notNull(),
+  paymentMethod: varchar('payment_method', { length: 30 }),
+  paymentGateway: varchar('payment_gateway', { length: 30 }),
+  isInternational: boolean('is_international').default(false),
+  // 시간 정보
+  transactionTimestamp: timestamp('transaction_timestamp').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_fact_trans_date').on(table.dateKey),
+  index('idx_fact_trans_type').on(table.transactionType),
+  index('idx_fact_trans_user').on(table.userDimId),
+  index('idx_fact_trans_host').on(table.hostDimId),
+  index('idx_fact_trans_status').on(table.status),
+]);
+
+// 사용자 활동 팩트 테이블 (User Activity Fact)
+export const factUserActivities = pgTable('fact_user_activities', {
+  id: serial('id').primaryKey(),
+  // 외래키
+  dateKey: integer('date_key').notNull(),
+  userDimId: integer('user_dim_id').notNull(),
+  locationDimId: integer('location_dim_id'),
+  // 활동 유형
+  activityType: varchar('activity_type', { length: 50 }).notNull(),
+  // 'login', 'post_create', 'post_view', 'post_like', 'comment', 'message_send',
+  // 'search', 'booking_view', 'experience_view', 'profile_view', 'map_interaction'
+  activitySubtype: varchar('activity_subtype', { length: 50 }),
+  // 측정값
+  activityCount: integer('activity_count').default(1),
+  durationSeconds: integer('duration_seconds'),
+  sessionId: varchar('session_id', { length: 100 }),
+  // 컨텍스트
+  targetType: varchar('target_type', { length: 30 }), // post, experience, user, etc.
+  targetId: varchar('target_id', { length: 100 }),
+  referrer: varchar('referrer', { length: 200 }),
+  deviceType: varchar('device_type', { length: 20 }), // mobile, desktop, tablet
+  platform: varchar('platform', { length: 20 }), // ios, android, web
+  // 시간 정보
+  activityTimestamp: timestamp('activity_timestamp').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_fact_activity_date').on(table.dateKey),
+  index('idx_fact_activity_user').on(table.userDimId),
+  index('idx_fact_activity_type').on(table.activityType),
+]);
+
+// 예약 팩트 테이블 (Booking Fact)
+export const factBookings = pgTable('fact_bookings', {
+  id: serial('id').primaryKey(),
+  bookingKey: varchar('booking_key', { length: 100 }).notNull().unique(),
+  // 외래키
+  dateKey: integer('date_key').notNull(), // 예약 생성일
+  serviceDateKey: integer('service_date_key'), // 서비스 제공일
+  userDimId: integer('user_dim_id').notNull(), // 예약자
+  hostDimId: integer('host_dim_id').notNull(), // 호스트
+  locationDimId: integer('location_dim_id'),
+  serviceTypeDimId: integer('service_type_dim_id'),
+  // 원본 ID
+  originalBookingId: integer('original_booking_id'),
+  originalExperienceId: integer('original_experience_id'),
+  // 측정값
+  bookingStatus: varchar('booking_status', { length: 30 }).notNull(),
+  // 'pending', 'confirmed', 'completed', 'cancelled', 'no_show'
+  guestCount: integer('guest_count').default(1),
+  totalPrice: decimal('total_price', { precision: 15, scale: 2 }).notNull(),
+  discountAmount: decimal('discount_amount', { precision: 15, scale: 2 }).default('0'),
+  finalPrice: decimal('final_price', { precision: 15, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  // 시간 메트릭
+  leadTimeDays: integer('lead_time_days'), // 예약-서비스 간 일수
+  durationMinutes: integer('duration_minutes'),
+  // 상태
+  hasReview: boolean('has_review').default(false),
+  reviewRating: decimal('review_rating', { precision: 2, scale: 1 }),
+  cancellationReason: varchar('cancellation_reason', { length: 100 }),
+  // 시간 정보
+  bookingTimestamp: timestamp('booking_timestamp').notNull(),
+  serviceTimestamp: timestamp('service_timestamp'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_fact_booking_date').on(table.dateKey),
+  index('idx_fact_booking_service_date').on(table.serviceDateKey),
+  index('idx_fact_booking_user').on(table.userDimId),
+  index('idx_fact_booking_host').on(table.hostDimId),
+  index('idx_fact_booking_status').on(table.bookingStatus),
+]);
+
+// 일별 집계 메트릭 테이블 (Daily Metrics Fact)
+export const factDailyMetrics = pgTable('fact_daily_metrics', {
+  id: serial('id').primaryKey(),
+  dateKey: integer('date_key').notNull(),
+  metricDate: date('metric_date').notNull(),
+  // 사용자 메트릭
+  dauCount: integer('dau_count').default(0), // Daily Active Users
+  newUserCount: integer('new_user_count').default(0),
+  returningUserCount: integer('returning_user_count').default(0),
+  hostActiveCount: integer('host_active_count').default(0),
+  travelerActiveCount: integer('traveler_active_count').default(0),
+  // 콘텐츠 메트릭
+  newPostCount: integer('new_post_count').default(0),
+  newCommentCount: integer('new_comment_count').default(0),
+  newLikeCount: integer('new_like_count').default(0),
+  newMessageCount: integer('new_message_count').default(0),
+  newExperienceCount: integer('new_experience_count').default(0),
+  // 거래 메트릭
+  gmv: decimal('gmv', { precision: 15, scale: 2 }).default('0'), // Gross Merchandise Value
+  totalTransactionCount: integer('total_transaction_count').default(0),
+  avgTransactionValue: decimal('avg_transaction_value', { precision: 15, scale: 2 }),
+  newBookingCount: integer('new_booking_count').default(0),
+  completedBookingCount: integer('completed_booking_count').default(0),
+  cancelledBookingCount: integer('cancelled_booking_count').default(0),
+  // 결제 메트릭
+  totalPaymentAmount: decimal('total_payment_amount', { precision: 15, scale: 2 }).default('0'),
+  refundAmount: decimal('refund_amount', { precision: 15, scale: 2 }).default('0'),
+  platformRevenue: decimal('platform_revenue', { precision: 15, scale: 2 }).default('0'),
+  hostPayoutAmount: decimal('host_payout_amount', { precision: 15, scale: 2 }).default('0'),
+  // 구독 메트릭
+  newSubscriptionCount: integer('new_subscription_count').default(0),
+  activeSubscriptionCount: integer('active_subscription_count').default(0),
+  churnedSubscriptionCount: integer('churned_subscription_count').default(0),
+  tripPassPurchaseCount: integer('trip_pass_purchase_count').default(0),
+  // 분쟁 메트릭
+  newDisputeCount: integer('new_dispute_count').default(0),
+  resolvedDisputeCount: integer('resolved_dispute_count').default(0),
+  // AI 사용 메트릭
+  aiTranslationCount: integer('ai_translation_count').default(0),
+  aiConciergeUsageCount: integer('ai_concierge_usage_count').default(0),
+  cinemapUsageCount: integer('cinemap_usage_count').default(0),
+  // 메타데이터
+  lastUpdatedAt: timestamp('last_updated_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_fact_daily_date').on(table.dateKey),
+  index('idx_fact_daily_metric_date').on(table.metricDate),
+]);
+
+// 분쟁 팩트 테이블 (Dispute Fact)
+export const factDisputes = pgTable('fact_disputes', {
+  id: serial('id').primaryKey(),
+  disputeKey: varchar('dispute_key', { length: 100 }).notNull().unique(),
+  // 외래키
+  createdDateKey: integer('created_date_key').notNull(),
+  resolvedDateKey: integer('resolved_date_key'),
+  complainantDimId: integer('complainant_dim_id').notNull(),
+  respondentDimId: integer('respondent_dim_id').notNull(),
+  locationDimId: integer('location_dim_id'),
+  // 원본 ID
+  originalDisputeId: integer('original_dispute_id'),
+  originalContractId: integer('original_contract_id'),
+  // 분쟁 속성
+  disputeType: varchar('dispute_type', { length: 50 }).notNull(),
+  priority: varchar('priority', { length: 20 }).notNull(),
+  status: varchar('status', { length: 30 }).notNull(),
+  resolutionType: varchar('resolution_type', { length: 30 }),
+  favoredParty: varchar('favored_party', { length: 20 }), // initiator, respondent, neutral
+  // 측정값
+  disputedAmount: decimal('disputed_amount', { precision: 15, scale: 2 }),
+  refundedAmount: decimal('refunded_amount', { precision: 15, scale: 2 }).default('0'),
+  resolutionTimeDays: integer('resolution_time_days'),
+  responseTimeHours: integer('response_time_hours'),
+  evidenceCount: integer('evidence_count').default(0),
+  messageCount: integer('message_count').default(0),
+  escalationCount: integer('escalation_count').default(0),
+  // SLA
+  slaMet: boolean('sla_met').default(true),
+  // 시간 정보
+  createdTimestamp: timestamp('created_timestamp').notNull(),
+  resolvedTimestamp: timestamp('resolved_timestamp'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_fact_dispute_created').on(table.createdDateKey),
+  index('idx_fact_dispute_resolved').on(table.resolvedDateKey),
+  index('idx_fact_dispute_type').on(table.disputeType),
+  index('idx_fact_dispute_status').on(table.status),
+]);
+
+// Type exports for analytics tables
+export type DimDate = typeof dimDate.$inferSelect;
+export type DimUser = typeof dimUsers.$inferSelect;
+export type DimLocation = typeof dimLocations.$inferSelect;
+export type DimServiceType = typeof dimServiceTypes.$inferSelect;
+export type FactTransaction = typeof factTransactions.$inferSelect;
+export type FactUserActivity = typeof factUserActivities.$inferSelect;
+export type FactBooking = typeof factBookings.$inferSelect;
+export type FactDailyMetric = typeof factDailyMetrics.$inferSelect;
+export type FactDispute = typeof factDisputes.$inferSelect;
