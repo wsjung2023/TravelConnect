@@ -41,6 +41,7 @@ import {
   verifyToken,
   AuthRequest,
 } from './auth';
+import { checkAiUsage, getUserAiUsageStats } from './middleware/checkAiUsage';
 import {
   insertExperienceSchema,
   insertPostSchema,
@@ -4157,7 +4158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post('/api/messages/:messageId/translate', authenticateHybrid, async (req: AuthRequest, res) => {
+  app.post('/api/messages/:messageId/translate', authenticateHybrid, checkAiUsage('translation'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -4256,7 +4257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post('/api/ai/concierge/message', authenticateToken, async (req: AuthRequest, res) => {
+  app.post('/api/ai/concierge/message', authenticateToken, checkAiUsage('ai_message'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -4364,7 +4365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post('/api/mini-concierge/generate', authenticateToken, async (req: AuthRequest, res) => {
+  app.post('/api/mini-concierge/generate', authenticateToken, checkAiUsage('concierge'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -4651,7 +4652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/cinemap/jobs', authenticateToken, async (req: AuthRequest, res) => {
+  app.post('/api/cinemap/jobs', authenticateToken, checkAiUsage('ai_message'), async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -6032,6 +6033,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error cancelling subscription:', error);
       res.status(500).json({ message: 'Failed to cancel subscription' });
+    }
+  });
+
+  // AI 사용량 조회 (Trip Pass 또는 Free tier)
+  app.get('/api/billing/usage', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const usageStats = await getUserAiUsageStats(req.user.id);
+      res.json(usageStats);
+    } catch (error) {
+      console.error('Error fetching usage stats:', error);
+      res.status(500).json({ message: 'Failed to fetch usage stats' });
     }
   });
 
