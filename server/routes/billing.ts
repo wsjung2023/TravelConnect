@@ -351,12 +351,13 @@ router.post('/confirm-payment', authenticateHybrid, requirePaymentEnv, async (re
 // 저장된 빌링 키(정기 결제용 카드 정보)를 조회합니다.
 router.get('/billing-keys', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     // getBillingKeysByUserId 메서드 사용
-    const billingKeys = await storage.getBillingKeysByUserId(req.user.id);
+    const billingKeys = await storage.getBillingKeysByUserId(userId);
     res.json(billingKeys);
   } catch (error) {
     console.error('빌링 키 조회 오류:', error);
@@ -371,14 +372,15 @@ router.get('/billing-keys', authenticateHybrid, async (req: AuthRequest, res: Re
 // 새 빌링 키를 등록합니다.
 router.post('/billing-key', authenticateHybrid, requirePaymentEnv, async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { billingKey, cardName, cardNumber, cardType } = req.body;
 
     const result = await storage.createBillingKey({
-      userId: req.user.id,
+      userId,
       billingKey,
       cardName: cardName || null,
       cardNumber: cardNumber || null,
@@ -487,6 +489,88 @@ router.get('/history', authenticateHybrid, async (req: AuthRequest, res: Respons
   } catch (error) {
     console.error('결제 내역 조회 오류:', error);
     res.status(500).json({ error: 'Failed to fetch payment history' });
+  }
+});
+
+// ============================================
+// PortOne 통합 테스트 (개발 전용)
+// ============================================
+// POST /api/billing/test-payment
+// PortOne API 연동을 테스트합니다.
+router.post('/test-payment', async (req: Request, res: Response) => {
+  try {
+    const { portoneClient } = await import('../services/portoneClient');
+    
+    // Step 1: 환경 변수 확인
+    const envCheck = {
+      PORTONE_API_SECRET: !!process.env.PORTONE_API_SECRET,
+      PORTONE_STORE_ID: !!process.env.PORTONE_STORE_ID,
+      PORTONE_CHANNEL_KEY: !!process.env.PORTONE_CHANNEL_KEY,
+      PORTONE_KAKAOPAY_CHANNEL_KEY: !!process.env.PORTONE_KAKAOPAY_CHANNEL_KEY,
+      PORTONE_PAYPAL_CHANNEL_KEY: !!process.env.PORTONE_PAYPAL_CHANNEL_KEY,
+    };
+
+    console.log('[Test] PortOne 환경 변수 확인:', envCheck);
+
+    // Step 2: PortOne 초기화
+    const isConfigured = portoneClient.isConfigured();
+    console.log('[Test] PortOne 초기화 상태:', isConfigured);
+
+    if (!isConfigured) {
+      return res.status(500).json({
+        success: false,
+        error: 'PortOne이 설정되지 않았습니다',
+        envCheck,
+      });
+    }
+
+    // Step 3: 테스트 결제 ID 생성
+    const testPaymentId = `test_payment_${Date.now()}`;
+    console.log('[Test] 테스트 결제 ID 생성:', testPaymentId);
+
+    // Step 4: 결제 조회 테스트 (존재하지 않는 결제 ID)
+    console.log('[Test] 결제 조회 테스트 시작...');
+    const getResult = await portoneClient.getPayment(testPaymentId);
+    console.log('[Test] 결제 조회 결과:', getResult);
+
+    // Step 5: 결제 취소 테스트 (존재하지 않는 결제 ID)
+    console.log('[Test] 결제 취소 테스트 시작...');
+    const cancelResult = await portoneClient.cancelPayment(
+      testPaymentId,
+      'Test cancellation',
+      1000
+    );
+    console.log('[Test] 결제 취소 결과:', cancelResult);
+
+    // 테스트 결과 반환
+    res.json({
+      success: true,
+      message: 'PortOne API 테스트 완료',
+      config: {
+        envCheck,
+        isConfigured,
+        storeId: process.env.PORTONE_STORE_ID?.substring(0, 20) + '...',
+      },
+      testResults: {
+        testPaymentId,
+        getPayment: {
+          success: getResult.success,
+          error: getResult.error,
+          errorCode: getResult.errorCode,
+        },
+        cancelPayment: {
+          success: cancelResult.success,
+          error: cancelResult.error,
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error('[Test] PortOne 테스트 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Test failed',
+      stack: error.stack,
+    });
   }
 });
 
