@@ -6052,6 +6052,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // 구독 스케줄러 API (관리자 전용)
+  // ============================================
+  
+  // 스케줄러 수동 실행 (테스트/관리자용)
+  app.post('/api/admin/scheduler/run', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // 관리자 권한 확인
+      const user = await storage.getUser(req.user.id);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      // 동적 import로 순환 참조 방지
+      const { subscriptionScheduler } = await import('./services/subscriptionScheduler');
+      const stats = await subscriptionScheduler.runDailyScheduler();
+      
+      res.json({
+        success: true,
+        message: '스케줄러 실행 완료',
+        stats
+      });
+    } catch (error) {
+      console.error('Error running scheduler:', error);
+      res.status(500).json({ message: 'Failed to run scheduler' });
+    }
+  });
+
+  // 단일 구독 수동 갱신 (테스트/관리자용)
+  app.post('/api/admin/subscription/:id/renew', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // 관리자 권한 확인
+      const user = await storage.getUser(req.user.id);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      const subscriptionId = parseInt(req.params.id);
+      if (isNaN(subscriptionId)) {
+        return res.status(400).json({ message: 'Invalid subscription ID' });
+      }
+      
+      const { subscriptionScheduler } = await import('./services/subscriptionScheduler');
+      const result = await subscriptionScheduler.manualRenew(subscriptionId);
+      
+      res.json({
+        success: result.success,
+        result
+      });
+    } catch (error) {
+      console.error('Error renewing subscription:', error);
+      res.status(500).json({ message: 'Failed to renew subscription' });
+    }
+  });
+
+  // 만료 예정 알림 발송 (테스트/관리자용)
+  app.post('/api/admin/scheduler/send-reminders', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // 관리자 권한 확인
+      const user = await storage.getUser(req.user.id);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      const { subscriptionScheduler } = await import('./services/subscriptionScheduler');
+      const sentCount = await subscriptionScheduler.sendExpirationReminders();
+      
+      res.json({
+        success: true,
+        message: `만료 예정 알림 ${sentCount}개 발송 완료`,
+        sentCount
+      });
+    } catch (error) {
+      console.error('Error sending reminders:', error);
+      res.status(500).json({ message: 'Failed to send reminders' });
+    }
+  });
+
+  // ============================================
   // Trip Pass (AI 크레딧) 관련 API
   // ============================================
   
