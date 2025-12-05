@@ -817,26 +817,114 @@ export const userTrustLevels = pgTable('user_trust_levels', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-// 분쟁 관리 시스템
+// 분쟁 관리 시스템 (Phase 14 확장)
 export const disputeCases = pgTable('dispute_cases', {
   id: serial('id').primaryKey(),
-  caseNumber: varchar('case_number', { length: 50 }).notNull().unique(),
-  complainantId: varchar('complainant_id').notNull().references(() => users.id),
-  respondentId: varchar('respondent_id').notNull().references(() => users.id),
+  caseNumber: varchar('case_number', { length: 50 }).notNull().unique(), // 'DIS-2025-00001'
+  // 관련 거래 (기존 호환 + 확장)
   relatedBookingId: integer('related_booking_id').references(() => bookings.id),
   relatedRequestId: integer('related_request_id').references(() => helpRequests.id),
-  disputeType: varchar('dispute_type', { length: 50 }).notNull(), // 'payment', 'service_quality', 'no_show', 'refund', 'communication'
+  contractId: integer('contract_id').references(() => contracts.id),
+  escrowTransactionId: integer('escrow_transaction_id').references(() => escrowTransactions.id),
+  // 당사자 (호환성 유지: complainant → initiator 별칭)
+  complainantId: varchar('complainant_id').notNull().references(() => users.id), // 분쟁 제기자
+  respondentId: varchar('respondent_id').notNull().references(() => users.id), // 상대방
+  // 분쟁 유형 (확장)
+  disputeType: varchar('dispute_type', { length: 50 }).notNull(),
+  // 'service_not_provided' → 서비스 미제공
+  // 'service_quality' → 서비스 품질 불만
+  // 'unauthorized_charge' → 무단 청구
+  // 'cancellation_refund' → 취소/환불 분쟁
+  // 'host_no_show' → 호스트 노쇼
+  // 'traveler_no_show' → 여행자 노쇼
+  // 'payment' → 결제 관련 (기존)
+  // 'communication' → 커뮤니케이션 (기존)
+  // 'other' → 기타
+  // 금액
+  disputedAmount: decimal('disputed_amount', { precision: 12, scale: 2 }),
+  currency: varchar('currency', { length: 10 }).default('KRW'),
+  // 내용
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description').notNull(),
-  evidenceFiles: text('evidence_files').array(),
-  status: varchar('status', { length: 30 }).default('open'), // 'open', 'under_review', 'resolved', 'escalated', 'closed'
+  evidenceFiles: text('evidence_files').array(), // 기존 호환
+  // 상태 (확장)
+  status: varchar('status', { length: 30 }).default('open'),
+  // 'open' → 접수됨
+  // 'under_review' → 검토 중
+  // 'evidence_requested' → 증거 요청
+  // 'awaiting_response' → 응답 대기
+  // 'mediation' → 중재 중
+  // 'escalated' → 상위 단계
+  // 'resolved_favor_initiator' → 제기자 승리
+  // 'resolved_favor_respondent' → 상대방 승리
+  // 'resolved_partial' → 부분 해결
+  // 'withdrawn' → 철회
+  // 'closed' → 종료
   priority: varchar('priority', { length: 20 }).default('normal'), // 'low', 'normal', 'high', 'urgent'
   assignedAdminId: varchar('assigned_admin_id').references(() => users.id),
-  resolutionSummary: text('resolution_summary'),
+  // 해결 정보 (확장)
+  resolutionSummary: text('resolution_summary'), // 기존 호환
+  resolutionType: varchar('resolution_type', { length: 50 }),
+  // 'full_refund' → 전액 환불
+  // 'partial_refund' → 부분 환불
+  // 'no_refund' → 환불 없음
+  // 'credit_issued' → 크레딧 발급
+  // 'service_redo' → 서비스 재제공
+  // 'mutual_agreement' → 상호 합의
+  refundAmount: decimal('refund_amount', { precision: 12, scale: 2 }),
+  // SLA (서비스 수준 협약)
+  slaDeadline: timestamp('sla_deadline'), // 응답 기한
+  slaBreached: boolean('sla_breached').default(false),
+  assignedAt: timestamp('assigned_at'),
+  // 타임라인
+  respondedAt: timestamp('responded_at'), // 상대방 응답 시점
+  resolvedAt: timestamp('resolved_at'),
+  closedAt: timestamp('closed_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-  resolvedAt: timestamp('resolved_at'),
-});
+}, (table) => [
+  index('idx_dispute_status').on(table.status),
+  index('idx_dispute_complainant').on(table.complainantId),
+  index('idx_dispute_respondent').on(table.respondentId),
+  index('idx_dispute_type').on(table.disputeType),
+  index('idx_dispute_contract').on(table.contractId),
+]);
+
+// 분쟁 증거
+export const disputeEvidence = pgTable('dispute_evidence', {
+  id: serial('id').primaryKey(),
+  disputeId: integer('dispute_id').notNull().references(() => disputeCases.id),
+  submittedBy: varchar('submitted_by').notNull().references(() => users.id),
+  evidenceType: varchar('evidence_type', { length: 30 }).notNull(),
+  // 'screenshot', 'photo', 'document', 'message_log', 'receipt', 'video', 'other'
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description'),
+  fileUrl: varchar('file_url', { length: 500 }),
+  fileType: varchar('file_type', { length: 50 }),
+  fileSize: integer('file_size'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_evidence_dispute').on(table.disputeId),
+  index('idx_evidence_submitter').on(table.submittedBy),
+]);
+
+// 분쟁 활동 로그
+export const disputeActivities = pgTable('dispute_activities', {
+  id: serial('id').primaryKey(),
+  disputeId: integer('dispute_id').notNull().references(() => disputeCases.id),
+  actorId: varchar('actor_id').notNull().references(() => users.id),
+  activityType: varchar('activity_type', { length: 50 }).notNull(),
+  // 'created', 'status_changed', 'evidence_submitted', 'comment_added', 'assigned', 'escalated', 'resolved', 'closed'
+  description: text('description'),
+  previousValue: varchar('previous_value', { length: 100 }),
+  newValue: varchar('new_value', { length: 100 }),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_activity_dispute').on(table.disputeId),
+  index('idx_activity_actor').on(table.actorId),
+]);
 
 // 온보딩 진행상황
 export const onboardingProgress = pgTable('onboarding_progress', {
@@ -924,8 +1012,24 @@ export const insertUserTrustLevelSchema = createInsertSchema(userTrustLevels).om
 
 export const insertDisputeCaseSchema = createInsertSchema(disputeCases).omit({
   id: true,
+  caseNumber: true,
+  slaBreached: true,
+  assignedAt: true,
+  respondedAt: true,
+  resolvedAt: true,
+  closedAt: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertDisputeEvidenceSchema = createInsertSchema(disputeEvidence).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDisputeActivitySchema = createInsertSchema(disputeActivities).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertOnboardingProgressSchema = createInsertSchema(onboardingProgress).omit({
@@ -949,6 +1053,10 @@ export type UserTrustLevel = typeof userTrustLevels.$inferSelect;
 export type InsertUserTrustLevel = z.infer<typeof insertUserTrustLevelSchema>;
 export type DisputeCase = typeof disputeCases.$inferSelect;
 export type InsertDisputeCase = z.infer<typeof insertDisputeCaseSchema>;
+export type DisputeEvidence = typeof disputeEvidence.$inferSelect;
+export type InsertDisputeEvidence = z.infer<typeof insertDisputeEvidenceSchema>;
+export type DisputeActivity = typeof disputeActivities.$inferSelect;
+export type InsertDisputeActivity = z.infer<typeof insertDisputeActivitySchema>;
 export type OnboardingProgress = typeof onboardingProgress.$inferSelect;
 export type InsertOnboardingProgress = z.infer<typeof insertOnboardingProgressSchema>;
 
