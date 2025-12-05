@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { usePayment } from '@/hooks/usePayment';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import BillingKeyForm from '@/components/BillingKeyForm';
 import PaymentButton from '@/components/PaymentButton';
 import {
@@ -94,6 +95,7 @@ export default function SubscriptionPage() {
   const [selectedBillingKeyId, setSelectedBillingKeyId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('billing');
   const { cancelSubscription, isLoading: paymentLoading } = usePayment();
   const queryClient = useQueryClient();
 
@@ -139,12 +141,12 @@ export default function SubscriptionPage() {
         <Card className="max-w-md mx-auto">
           <CardContent className="p-6 text-center">
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-            <h2 className="text-xl font-bold mb-2">로그인이 필요합니다</h2>
+            <h2 className="text-xl font-bold mb-2">{t('login_required')}</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              구독 관리 페이지에 접근하려면 로그인이 필요합니다.
+              {t('login_required_message')}
             </p>
             <Link href="/auth">
-              <Button data-testid="button-login-subscription">로그인하기</Button>
+              <Button data-testid="button-login-subscription">{t('login_button')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -163,17 +165,17 @@ export default function SubscriptionPage() {
           <Link href="/">
             <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back-subscription">
               <ArrowLeft className="w-4 h-4" />
-              홈으로
+              {t('back_to_home')}
             </Button>
           </Link>
         </div>
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            구독 및 결제 관리
+            {t('subscription_billing_management')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Trip Pass 구매, 구독 관리, 결제 수단을 관리하세요.
+            {t('page_description')}
           </p>
         </div>
 
@@ -181,19 +183,19 @@ export default function SubscriptionPage() {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="usage" data-testid="tab-usage">
               <BarChart3 className="w-4 h-4 mr-2" />
-              사용량
+              {t('tab_usage')}
             </TabsTrigger>
             <TabsTrigger value="plans" data-testid="tab-plans">
               <Crown className="w-4 h-4 mr-2" />
-              요금제
+              {t('tab_plans')}
             </TabsTrigger>
             <TabsTrigger value="payment" data-testid="tab-payment">
               <CreditCard className="w-4 h-4 mr-2" />
-              결제 수단
+              {t('tab_payment_methods')}
             </TabsTrigger>
             <TabsTrigger value="history" data-testid="tab-history">
               <Calendar className="w-4 h-4 mr-2" />
-              결제 내역
+              {t('tab_payment_history')}
             </TabsTrigger>
           </TabsList>
 
@@ -212,25 +214,25 @@ export default function SubscriptionPage() {
                       {usage.source === 'trip_pass' ? (
                         <>
                           <Ticket className="w-5 h-5 text-blue-500" />
-                          Trip Pass 사용량
+                          {t('trip_pass_usage')}
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-5 h-5 text-purple-500" />
-                          무료 사용량
+                          {t('free_tier_usage')}
                         </>
                       )}
                     </CardTitle>
                     {usage.validUntil && (
                       <CardDescription>
-                        유효기간: {format(new Date(usage.validUntil), 'yyyy년 M월 d일', { locale: ko })}까지
+                        {t('validity_period')}: {format(new Date(usage.validUntil), 'yyyy년 M월 d일', { locale: ko })}까지
                       </CardDescription>
                     )}
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>AI 메시지 (AI Concierge, CineMap)</span>
+                        <span>{t('ai_message_label')}</span>
                         <span className="font-medium">
                           {usage.limits.ai_message.used} / {usage.limits.ai_message.limit}
                         </span>
@@ -243,7 +245,7 @@ export default function SubscriptionPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>번역 (DM 번역)</span>
+                        <span>{t('translation_label')}</span>
                         <span className="font-medium">
                           {usage.limits.translation.used} / {usage.limits.translation.limit}
                         </span>
@@ -256,7 +258,7 @@ export default function SubscriptionPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>컨시어지 (Mini Concierge)</span>
+                        <span>{t('concierge_label')}</span>
                         <span className="font-medium">
                           {usage.limits.concierge.used} / {usage.limits.concierge.limit}
                         </span>
@@ -269,8 +271,9 @@ export default function SubscriptionPage() {
 
                     {usage.source === 'free_tier' && usage.limits.ai_message.periodEnd && (
                       <p className="text-xs text-gray-500 text-center">
-                        무료 사용량은 매월 1일 리셋됩니다. 
-                        (다음 리셋: {format(new Date(usage.limits.ai_message.periodEnd), 'yyyy년 M월 d일', { locale: ko })})
+                        {t('free_tier_reset_info', { 
+                          date: format(new Date(usage.limits.ai_message.periodEnd), 'yyyy년 M월 d일', { locale: ko })
+                        })}
                       </p>
                     )}
                   </CardContent>
@@ -282,7 +285,7 @@ export default function SubscriptionPage() {
                         onClick={() => (document.querySelector('[data-testid="tab-plans"]') as HTMLElement)?.click()}
                       >
                         <Crown className="w-4 h-4 mr-2" />
-                        Trip Pass 구매하고 더 많이 사용하기
+                        {t('purchase_trip_pass_cta')}
                       </Button>
                     </CardFooter>
                   )}
@@ -294,28 +297,28 @@ export default function SubscriptionPage() {
                       <CardTitle className="flex items-center justify-between">
                         <span className="flex items-center gap-2">
                           <Crown className="w-5 h-5 text-amber-500" />
-                          현재 구독
+                          {t('current_subscription')}
                         </span>
                         <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
-                          {subscription.status === 'active' ? '활성' : '해지 예정'}
+                          {subscription.status === 'active' ? t('status_active') : t('status_canceling')}
                         </Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">플랜</span>
+                          <span className="text-gray-600 dark:text-gray-400">{t('plan_label')}</span>
                           <span className="font-medium">{subscription.planName}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">다음 결제일</span>
+                          <span className="text-gray-600 dark:text-gray-400">{t('next_billing_date')}</span>
                           <span className="font-medium">
                             {format(new Date(subscription.currentPeriodEnd), 'yyyy년 M월 d일', { locale: ko })}
                           </span>
                         </div>
                         {subscription.cancelledAt && (
                           <div className="flex justify-between text-amber-600">
-                            <span>해지 요청일</span>
+                            <span>{t('cancellation_requested_date')}</span>
                             <span>
                               {format(new Date(subscription.cancelledAt), 'yyyy년 M월 d일', { locale: ko })}
                             </span>
@@ -328,19 +331,20 @@ export default function SubscriptionPage() {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" className="w-full text-red-500 hover:text-red-600" data-testid="button-cancel-subscription">
-                              구독 해지
+                              {t('cancel_subscription_button')}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>구독을 해지하시겠습니까?</AlertDialogTitle>
+                              <AlertDialogTitle>{t('cancel_subscription_confirm_title')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                구독을 해지하면 현재 결제 기간({format(new Date(subscription.currentPeriodEnd), 'yyyy년 M월 d일', { locale: ko })})까지 서비스를 이용할 수 있습니다.
-                                이후에는 무료 플랜으로 전환됩니다.
+                                {t('cancel_subscription_confirm_description', {
+                                  date: format(new Date(subscription.currentPeriodEnd), 'yyyy년 M월 d일', { locale: ko })
+                                })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>취소</AlertDialogCancel>
+                              <AlertDialogCancel>{t('cancel_button')}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={handleCancelSubscription}
                                 className="bg-red-500 hover:bg-red-600"
@@ -349,7 +353,7 @@ export default function SubscriptionPage() {
                                 {paymentLoading ? (
                                   <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
-                                  '해지하기'
+                                  t('confirm_cancel_button')
                                 )}
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -363,7 +367,7 @@ export default function SubscriptionPage() {
             ) : (
               <Card>
                 <CardContent className="p-6 text-center text-gray-500">
-                  사용량 정보를 불러올 수 없습니다.
+                  {t('usage_load_error')}
                 </CardContent>
               </Card>
             )}
@@ -383,7 +387,7 @@ export default function SubscriptionPage() {
                   >
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <Badge className="bg-blue-500">인기</Badge>
+                        <Badge className="bg-blue-500">{t('popular_badge')}</Badge>
                       </div>
                     )}
                     <CardHeader>
@@ -400,7 +404,7 @@ export default function SubscriptionPage() {
                           ₩{(plan.priceKrw || plan.price || 0).toLocaleString()}
                         </span>
                         <span className="text-gray-500">
-                          /{plan.type === 'subscription' ? '월' : (plan.period || '회')}
+                          /{plan.type === 'subscription' ? t('per_month') : (plan.period || t('per_time'))}
                         </span>
                       </CardDescription>
                     </CardHeader>
@@ -426,7 +430,7 @@ export default function SubscriptionPage() {
                     <CardFooter>
                       {subscription?.planId === plan.id ? (
                         <Button disabled className="w-full" variant="outline">
-                          현재 사용 중
+                          {t('currently_using')}
                         </Button>
                       ) : (
                         <PaymentButton
@@ -442,7 +446,7 @@ export default function SubscriptionPage() {
                           }}
                           className="w-full"
                         >
-                          {plan.type === 'subscription' ? '구독하기' : '구매하기'}
+                          {plan.type === 'subscription' ? t('subscribe_button') : t('purchase_button')}
                         </PaymentButton>
                       )}
                     </CardFooter>
@@ -468,13 +472,13 @@ export default function SubscriptionPage() {
             ) : paymentHistory.length === 0 ? (
               <Card>
                 <CardContent className="p-12 text-center text-gray-500">
-                  결제 내역이 없습니다.
+                  {t('no_payment_history')}
                 </CardContent>
               </Card>
             ) : (
               <Card>
                 <CardHeader>
-                  <CardTitle>결제 내역</CardTitle>
+                  <CardTitle>{t('payment_history_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -495,7 +499,7 @@ export default function SubscriptionPage() {
                             ₩{payment.amount.toLocaleString()}
                           </p>
                           <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
-                            {payment.status === 'completed' ? '완료' : payment.status}
+                            {payment.status === 'completed' ? t('status_completed') : payment.status}
                           </Badge>
                         </div>
                       </div>

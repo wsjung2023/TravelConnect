@@ -34,7 +34,7 @@ i18n
     },
     
     // Namespaces
-    ns: ['common', 'ui', 'validation', 'toast'],
+    ns: ['common', 'ui', 'validation', 'toast', 'billing'],
     defaultNS: 'common',
     
     // Interpolation

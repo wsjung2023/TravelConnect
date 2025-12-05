@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { usePayment } from '@/hooks/usePayment';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface PaymentButtonProps {
   type: 'trip_pass' | 'subscription' | 'contract';
@@ -39,6 +40,7 @@ export default function PaymentButton({
   const [processing, setProcessing] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('billing');
   const { 
     preparePayment, 
     requestPayment, 
@@ -51,8 +53,8 @@ export default function PaymentButton({
   const handlePayment = async () => {
     if (!user) {
       toast({
-        title: '로그인 필요',
-        description: '결제를 위해서는 로그인이 필요합니다.',
+        title: t('login_required'),
+        description: t('login_required_for_payment'),
         variant: 'destructive',
       });
       return;
@@ -66,7 +68,7 @@ export default function PaymentButton({
         if (result.success) {
           onSuccess?.();
         } else {
-          onError?.(result.error || '구독 처리 실패');
+          onError?.(result.error || t('subscription_processing_failed'));
         }
         return;
       }
@@ -94,7 +96,7 @@ export default function PaymentButton({
       if (paymentResponse.code) {
         const errorMsg = getErrorMessage(paymentResponse.code);
         toast({
-          title: '결제 실패',
+          title: t('payment_failed'),
           description: errorMsg,
           variant: 'destructive',
         });
@@ -115,15 +117,15 @@ export default function PaymentButton({
         );
 
         toast({
-          title: '결제 완료',
-          description: '결제가 성공적으로 완료되었습니다.',
+          title: t('payment_success_title'),
+          description: t('payment_success_description'),
         });
         onSuccess?.();
       }
     } catch (error: any) {
-      const message = error.message || '결제 처리 중 오류가 발생했습니다.';
+      const message = error.message || t('payment_processing_error');
       toast({
-        title: '결제 오류',
+        title: t('payment_error_title'),
         description: message,
         variant: 'destructive',
       });
@@ -145,12 +147,12 @@ export default function PaymentButton({
       {processing || isLoading ? (
         <>
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          결제 처리 중...
+          {t('processing_payment')}
         </>
       ) : (
         <>
           <CreditCard className="w-4 h-4 mr-2" />
-          {children || `${amount.toLocaleString()}원 결제하기`}
+          {children || t('pay_amount', { amount: amount.toLocaleString() })}
         </>
       )}
     </Button>

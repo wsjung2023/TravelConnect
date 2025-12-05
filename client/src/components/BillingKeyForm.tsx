@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { usePayment } from '@/hooks/usePayment';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import {
@@ -42,6 +43,7 @@ export default function BillingKeyForm({
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('billing');
   const queryClient = useQueryClient();
   const { requestBillingKey, registerBillingKey, isLoading } = usePayment();
 
@@ -58,8 +60,8 @@ export default function BillingKeyForm({
   const handleAddCard = async () => {
     if (!user || !config) {
       toast({
-        title: '오류',
-        description: '카드 등록을 위한 설정을 불러올 수 없습니다.',
+        title: t('error_title'),
+        description: t('card_config_load_error'),
         variant: 'destructive',
       });
       return;
@@ -79,21 +81,21 @@ export default function BillingKeyForm({
       );
 
       if (response.code) {
-        throw new Error(response.message || '카드 등록에 실패했습니다.');
+        throw new Error(response.message || t('card_registration_failed'));
       }
 
       if (response.billingKey) {
         await registerBillingKey(response.billingKey);
         queryClient.invalidateQueries({ queryKey: ['/api/billing/billing-keys'] });
         toast({
-          title: '카드 등록 완료',
-          description: '결제 카드가 성공적으로 등록되었습니다.',
+          title: t('card_registration_success_title'),
+          description: t('card_registration_success_description'),
         });
       }
     } catch (error: any) {
       toast({
-        title: '카드 등록 실패',
-        description: error.message || '카드 등록 중 오류가 발생했습니다.',
+        title: t('card_registration_error_title'),
+        description: error.message || t('card_registration_error_description'),
         variant: 'destructive',
       });
     } finally {
@@ -110,13 +112,13 @@ export default function BillingKeyForm({
       });
       queryClient.invalidateQueries({ queryKey: ['/api/billing/billing-keys'] });
       toast({
-        title: '카드 삭제 완료',
-        description: '결제 카드가 삭제되었습니다.',
+        title: t('card_deletion_success_title'),
+        description: t('card_deletion_success_description'),
       });
     } catch (error: any) {
       toast({
-        title: '카드 삭제 실패',
-        description: error.message || '카드 삭제 중 오류가 발생했습니다.',
+        title: t('card_deletion_error_title'),
+        description: error.message || t('card_deletion_error_description'),
         variant: 'destructive',
       });
     } finally {
@@ -131,13 +133,13 @@ export default function BillingKeyForm({
       });
       queryClient.invalidateQueries({ queryKey: ['/api/billing/billing-keys'] });
       toast({
-        title: '기본 카드 설정',
-        description: '기본 결제 카드가 변경되었습니다.',
+        title: t('default_card_set_title'),
+        description: t('default_card_set_description'),
       });
     } catch (error: any) {
       toast({
-        title: '설정 실패',
-        description: error.message || '기본 카드 설정 중 오류가 발생했습니다.',
+        title: t('setting_failed_title'),
+        description: error.message || t('default_card_set_error'),
         variant: 'destructive',
       });
     }
@@ -158,16 +160,16 @@ export default function BillingKeyForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
-          결제 수단 관리
+          {t('payment_method_management')}
         </CardTitle>
         <CardDescription>
-          정기결제에 사용할 카드를 등록하고 관리합니다.
+          {t('payment_method_management_description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {billingKeys.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            등록된 결제 카드가 없습니다.
+            {t('no_registered_cards')}
           </div>
         ) : (
           <div className="space-y-3">
@@ -193,7 +195,7 @@ export default function BillingKeyForm({
                       </span>
                       {card.isDefault && (
                         <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded">
-                          기본
+                          {t('default_badge')}
                         </span>
                       )}
                       {showSelection && selectedId === card.id && (
@@ -218,7 +220,7 @@ export default function BillingKeyForm({
                         }}
                         data-testid={`button-set-default-${card.id}`}
                       >
-                        기본으로
+                        {t('set_as_default')}
                       </Button>
                     )}
                     <AlertDialog>
@@ -239,18 +241,18 @@ export default function BillingKeyForm({
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>카드 삭제</AlertDialogTitle>
+                          <AlertDialogTitle>{t('delete_card_title')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            이 결제 카드를 삭제하시겠습니까? 이 카드로 진행 중인 정기결제가 있다면 먼저 해지해주세요.
+                            {t('delete_card_description')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogCancel>{t('cancel_button')}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDeleteCard(card.id)}
                             className="bg-red-500 hover:bg-red-600"
                           >
-                            삭제
+                            {t('delete_button')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -272,12 +274,12 @@ export default function BillingKeyForm({
           {isAdding || isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              카드 등록 중...
+              {t('registering_card')}
             </>
           ) : (
             <>
               <Plus className="w-4 h-4 mr-2" />
-              새 카드 등록
+              {t('register_new_card')}
             </>
           )}
         </Button>
