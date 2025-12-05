@@ -394,10 +394,80 @@ guideAmount = totalAmount - platformFee;       // 88,000원
 
 ### 9.6 테스트 체크리스트
 
-- [ ] Free tier 사용량 초과 시 402 반환
-- [ ] Free tier 사용량 정상 증가
-- [ ] Trip Pass 사용량 초과 시 402 반환
-- [ ] Trip Pass 사용량 정상 증가
-- [ ] Admin 사용자 bypass 확인
-- [ ] `/api/billing/usage` 응답 형식 확인
+- [x] Free tier 사용량 초과 시 402 반환 ✅
+- [x] Free tier 사용량 정상 증가 ✅
+- [x] Trip Pass 사용량 초과 시 402 반환 ✅
+- [x] Trip Pass 사용량 정상 증가 ✅
+- [x] Admin 사용자 bypass 확인 ✅
+- [x] `/api/billing/usage` 응답 형식 확인 ✅
 - [ ] 월별 사용량 리셋 확인
+
+### 9.7 구현 완료 (December 5, 2025)
+
+**구현 파일:**
+- `server/middleware/checkAiUsage.ts` - 사용량 체크 미들웨어
+- `server/routes.ts` - AI 엔드포인트에 미들웨어 적용
+
+**버그 수정:**
+- ~~snake_case 컬럼명 사용~~ → Drizzle ORM camelCase 컬럼 참조로 수정
+- `incrementTripPassUsage` 함수가 `userTripPasses.aiMessageUsed`, `translationUsed`, `conciergeCallsUsed` 컬럼을 올바르게 증가시키도록 수정
+
+---
+
+## 10. Phase 6: PG사 심사 준비
+
+### 10.1 목표
+
+KG이니시스/카카오페이 심사 통과를 위한 필수 페이지 및 UI 컴포넌트 구축
+
+### 10.2 필수 구현 항목
+
+| 작업 | 파일 | 우선순위 | 상태 |
+|------|------|----------|------|
+| 이용약관 페이지 | `client/src/pages/TermsPage.tsx` | 🔴 필수 | 대기 |
+| 개인정보처리방침 페이지 | `client/src/pages/PrivacyPage.tsx` | 🔴 필수 | 대기 |
+| 환불정책 페이지 | `client/src/pages/RefundPolicyPage.tsx` | 🔴 필수 | 대기 |
+| Footer 사업자 정보 추가 | `client/src/components/layout/Footer.tsx` | 🔴 필수 | 대기 |
+| 결제 전 동의 체크박스 | `client/src/components/billing/PaymentAgreement.tsx` | 🔴 필수 | 대기 |
+
+### 10.3 심사 탈락 방지 체크리스트
+
+| 항목 | 체크 | 비고 |
+|------|------|------|
+| 이용약관 제1조~제N조 형식 | [ ] | 법적 구속력 |
+| 개인정보 수집항목 명시 | [ ] | 이메일, 결제정보 등 |
+| 개인정보 보관기간 명시 | [ ] | 탈퇴 후 5년 등 |
+| 환불 7일 청약철회 명시 | [ ] | 전자상거래법 |
+| 일할 계산 환불 명시 | [ ] | |
+| 사업자등록번호 Footer | [ ] | 000-00-00000 |
+| 통신판매업신고번호 Footer | [ ] | 제0000-서울XX-0000호 |
+| 이용약관 동의 체크박스 | [ ] | 필수 |
+| 환불정책 확인 체크박스 | [ ] | 필수 |
+
+### 10.4 라우트 등록
+
+```typescript
+// App.tsx에 추가할 라우트
+<Route path="/terms" component={TermsPage} />
+<Route path="/privacy" component={PrivacyPage} />
+<Route path="/refund" component={RefundPolicyPage} />
+```
+
+### 10.5 Footer 필수 정보
+
+```
+상호명: [회사명] | 대표: [대표자명]
+사업자등록번호: 000-00-00000
+통신판매업신고: 제0000-서울XX-0000호
+주소: [사업장 주소]
+이메일: support@example.com | 전화: 02-0000-0000
+```
+
+### 10.6 테스트 체크리스트
+
+- [ ] `/terms` 페이지 접근 가능
+- [ ] `/privacy` 페이지 접근 가능
+- [ ] `/refund` 페이지 접근 가능
+- [ ] Footer에 사업자 정보 표시
+- [ ] 결제 전 동의 체크박스 작동
+- [ ] 6개 언어 지원 확인
