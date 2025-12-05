@@ -746,6 +746,208 @@ class EscrowService {
       return { success: false, error: 'Failed to get/create account' };
     }
   }
+
+  /**
+   * 에스크로 해제 및 정산 처리
+   * 서비스 완료 확인 후 가이드에게 정산금 지급
+   */
+  async releaseEscrow(
+    contractId: number,
+    approvedBy: string
+  ): Promise<EscrowResult & { payoutId?: number; guideAmount?: number; platformFee?: number }> {
+    try {
+      const contract = await db.query.contracts.findFirst({
+        where: eq(contracts.id, contractId),
+      });
+
+      if (!contract) {
+        return { success: false, error: 'Contract not found' };
+      }
+
+      if (contract.status !== 'completed') {
+        return { success: false, error: 'Contract must be completed before release' };
+      }
+
+      if (contract.travelerId !== approvedBy) {
+        return { success: false, error: 'Only the traveler can approve escrow release' };
+      }
+
+      const frozenTransactions = await db
+        .select()
+        .from(escrowTransactions)
+        .where(and(
+          eq(escrowTransactions.contractId, contractId),
+          eq(escrowTransactions.status, 'frozen')
+        ));
+
+      if (frozenTransactions.length === 0) {
+        return { success: false, error: 'No frozen funds to release' };
+      }
+
+      const totalFrozen = frozenTransactions.reduce(
+        (sum, tx) => sum + parseInt(tx.amount),
+        0
+      );
+
+      const platformFee = Math.floor(totalFrozen * this.PLATFORM_FEE_RATE);
+      const guideAmount = totalFrozen - platformFee;
+
+      await db
+        .update(escrowTransactions)
+        .set({
+          status: 'released',
+          platformFee: platformFee.toString(),
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(escrowTransactions.contractId, contractId),
+          eq(escrowTransactions.status, 'frozen')
+        ));
+
+      const [payout] = await db.insert(payouts).values({
+        hostId: contract.guideId,
+        contractId: contractId,
+        amount: guideAmount.toString(),
+        currency: 'KRW',
+        platformFee: platformFee.toString(),
+        status: 'pending',
+        payoutMethod: 'bank_transfer',
+      }).returning();
+
+      const guideAccount = await this.getOrCreateEscrowAccount(contract.guideId, 'host');
+      if (guideAccount.success && guideAccount.account) {
+        const currentPending = parseInt(guideAccount.account.pendingBalance || '0');
+        await db
+          .update(escrowAccounts)
+          .set({
+            pendingBalance: (currentPending + guideAmount).toString(),
+            updatedAt: new Date(),
+          })
+          .where(eq(escrowAccounts.id, guideAccount.account.id));
+      }
+
+      console.log(`[Escrow] Released: Contract ${contractId}, Total ${totalFrozen}, Guide ${guideAmount}, Fee ${platformFee}`);
+
+      return {
+        success: true,
+        contractId,
+        payoutId: payout.id,
+        guideAmount,
+        platformFee,
+      };
+    } catch (error) {
+      console.error('[Escrow] releaseEscrow error:', error);
+      return { success: false, error: 'Failed to release escrow' };
+    }
+  }
+
+  /**
+   * 정산금 출금 처리 (가이드 → 은행계좌)
+   */
+  async processPayoutWithdrawal(
+    payoutId: number,
+    guideId: string
+  ): Promise<EscrowResult & { withdrawnAmount?: number }> {
+    try {
+      const [payout] = await db
+        .select()
+        .from(payouts)
+        .where(and(
+          eq(payouts.id, payoutId),
+          eq(payouts.hostId, guideId)
+        ));
+
+      if (!payout) {
+        return { success: false, error: 'Payout not found or unauthorized' };
+      }
+
+      if (payout.status !== 'pending') {
+        return { success: false, error: `Payout already ${payout.status}` };
+      }
+
+      await db
+        .update(payouts)
+        .set({
+          status: 'processing',
+          processedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(payouts.id, payoutId));
+
+      const guideAccount = await this.getOrCreateEscrowAccount(guideId, 'host');
+      const payoutAmount = parseInt(payout.amount);
+      
+      if (guideAccount.success && guideAccount.account) {
+        const currentPending = parseInt(guideAccount.account.pendingBalance || '0');
+        const currentWithdrawable = parseInt(guideAccount.account.withdrawableBalance || '0');
+        
+        await db
+          .update(escrowAccounts)
+          .set({
+            pendingBalance: Math.max(0, currentPending - payoutAmount).toString(),
+            withdrawableBalance: (currentWithdrawable + payoutAmount).toString(),
+            updatedAt: new Date(),
+          })
+          .where(eq(escrowAccounts.id, guideAccount.account.id));
+      }
+
+      console.log(`[Escrow] Payout processing: ${payoutId}, Amount ${payoutAmount}`);
+
+      return {
+        success: true,
+        payoutId,
+        withdrawnAmount: payoutAmount,
+      };
+    } catch (error) {
+      console.error('[Escrow] processPayoutWithdrawal error:', error);
+      return { success: false, error: 'Failed to process payout' };
+    }
+  }
+
+  /**
+   * 정산 완료 확인 (은행 송금 완료 후)
+   */
+  async confirmPayoutCompleted(payoutId: number): Promise<EscrowResult> {
+    try {
+      await db
+        .update(payouts)
+        .set({
+          status: 'completed',
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(payouts.id, payoutId));
+
+      const [payout] = await db
+        .select()
+        .from(payouts)
+        .where(eq(payouts.id, payoutId));
+
+      if (payout) {
+        const guideAccount = await this.getOrCreateEscrowAccount(payout.hostId, 'host');
+        const payoutAmount = parseInt(payout.amount);
+        
+        if (guideAccount.success && guideAccount.account) {
+          const currentWithdrawable = parseInt(guideAccount.account.withdrawableBalance || '0');
+          
+          await db
+            .update(escrowAccounts)
+            .set({
+              withdrawableBalance: Math.max(0, currentWithdrawable - payoutAmount).toString(),
+              updatedAt: new Date(),
+            })
+            .where(eq(escrowAccounts.id, guideAccount.account.id));
+        }
+      }
+
+      console.log(`[Escrow] Payout completed: ${payoutId}`);
+
+      return { success: true, payoutId };
+    } catch (error) {
+      console.error('[Escrow] confirmPayoutCompleted error:', error);
+      return { success: false, error: 'Failed to confirm payout' };
+    }
+  }
 }
 
 export const escrowService = new EscrowService();

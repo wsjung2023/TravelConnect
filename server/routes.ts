@@ -5914,5 +5914,744 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // 구독 관련 API
+  // ============================================
+  
+  // 사용자 구독 상태 조회
+  app.get('/api/billing/subscription', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const subscription = await storage.getUserSubscription(req.user.id);
+      if (!subscription) {
+        return res.json({ subscription: null, message: 'No active subscription' });
+      }
+      
+      res.json({ subscription });
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+      res.status(500).json({ message: 'Failed to fetch subscription' });
+    }
+  });
+
+  // 구독 신청 (빌링키는 프론트엔드 SDK에서 발급)
+  app.post('/api/billing/subscription', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { planId, billingKeyId } = req.body;
+      if (!planId || !billingKeyId) {
+        return res.status(400).json({ message: 'Plan ID and billing key are required' });
+      }
+      
+      const plan = await storage.getBillingPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+      
+      if (plan.type !== 'subscription') {
+        return res.status(400).json({ message: 'This plan is not a subscription' });
+      }
+      
+      const { portoneClient } = await import('./services/portoneClient');
+      const billingResult = await portoneClient.getBillingKey(billingKeyId);
+      
+      if (!billingResult.success) {
+        return res.status(400).json({ 
+          message: 'Invalid billing key',
+          error: billingResult.error 
+        });
+      }
+      
+      const priceMonthly = plan.priceMonthlyKrw || 0;
+      if (priceMonthly > 0) {
+        const paymentId = `sub_${req.user.id}_${Date.now()}`;
+        const paymentResult = await portoneClient.createPaymentWithBillingKey({
+          paymentId,
+          billingKey: billingKeyId,
+          orderName: plan.name,
+          amount: priceMonthly,
+          currency: 'KRW',
+          customer: { id: req.user.id },
+        });
+        
+        if (!paymentResult.success) {
+          return res.status(400).json({ 
+            message: 'Initial payment failed',
+            error: paymentResult.error 
+          });
+        }
+      }
+      
+      const subscription = await storage.createUserSubscription({
+        userId: req.user.id,
+        planId: plan.id,
+        target: plan.target,
+        billingKeyId,
+        status: 'active',
+        startedAt: new Date(),
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        renewsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      });
+      
+      res.json({ 
+        success: true,
+        subscription,
+        message: 'Subscription created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      res.status(500).json({ message: 'Failed to create subscription' });
+    }
+  });
+
+  // 구독 취소
+  app.delete('/api/billing/subscription', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const subscription = await storage.getUserSubscription(req.user.id);
+      if (!subscription) {
+        return res.status(404).json({ message: 'No active subscription found' });
+      }
+      
+      await storage.cancelUserSubscription(subscription.id);
+      
+      res.json({ 
+        success: true,
+        message: 'Subscription cancelled successfully'
+      });
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      res.status(500).json({ message: 'Failed to cancel subscription' });
+    }
+  });
+
+  // ============================================
+  // Trip Pass (AI 크레딧) 관련 API
+  // ============================================
+  
+  // Trip Pass 잔액 조회
+  app.get('/api/billing/trip-pass', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const activeTripPass = await storage.getActiveTripPass(req.user.id);
+      if (!activeTripPass) {
+        return res.json({ 
+          tripPass: null,
+          message: 'No active Trip Pass',
+          usage: { ai_message: 0, translation: 0, concierge: 0 }
+        });
+      }
+      
+      res.json({ 
+        tripPass: activeTripPass,
+        usage: {
+          ai_message: activeTripPass.aiMessageUsed || 0,
+          translation: activeTripPass.translationUsed || 0,
+          concierge: activeTripPass.conciergeCallsUsed || 0,
+        },
+        limits: {
+          ai_message: activeTripPass.aiMessageLimit,
+          translation: activeTripPass.translationLimit,
+          concierge: activeTripPass.conciergeCallsLimit,
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching Trip Pass:', error);
+      res.status(500).json({ message: 'Failed to fetch Trip Pass' });
+    }
+  });
+
+  // Trip Pass 구매 (일회성 결제)
+  app.post('/api/billing/trip-pass/purchase', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { planId } = req.body;
+      if (!planId) {
+        return res.status(400).json({ message: 'Plan ID is required' });
+      }
+      
+      const plan = await storage.getBillingPlanById(planId);
+      if (!plan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+      
+      if (plan.type !== 'one_time' || plan.target !== 'traveler') {
+        return res.status(400).json({ message: 'This plan is not a valid Trip Pass' });
+      }
+      
+      const features = plan.features as { 
+        ai_limit?: number; 
+        translation_limit?: number; 
+        concierge_limit?: number;
+        valid_days?: number;
+      } | null;
+      const validDays = features?.valid_days || 365;
+      
+      const tripPass = await storage.createUserTripPass({
+        userId: req.user.id,
+        planId: plan.id,
+        validFrom: new Date(),
+        validUntil: new Date(Date.now() + validDays * 24 * 60 * 60 * 1000),
+        aiMessageLimit: features?.ai_limit || 0,
+        translationLimit: features?.translation_limit || 0,
+        conciergeCallsLimit: features?.concierge_limit || 0,
+      });
+      
+      res.json({ 
+        success: true,
+        tripPass,
+        message: 'Trip Pass purchased successfully'
+      });
+    } catch (error) {
+      console.error('Error purchasing Trip Pass:', error);
+      res.status(500).json({ message: 'Failed to purchase Trip Pass' });
+    }
+  });
+
+  // Trip Pass 사용 내역
+  app.get('/api/billing/trip-pass/history', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const tripPasses = await storage.getUserTripPasses(req.user.id);
+      res.json({ tripPasses });
+    } catch (error) {
+      console.error('Error fetching Trip Pass history:', error);
+      res.status(500).json({ message: 'Failed to fetch Trip Pass history' });
+    }
+  });
+
+  // ============================================
+  // 에스크로/계약 관련 API
+  // ============================================
+  
+  // 계약 생성
+  app.post('/api/contracts', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.createContract({
+        travelerId: req.user.id,
+        guideId: req.body.guideId,
+        title: req.body.title,
+        description: req.body.description,
+        totalAmountKrw: req.body.totalAmount,
+        serviceDate: req.body.serviceDate,
+        serviceStartTime: req.body.serviceStartTime,
+        serviceEndTime: req.body.serviceEndTime,
+        meetingPoint: req.body.meetingPoint,
+        meetingLatitude: req.body.meetingLatitude,
+        meetingLongitude: req.body.meetingLongitude,
+        cancelPolicy: req.body.cancelPolicy,
+        depositPercent: req.body.depositPercent,
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({ 
+        success: true,
+        contractId: result.contractId,
+        message: 'Contract created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating contract:', error);
+      res.status(500).json({ message: 'Failed to create contract' });
+    }
+  });
+
+  // 계약 상세 조회
+  app.get('/api/contracts/:id', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.getContract(parseInt(req.params.id));
+      
+      if (!result.success) {
+        return res.status(404).json({ message: result.error });
+      }
+      
+      const contract = result.contract;
+      if (contract.travelerId !== req.user.id && contract.guideId !== req.user.id) {
+        return res.status(403).json({ message: 'Not authorized to view this contract' });
+      }
+      
+      res.json({
+        contract: result.contract,
+        stages: result.stages,
+        transactions: result.transactions,
+      });
+    } catch (error) {
+      console.error('Error fetching contract:', error);
+      res.status(500).json({ message: 'Failed to fetch contract' });
+    }
+  });
+
+  // 사용자 계약 목록 조회
+  app.get('/api/contracts', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const role = (req.query.role as 'traveler' | 'guide') || 'traveler';
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.getUserContracts(req.user.id, role);
+      
+      if (!result.success) {
+        return res.status(500).json({ message: result.error });
+      }
+      
+      res.json({ contracts: result.contracts });
+    } catch (error) {
+      console.error('Error fetching contracts:', error);
+      res.status(500).json({ message: 'Failed to fetch contracts' });
+    }
+  });
+
+  // 계약 단계 결제 시작 (프론트엔드 결제창 오픈용)
+  app.post('/api/contracts/:id/initiate-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { stageId } = req.body;
+      if (!stageId) {
+        return res.status(400).json({ message: 'Stage ID is required' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.initiateStagePayment(
+        parseInt(req.params.id),
+        stageId,
+        req.user.id
+      );
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      const { portoneClient } = await import('./services/portoneClient');
+      const publicConfig = portoneClient.getPublicConfig();
+      
+      res.json({
+        success: true,
+        payment: {
+          paymentId: result.paymentId,
+          orderName: result.orderName,
+          amount: result.amount,
+          currency: result.currency,
+        },
+        portone: publicConfig,
+        customData: {
+          contractId: parseInt(req.params.id),
+          stageId: stageId,
+          type: 'contract_stage',
+        }
+      });
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      res.status(500).json({ message: 'Failed to initiate payment' });
+    }
+  });
+
+  // 계약 결제 완료 처리 (프론트엔드에서 결제 완료 후 호출)
+  app.post('/api/contracts/:id/confirm-payment', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { stageId, portonePaymentId } = req.body;
+      if (!stageId || !portonePaymentId) {
+        return res.status(400).json({ message: 'Stage ID and payment ID are required' });
+      }
+      
+      const { portoneClient } = await import('./services/portoneClient');
+      const paymentStatus = await portoneClient.getPayment(portonePaymentId);
+      
+      if (!paymentStatus.success || paymentStatus.status !== 'PAID') {
+        return res.status(400).json({ 
+          message: 'Payment not confirmed',
+          status: paymentStatus.status 
+        });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.handlePaymentComplete(
+        parseInt(req.params.id),
+        stageId,
+        portonePaymentId,
+        paymentStatus.amount || 0
+      );
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        transactionId: result.transactionId,
+        stageId: result.stageId,
+        message: 'Payment confirmed and contract updated'
+      });
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      res.status(500).json({ message: 'Failed to confirm payment' });
+    }
+  });
+
+  // 서비스 완료 확인 (여행자)
+  app.post('/api/contracts/:id/complete', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.confirmServiceComplete(
+        parseInt(req.params.id),
+        req.user.id
+      );
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Service completed and payout initiated'
+      });
+    } catch (error) {
+      console.error('Error completing contract:', error);
+      res.status(500).json({ message: 'Failed to complete contract' });
+    }
+  });
+
+  // 계약 취소
+  app.post('/api/contracts/:id/cancel', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.cancelContract(
+        parseInt(req.params.id),
+        req.user.id,
+        req.body.reason || 'User requested cancellation'
+      );
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        contractId: result.contractId,
+        message: 'Contract cancelled successfully'
+      });
+    } catch (error) {
+      console.error('Error cancelling contract:', error);
+      res.status(500).json({ message: 'Failed to cancel contract' });
+    }
+  });
+
+  // 분쟁 제기
+  app.post('/api/contracts/:id/dispute', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { reason, description } = req.body;
+      if (!reason) {
+        return res.status(400).json({ message: 'Dispute reason is required' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.raiseDispute(
+        parseInt(req.params.id),
+        req.user.id,
+        reason
+      );
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        contractId: result.contractId,
+        message: 'Dispute raised successfully'
+      });
+    } catch (error) {
+      console.error('Error raising dispute:', error);
+      res.status(500).json({ message: 'Failed to raise dispute' });
+    }
+  });
+
+  // 에스크로 해제 및 정산 처리 (여행자가 서비스 완료 후 승인)
+  app.post('/api/contracts/:id/release', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.releaseEscrow(
+        parseInt(req.params.id),
+        req.user.id
+      );
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        contractId: result.contractId,
+        payoutId: result.payoutId,
+        guideAmount: result.guideAmount,
+        platformFee: result.platformFee,
+        message: 'Escrow released and payout created'
+      });
+    } catch (error) {
+      console.error('Error releasing escrow:', error);
+      res.status(500).json({ message: 'Failed to release escrow' });
+    }
+  });
+
+  // 가이드 정산 내역 조회
+  app.get('/api/payouts', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.getGuidePayouts(req.user.id);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({ payouts: result.payouts });
+    } catch (error) {
+      console.error('Error fetching payouts:', error);
+      res.status(500).json({ message: 'Failed to fetch payouts' });
+    }
+  });
+
+  // 가이드 에스크로 계좌 조회
+  app.get('/api/escrow-account', authenticateHybrid, async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.getOrCreateEscrowAccount(req.user.id, 'host');
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({ account: result.account });
+    } catch (error) {
+      console.error('Error fetching escrow account:', error);
+      res.status(500).json({ message: 'Failed to fetch escrow account' });
+    }
+  });
+
+  // ============================================
+  // PortOne 웹훅 처리
+  // ============================================
+  
+  // Webhook idempotency cache (10-minute TTL for replay protection)
+  const processedWebhooks = new Map<string, number>();
+  const WEBHOOK_TTL_MS = 10 * 60 * 1000; // 10 minutes
+  
+  // Cleanup old entries periodically
+  setInterval(() => {
+    const now = Date.now();
+    for (const [id, timestamp] of processedWebhooks.entries()) {
+      if (now - timestamp > WEBHOOK_TTL_MS) {
+        processedWebhooks.delete(id);
+      }
+    }
+  }, 60 * 1000); // Every minute
+
+  // PortOne V2 웹훅 처리 (결제 완료, 취소, 빌링키 등)
+  // Raw body capture middleware for proper HMAC verification
+  app.post('/api/webhooks/portone', express.text({ type: 'application/json' }), async (req: Request, res: Response) => {
+    try {
+      const { portoneClient } = await import('./services/portoneClient');
+      const { escrowService } = await import('./services/escrowService');
+      
+      const signature = req.headers['x-portone-signature'] as string;
+      const webhookId = req.headers['x-portone-webhook-id'] as string;
+      const timestamp = req.headers['x-portone-timestamp'] as string;
+      
+      if (!signature || !webhookId || !timestamp) {
+        console.error('[Webhook] Missing required headers');
+        return res.status(400).json({ message: 'Missing required webhook headers' });
+      }
+      
+      const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+      
+      const verifyResult = portoneClient.verifyWebhookSignature(
+        rawBody, 
+        signature,
+        webhookId,
+        timestamp
+      );
+      
+      if (!verifyResult.valid) {
+        console.error(`[Webhook] Signature verification failed: ${verifyResult.error}`);
+        return res.status(401).json({ message: verifyResult.error || 'Invalid webhook signature' });
+      }
+      
+      if (processedWebhooks.has(webhookId)) {
+        console.warn(`[Webhook] Duplicate webhook detected: ${webhookId}`);
+        return res.status(200).json({ received: true, duplicate: true });
+      }
+      
+      processedWebhooks.set(webhookId, Date.now());
+      
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      
+      const { type, data } = body;
+      console.log(`[Webhook] Received event: ${type}`);
+      
+      switch (type) {
+        case 'Transaction.Paid': {
+          const { paymentId, amount, customData } = data;
+          console.log(`[Webhook] Payment confirmed: ${paymentId}, Amount: ${amount?.total}`);
+          
+          if (customData?.contractId && customData?.stageId) {
+            const result = await escrowService.handlePaymentComplete(
+              customData.contractId,
+              customData.stageId,
+              paymentId,
+              amount.total
+            );
+            if (!result.success) {
+              console.error(`[Webhook] Failed to update contract: ${result.error}`);
+            }
+          }
+          
+          if (customData?.type === 'subscription' && customData?.userId) {
+            const nextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            console.log(`[Webhook] Subscription payment for user ${customData.userId}, next billing: ${nextBillingDate}`);
+          }
+          break;
+        }
+        
+        case 'Transaction.Cancelled': {
+          const { paymentId, cancelledAmount, customData } = data;
+          console.log(`[Webhook] Payment cancelled: ${paymentId}, Refunded: ${cancelledAmount?.total}`);
+          break;
+        }
+        
+        case 'Transaction.Failed': {
+          const { paymentId, failReason, customData } = data;
+          console.error(`[Webhook] Payment failed: ${paymentId}, Reason: ${failReason}`);
+          break;
+        }
+        
+        case 'BillingKey.Issued': {
+          const { billingKey, customerId } = data;
+          console.log(`[Webhook] Billing key issued: ${billingKey?.substring(0, 20)}... for ${customerId}`);
+          break;
+        }
+        
+        case 'BillingKey.Deleted': {
+          const { billingKey, customerId } = data;
+          console.log(`[Webhook] Billing key deleted for customer: ${customerId}`);
+          break;
+        }
+        
+        default:
+          console.log(`[Webhook] Unhandled event type: ${type}`);
+      }
+      
+      res.json({ received: true });
+    } catch (error) {
+      console.error('[Webhook] Processing error:', error);
+      res.status(500).json({ message: 'Webhook processing failed' });
+    }
+  });
+
+  // ============================================
+  // 결제 내역 조회 (관리자)
+  // ============================================
+  
+  app.get('/api/admin/billing/transactions', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { userId, limit = 50 } = req.query;
+      const transactions = await storage.getPaymentTransactions(
+        userId as string || '',
+        parseInt(limit as string)
+      );
+      res.json({ transactions });
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      res.status(500).json({ message: 'Failed to fetch transactions' });
+    }
+  });
+
+  // 환불 처리 (관리자)
+  app.post('/api/admin/billing/refund', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { contractId, refundAmount, reason } = req.body;
+      if (!contractId || !refundAmount || !reason) {
+        return res.status(400).json({ message: 'Contract ID, refund amount, and reason are required' });
+      }
+      
+      const { escrowService } = await import('./services/escrowService');
+      const result = await escrowService.processRefund(contractId, refundAmount, reason);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json({
+        success: true,
+        contractId: result.contractId,
+        message: 'Refund processed successfully'
+      });
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      res.status(500).json({ message: 'Failed to process refund' });
+    }
+  });
+
   return httpServer;
 }

@@ -470,25 +470,68 @@ class PortOneClient {
   }
 
   /**
-   * Webhook 서명 검증
+   * Webhook 서명 검증 (PortOne V2 HMAC)
+   * PortOne V2 uses: HMAC-SHA256(webhook_id.timestamp.payload, secret)
+   * All headers are mandatory for replay protection
    */
-  verifyWebhookSignature(payload: string, signature: string): boolean {
+  verifyWebhookSignature(
+    payload: string, 
+    signature: string,
+    webhookId: string,
+    timestamp: string
+  ): { valid: boolean; error?: string } {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     if (!this.config?.webhookSecret) {
-      console.warn('[PortOne] Webhook secret not configured');
-      return true; // 개발 환경에서는 검증 스킵
+      if (isProduction) {
+        console.error('[PortOne] CRITICAL: Webhook secret not configured in production');
+        return { valid: false, error: 'Webhook secret required in production' };
+      }
+      console.warn('[PortOne] Webhook secret not configured - skipping verification in development');
+      return { valid: true };
+    }
+
+    if (!signature) {
+      return { valid: false, error: 'Missing x-portone-signature header' };
+    }
+    
+    if (!webhookId) {
+      return { valid: false, error: 'Missing x-portone-webhook-id header' };
+    }
+    
+    if (!timestamp) {
+      return { valid: false, error: 'Missing x-portone-timestamp header' };
     }
 
     try {
+      const timestampMs = parseInt(timestamp) * 1000;
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      if (isNaN(timestampMs) || Math.abs(now - timestampMs) > fiveMinutes) {
+        console.error('[PortOne] Webhook timestamp invalid or expired');
+        return { valid: false, error: 'Timestamp expired or invalid' };
+      }
+
       const crypto = require('crypto');
+      const signedPayload = `${webhookId}.${timestamp}.${payload}`;
+      
       const expectedSignature = crypto
         .createHmac('sha256', this.config.webhookSecret)
-        .update(payload)
+        .update(signedPayload)
         .digest('hex');
       
-      return signature === expectedSignature;
+      const signatureMatch = signature === expectedSignature || 
+                             signature === `sha256=${expectedSignature}`;
+      
+      if (!signatureMatch) {
+        console.error('[PortOne] Signature mismatch');
+        return { valid: false, error: 'Invalid signature' };
+      }
+
+      return { valid: true };
     } catch (error) {
       console.error('[PortOne] Webhook signature verification error:', error);
-      return false;
+      return { valid: false, error: 'Verification error' };
     }
   }
 }
