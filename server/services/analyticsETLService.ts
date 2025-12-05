@@ -93,8 +93,6 @@ export async function syncUserDimension(): Promise<{ synced: number; updated: nu
   const allUsers = await db.select().from(users);
 
   for (const user of allUsers) {
-    const surrogateKey = `user_${user.id}_v1`;
-
     const existing = await db.select()
       .from(dimUsers)
       .where(and(
@@ -103,28 +101,88 @@ export async function syncUserDimension(): Promise<{ synced: number; updated: nu
       ))
       .limit(1);
 
+    const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email?.split('@')[0];
+    const locationParts = user.location?.split(',').map(s => s.trim()) || [];
+    const city = locationParts[0] || null;
+    const country = locationParts[locationParts.length - 1] || null;
+
+    const verificationLevel = user.isEmailVerified ? 'email_verified' : 'basic';
+    const userTypeVal = user.userType || 'traveler';
+    const roleVal = user.role || 'user';
+    const languagesStr = JSON.stringify(user.languages || []);
+
     if (existing.length === 0) {
+      const version = 1;
+      const surrogateKey = `user_${user.id}_v${version}`;
+
       await db.insert(dimUsers).values({
         userId: user.id,
         surrogateKey,
-        username: user.username || user.email?.split('@')[0],
+        username: displayName,
         email: user.email,
-        userType: user.userType || 'traveler',
-        role: user.role || 'user',
+        userType: userTypeVal,
+        role: roleVal,
         tier: 'free',
         regionCode: user.regionCode,
-        country: user.country,
-        city: user.city,
-        languagesSpoken: user.languagesSpoken,
-        verificationLevel: user.kycVerified ? 'verified' : 'basic',
+        country,
+        city,
+        languagesSpoken: user.languages,
+        verificationLevel,
         registrationDate: user.createdAt ? user.createdAt.toISOString().split('T')[0] : null,
         effectiveDate: user.createdAt || new Date(),
         isCurrent: true,
-        version: 1,
+        version,
       });
       synced++;
     } else {
-      updated++;
+      const existingRow = existing[0];
+      const existingLanguagesStr = JSON.stringify(existingRow.languagesSpoken || []);
+
+      const hasChanged =
+        existingRow.username !== displayName ||
+        existingRow.email !== user.email ||
+        existingRow.userType !== userTypeVal ||
+        existingRow.role !== roleVal ||
+        existingRow.regionCode !== user.regionCode ||
+        existingRow.country !== country ||
+        existingRow.city !== city ||
+        existingLanguagesStr !== languagesStr ||
+        existingRow.verificationLevel !== verificationLevel;
+
+      if (hasChanged) {
+        const now = new Date();
+
+        await db.update(dimUsers)
+          .set({
+            isCurrent: false,
+            expirationDate: now,
+          })
+          .where(eq(dimUsers.id, existingRow.id));
+
+        const newVersion = (existingRow.version || 1) + 1;
+        const surrogateKey = `user_${user.id}_v${newVersion}`;
+
+        await db.insert(dimUsers).values({
+          userId: user.id,
+          surrogateKey,
+          username: displayName,
+          email: user.email,
+          userType: userTypeVal,
+          role: roleVal,
+          tier: 'free',
+          regionCode: user.regionCode,
+          country,
+          city,
+          languagesSpoken: user.languages,
+          verificationLevel,
+          registrationDate: user.createdAt ? user.createdAt.toISOString().split('T')[0] : null,
+          effectiveDate: now,
+          isCurrent: true,
+          version: newVersion,
+        });
+        synced++;
+        updated++;
+      }
     }
   }
 
@@ -136,16 +194,20 @@ export async function syncLocationDimension(): Promise<{ synced: number }> {
 
   const locations = await db.execute(sql`
     SELECT DISTINCT 
-      COALESCE(location_country, 'Unknown') as country,
-      COALESCE(location_city, 'Unknown') as city,
-      location_lat as lat,
-      location_lng as lng
+      COALESCE(location, 'Unknown') as location_name,
+      latitude as lat,
+      longitude as lng
     FROM posts 
-    WHERE location_country IS NOT NULL OR location_city IS NOT NULL
+    WHERE location IS NOT NULL AND location != ''
   `);
 
   for (const loc of locations.rows) {
-    const locationKey = `${loc.country}_${loc.city}`.replace(/\s+/g, '_').toLowerCase();
+    const locationName = (loc.location_name as string) || 'Unknown';
+    const locationParts = locationName.split(',').map(s => s.trim());
+    const city = locationParts[0] || 'Unknown';
+    const country = locationParts.length > 1 ? locationParts[locationParts.length - 1] : 'Unknown';
+    
+    const locationKey = `${country}_${city}`.replace(/\s+/g, '_').toLowerCase().substring(0, 100);
 
     const existing = await db.select()
       .from(dimLocations)
@@ -155,8 +217,8 @@ export async function syncLocationDimension(): Promise<{ synced: number }> {
     if (existing.length === 0) {
       await db.insert(dimLocations).values({
         locationKey,
-        country: loc.country as string,
-        city: loc.city as string,
+        country,
+        city,
         latitude: loc.lat as string,
         longitude: loc.lng as string,
       });
