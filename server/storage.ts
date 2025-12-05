@@ -152,6 +152,7 @@ import {
   escrowAccounts,
   payouts,
   paymentTransactions,
+  billingKeys,
   type BillingPlan,
   type InsertBillingPlan,
   type UserSubscription,
@@ -168,6 +169,8 @@ import {
   type InsertPayout,
   type PaymentTransaction,
   type InsertPaymentTransaction,
+  type BillingKey,
+  type InsertBillingKey,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, gte, asc, lte, inArray, ne } from 'drizzle-orm';
@@ -586,6 +589,13 @@ export interface IStorage {
   getPaymentTransactionByPortoneId(portonePaymentId: string): Promise<PaymentTransaction | undefined>;
   createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction>;
   updatePaymentTransactionStatus(id: number, status: string, portonePaymentId?: string): Promise<PaymentTransaction | undefined>;
+  
+  // Billing Keys (빌링키 - 정기결제용)
+  getBillingKeysByUserId(userId: string): Promise<BillingKey[]>;
+  getBillingKeyById(id: number): Promise<BillingKey | undefined>;
+  createBillingKey(data: InsertBillingKey): Promise<BillingKey>;
+  deleteBillingKey(id: number, userId: string): Promise<boolean>;
+  setDefaultBillingKey(id: number, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4378,6 +4388,75 @@ export class DatabaseStorage implements IStorage {
       .where(eq(paymentTransactions.id, id))
       .returning();
     return updated;
+  }
+
+  // Billing Keys (빌링키 - 정기결제용)
+  async getBillingKeysByUserId(userId: string): Promise<BillingKey[]> {
+    return db
+      .select()
+      .from(billingKeys)
+      .where(eq(billingKeys.userId, userId))
+      .orderBy(desc(billingKeys.createdAt));
+  }
+
+  async getBillingKeyById(id: number): Promise<BillingKey | undefined> {
+    const [billingKey] = await db
+      .select()
+      .from(billingKeys)
+      .where(eq(billingKeys.id, id));
+    return billingKey;
+  }
+
+  async createBillingKey(data: InsertBillingKey): Promise<BillingKey> {
+    // 첫 번째 빌링키인 경우 기본으로 설정
+    const existingKeys = await this.getBillingKeysByUserId(data.userId);
+    const isFirstKey = existingKeys.length === 0;
+    
+    const [created] = await db
+      .insert(billingKeys)
+      .values({ ...data, isDefault: isFirstKey })
+      .returning();
+    return created;
+  }
+
+  async deleteBillingKey(id: number, userId: string): Promise<boolean> {
+    const billingKey = await this.getBillingKeyById(id);
+    if (!billingKey || billingKey.userId !== userId) {
+      return false;
+    }
+    
+    await db.delete(billingKeys).where(eq(billingKeys.id, id));
+    
+    // 삭제된 키가 기본 키였다면, 남은 키 중 첫 번째를 기본으로 설정
+    if (billingKey.isDefault) {
+      const remainingKeys = await this.getBillingKeysByUserId(userId);
+      if (remainingKeys.length > 0) {
+        await this.setDefaultBillingKey(remainingKeys[0].id, userId);
+      }
+    }
+    
+    return true;
+  }
+
+  async setDefaultBillingKey(id: number, userId: string): Promise<boolean> {
+    const billingKey = await this.getBillingKeyById(id);
+    if (!billingKey || billingKey.userId !== userId) {
+      return false;
+    }
+    
+    // 모든 빌링키의 isDefault를 false로 설정
+    await db
+      .update(billingKeys)
+      .set({ isDefault: false, updatedAt: new Date() })
+      .where(eq(billingKeys.userId, userId));
+    
+    // 선택된 키만 기본으로 설정
+    await db
+      .update(billingKeys)
+      .set({ isDefault: true, updatedAt: new Date() })
+      .where(eq(billingKeys.id, id));
+    
+    return true;
   }
 }
 

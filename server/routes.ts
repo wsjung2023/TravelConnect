@@ -6235,38 +6235,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 빌링키 목록 조회 (Phase 7 스텁 - 추후 DB 테이블 추가 필요)
+  // 빌링키 목록 조회 (Phase 8 - DB 연동)
   app.get('/api/billing/billing-keys', authenticateHybrid, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
-      res.json([]);
+      const billingKeyList = await storage.getBillingKeysByUserId(req.user.id);
+      
+      // 빌링키를 마스킹해서 반환 (보안)
+      const maskedList = billingKeyList.map(key => ({
+        ...key,
+        billingKey: key.billingKey ? `${key.billingKey.slice(0, 8)}...${key.billingKey.slice(-4)}` : null,
+      }));
+      
+      res.json(maskedList);
     } catch (error) {
       console.error('Error fetching billing keys:', error);
       res.status(500).json({ message: 'Failed to fetch billing keys' });
     }
   });
 
-  // 빌링키 등록 (Phase 7 스텁)
+  // 빌링키 등록 (Phase 8 - DB 연동)
   app.post('/api/billing/billing-key', authenticateHybrid, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const { billingKey, cardName, cardNumber } = req.body;
+      const { billingKey, cardName, cardNumber, cardType } = req.body;
+      
+      if (!billingKey) {
+        return res.status(400).json({ message: 'Billing key is required' });
+      }
+      
+      // 카드번호는 마스킹된 형태만 허용 (예: ****-****-****-1234)
+      // 전체 카드번호(16자리 숫자)가 전달된 경우 거부
+      if (cardNumber && /^\d{13,19}$/.test(cardNumber.replace(/[-\s]/g, ''))) {
+        return res.status(400).json({ 
+          message: '전체 카드번호는 저장할 수 없습니다. 마스킹된 형태로 전달해주세요.' 
+        });
+      }
+      
+      const created = await storage.createBillingKey({
+        userId: req.user.id,
+        billingKey,
+        cardName: cardName || null,
+        cardNumber: cardNumber || null,
+        cardType: cardType || null,
+      });
+      
+      // 응답에서도 빌링키 마스킹
+      const maskedResponse = {
+        ...created,
+        billingKey: created.billingKey ? `${created.billingKey.slice(0, 8)}...${created.billingKey.slice(-4)}` : null,
+      };
       
       res.json({ 
         success: true,
-        billingKey: {
-          id: 1,
-          billingKey,
-          cardName: cardName || '카드',
-          cardNumber: cardNumber || '****',
-          isDefault: true,
-        },
-        message: 'Billing key registered'
+        billingKey: maskedResponse,
+        message: '결제 수단이 등록되었습니다'
       });
     } catch (error) {
       console.error('Error registering billing key:', error);
@@ -6274,15 +6302,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 빌링키 삭제 (Phase 7 스텁)
+  // 빌링키 삭제 (Phase 8 - DB 연동)
   app.delete('/api/billing/billing-keys/:id', authenticateHybrid, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
+      
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid billing key ID' });
+      }
+      
+      const deleted = await storage.deleteBillingKey(id, req.user.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: 'Billing key not found or unauthorized' });
+      }
+      
       res.json({ 
         success: true,
-        message: 'Billing key deleted'
+        message: '결제 수단이 삭제되었습니다'
       });
     } catch (error) {
       console.error('Error deleting billing key:', error);
@@ -6290,15 +6330,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 기본 빌링키 설정 (Phase 7 스텁)
+  // 기본 빌링키 설정 (Phase 8 - DB 연동)
   app.put('/api/billing/billing-keys/:id/default', authenticateHybrid, async (req: AuthRequest, res: Response) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
+      
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid billing key ID' });
+      }
+      
+      const updated = await storage.setDefaultBillingKey(id, req.user.id);
+      
+      if (!updated) {
+        return res.status(404).json({ message: 'Billing key not found or unauthorized' });
+      }
+      
       res.json({ 
         success: true,
-        message: 'Default billing key updated'
+        message: '기본 결제 수단이 변경되었습니다'
       });
     } catch (error) {
       console.error('Error setting default billing key:', error);

@@ -269,6 +269,21 @@ export const refunds = pgTable('refunds', {
   index('IDX_refunds_payment_id').on(table.paymentId),
 ]);
 
+// 빌링키 (정기결제용 카드 정보)
+export const billingKeys = pgTable('billing_keys', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  billingKey: text('billing_key').notNull(),           // PortOne 빌링키
+  cardName: text('card_name'),                          // 카드사명 (예: 신한카드)
+  cardNumber: text('card_number'),                      // 마스킹된 카드번호 (예: ****-****-****-1234)
+  cardType: text('card_type'),                          // 신용/체크
+  isDefault: boolean('is_default').default(false),      // 기본 결제수단 여부
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('IDX_billing_keys_user_id').on(table.userId),
+]);
+
 export const conversations = pgTable('conversations', {
   id: serial('id').primaryKey(),
   participant1Id: varchar('participant1_id')
@@ -635,6 +650,12 @@ export const insertReviewSchema = createInsertSchema(reviews, {
   createdAt: true,
 });
 
+export const insertBillingKeySchema = createInsertSchema(billingKeys).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -661,6 +682,8 @@ export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+export type InsertBillingKey = z.infer<typeof insertBillingKeySchema>;
+export type BillingKey = typeof billingKeys.$inferSelect;
 
 // 새로운 테이블들 - 업그레이드용
 

@@ -1517,7 +1517,208 @@ Tourgether 플랫폼의 모든 핵심 기능을 실제 사용자 시나리오를
 
 ---
 
-**문서 버전**: 1.1  
-**작성일**: 2024-11-26  
+---
+
+## Phase 6: PG사 심사 준비 (완료)
+
+### 테스트 시나리오: 법적 문서 및 Footer
+
+#### TC-P6-1: 법적 문서 접근 (전체 사용자)
+1. `/legal` 페이지 접속
+2. 이용약관, 개인정보처리방침, 환불정책 링크 확인
+3. 각 문서 클릭하여 내용 확인
+4. Footer에 사업자 정보 표시 확인
+
+**예상 결과:**
+- 모든 법적 문서 접근 가능
+- Footer에 사업자등록번호, 통신판매업신고번호, 대표자명 표시
+
+#### TC-P6-2: 결제 동의 체크박스 (결제 플로우)
+1. 예약 결제 페이지 접속
+2. 결제 전 동의 체크박스 확인:
+   - 이용약관 동의
+   - 개인정보처리방침 동의
+   - 환불정책 동의
+3. 모두 체크해야 결제 버튼 활성화
+
+**예상 결과:**
+- 3개 동의 체크박스 표시
+- 미체크 시 결제 버튼 비활성화
+
+**구현 완료 (December 5, 2025):**
+- `client/public/legal/refund_policy_ko.md` - 환불정책 마크다운
+- `client/src/pages/legal.tsx` - 법적 문서 뷰어
+- `client/src/components/Footer.tsx` - 사업자 정보 Footer
+- `client/src/components/PaymentAgreement.tsx` - 결제 동의 체크박스
+
+---
+
+## Phase 7: 프론트엔드 결제 통합 (완료)
+
+### 테스트 시나리오: PortOne SDK 결제
+
+#### TC-P7-1: 구독 관리 페이지 접근 (모든 사용자)
+1. `/subscription` 페이지 접속
+2. 4개 탭 확인: 사용량, 플랜, 결제 수단, 결제 내역
+3. 각 탭 전환 동작 확인
+
+**예상 결과:**
+- 구독 관리 페이지 정상 로드
+- 탭 전환 시 해당 섹션 표시
+
+#### TC-P7-2: 사용량 대시보드 (로그인 사용자)
+1. 사용량 탭 클릭
+2. AI 메시지, 번역, 컨시어지 사용량 확인
+3. 무료 한도 대비 사용량 표시
+
+**예상 결과:**
+- 현재 사용량 / 한도 표시
+- 프로그레스 바 시각화
+
+#### TC-P7-3: 플랜 선택 및 결제 (로그인 사용자)
+1. 플랜 탭 클릭
+2. Traveler Plus 플랜 선택
+3. 결제 버튼 클릭
+4. PortOne 결제창 호출 확인
+
+**예상 결과:**
+- 플랜 목록 표시 (가격, 기능)
+- 결제창 정상 호출
+
+#### TC-P7-4: 결제 수단 관리 (로그인 사용자)
+1. 결제 수단 탭 클릭
+2. 카드 추가 버튼 클릭
+3. 빌링키 발급 프로세스 확인
+4. 등록된 카드 목록 확인
+5. 기본 결제수단 설정
+6. 카드 삭제
+
+**예상 결과:**
+- 빌링키 발급 가능
+- 카드 CRUD 동작
+
+#### TC-P7-5: 결제 내역 조회 (로그인 사용자)
+1. 결제 내역 탭 클릭
+2. 최근 결제 목록 확인
+3. 결제 상세 정보 확인 (금액, 날짜, 상태)
+
+**예상 결과:**
+- 결제 내역 목록 표시
+- 상세 정보 확인 가능
+
+**구현 완료 (December 5, 2025):**
+- `client/src/hooks/usePayment.ts` - PortOne SDK 동적 로드 및 결제 훅
+- `client/src/components/PaymentButton.tsx` - 결제 버튼 컴포넌트
+- `client/src/components/BillingKeyForm.tsx` - 빌링키 발급/관리 UI
+- `client/src/pages/subscription.tsx` - 구독 관리 페이지
+
+**API 엔드포인트:**
+- `GET /api/billing/config` - PortOne 설정 정보
+- `POST /api/billing/prepare-payment` - 결제 준비
+- `POST /api/billing/confirm-payment` - 결제 완료 확인
+- `GET /api/billing/billing-keys` - 빌링키 목록 조회
+- `POST /api/billing/billing-key` - 빌링키 등록
+- `DELETE /api/billing/billing-keys/:id` - 빌링키 삭제
+- `PUT /api/billing/billing-keys/:id/default` - 기본 빌링키 설정
+- `GET /api/billing/trip-passes` - Trip Pass 목록
+- `GET /api/billing/history` - 결제 내역 조회
+
+---
+
+## Phase 8: 빌링키 DB 테이블 및 Storage 통합 (완료)
+
+### 테스트 시나리오: 빌링키 CRUD
+
+#### TC-P8-1: 빌링키 등록 (로그인 사용자)
+1. `/subscription` → 결제 수단 탭
+2. 카드 추가 클릭
+3. PortOne 빌링키 발급 진행
+4. 등록 완료 확인
+
+**예상 결과:**
+- 빌링키 DB 저장
+- 첫 번째 카드는 자동으로 기본 설정
+- API 응답에서 빌링키 마스킹 (앞 8자리...뒤 4자리)
+
+#### TC-P8-2: 빌링키 목록 조회 (로그인 사용자)
+1. `/subscription` → 결제 수단 탭
+2. 등록된 카드 목록 확인
+3. 카드사명, 마스킹된 카드번호 표시
+
+**예상 결과:**
+- 사용자의 빌링키만 조회
+- 민감 정보 마스킹 표시
+
+#### TC-P8-3: 기본 빌링키 변경 (로그인 사용자)
+1. 결제 수단 탭에서 다른 카드 선택
+2. "기본으로 설정" 클릭
+3. 기본 카드 변경 확인
+
+**예상 결과:**
+- 기존 기본 카드 해제
+- 새 카드 기본 설정
+
+#### TC-P8-4: 빌링키 삭제 (로그인 사용자)
+1. 결제 수단 탭에서 카드 삭제 클릭
+2. 확인 다이얼로그 표시
+3. 삭제 완료 확인
+4. 기본 카드 삭제 시 다음 카드로 자동 전환
+
+**예상 결과:**
+- 빌링키 DB에서 삭제
+- 기본 카드 자동 전환
+
+#### TC-P8-5: 보안 검증 (공격 시나리오)
+1. 다른 사용자의 빌링키 ID로 삭제 시도
+2. 전체 카드번호(16자리) 등록 시도
+
+**예상 결과:**
+- 다른 사용자 빌링키 접근 불가 (401/404)
+- 전체 카드번호 저장 차단 (400)
+
+**구현 완료 (December 5, 2025):**
+- `shared/schema.ts` - billingKeys 테이블 스키마
+- `server/storage.ts` - IStorage 인터페이스 확장 및 CRUD 구현
+- `server/routes.ts` - API 엔드포인트 실제 Storage 연동
+
+**billingKeys 테이블:**
+```sql
+CREATE TABLE billing_keys (
+  id SERIAL PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  billing_key TEXT NOT NULL,
+  card_name TEXT,
+  card_number TEXT,
+  card_type TEXT,
+  is_default BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**보안 기능:**
+1. 사용자 소유권 검증 - 다른 사용자의 빌링키 접근 불가
+2. 첫 번째 빌링키 자동 기본 설정
+3. 기본 빌링키 삭제 시 다음 키로 자동 전환
+4. API 응답에서 빌링키 마스킹 (앞 8자리...뒤 4자리)
+5. 전체 카드번호(16자리) 저장 차단 - 마스킹된 형태만 허용
+
+---
+
+## Phase 9: 프로덕션 배포 준비 (예정)
+
+### 체크리스트
+- [ ] 모든 환경 변수 프로덕션 값 설정
+- [ ] PORTONE_WEBHOOK_SECRET 설정
+- [ ] HTTPS 적용 확인
+- [ ] 에러 모니터링 (Sentry) 설정
+- [ ] 결제 로그 백업 정책
+- [ ] PG사 심사 제출
+- [ ] 웹훅 URL 등록: `https://[도메인]/api/webhooks/portone`
+
+---
+
+**문서 버전**: 1.2  
+**최종 수정일**: 2025-12-05  
 **작성자**: Tourgether QA Team  
 **검토자**: [TBD]
