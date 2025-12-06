@@ -98,6 +98,20 @@ export default function NotificationBell() {
           setLocation('/feed');
         }
         break;
+
+      case 'comment':
+        // 댓글 알림 - 해당 포스트로 이동
+        if (notification.relatedPostId) {
+          setLocation(`/feed?postId=${notification.relatedPostId}`);
+        } else {
+          setLocation('/feed');
+        }
+        break;
+
+      case 'timeline_followed':
+        // 타임라인 팔로우 알림 - 타임라인 페이지로 이동
+        setLocation('/timeline');
+        break;
         
       default:
         // 기본값 - 피드로 이동
@@ -120,6 +134,10 @@ export default function NotificationBell() {
         return <Heart size={16} className="text-pink-500" />;
       case 'promotion':
         return <Gift size={16} className="text-orange-500" />;
+      case 'comment':
+        return <MessageCircle size={16} className="text-blue-400" />;
+      case 'timeline_followed':
+        return <span className="text-base">🗺️</span>;
       default:
         return <Bell size={16} className="text-gray-500" />;
     }

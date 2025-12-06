@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 export interface Notification {
   id: number;
   userId: string;
-  type: 'feed' | 'help' | 'chat' | 'follow' | 'reaction' | 'promotion';
+  type: 'feed' | 'help' | 'chat' | 'follow' | 'reaction' | 'promotion' | 'comment' | 'timeline_followed';
   title: string;
   message: string;
   location?: string;
@@ -15,6 +15,7 @@ export interface Notification {
   relatedUserId?: string;
   relatedPostId?: number;
   relatedConversationId?: number;
+  relatedTimelineId?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +27,8 @@ export interface NotificationCounts {
   follow: number;
   reaction: number;
   promotion: number;
+  comment: number;
+  timeline_followed: number;
   total: number;
 }
 
@@ -48,6 +51,8 @@ export function useNotifications() {
     follow: notifications.filter(n => !n.isRead && n.type === 'follow').length,
     reaction: notifications.filter(n => !n.isRead && n.type === 'reaction').length,
     promotion: notifications.filter(n => !n.isRead && n.type === 'promotion').length,
+    comment: notifications.filter(n => !n.isRead && n.type === 'comment').length,
+    timeline_followed: notifications.filter(n => !n.isRead && n.type === 'timeline_followed').length,
     total: notifications.filter(n => !n.isRead).length,
   };
 
