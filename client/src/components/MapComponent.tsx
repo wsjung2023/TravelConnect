@@ -71,7 +71,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const longPressRef = useRef<number | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [isNearbyPanelCollapsed, setIsNearbyPanelCollapsed] = useState(false);
-  const [nearbyFilter, setNearbyFilter] = useState<'all' | 'posts' | 'experiences'>('all');
+  const [nearbyFilter, setNearbyFilter] = useState<'all' | 'posts' | 'experiences' | 'open_users'>('all');
 
   // 상태 변화 디버깅
   useEffect(() => {
@@ -568,11 +568,20 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const nearbyItems = useMemo(() => {
     if (nearbyFilter === 'posts') return nearbyPosts;
     if (nearbyFilter === 'experiences') return nearbyExperiences;
+    if (nearbyFilter === 'open_users') {
+      return (openUsers || []).map((user: any) => ({
+        ...user,
+        type: 'open_user' as const,
+        distance: user.lastLatitude && user.lastLongitude 
+          ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(user.lastLatitude), parseFloat(user.lastLongitude))
+          : 999
+      })).sort((a: any, b: any) => a.distance - b.distance);
+    }
     
     // Combine and sort by distance - 모든 아이템 표시 (제한 제거)
     return [...nearbyPosts, ...nearbyExperiences]
       .sort((a: any, b: any) => a.distance - b.distance);
-  }, [nearbyPosts, nearbyExperiences, nearbyFilter]);
+  }, [nearbyPosts, nearbyExperiences, nearbyFilter, openUsers, mapCenter]);
 
   // Determine clustering strategy based on marker count
   const shouldShowClusters = useMemo(() => {
@@ -2152,6 +2161,17 @@ const MapComponent: React.FC<MapComponentProps> = ({
               >
                 {t('filter.experiences')}
               </button>
+              <button
+                onClick={() => setNearbyFilter('open_users')}
+                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                  nearbyFilter === 'open_users'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                data-testid="nearby-filter-open-users"
+              >
+                👥 열린 사람들
+              </button>
             </div>
 
             <div className="space-y-2">
@@ -2163,28 +2183,61 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     setLocation(`/experience/${item.id}`);
                   } else if (item.type === 'post') {
                     setSelectedPost(item);
+                  } else if (item.type === 'open_user') {
+                    setLocation(`/profile/${item.id}`);
                   }
                 }}
                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                 data-testid={`card-${item.type}-${item.id}`}
               >
-                {item.images && item.images[0] && (
-                  <SmartImage
-                    src={item.images[0]}
-                    alt={item.title || 'Experience'}
-                    className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                  />
+                {item.type === 'open_user' ? (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0 relative">
+                    {item.profileImageUrl ? (
+                      <SmartImage
+                        src={item.profileImageUrl}
+                        alt={item.firstName || 'User'}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl text-white">👤</span>
+                    )}
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+                      <span className="text-xs">✓</span>
+                    </div>
+                  </div>
+                ) : (
+                  item.images && item.images[0] && (
+                    <SmartImage
+                      src={item.images[0]}
+                      alt={item.title || 'Experience'}
+                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                    />
+                  )
                 )}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate">{item.title || t('mapPage.untitled')}</h4>
-                  <p className="text-xs text-gray-500 truncate">{item.location || t('mapPage.unknownLocation')}</p>
-                  {item.distance !== undefined && (
-                    <p className="text-xs text-gray-400">{item.distance.toFixed(1)} km</p>
-                  )}
-                  {item.price && (
-                    <p className="text-xs font-semibold text-purple-600 mt-1">
-                      ${Number(item.price).toFixed(2)} {item.currency && item.currency !== 'USD' ? item.currency : ''}
-                    </p>
+                  {item.type === 'open_user' ? (
+                    <>
+                      <h4 className="font-medium text-sm truncate">{item.firstName} {item.lastName || ''}</h4>
+                      <p className="text-xs text-green-600 font-medium">🟢 Open to meet</p>
+                      {item.bio && <p className="text-xs text-gray-500 truncate mt-1">{item.bio}</p>}
+                      {item.regionCode && <p className="text-xs text-gray-400">📍 {item.regionCode}</p>}
+                      {item.distance !== undefined && item.distance < 999 && (
+                        <p className="text-xs text-gray-400">{item.distance.toFixed(1)} km away</p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-medium text-sm truncate">{item.title || t('mapPage.untitled')}</h4>
+                      <p className="text-xs text-gray-500 truncate">{item.location || t('mapPage.unknownLocation')}</p>
+                      {item.distance !== undefined && (
+                        <p className="text-xs text-gray-400">{item.distance.toFixed(1)} km</p>
+                      )}
+                      {item.price && (
+                        <p className="text-xs font-semibold text-purple-600 mt-1">
+                          ${Number(item.price).toFixed(2)} {item.currency && item.currency !== 'USD' ? item.currency : ''}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
