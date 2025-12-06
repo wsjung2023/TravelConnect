@@ -1148,7 +1148,7 @@ export const notifications = pgTable('notifications', {
   userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
-  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion', 'comment'] })
+  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion', 'comment', 'timeline_followed'] })
     .notNull(),
   title: varchar('title').notNull(),
   message: text('message').notNull(),
@@ -1157,6 +1157,7 @@ export const notifications = pgTable('notifications', {
   relatedUserId: varchar('related_user_id').references(() => users.id), // 알림과 관련된 사용자 (좋아요를 한 사람, 메시지를 보낸 사람 등)
   relatedPostId: integer('related_post_id').references(() => posts.id), // 관련된 포스트
   relatedConversationId: integer('related_conversation_id').references(() => conversations.id), // 관련된 대화
+  relatedTimelineId: integer('related_timeline_id').references(() => timelines.id), // 관련된 타임라인 (여행 복제 시)
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [
