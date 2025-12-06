@@ -263,6 +263,21 @@ router.post('/trips/:id/clone', authenticateToken, apiLimiter, async (req: any, 
 
     // 여행 계획 복제
     const clonedTrip = await storage.cloneTrip(tripId, req.user.id);
+
+    // 원작자에게 알림 보내기 (자신의 여행을 복제한 경우 제외)
+    if (originalTrip.userId !== req.user.id) {
+      const cloner = await storage.getUser(req.user.id);
+
+      await storage.createNotification({
+        userId: originalTrip.userId,
+        type: 'timeline_followed',
+        title: 'Someone followed your trip!',
+        message: `${cloner?.firstName || 'A traveler'} saved your trip plan: "${originalTrip.title}"`,
+        relatedUserId: req.user.id,
+        relatedTimelineId: tripId,
+      });
+    }
+
     res.status(201).json(clonedTrip);
   } catch (error) {
     console.error('여행 계획 복제 오류:', error);
