@@ -2184,7 +2184,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   } else if (item.type === 'post') {
                     setSelectedPost(item);
                   } else if (item.type === 'open_user') {
-                    setLocation(`/profile/${item.id}`);
+                    setLocation(`/profile?userId=${item.id}`);
                   }
                 }}
                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"

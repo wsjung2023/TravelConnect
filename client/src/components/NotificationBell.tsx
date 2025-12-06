@@ -157,6 +157,10 @@ export default function NotificationBell() {
         return t('notification.reaction');
       case 'promotion':
         return t('notification.promotion');
+      case 'comment':
+        return t('notification.comment');
+      case 'timeline_followed':
+        return t('notification.timeline_followed');
       default:
         return t('notification.title');
     }
