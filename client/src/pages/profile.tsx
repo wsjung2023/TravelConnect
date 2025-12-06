@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, useSearch } from 'wouter';
 import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,12 +25,31 @@ import { Seo } from '@/components/Seo';
 import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
+  const searchParams = new URLSearchParams(useSearch());
+  const viewingUserId = searchParams.get('userId');
+  const isViewingOwnProfile = !viewingUserId || viewingUserId === currentUser?.id;
+  
   const [activeTab, setActiveTab] = useState('posts');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const { t } = useTranslation('ui');
+
+  // Fetch profile data for the user being viewed
+  const { data: profileUser } = useQuery({
+    queryKey: ['/api/users', viewingUserId],
+    queryFn: async () => {
+      if (!viewingUserId) return currentUser;
+      const response = await fetch(`/api/users/${viewingUserId}`);
+      if (!response.ok) throw new Error('Failed to fetch user profile');
+      return response.json();
+    },
+    enabled: !!viewingUserId,
+  });
+
+  // Use either the fetched profile or current user
+  const user = viewingUserId ? profileUser : currentUser;
 
   // Help Request Form 상태
   const [showHelpRequestForm, setShowHelpRequestForm] = useState(false);
@@ -227,26 +246,47 @@ export default function Profile() {
     },
   });
 
+  const effectiveUserId = viewingUserId || currentUser?.id;
+
   const { data: posts = [] } = useQuery<any[]>({
-    queryKey: ['/api/posts', 'user'],
+    queryKey: ['/api/posts', 'user', effectiveUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/posts?userId=${effectiveUserId}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!effectiveUserId,
   });
 
   const { data: trips = [] } = useQuery<any[]>({
-    queryKey: ['/api/trips'],
+    queryKey: ['/api/trips', effectiveUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/trips?userId=${effectiveUserId}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!effectiveUserId,
   });
 
   const { data: experiences = [] } = useQuery<any[]>({
-    queryKey: ['/api/host/experiences'],
+    queryKey: ['/api/host/experiences', effectiveUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/host/experiences?userId=${effectiveUserId}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!effectiveUserId,
   });
 
   const { data: bookings = [] } = useQuery<any[]>({
-    queryKey: ['/api/bookings'],
+    queryKey: ['/api/bookings', effectiveUserId],
+    enabled: isViewingOwnProfile && !!effectiveUserId,
   });
 
   // 실제 팔로우 데이터 가져오기
   const { data: followCounts = { followers: 0, following: 0 } } = useQuery<{ followers: number; following: number }>({
-    queryKey: ['/api/users', user?.id, 'follow-counts'],
-    enabled: !!user?.id,
+    queryKey: ['/api/users', effectiveUserId, 'follow-counts'],
+    enabled: !!effectiveUserId,
   });
 
   const stats = {
@@ -280,8 +320,8 @@ export default function Profile() {
           </Button>
         </div>
 
-        {/* 설정 아이콘 (관리자 전용, 오른쪽 상단) */}
-        {user?.role === 'admin' && (
+        {/* 설정 아이콘 (관리자 전용, 오른쪽 상단, 자기 프로필만) */}
+        {isViewingOwnProfile && user?.role === 'admin' && (
           <div className="absolute top-4 right-4">
             <Button 
               variant="ghost" 
@@ -322,7 +362,7 @@ export default function Profile() {
             <Badge className="bg-gradient-to-r from-primary to-secondary text-white mb-4">
               {t('profile.verifiedHost')}
             </Badge>
-          ) : (
+          ) : isViewingOwnProfile ? (
             <Button
               onClick={() => applyHostMutation.mutate()}
               disabled={applyHostMutation.isPending}
@@ -332,18 +372,21 @@ export default function Profile() {
               <Briefcase className="w-4 h-4 mr-2" />
               {applyHostMutation.isPending ? t('profile.applying') : t('profile.becomeHost')}
             </Button>
+          ) : null}
+
+          {isViewingOwnProfile && (
+            <Button
+              onClick={() => setShowHelpRequestForm(true)}
+              className="mb-4 bg-blue-600 hover:bg-blue-700 text-white"
+              data-testid="button-open-help-request"
+            >
+              <HelpCircle className="w-4 h-4 mr-2" />
+              {t('profile.requestHelp')}
+            </Button>
           )}
 
-          <Button
-            onClick={() => setShowHelpRequestForm(true)}
-            className="mb-4 bg-blue-600 hover:bg-blue-700 text-white"
-            data-testid="button-open-help-request"
-          >
-            <HelpCircle className="w-4 h-4 mr-2" />
-            {t('profile.requestHelp')}
-          </Button>
-
-          {/* 만남 상태 토글 */}
+          {/* 만남 상태 토글 - 자기 프로필만 */}
+          {isViewingOwnProfile && (
           <div className="mb-4 p-4 bg-white/50 rounded-lg border backdrop-blur-sm">
             <div className="flex items-center gap-3 mb-3">
               <Users size={18} className="text-primary" />
@@ -412,14 +455,17 @@ export default function Profile() {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Serendipity Protocol 토글 */}
+          {/* Serendipity Protocol 토글 - 자기 프로필만 */}
+          {isViewingOwnProfile && (
           <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 backdrop-blur-sm">
             <SerendipityToggle />
           </div>
+          )}
 
-          {/* Portfolio Mode 토글 - 인플루언서만 */}
-          {user?.userType === 'influencer' && (
+          {/* Portfolio Mode 토글 - 인플루언서 & 자기 프로필만 */}
+          {isViewingOwnProfile && user?.userType === 'influencer' && (
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 backdrop-blur-sm">
               <div className="flex items-center gap-3 mb-3">
                 <Sparkles size={18} className="text-purple-600" />
@@ -498,14 +544,16 @@ export default function Profile() {
             </div>
           )}
 
-          <Button 
-            className="travel-button-outline"
-            onClick={() => setShowProfileEditModal(true)}
-            data-testid="button-edit-profile"
-          >
-            <Edit3 size={16} className="mr-2" />
-            {t('profileEdit.title')}
-          </Button>
+          {isViewingOwnProfile && (
+            <Button 
+              className="travel-button-outline"
+              onClick={() => setShowProfileEditModal(true)}
+              data-testid="button-edit-profile"
+            >
+              <Edit3 size={16} className="mr-2" />
+              {t('profileEdit.title')}
+            </Button>
+          )}
         </div>
       </div>
 

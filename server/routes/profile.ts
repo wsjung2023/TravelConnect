@@ -318,6 +318,44 @@ router.get('/users/open', async (req: Request, res: Response) => {
 });
 
 // ============================================
+// 사용자 정보 조회 (by ID)
+// ============================================
+// GET /api/users/:id
+// 특정 사용자의 공개 프로필 정보를 조회합니다.
+router.get('/users/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const user = await storage.getUser(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 공개 정보만 반환
+    res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      bio: user.bio,
+      profileImageUrl: user.profileImageUrl,
+      location: user.location,
+      languages: user.languages,
+      interests: user.interests,
+      userType: user.userType,
+      isHost: user.isHost,
+      openToMeet: user.openToMeet,
+      openUntil: user.openUntil,
+      portfolioMode: user.portfolioMode,
+      publicProfileUrl: user.publicProfileUrl,
+    });
+  } catch (error) {
+    console.error('사용자 정보 조회 오류:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+// ============================================
 // 호스트 신청
 // ============================================
 // POST /api/user/apply-host
