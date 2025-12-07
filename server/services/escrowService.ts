@@ -290,10 +290,6 @@ class EscrowService {
         return { success: false, error: 'Contract not found or unauthorized' };
       }
 
-      if (contract.status !== 'confirmed' && contract.status !== 'in_progress') {
-        return { success: false, error: 'Contract is not ready for payment' };
-      }
-
       const [stage] = await db
         .select()
         .from(contractStages)
@@ -308,6 +304,14 @@ class EscrowService {
 
       if (stage.status !== 'pending') {
         return { success: false, error: 'Payment stage is not pending' };
+      }
+
+      // Allow deposit payment even in 'pending' contract status
+      // For other stages, require confirmed or in_progress status
+      if (stage.name !== 'deposit' && 
+          contract.status !== 'confirmed' && 
+          contract.status !== 'in_progress') {
+        return { success: false, error: 'Contract is not ready for payment' };
       }
 
       // 결제 ID 생성
