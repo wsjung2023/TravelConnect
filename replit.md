@@ -118,3 +118,45 @@ Preferred communication style: Simple, everyday language.
 - **Radix UI**: Accessible component primitives
 - **Tailwind CSS**: Utility-first styling framework
 - **Class Variance Authority**: Component variant management
+
+## Critical Development Lessons
+
+### Nearby Experiences Panel Scroll Issue (2025-12-07)
+
+**Problem**: Map 화면 하단의 "Nearby Experiences" 패널에서 스크롤이 작동하지 않고 1개 아이템만 표시됨.
+
+**Root Cause**: 
+Flexbox의 `flex-1` 속성은 **부모 컨테이너에 명시적인 높이가 없으면 실제 브라우저에서 작동하지 않음**. 
+- 부모 컨테이너: `max-h-[80vh]` (최대 높이만 지정, 실제 높이 없음)
+- 자식 컨테이너: `flex-1 min-h-0` (부모 높이에 의존)
+- 결과: 자식이 intrinsic content height (1개 아이템 높이)로 축소되어 스크롤 불가
+
+**Failed Attempts**:
+1. `flex-1 min-h-0` + `overflow-y-auto` 추가 → 패널이 80vh 전체로 확장되어 지도를 가림
+2. `max-h-[50vh]` 제한 → 1개만 보이고 스크롤 안됨 (flex 확장 안됨)
+3. `max-h-[65vh]` 증가 → 동일 문제 (flex 확장 안됨)
+
+**Solution**:
+펼쳐진 패널에 **명시적인 높이** 지정:
+```tsx
+{!isNearbyPanelCollapsed && (
+  <div className="flex flex-col h-[50vh]">  {/* 명시적 높이 */}
+    <div className="flex gap-2 mb-3 flex-shrink-0">
+      {/* Filter Buttons */}
+    </div>
+    <div className="flex-1 min-h-0 overflow-y-auto" 
+         style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'contain' }}>
+      {/* Scrollable Items */}
+    </div>
+  </div>
+)}
+```
+
+**Key Takeaways**:
+- ⚠️ **Flexbox `flex-1` requires explicit parent height**: `max-h` alone is insufficient
+- ✅ Use `h-[XXvh]` for explicit height when content needs to expand/scroll
+- ✅ Add `flex-shrink-0` to fixed-size children (filter buttons)
+- ✅ iOS scroll requires `-webkit-overflow-scrolling: touch`
+- ⚠️ **Testing caveat**: Automated tests may pass even when UI is broken (synthetic events can manipulate DOM without proper visual rendering)
+
+**Cost**: Multiple hours of debugging, workflow restarts, and token usage due to misunderstanding flexbox height resolution in real browsers.
