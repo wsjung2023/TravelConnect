@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Camera, MapPin, Image } from 'lucide-react';
+import { X, Camera, MapPin, Image, Video, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -37,11 +37,19 @@ export default function CreatePostModal({
   const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [theme, setTheme] = useState('');
   const [images, setImages] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [exifData, setExifData] = useState<ExifData[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
+  const [exifData, setExifData] = useState<Map<string, ExifData>>(new Map());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation('ui');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  
+  // Track new files by their blob URL (key = blob URL, value = File)
+  const imageFilesMapRef = useRef<Map<string, File>>(new Map());
+  const videoFilesMapRef = useRef<Map<string, File>>(new Map());
 
   useEffect(() => {
     if (editPost) {
@@ -50,12 +58,17 @@ export default function CreatePostModal({
       setLocation(editPost.location || '');
       setTheme(editPost.theme || '');
       setImages(editPost.images || []);
+      setVideos(editPost.videos || []);
       if (editPost.latitude && editPost.longitude) {
         setLocationCoords({
           lat: parseFloat(editPost.latitude),
           lng: parseFloat(editPost.longitude),
         });
       }
+      // Clear file maps when editing existing post
+      imageFilesMapRef.current.clear();
+      videoFilesMapRef.current.clear();
+      setExifData(new Map());
     } else {
       setTitle('');
       setContent('');
@@ -70,8 +83,10 @@ export default function CreatePostModal({
       );
       setTheme('');
       setImages([]);
-      setImageFiles([]);
-      setExifData([]);
+      setVideos([]);
+      setExifData(new Map());
+      imageFilesMapRef.current.clear();
+      videoFilesMapRef.current.clear();
     }
   }, [editPost, initialLocation, isOpen]);
 
@@ -132,8 +147,10 @@ export default function CreatePostModal({
     setLocationCoords(null);
     setTheme('');
     setImages([]);
-    setImageFiles([]);
-    setExifData([]);
+    setVideos([]);
+    setExifData(new Map());
+    imageFilesMapRef.current.clear();
+    videoFilesMapRef.current.clear();
   };
 
   // EXIF 데이터 추출 함수
@@ -171,25 +188,83 @@ export default function CreatePostModal({
     }
   };
 
-  // 파일 선택 처리
+  // 이미지 파일 선택 처리
   const handleFileSelect = async (files: FileList) => {
     const fileArray = Array.from(files);
     const newImages: string[] = [];
-    const newExifData: ExifData[] = [];
+    const newExifEntries: [string, ExifData][] = [];
 
     for (const file of fileArray) {
       // 이미지 미리보기 URL 생성
       const imageUrl = URL.createObjectURL(file);
       newImages.push(imageUrl);
+      
+      // Store file in map with blob URL as key
+      imageFilesMapRef.current.set(imageUrl, file);
 
       // EXIF 데이터 추출
       const exif = await extractExifData(file);
-      newExifData.push(exif);
+      newExifEntries.push([imageUrl, exif]);
     }
 
     setImages([...images, ...newImages]);
-    setImageFiles([...imageFiles, ...fileArray]);
-    setExifData([...exifData, ...newExifData]);
+    setExifData(prev => {
+      const next = new Map(prev);
+      newExifEntries.forEach(([url, data]) => next.set(url, data));
+      return next;
+    });
+  };
+
+  // 비디오 파일 선택 처리
+  const handleVideoSelect = (files: FileList) => {
+    const fileArray = Array.from(files);
+    const newVideos: string[] = [];
+
+    for (const file of fileArray) {
+      // 비디오 크기 체크 (15MB 제한)
+      if (file.size > 15 * 1024 * 1024) {
+        toast({
+          title: t('post.videoTooLarge') || 'Video too large',
+          description: t('post.videoTooLargeDesc') || 'Maximum video size is 15MB',
+          variant: 'destructive',
+        });
+        continue;
+      }
+      const videoUrl = URL.createObjectURL(file);
+      newVideos.push(videoUrl);
+      
+      // Store file in map with blob URL as key
+      videoFilesMapRef.current.set(videoUrl, file);
+    }
+
+    setVideos([...videos, ...newVideos]);
+  };
+
+  // 이미지 삭제 처리 (uses blob URL to identify new vs existing)
+  const handleRemoveImage = (url: string) => {
+    setImages(images.filter(img => img !== url));
+    
+    // If it's a blob URL (new file), remove from file map and revoke URL
+    if (url.startsWith('blob:')) {
+      imageFilesMapRef.current.delete(url);
+      setExifData(prev => {
+        const next = new Map(prev);
+        next.delete(url);
+        return next;
+      });
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // 비디오 삭제 처리 (uses blob URL to identify new vs existing)
+  const handleRemoveVideo = (url: string) => {
+    setVideos(videos.filter(vid => vid !== url));
+    
+    // If it's a blob URL (new file), remove from file map and revoke URL
+    if (url.startsWith('blob:')) {
+      videoFilesMapRef.current.delete(url);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -227,7 +302,7 @@ export default function CreatePostModal({
     let bestLatitude: number | null = null;
     let bestLongitude: number | null = null;
 
-    for (const exif of exifData) {
+    exifData.forEach((exif) => {
       if (exif.takenAt) {
         if (!earliestTakenAt || exif.takenAt < earliestTakenAt) {
           earliestTakenAt = exif.takenAt;
@@ -237,15 +312,21 @@ export default function CreatePostModal({
         bestLatitude = exif.latitude;
         bestLongitude = exif.longitude;
       }
-    }
+    });
 
-    // 이미지 파일 업로드
+    // Get files to upload from Maps
+    const imageFilesToUpload = Array.from(imageFilesMapRef.current.values());
+    const videoFilesToUpload = Array.from(videoFilesMapRef.current.values());
+
+    // 이미지/비디오 파일 업로드
     let uploadedImageUrls: string[] = [];
-    let uploadedMediaFiles: any[] = [];
-    if (imageFiles.length > 0) {
+    let uploadedVideoUrls: string[] = [];
+    
+    // 새 이미지 파일 업로드
+    if (imageFilesToUpload.length > 0) {
       try {
         const formData = new FormData();
-        imageFiles.forEach(file => {
+        imageFilesToUpload.forEach(file => {
           formData.append('files', file);
         });
 
@@ -255,7 +336,6 @@ export default function CreatePostModal({
         });
 
         uploadedImageUrls = uploadResponse.files.map((file: any) => file.url);
-        uploadedMediaFiles = uploadResponse.files;
       } catch (error) {
         console.error('이미지 업로드 실패:', error);
         toast({
@@ -267,16 +347,53 @@ export default function CreatePostModal({
       }
     }
 
+    // 새 비디오 파일 업로드
+    if (videoFilesToUpload.length > 0) {
+      try {
+        const formData = new FormData();
+        videoFilesToUpload.forEach(file => {
+          formData.append('files', file);
+        });
+
+        const uploadResponse = await api('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        uploadedVideoUrls = uploadResponse.files.map((file: any) => file.url);
+      } catch (error) {
+        console.error('비디오 업로드 실패:', error);
+        toast({
+          title: t('post.videoUploadFailed') || 'Video upload failed',
+          description: t('post.videoUploadFailedDesc') || 'Failed to upload video. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    // 수정 모드: 기존 서버 URL (blob:// 아닌 것들) + 새로 업로드된 URL
+    // 새 게시글 모드: 업로드된 URL만
+    const existingServerImages = isEditMode 
+      ? images.filter(url => !url.startsWith('blob:'))
+      : [];
+    const existingServerVideos = isEditMode 
+      ? videos.filter(url => !url.startsWith('blob:'))
+      : [];
+    
+    const finalImages = [...existingServerImages, ...uploadedImageUrls];
+    const finalVideos = [...existingServerVideos, ...uploadedVideoUrls];
+
     const post = {
       title,
       content,
       location: location || undefined,
       theme,
-      images: uploadedImageUrls.length > 0 ? uploadedImageUrls : (isEditMode ? images : undefined),
+      images: finalImages.length > 0 ? finalImages : undefined,
+      videos: finalVideos.length > 0 ? finalVideos : undefined,
       takenAt: earliestTakenAt || undefined,
       latitude: locationCoords?.lat?.toString() || bestLatitude?.toString(),
       longitude: locationCoords?.lng?.toString() || bestLongitude?.toString(),
-      mediaFiles: uploadedMediaFiles.length > 0 ? uploadedMediaFiles : undefined,
     };
 
     if (isEditMode) {
@@ -374,44 +491,158 @@ export default function CreatePostModal({
             />
           </div>
 
-          {/* Image Upload */}
+          {/* Media Upload Section */}
           <div className="mt-4">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
               <Image size={16} />
-              <span>{t('post.addPhoto')}</span>
+              <span>{t('post.addMedia') || 'Add Photos & Videos'}</span>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              <label className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
-                <Camera size={24} className="text-gray-400" />
+            
+            {/* Upload Buttons */}
+            <div className="flex gap-2 mb-3 flex-wrap">
+              {/* Gallery Button - 갤러리에서 이미지/비디오 선택 */}
+              <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
+                <Image size={18} className="text-gray-500" />
+                <span className="text-gray-600">{t('post.gallery') || 'Gallery'}</span>
                 <input
+                  ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   multiple
-                  onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const files = Array.from(e.target.files);
+                      const imageFilesToAdd: File[] = [];
+                      const videoFilesToAdd: File[] = [];
+                      
+                      files.forEach(file => {
+                        if (file.type.startsWith('image/')) {
+                          imageFilesToAdd.push(file);
+                        } else if (file.type.startsWith('video/')) {
+                          videoFilesToAdd.push(file);
+                        }
+                      });
+                      
+                      if (imageFilesToAdd.length > 0) {
+                        const fileList = new DataTransfer();
+                        imageFilesToAdd.forEach(f => fileList.items.add(f));
+                        handleFileSelect(fileList.files);
+                      }
+                      if (videoFilesToAdd.length > 0) {
+                        const fileList = new DataTransfer();
+                        videoFilesToAdd.forEach(f => fileList.items.add(f));
+                        handleVideoSelect(fileList.files);
+                      }
+                    }
+                    e.target.value = '';
+                  }}
                   className="hidden"
+                  data-testid="input-gallery"
                 />
               </label>
-              {images.map((image, index) => (
-                <div key={index} className="relative w-20 h-20 flex-shrink-0">
-                  <img
-                    src={image}
-                    alt={`Upload ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setImages(images.filter((_, i) => i !== index));
-                      setImageFiles(imageFiles.filter((_, i) => i !== index));
-                      setExifData(exifData.filter((_, i) => i !== index));
-                    }}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+              
+              {/* Camera Button - 모바일에서 즉시 사진 촬영 */}
+              <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
+                <Camera size={18} className="text-gray-500" />
+                <span className="text-gray-600">{t('post.takePhoto') || 'Take Photo'}</span>
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleFileSelect(e.target.files);
+                    }
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                  data-testid="input-camera"
+                />
+              </label>
+              
+              {/* Video Button - 모바일에서 즉시 동영상 촬영 */}
+              <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
+                <Video size={18} className="text-gray-500" />
+                <span className="text-gray-600">{t('post.recordVideo') || 'Record Video'}</span>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleVideoSelect(e.target.files);
+                    }
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                  data-testid="input-video-capture"
+                />
+              </label>
             </div>
+            
+            {/* Images Preview */}
+            {images.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs text-gray-400 mb-1">{t('post.photos') || 'Photos'} ({images.length})</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {images.map((image, index) => (
+                    <div key={`img-${image}`} className="relative w-20 h-20 flex-shrink-0">
+                      <img
+                        src={image}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(image)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                        data-testid={`button-remove-image-${index}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Videos Preview */}
+            {videos.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 mb-1">{t('post.videos') || 'Videos'} ({videos.length})</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {videos.map((video, index) => (
+                    <div key={`vid-${video}`} className="relative w-20 h-20 flex-shrink-0">
+                      <video
+                        src={video}
+                        className="w-full h-full object-cover rounded-lg"
+                        muted
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                        <Video size={20} className="text-white" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVideo(video)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                        data-testid={`button-remove-video-${index}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Empty state */}
+            {images.length === 0 && videos.length === 0 && (
+              <div className="text-center py-6 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+                {t('post.noMediaSelected') || 'No photos or videos selected'}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
