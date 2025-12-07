@@ -651,9 +651,25 @@ export default function Profile() {
               {posts.map((post: Post) => (
                 <div
                   key={post.id}
-                  className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center"
+                  className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setLocation(`/post/${post.id}`)}
+                  data-testid={`post-item-${post.id}`}
                 >
-                  <span className="text-2xl">📷</span>
+                  {post.images && post.images.length > 0 ? (
+                    <img 
+                      src={post.images[0]} 
+                      alt={post.title || 'Post'} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : post.videos && post.videos.length > 0 ? (
+                    <video 
+                      src={post.videos[0]} 
+                      className="w-full h-full object-cover"
+                      muted
+                    />
+                  ) : (
+                    <span className="text-2xl">📷</span>
+                  )}
                 </div>
               ))}
             </div>
