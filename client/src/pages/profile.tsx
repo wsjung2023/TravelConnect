@@ -652,7 +652,7 @@ export default function Profile() {
                 <div
                   key={post.id}
                   className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setLocation(`/post/${post.id}`)}
+                  onClick={() => setLocation(`/feed?postId=${post.id}`)}
                   data-testid={`post-item-${post.id}`}
                 >
                   {post.images && post.images.length > 0 ? (
