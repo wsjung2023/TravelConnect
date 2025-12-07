@@ -907,13 +907,11 @@ input[placeholder*="검색"]:focus {
 
 /* 프로필 헤더 컨테이너 overflow 해결 */
 .mobile-content > .relative {
-  overflow: visible !important;
   pointer-events: auto !important;
 }
 
 /* 모든 상대 위치 컨테이너 */
 .relative {
-  overflow: visible !important;
   pointer-events: auto !important;
 }
 
