@@ -192,6 +192,17 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
       ? allItems.filter(item => item.type === 'post')
       : allItems.filter(item => item.type === 'experience');
 
+  // 디버그: 데이터 확인
+  console.log('[MoVi Debug]', {
+    filter,
+    postsCount: posts.length,
+    experiencesCount: experiences.length,
+    experiencesAsPostsCount: experiencesAsPosts.length,
+    allItemsCount: allItems.length,
+    filteredItemsCount: filteredItems.length,
+    experiencesInAll: allItems.filter(i => i.type === 'experience').length,
+  });
+
   // 포스트 수가 많으면 자동으로 가상화 활성화 (단, All 탭은 experiences 때문에 비활성화)
   const shouldUseVirtualization = (filteredItems.length > 20 || useVirtualization) && filter !== 'all';
   const postGroups = groupSimilarPosts(posts);
@@ -747,7 +758,13 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
                     </button>
                     <button
                       className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
-                      onClick={() => setSelectedPost(item)}
+                      onClick={() => {
+                        if (isExperience) {
+                          setLocation(`/experience/${item.id}`);
+                        } else {
+                          setSelectedPost(item);
+                        }
+                      }}
                       data-testid={`button-comment-${item.id}`}
                     >
                       <MessageCircle size={20} />
@@ -773,11 +790,17 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
                     )}
                   </div>
                   <button
-                    onClick={() => setSelectedPost(item)}
+                    onClick={() => {
+                      if (isExperience) {
+                        setLocation(`/experience/${item.id}`);
+                      } else {
+                        setSelectedPost(item);
+                      }
+                    }}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
                     data-testid={`button-view-${item.id}`}
                   >
-                    {t('feedPage.viewDetails')}
+                    {isExperience ? t('feedPage.viewExperience') : t('feedPage.viewDetails')}
                   </button>
                 </div>
               </div>
