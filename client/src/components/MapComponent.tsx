@@ -1049,6 +1049,32 @@ const MapComponent: React.FC<MapComponentProps> = ({
         setCurrentZoom(zoom);
       });
 
+      // 지도 중심 및 경계 업데이트 (Nearby 패널 실시간 업데이트용) - 항상 등록
+      newMap.addListener('idle', () => {
+        const center = newMap.getCenter();
+        const bounds = newMap.getBounds();
+        const zoom = newMap.getZoom();
+        
+        if (center) {
+          setMapCenter({ lat: center.lat(), lng: center.lng() });
+        }
+        
+        if (bounds) {
+          const ne = bounds.getNorthEast();
+          const sw = bounds.getSouthWest();
+          setMapBounds({
+            north: ne.lat(),
+            south: sw.lat(),
+            east: ne.lng(),
+            west: sw.lng(),
+          });
+        }
+        
+        if (zoom !== undefined) {
+          setCurrentZoom(zoom);
+        }
+      });
+
       // Places API를 사용해서 실제 POI 데이터 가져오기
       if (window.google?.maps?.places) {
         const service = new window.google.maps.places.PlacesService(newMap);
@@ -1216,33 +1242,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
           }, 300); // 300ms 디바운스
         };
 
-        // 지도 이벤트 리스너 추가
+        // POI 업데이트를 위한 idle 이벤트 리스너 추가
         newMap.addListener('idle', () => {
           updatePOIs();
-          
-          // 지도 중심 및 경계 업데이트 (Nearby 패널 실시간 업데이트용)
-          const center = newMap.getCenter();
-          const bounds = newMap.getBounds();
-          const zoom = newMap.getZoom();
-          
-          if (center) {
-            setMapCenter({ lat: center.lat(), lng: center.lng() });
-          }
-          
-          if (bounds) {
-            const ne = bounds.getNorthEast();
-            const sw = bounds.getSouthWest();
-            setMapBounds({
-              north: ne.lat(),
-              south: sw.lat(),
-              east: ne.lng(),
-              west: sw.lng(),
-            });
-          }
-          
-          if (zoom !== undefined) {
-            setCurrentZoom(zoom);
-          }
         });
 
         // 지도 클릭 이벤트 - 피드 생성 모달 열기
