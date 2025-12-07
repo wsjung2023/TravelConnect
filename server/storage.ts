@@ -988,23 +988,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Booking operations
-  async createBooking(booking: InsertBooking): Promise<Booking> {
-    // 실제 존재하는 데이터베이스 컬럼만 사용하여 삽입
-    const existingColumns = {
-      experienceId: booking.experienceId,
-      guestId: booking.guestId,
-      hostId: booking.hostId,
-      date: booking.date,
-      participants: booking.participants,
-      totalPrice: booking.totalPrice,
-      status: booking.status || 'pending',
-      specialRequests: booking.specialRequests,
-    };
-    
-    const [newBooking] = await db.insert(bookings).values(existingColumns).returning();
-    return newBooking;
-  }
+  // Booking operations moved to line 2900+ (unified slot + experienceId logic)
 
   async getBookingsByGuest(guestId: string): Promise<Booking[]> {
     return await db
@@ -2895,38 +2879,57 @@ export class DatabaseStorage implements IStorage {
   // ==================== 예약 관리 Operations ====================
   // Booking operations
   async createBooking(booking: InsertBooking): Promise<Booking> {
-    // 슬롯 정보 가져오기
-    const slot = await this.getSlotById(booking.slotId!);
-    if (!slot) {
-      throw new Error('슬롯을 찾을 수 없습니다');
+    // Slot ID가 있으면 슬롯 기반 로직 사용 (신버전)
+    if (booking.slotId) {
+      // 슬롯 정보 가져오기
+      const slot = await this.getSlotById(booking.slotId);
+      if (!slot) {
+        throw new Error('슬롯을 찾을 수 없습니다');
+      }
+      
+      // 예약 가능성 확인
+      const availability = await this.checkSlotAvailability(booking.slotId, booking.participants);
+      if (!availability.available) {
+        throw new Error('선택한 슬롯에 충분한 자리가 없습니다');
+      }
+      
+      // experienceId 설정 (슬롯에서 가져오기)
+      const bookingData = {
+        ...booking,
+        experienceId: slot.experienceId,
+        hostId: slot.hostId,
+        date: slot.date,
+        totalPrice: (parseFloat(slot.priceAmount) * booking.participants).toString()
+      };
+      
+      const [created] = await db.insert(bookings).values(bookingData).returning();
+      
+      // 슬롯의 currentBookings 업데이트
+      await db
+        .update(slots)
+        .set({ 
+          currentBookings: sql`${slots.currentBookings} + ${booking.participants}`,
+          updatedAt: sql`now()`
+        })
+        .where(eq(slots.id, booking.slotId));
+      
+      return created;
     }
     
-    // 예약 가능성 확인
-    const availability = await this.checkSlotAvailability(booking.slotId!, booking.participants);
-    if (!availability.available) {
-      throw new Error('선택한 슬롯에 충분한 자리가 없습니다');
-    }
-    
-    // experienceId 설정 (슬롯에서 가져오기)
-    const bookingData = {
-      ...booking,
-      experienceId: slot.experienceId,
-      hostId: slot.hostId,
-      date: slot.date,
-      totalPrice: (parseFloat(slot.priceAmount) * booking.participants).toString()
+    // Slot ID가 없으면 experienceId 기반 로직 사용 (구버전 - deprecated)
+    // DEPRECATED: 하위 호환성을 위해 유지
+    const existingColumns = {
+      experienceId: booking.experienceId,
+      guestId: booking.guestId,
+      hostId: booking.hostId,
+      date: booking.date,
+      participants: booking.participants,
+      totalPrice: booking.totalPrice,
+      status: booking.status || 'pending',
+      specialRequests: booking.specialRequests,
     };
     
-    const [created] = await db.insert(bookings).values(bookingData).returning();
-    
-    // 슬롯의 currentBookings 업데이트
-    await db
-      .update(slots)
-      .set({ 
-        currentBookings: sql`${slots.currentBookings} + ${booking.participants}`,
-        updatedAt: sql`now()`
-      })
-      .where(eq(slots.id, booking.slotId!));
-    
+    const [created] = await db.insert(bookings).values(existingColumns).returning();
     return created;
   }
   

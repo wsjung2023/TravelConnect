@@ -1802,7 +1802,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Booking routes moved to line 4004+ (slot-based system)
+  // DEPRECATED: Old experienceId-based booking API (for backward compatibility)
+  // TODO: Migrate frontend to use slot-based booking API at line 4004+
+  app.post('/api/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+      
+      const guestId = req.user.id;
+      
+      // 기존 experienceId 기반 데이터
+      const basicBookingData = {
+        experienceId: req.body.experienceId,
+        guestId,
+        hostId: req.body.hostId,
+        date: new Date(req.body.date),
+        participants: req.body.participants,
+        totalPrice: req.body.totalPrice,
+        specialRequests: req.body.specialRequests,
+        status: 'pending',
+      };
+      
+      const booking = await storage.createBooking(basicBookingData);
+      res.status(201).json(booking);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      res.status(500).json({ message: 'Failed to create booking' });
+    }
+  });
+
+  app.patch('/api/bookings/:id', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id!);
+      const { status } = req.body;
+      const booking = await storage.updateBookingStatus(id, status);
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+      res.json(booking);
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      res.status(500).json({ message: 'Failed to update booking' });
+    }
+  });
 
   // Chat routes
   app.get('/api/conversations', authenticateToken, apiLimiter, async (req: any, res) => {
@@ -6483,13 +6526,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Unauthorized' });
       }
       
+      // Support both 'amount' and 'totalAmount' field names for backward compatibility
+      const totalAmount = req.body.totalAmount || req.body.amount;
+      if (!totalAmount) {
+        return res.status(400).json({ message: 'totalAmount or amount is required' });
+      }
+      
+      // Get guideId from booking if bookingId is provided
+      let guideId = req.body.guideId;
+      if (req.body.bookingId && !guideId) {
+        const booking = await storage.getBookingById(req.body.bookingId);
+        if (!booking) {
+          return res.status(404).json({ message: 'Booking not found' });
+        }
+        guideId = booking.hostId;
+      }
+      
+      if (!guideId) {
+        return res.status(400).json({ message: 'guideId is required (or provide bookingId to fetch from booking)' });
+      }
+      
       const { escrowService } = await import('./services/escrowService');
       const result = await escrowService.createContract({
         travelerId: req.user.id,
-        guideId: req.body.guideId,
-        title: req.body.title,
-        description: req.body.description,
-        totalAmountKrw: req.body.totalAmount,
+        guideId: guideId,
+        title: req.body.title || 'Contract',
+        description: req.body.description || 'P2P Service Contract',
+        totalAmountKrw: parseFloat(totalAmount),
         serviceDate: req.body.serviceDate,
         serviceStartTime: req.body.serviceStartTime,
         serviceEndTime: req.body.serviceEndTime,
