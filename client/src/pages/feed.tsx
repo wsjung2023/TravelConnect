@@ -510,7 +510,7 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
         </div>
       ) : shouldUseVirtualization ? (
         <VirtualizedFeed
-          posts={filteredItems.filter(item => item.type === 'post') as Post[]}
+          posts={filteredItems as Post[]}
           onPostClick={(post) => setSelectedPost(post)}
           containerRef={containerRef}
         />
