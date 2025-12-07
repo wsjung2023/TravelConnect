@@ -1802,48 +1802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'User not authenticated' });
-      }
-      
-      const guestId = req.user.id; // 하이브리드 인증에서는 user.id 사용
-      
-      // 기존 데이터베이스 컬럼만 사용하도록 데이터 정리
-      const basicBookingData = {
-        experienceId: req.body.experienceId,
-        guestId,
-        hostId: req.body.hostId,
-        date: new Date(req.body.date), // 문자열을 Date로 변환
-        participants: req.body.participants,
-        totalPrice: req.body.totalPrice,
-        specialRequests: req.body.specialRequests,
-        status: 'pending', // 기본값
-      };
-      
-      const booking = await storage.createBooking(basicBookingData);
-      res.status(201).json(booking);
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      res.status(500).json({ message: 'Failed to create booking' });
-    }
-  });
-
-  app.patch('/api/bookings/:id', authenticateHybrid, async (req: AuthRequest, res) => {
-    try {
-      const id = parseInt(req.params.id!);
-      const { status } = req.body;
-      const booking = await storage.updateBookingStatus(id, status);
-      if (!booking) {
-        return res.status(404).json({ message: 'Booking not found' });
-      }
-      res.json(booking);
-    } catch (error) {
-      console.error('Error updating booking:', error);
-      res.status(500).json({ message: 'Failed to update booking' });
-    }
-  });
+  // Booking routes moved to line 4004+ (slot-based system)
 
   // Chat routes
   app.get('/api/conversations', authenticateToken, apiLimiter, async (req: any, res) => {
