@@ -314,8 +314,8 @@ export default function Profile() {
             size="sm" 
             className="p-2 relative z-50"
             onClick={() => {
-              console.log('[Profile] Home button clicked');
-              setLocation('/');
+              console.log('[Profile] Home button clicked - navigating to /');
+              window.location.href = '/';
             }}
             data-testid="button-home"
           >
