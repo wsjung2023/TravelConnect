@@ -1,0 +1,399 @@
+# Tourgether Landing Page v0.3 (Replit 구현용 스펙)
+
+## 0. Tech 요구사항
+
+- 단일 페이지 랜딩 (SPA까지는 필요 없음)
+- 기본 구조:
+  - `index.html`
+  - `styles.css`
+  - (필요 시) `main.js` 정도의 최소 JS
+- 프레임워크:
+  - 가능하면 **순수 HTML/CSS + 약간의 JS**로 구현
+  - Replit이 React를 쓰고 싶다면 써도 되지만, DOM 구조·스타일은 아래 스펙을 따라야 함
+- 모바일 퍼스트
+  - 기준 디바이스: iPhone 13 정도 폭(390px) 기준으로 먼저 설계
+  - 이후 768px 이상에서 레이아웃만 살짝 확장
+
+---
+
+## 1. 브랜드 콘셉트 & 톤
+
+### 키워드
+- 고급스러운 / 입체적인 / 무게감 / 낭만 / 여행 필름 / 로컬 연결
+
+### 색 (Design Tokens)
+
+```text
+--color-bg-dark: #070817;      /* 밤하늘, 다크 섹션 */
+--color-bg-light: #F9FAFB;     /* 기본 라이트 배경 */
+--color-primary: #9B5CFF;      /* 딥 퍼플 계열 포인트 */
+--color-primary-soft: #B982FF; /* hover/gradient 보조 */
+--color-accent: #FFAF5F;       /* 석양 오렌지 포인트 */
+--color-text-main: #111827;    /* 일반 텍스트 */
+--color-text-muted: #6B7280;   /* 보조 텍스트 */
+--color-card: rgba(15, 23, 42, 0.8);  /* 유리 카드 배경 */
+--color-border-soft: rgba(148, 163, 184, 0.3);
+타이포그래피
+폰트 패밀리 (웹폰트 or 시스템 폰트 기준):
+
+"Pretendard", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif
+
+제목 계열:
+
+메인 히어로 타이틀: font-size: 32px ~ 36px, font-weight: 700, letter-spacing: 0.02em
+
+섹션 타이틀:
+
+font-size: 22px ~ 24px, font-weight: 600
+
+본문:
+
+font-size: 14px ~ 16px, line-height: 1.6
+
+공통 스타일
+카드 공통
+
+border-radius: 20px
+
+backdrop-filter: blur(18px)
+
+box-shadow: 0 18px 40px rgba(15,23,42,0.45)
+
+border: 1px solid var(--color-border-soft)
+
+버튼 공통
+
+Primary:
+
+배경: linear-gradient(135deg, var(--color-primary), var(--color-accent))
+
+글자: #ffffff
+
+border-radius: 999px
+
+padding: 12px 20px
+
+Secondary:
+
+배경: 투명
+
+보더: 1px solid rgba(148,163,184,0.8)
+
+글자: var(--color-text-main) 혹은 #E5E7EB (다크 섹션)
+
+2. 전체 레이아웃 구조 (DOM 개요)
+html
+코드 복사
+<body>
+  <div class="page">
+    <header class="hero">...</header>
+
+    <main>
+      <section class="section section-features">...</section>
+      <section class="section section-experiences">...</section>
+      <section class="section section-metrics">...</section>
+      <section class="section section-testimonials">...</section>
+      <section class="section section-final-cta">...</section>
+    </main>
+
+    <!-- (선택) 푸터나 간단한 카피라이트 -->
+  </div>
+</body>
+각 섹션 상세는 아래 설명을 따른다.
+
+3. 섹션별 상세 설계
+3.1 Hero 섹션 (첫 화면)
+목표:
+
+“고급 여행 브랜드” 느낌
+
+앱이 아니라 **‘여행 필름을 기록하는 제품’**이라는 인상
+
+구성:
+
+html
+코드 복사
+<header class="hero">
+  <div class="hero-bg-image"></div> <!-- 풀스크린 배경 이미지 -->
+  <div class="hero-overlay"></div>  <!-- 어둡게 만드는 그라디언트 -->
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      <span>Connect with travelers & locals worldwide</span>
+    </div>
+
+    <h1 class="hero-title">Tourgether</h1>
+
+    <p class="hero-subtitle">
+      Your journeys, written on the map.  
+      Connect with trusted locals and turn every trip into a living timeline.
+    </p>
+
+    <div class="hero-meta">
+      <span>✨ Authentic Experiences</span>
+      <span>🌐 Global Community</span>
+      <span>🛡️ Safety-first Travel</span>
+    </div>
+  </div>
+
+  <!-- 화면 하단에 떠 있는 CTA 카드 -->
+  <div class="hero-cta-card">
+    <div class="hero-cta-text">
+      <h2>Start your first trip</h2>
+      <p>Create a living travel timeline and meet trusted locals along the way.</p>
+    </div>
+    <div class="hero-cta-actions">
+      <button class="btn-primary">Try Demo</button>
+      <button class="btn-secondary">Sign in</button>
+    </div>
+  </div>
+</header>
+스타일 포인트:
+
+.hero는 뷰포트 상단 70~80% 높이 사용 (min-height: 80vh)
+
+배경 이미지:
+
+여행/산/도시 야경 사진 1장 사용
+
+CSS 예시:
+background-image: linear-gradient(to bottom, rgba(7,8,23,0.9), rgba(7,8,23,0.0) 35%, rgba(7,8,23,0.9)), url("hero.jpg");
+
+hero-cta-card는 화면 하단에 겹쳐서 떠 있는 느낌:
+
+position: absolute; bottom: 24px; left: 16px; right: 16px;
+
+3.2 Key Features 섹션 (Discover / Meet)
+목표:
+
+“이 서비스로 뭘 할 수 있는지”를 2개의 큰 스토리로 요약
+
+카드 4개가 아니라 2개의 시네마틱 카드
+
+구성:
+
+html
+코드 복사
+<section class="section section-features">
+  <div class="section-header">
+    <h2>Discover your next journey</h2>
+    <p>Find hidden spots, meet trusted locals, and capture every moment on your travel timeline.</p>
+  </div>
+
+  <div class="feature-list">
+    <article class="feature-card feature-card--discover">
+      <div class="feature-image"></div>
+      <div class="feature-content">
+        <h3>Discover authentic experiences</h3>
+        <p>Explore handpicked activities and local-only spots that guidebooks miss.</p>
+      </div>
+    </article>
+
+    <article class="feature-card feature-card--locals">
+      <div class="feature-image"></div>
+      <div class="feature-content">
+        <h3>Meet trusted locals</h3>
+        <p>Connect with verified hosts and travelers who share your style of journey.</p>
+      </div>
+    </article>
+  </div>
+
+  <!-- 보조 기능은 수평 스크롤 작은 카드 -->
+  <div class="feature-tags-scroll">
+    <div class="pill-card">Map-based travel timelines</div>
+    <div class="pill-card">Safety-first matching</div>
+    <div class="pill-card">Instant trip journaling</div>
+    <div class="pill-card">Local concierge support</div>
+  </div>
+</section>
+스타일 포인트:
+
+feature-card는 세로로 쌓인 큰 카드 2개
+
+모바일에서는 카드가 한 줄씩, 태블릿 이상에서 가로 2열도 가능
+
+feature-tags-scroll는 overflow-x: auto; white-space: nowrap;으로 pill 스타일 태그 수평 스크롤
+
+3.3 Experiences / Timeline 감성 섹션
+목표:
+
+“타임라인으로 여행을 기록한다”는 Tourgether 아이덴티티 강조
+
+구성:
+
+html
+코드 복사
+<section class="section section-experiences section--dark">
+  <div class="section-inner">
+    <div class="timeline-copy">
+      <h2>Your trip becomes a living timeline</h2>
+      <p>
+        Every check-in, photo, and local meet-up is stitched into a beautiful travel story.
+        Relive your journeys day by day, pin by pin.
+      </p>
+      <ul class="bullet-list">
+        <li>Map-based view of your entire journey</li>
+        <li>Safety check-ins and trusted contacts along the route</li>
+        <li>Shareable highlights for friends and followers</li>
+      </ul>
+    </div>
+
+    <div class="timeline-mock-card">
+      <!-- 여기 안은 단순한 UI 목업 (핀, 날짜, 사진 썸네일) -->
+      <div class="timeline-header">Tokyo · Spring Escape</div>
+      <div class="timeline-body">
+        <!-- 2~3개의 가짜 타임라인 아이템 -->
+      </div>
+    </div>
+  </div>
+</section>
+스타일:
+
+section--dark는 background: #070817; color: #E5E7EB;
+
+timeline-mock-card는 glassmorphism 카드, map + pin 아이콘 느낌의 더미 UI
+
+3.4 Metrics 섹션 (숫자 강조)
+목표:
+
+신뢰감 + 스케일 강조
+
+구성:
+
+html
+코드 복사
+<section class="section section-metrics">
+  <div class="metrics-card">
+    <div class="metric-item">
+      <div class="metric-number">5,000+</div>
+      <div class="metric-label">Local experiences</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-number">1,200+</div>
+      <div class="metric-label">Verified hosts</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-number">150+</div>
+      <div class="metric-label">Cities worldwide</div>
+    </div>
+  </div>
+</section>
+스타일:
+
+metrics-card는 약간 진한 배경 + 가느다란 보더, 라운드 큰 카드
+
+내부는 3열 그리드 (모바일에서는 세로로, 태블릿 이상에서는 가로 배치)
+
+3.5 Testimonials 섹션 (후기)
+목표:
+
+사용자의 생생한 목소리로 신뢰 + 공감
+
+구성:
+
+html
+코드 복사
+<section class="section section-testimonials">
+  <div class="section-header">
+    <h2>What travelers say</h2>
+    <p>Real stories from people who used Tourgether for their journeys.</p>
+  </div>
+
+  <div class="testimonial-list">
+    <article class="testimonial-card">
+      <div class="testimonial-header">
+        <div class="avatar">S</div>
+        <div>
+          <div class="name">Sarah Chen</div>
+          <div class="meta">Solo traveler · Tokyo</div>
+        </div>
+      </div>
+      <p class="testimonial-text">
+        “Tourgether helped me find quiet local bars and a guide who spoke my language. It felt like traveling with friends.”
+      </p>
+    </article>
+
+    <article class="testimonial-card">
+      <div class="testimonial-header">
+        <div class="avatar">M</div>
+        <div>
+          <div class="name">Miguel Rodriguez</div>
+          <div class="meta">Host · Barcelona</div>
+        </div>
+      </div>
+      <p class="testimonial-text">
+        “As a host, I love how travelers arrive already knowing what kind of experiences they want. It’s a perfect match.”
+      </p>
+    </article>
+  </div>
+</section>
+스타일:
+
+카드별로 그림자 살짝, 배경은 #FFFFFF, 라운드 16px
+
+아바타는 원형, 배경은 브랜드 색 중 하나 (var(--color-primary-soft))
+
+3.6 Final CTA 섹션
+목표:
+
+화면을 진한 색으로 마무리, “하나의 제품 박스”처럼 보이게
+
+구성:
+
+html
+코드 복사
+<section class="section section-final-cta section--dark">
+  <div class="final-cta-card">
+    <div class="final-cta-icon">▶</div>
+    <div class="final-cta-text">
+      <h2>Ready to explore?</h2>
+      <p>Join thousands of travelers discovering authentic experiences with trusted locals.</p>
+    </div>
+    <div class="final-cta-actions">
+      <button class="btn-primary">Start your journey</button>
+      <button class="btn-secondary">I already have an account</button>
+    </div>
+  </div>
+</section>
+스타일:
+
+section--dark와 유사하지만, 카드 배경을 살짝 더 밝은 다크톤으로 (#111827 정도)
+
+카드 전체가 “고급 전자제품 박스”처럼 느껴지도록 적당한 패딩과 그림자
+
+4. Responsive 기준
+모바일(≤ 640px)
+
+모든 섹션은 세로 1열
+
+패딩: 좌우 16px
+
+hero-cta-card는 화면 전체 폭에 가깝게
+
+태블릿(641px ~ 1024px)
+
+feature-card 2개는 2열 그리드 가능
+
+metrics-card 내부 3개는 가로 균등 분배
+
+데스크탑(> 1024px)
+
+최대 폭 max-width: 1120px; margin: 0 auto;
+
+각 섹션의 좌우 여백을 넉넉하게 확보
+
+5. Replit AI에게 전달할 구현 지시 요약
+Replit AI에게는 대략 다음과 같은 요청을 함께 보낸다:
+
+이 문서의 스펙을 기준으로 index.html 과 styles.css 를 만들어줘.
+
+랜딩 페이지 하나만 있으면 되고, 라우팅은 필요 없어.
+
+디자인 토큰(Color, Typography, 카드/버튼 스타일)을 :root CSS 변수로 선언해.
+
+Hero 섹션은 이미지 + 다크 그라디언트 + 떠 있는 CTA 카드 형태로 구현해.
+
+모든 섹션은 이 문서에서 정의한 클래스 이름과 구조를 최대한 그대로 사용해.
+
+JavaScript는 필수는 아니고, 필요하면 스크롤 애니메이션 정도만 아주 간단히 써도 된다.
