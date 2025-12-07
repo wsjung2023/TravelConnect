@@ -232,17 +232,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Referrer Policy: 개인정보 보호
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
-    // Content Security Policy: 다양한 공격 방지
+    // Content Security Policy: 다양한 공격 방지 (PortOne 결제 SDK 포함)
     res.setHeader('Content-Security-Policy', [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com *.gstatic.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com *.gstatic.com *.googlesyndication.com *.google.com *.doubleclick.net cdn.portone.io *.portone.io",
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com",
       "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com data:",
-      "img-src 'self' data: blob: https: *.unsplash.com *.googleusercontent.com",
-      "connect-src 'self' wss: ws: *.googleapis.com *.replit.app *.replit.dev",
+      "img-src 'self' data: blob: https: *.unsplash.com *.googleusercontent.com *.googlesyndication.com *.doubleclick.net",
+      "connect-src 'self' wss: ws: *.googleapis.com *.replit.app *.replit.dev *.googlesyndication.com *.google.com *.portone.io api.portone.io *.iamport.co checkout-service.prod.iamport.co",
       "media-src 'self' data: blob:",
       "object-src 'none'",
-      "frame-src 'none'"
+      "frame-src 'self' *.googlesyndication.com *.doubleclick.net *.portone.io checkout.portone.io *.iamport.co"
     ].join('; '));
     
     next();

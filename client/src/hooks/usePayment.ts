@@ -109,7 +109,7 @@ export function usePayment() {
         customer: {
           fullName: paymentData.customerName,
           email: paymentData.customerEmail,
-          phoneNumber: paymentData.customerPhone,
+          phoneNumber: paymentData.customerPhone || '010-0000-0000',
         },
       });
 

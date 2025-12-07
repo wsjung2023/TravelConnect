@@ -20,7 +20,7 @@ const PAYMENT_ENV_VARS: EnvConfig[] = [
   { key: 'PORTONE_API_SECRET', required: true, description: 'PortOne API 인증 키' },
   { key: 'PORTONE_STORE_ID', required: true, description: 'PortOne 상점 ID' },
   { key: 'PORTONE_CHANNEL_KEY', required: true, description: '결제 채널 키 (KG이니시스)' },
-  { key: 'PORTONE_WEBHOOK_SECRET', required: true, description: '웹훅 서명 검증 키' },
+  { key: 'PORTONE_WEBHOOK_SECRET', required: false, description: '웹훅 서명 검증 키 (웹훅 수신 시에만 필요)' },
 ];
 
 const DATABASE_ENV_VARS: EnvConfig[] = [

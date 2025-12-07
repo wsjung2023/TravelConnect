@@ -154,7 +154,9 @@ app.use(helmet({
         "*.googlesyndication.com",
         "pagead2.googlesyndication.com",
         "*.google.com",
-        "*.doubleclick.net"
+        "*.doubleclick.net",
+        "cdn.portone.io",
+        "*.portone.io"
       ],
       styleSrc: [
         "'self'",
@@ -186,14 +188,18 @@ app.use(helmet({
         "*.replit.app",
         "*.replit.dev",
         "*.googlesyndication.com",
-        "*.google.com"
+        "*.google.com",
+        "*.portone.io",
+        "api.portone.io"
       ],
       mediaSrc: ["'self'", "data:", "blob:"],
       objectSrc: ["'none'"],
       frameSrc: [
         "'self'",
         "*.googlesyndication.com",
-        "*.doubleclick.net"
+        "*.doubleclick.net",
+        "*.portone.io",
+        "checkout.portone.io"
       ]
     }
   }

@@ -314,6 +314,8 @@ router.post('/prepare-payment', authenticateHybrid, requirePaymentEnv, async (re
       amount,
       productName,
       productType,
+      storeId: process.env.PORTONE_STORE_ID || 'store_test',
+      channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
     });
   } catch (error) {
     console.error('결제 준비 오류:', error);

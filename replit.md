@@ -62,11 +62,21 @@ Preferred communication style: Simple, everyday language.
 ### Currency System (2025-12 Update)
 - **Base Currency**: USD (US Dollar) - Global platform standard
 - **Pricing Tiers**: Clean USD-based pricing
-  - Trip Pass: $4.99 (3-day), $9.99 (7-day), $19.99 (30-day)
-  - Subscriptions: $14.99-$49.99/month
+  - Trip Pass: $4.99 (1-day, 3-day), $9.99 (7-day)
+  - Subscriptions: Explorer $14.99/month, Voyager $29.99/month
 - **Currency Support**: USD primary, KRW fallback for legacy data
-- **Payment Gateway**: PortOne with Stripe/PayPal/Adyen for multi-currency support
+- **Payment Gateway**: PortOne with KG이니시스 V2 integration
 - **Price Display**: All frontend components use `Intl.NumberFormat` with `en-US` locale and `USD` currency
+
+### PortOne Payment Integration (2025-12 Update)
+- **SDK**: cdn.portone.io/v2/browser-sdk.js
+- **Payment Channel**: KG이니시스 V2 (test mode)
+- **CSP Configuration**: Both portone.io and iamport.co domains allowed (legacy domain support)
+- **Required Fields**: Customer phone number (default: 010-0000-0000 for test)
+- **API Flow**:
+  1. POST /api/billing/prepare-payment → returns paymentId, storeId, channelKey
+  2. PortOne.requestPayment() → opens payment popup
+  3. POST /api/billing/confirm-payment → verifies payment with PortOne
 
 ### Performance Optimization (2024-12)
 - **Database Indexes**: 40+ indexes added across 10 tables (posts, experiences, comments, likes, follows, notifications, timelines, trips, conversations, users) for frequently queried columns.
