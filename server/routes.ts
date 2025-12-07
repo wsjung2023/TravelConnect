@@ -1197,10 +1197,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Post routes
   app.get('/api/posts', async (req, res) => {
     try {
-      const limit = parseInt(req.query.limit as string) || 50; // 모든 피드를 가져오도록 증가
+      const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
-      const posts = await storage.getPosts(limit, offset);
-      res.json(posts);
+      const userId = req.query.userId as string | undefined;
+      
+      if (userId) {
+        // 특정 사용자의 포스트만 가져오기
+        const posts = await storage.getPostsByUser(userId);
+        res.json(posts);
+      } else {
+        // 전체 포스트 가져오기
+        const posts = await storage.getPosts(limit, offset);
+        res.json(posts);
+      }
     } catch (error) {
       console.error('Error fetching posts:', error);
       res.status(500).json({ message: 'Failed to fetch posts' });
