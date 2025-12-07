@@ -37,26 +37,52 @@ export default function OpenToMeetToggle({
       region?: string; 
       hours?: number 
     }) => {
+      // Open to Meet를 켤 때는 먼저 현재 위치를 업데이트
+      if (open) {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation is not supported by your browser'));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+
+        // 위치 업데이트
+        await api('/api/serendipity/location', {
+          method: 'PUT',
+          body: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          },
+        });
+      }
+
+      // Open to Meet 상태 변경
       await api('/api/profile/open', {
         method: 'PATCH',
         body: { open, region, hours },
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/profile/open'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/open'] });
       refetchOpenStatus();
       toast({
         title: '만남 상태 변경됨',
-        description: (openStatus as any)?.openToMeet 
-          ? '만남이 비활성화되었습니다.' 
-          : `${hours}시간 동안 ${region}에서 만남이 활성화되었습니다.`,
+        description: variables.open
+          ? `${variables.hours}시간 동안 ${variables.region}에서 만남이 활성화되었습니다.`
+          : '만남이 비활성화되었습니다.',
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      const isLocationError = error?.message?.includes('Geolocation') || 
+                             error?.message?.includes('location');
       toast({
         title: '오류',
-        description: '설정을 변경하는 중 오류가 발생했습니다.',
+        description: isLocationError 
+          ? '위치 정보를 가져올 수 없습니다. 브라우저에서 위치 권한을 허용해주세요.'
+          : '설정을 변경하는 중 오류가 발생했습니다.',
         variant: 'destructive',
       });
     },
