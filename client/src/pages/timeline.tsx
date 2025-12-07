@@ -174,8 +174,9 @@ export default function TimelinePage() {
     const mediaWithExif = media.filter(m => m.exifLatitude && m.exifLongitude);
 
     return (
-      <div className="container mx-auto p-4 max-w-6xl">
-        {/* Header */}
+      <div className="mobile-content" style={{ height: '100vh', overflow: 'auto' }}>
+        <div className="container mx-auto p-4 max-w-6xl">
+          {/* Header */}
         <div className="mb-6">
           <Button
             variant="ghost"
@@ -396,18 +397,20 @@ export default function TimelinePage() {
             </div>
           )}
         </div>
+        </div>
       </div>
     );
   }
 
   // Timeline List View
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Calendar className="w-6 h-6" />
-          {t('ui:timeline.title')}
-        </h1>
+    <div className="mobile-content" style={{ height: '100vh', overflow: 'auto' }}>
+      <div className="container mx-auto p-4">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Calendar className="w-6 h-6" />
+            {t('ui:timeline.title')}
+          </h1>
         <Button
           onClick={() => setLocation('/timeline/create')}
           className="flex items-center gap-2"
@@ -475,6 +478,7 @@ export default function TimelinePage() {
             </Card>
           ))
         )}
+        </div>
       </div>
     </div>
   );
