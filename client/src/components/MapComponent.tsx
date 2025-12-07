@@ -489,25 +489,54 @@ const MapComponent: React.FC<MapComponentProps> = ({
     });
   }, [posts, debouncedBounds]);
 
-  // Viewport-based nearby posts instead of distance-based (FIX: show all visible posts)
-  const viewportNearbyPosts = useMemo(() => {
-    if (!visiblePosts) return [];
+  // Nearby posts filtering - 5km 내 모든 게시물 (1년 이내)
+  const nearbyPosts = useMemo(() => {
+    if (!posts || posts.length === 0) return [];
     
-    return visiblePosts
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    
+    const filtered = posts.filter((post: any) => {
+      if (!post.latitude || !post.longitude) return false;
+      
+      const lat = parseFloat(post.latitude);
+      const lng = parseFloat(post.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      // 1년 이내 게시물만
+      if (post.createdAt) {
+        const postDate = new Date(post.createdAt);
+        if (postDate < oneYearAgo) return false;
+      }
+      
+      const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
+      return distance <= 5; // 5km radius
+    });
+    
+    return filtered
       .map((post: any) => ({
         ...post,
         type: 'post' as const,
-        distance: mapCenter && post.latitude && post.longitude
-          ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(post.latitude), parseFloat(post.longitude))
-          : 0,
+        distance: calculateDistance(
+          mapCenter.lat,
+          mapCenter.lng,
+          parseFloat(post.latitude),
+          parseFloat(post.longitude)
+        ),
       }))
-      .sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
-  }, [visiblePosts, mapCenter]);
+      .sort((a: any, b: any) => a.distance - b.distance);
+      // 10개 제한 제거 - 5km 내 모든 게시물 표시
+  }, [posts, mapCenter]);
 
-  // Viewport-based nearby experiences (FIX: show all visible experiences)
-  const viewportNearbyExperiences = useMemo(() => {
-    if (!experiences || !debouncedBounds) return [];
+  // Nearby experiences filtering - 5km 내 모든 체험 (1년 이내)
+  const nearbyExperiences = useMemo(() => {
+    if (!experiences || experiences.length === 0) return [];
     
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    
+    // Filter experiences with coordinates within 5km radius
     const filtered = experiences.filter((exp: any) => {
       if (!exp.latitude || !exp.longitude) return false;
       
@@ -516,44 +545,52 @@ const MapComponent: React.FC<MapComponentProps> = ({
       
       if (isNaN(lat) || isNaN(lng)) return false;
       
-      // Check if experience is within current viewport bounds
-      return (
-        lat <= debouncedBounds.north &&
-        lat >= debouncedBounds.south &&
-        lng <= debouncedBounds.east &&
-        lng >= debouncedBounds.west
-      );
+      // 1년 이내 체험만
+      if (exp.createdAt) {
+        const expDate = new Date(exp.createdAt);
+        if (expDate < oneYearAgo) return false;
+      }
+      
+      // Calculate distance from map center
+      const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
+      
+      // Show experiences within 5km
+      return distance <= 5;
     });
     
     return filtered
       .map((exp: any) => ({
         ...exp,
         type: 'experience' as const,
-        distance: mapCenter
-          ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(exp.latitude), parseFloat(exp.longitude))
-          : 0,
+        distance: calculateDistance(
+          mapCenter.lat,
+          mapCenter.lng,
+          parseFloat(exp.latitude),
+          parseFloat(exp.longitude)
+        ),
       }))
-      .sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
-  }, [experiences, mapCenter, debouncedBounds]);
+      .sort((a: any, b: any) => a.distance - b.distance);
+      // 10개 제한 제거 - 5km 내 모든 체험 표시
+  }, [experiences, mapCenter]);
 
-  // Combine nearby posts and experiences based on filter (FIX: use viewport-based instead of distance-based)
+  // Combine nearby posts and experiences based on filter
   const nearbyItems = useMemo(() => {
-    if (nearbyFilter === 'posts') return viewportNearbyPosts;
-    if (nearbyFilter === 'experiences') return viewportNearbyExperiences;
+    if (nearbyFilter === 'posts') return nearbyPosts;
+    if (nearbyFilter === 'experiences') return nearbyExperiences;
     if (nearbyFilter === 'open_users') {
       return (openUsers || []).map((user: any) => ({
         ...user,
         type: 'open_user' as const,
-        distance: user.lastLatitude && user.lastLongitude && mapCenter
+        distance: user.lastLatitude && user.lastLongitude 
           ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(user.lastLatitude), parseFloat(user.lastLongitude))
           : 999
       })).sort((a: any, b: any) => a.distance - b.distance);
     }
     
-    // Combine viewport-based posts and experiences - show all visible items
-    return [...viewportNearbyPosts, ...viewportNearbyExperiences]
-      .sort((a: any, b: any) => (a.distance || 0) - (b.distance || 0));
-  }, [viewportNearbyPosts, viewportNearbyExperiences, nearbyFilter, openUsers]);
+    // Combine and sort by distance - 모든 아이템 표시 (제한 제거)
+    return [...nearbyPosts, ...nearbyExperiences]
+      .sort((a: any, b: any) => a.distance - b.distance);
+  }, [nearbyPosts, nearbyExperiences, nearbyFilter, openUsers, mapCenter]);
 
   // Determine clustering strategy based on marker count
   const shouldShowClusters = useMemo(() => {
