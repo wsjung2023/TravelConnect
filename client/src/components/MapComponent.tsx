@@ -489,12 +489,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
     });
   }, [posts, debouncedBounds]);
 
-  // Nearby posts filtering - 5km 내 모든 게시물 (1년 이내)
+  // Nearby posts filtering - 현재 지도에서 보이는 모든 게시물
   const nearbyPosts = useMemo(() => {
-    if (!posts || posts.length === 0) return [];
-    
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    if (!posts || posts.length === 0 || !mapBounds) return [];
     
     const filtered = posts.filter((post: any) => {
       if (!post.latitude || !post.longitude) return false;
@@ -504,14 +501,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
       
       if (isNaN(lat) || isNaN(lng)) return false;
       
-      // 1년 이내 게시물만
-      if (post.createdAt) {
-        const postDate = new Date(post.createdAt);
-        if (postDate < oneYearAgo) return false;
-      }
-      
-      const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
-      return distance <= 5; // 5km radius
+      // Check if post is within current map viewport
+      return (
+        lat >= mapBounds.south &&
+        lat <= mapBounds.north &&
+        lng >= mapBounds.west &&
+        lng <= mapBounds.east
+      );
     });
     
     return filtered
@@ -526,17 +522,14 @@ const MapComponent: React.FC<MapComponentProps> = ({
         ),
       }))
       .sort((a: any, b: any) => a.distance - b.distance);
-      // 10개 제한 제거 - 5km 내 모든 게시물 표시
-  }, [posts, mapCenter]);
+      // 지도에 보이는 모든 포스트 표시
+  }, [posts, mapCenter, mapBounds]);
 
-  // Nearby experiences filtering - 5km 내 모든 체험 (1년 이내)
+  // Nearby experiences filtering - 현재 지도에서 보이는 모든 체험
   const nearbyExperiences = useMemo(() => {
-    if (!experiences || experiences.length === 0) return [];
+    if (!experiences || experiences.length === 0 || !mapBounds) return [];
     
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    
-    // Filter experiences with coordinates within 5km radius
+    // Filter experiences with coordinates within map viewport
     const filtered = experiences.filter((exp: any) => {
       if (!exp.latitude || !exp.longitude) return false;
       
@@ -545,17 +538,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
       
       if (isNaN(lat) || isNaN(lng)) return false;
       
-      // 1년 이내 체험만
-      if (exp.createdAt) {
-        const expDate = new Date(exp.createdAt);
-        if (expDate < oneYearAgo) return false;
-      }
-      
-      // Calculate distance from map center
-      const distance = calculateDistance(mapCenter.lat, mapCenter.lng, lat, lng);
-      
-      // Show experiences within 5km
-      return distance <= 5;
+      // Check if experience is within current map viewport
+      return (
+        lat >= mapBounds.south &&
+        lat <= mapBounds.north &&
+        lng >= mapBounds.west &&
+        lng <= mapBounds.east
+      );
     });
     
     return filtered
@@ -570,8 +559,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
         ),
       }))
       .sort((a: any, b: any) => a.distance - b.distance);
-      // 10개 제한 제거 - 5km 내 모든 체험 표시
-  }, [experiences, mapCenter]);
+      // 지도에 보이는 모든 체험 표시
+  }, [experiences, mapCenter, mapBounds]);
 
   // Combine nearby posts and experiences based on filter
   const nearbyItems = useMemo(() => {
