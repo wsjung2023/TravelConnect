@@ -2289,7 +2289,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             </div>
 
             <div 
-              className="space-y-2 max-h-[50vh] overflow-y-auto"
+              className="space-y-2 max-h-[65vh] overflow-y-auto"
               style={{ 
                 WebkitOverflowScrolling: 'touch',
                 overscrollBehaviorY: 'contain'
