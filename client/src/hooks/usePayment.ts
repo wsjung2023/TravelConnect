@@ -8,6 +8,8 @@ declare global {
   }
 }
 
+type PayMethodType = 'CARD' | 'KAKAO' | 'PAYPAL';
+
 interface PaymentRequest {
   paymentId: string;
   orderName: string;
@@ -15,6 +17,7 @@ interface PaymentRequest {
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
+  payMethod?: PayMethodType;
 }
 
 interface PaymentResponse {
@@ -80,7 +83,7 @@ export function usePayment() {
 
   const preparePayment = useCallback(async (
     type: 'trip_pass' | 'subscription' | 'contract',
-    data: { planId?: number; tripPassId?: number; contractId?: number; stageId?: string; amount?: number }
+    data: { planId?: number; tripPassId?: number; contractId?: number; stageId?: string; amount?: number; payMethod?: PayMethodType }
   ): Promise<PreparePaymentResponse> => {
     const response = await api('/api/billing/prepare-payment', {
       method: 'POST',
@@ -98,20 +101,32 @@ export function usePayment() {
     try {
       const PortOne = await loadPortOneSDK();
       
-      const response = await PortOne.requestPayment({
+      const portOnePayMethod = paymentData.payMethod === 'KAKAO' ? 'EASY_PAY' 
+        : paymentData.payMethod === 'PAYPAL' ? 'EASY_PAY' 
+        : 'CARD';
+      
+      const paymentParams: any = {
         storeId,
         channelKey,
         paymentId: paymentData.paymentId,
         orderName: paymentData.orderName,
         totalAmount: paymentData.totalAmount,
         currency: 'USD',
-        payMethod: 'CARD',
+        payMethod: portOnePayMethod,
         customer: {
           fullName: paymentData.customerName,
           email: paymentData.customerEmail,
           phoneNumber: paymentData.customerPhone || '010-0000-0000',
         },
-      });
+      };
+
+      if (paymentData.payMethod === 'KAKAO') {
+        paymentParams.easyPay = { provider: 'KAKAOPAY' };
+      } else if (paymentData.payMethod === 'PAYPAL') {
+        paymentParams.easyPay = { provider: 'PAYPAL' };
+      }
+      
+      const response = await PortOne.requestPayment(paymentParams);
 
       if (response.code) {
         throw new Error(response.message || '결제 처리 중 오류가 발생했습니다.');

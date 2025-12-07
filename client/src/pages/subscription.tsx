@@ -485,29 +485,82 @@ export default function SubscriptionPage() {
                         })()}
                       </ul>
                     </CardContent>
-                    <CardFooter>
-                      {subscription?.planId === plan.id ? (
-                        <Button disabled className="w-full" variant="outline">
-                          {t('currently_using')}
-                        </Button>
-                      ) : (
-                        <PaymentButton
-                          type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
-                          amount={Math.round((plan.priceUsd || parseFloat(plan.priceMonthlyUsd || '0') || plan.price || 0) * 100)}
-                          currency="USD"
-                          orderName={plan.name}
-                          planId={plan.id}
-                          billingKeyId={selectedBillingKeyId || undefined}
-                          onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
-                            queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
-                            queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
-                          }}
-                          className="w-full"
-                        >
-                          {plan.type === 'subscription' ? t('subscribe_button') : t('purchase_button')}
-                        </PaymentButton>
-                      )}
+                    <CardFooter className="flex-col gap-2">
+                      {(() => {
+                        const planPrice = plan.priceUsd || parseFloat(plan.priceMonthlyUsd || '0') || plan.price || 0;
+                        const isFree = planPrice === 0;
+                        
+                        if (subscription?.planId === plan.id) {
+                          return (
+                            <Button disabled className="w-full" variant="outline">
+                              {t('currently_using')}
+                            </Button>
+                          );
+                        }
+                        
+                        if (isFree) {
+                          return (
+                            <Button className="w-full" variant="outline">
+                              {t('free_plan_button') || 'Current Free Plan'}
+                            </Button>
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            <PaymentButton
+                              type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                              amount={Math.round(planPrice * 100)}
+                              orderName={plan.name}
+                              payMethod="CARD"
+                              planId={plan.id}
+                              billingKeyId={selectedBillingKeyId || undefined}
+                              onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
+                                queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
+                                queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
+                              }}
+                              className="w-full"
+                            >
+                              {plan.type === 'subscription' ? t('subscribe_button') : t('purchase_button')}
+                            </PaymentButton>
+                            <div className="flex gap-2 w-full">
+                              <PaymentButton
+                                type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                                amount={Math.round(planPrice * 100)}
+                                orderName={plan.name}
+                                payMethod="KAKAO"
+                                planId={plan.id}
+                                billingKeyId={selectedBillingKeyId || undefined}
+                                onSuccess={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
+                                }}
+                                className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black"
+                              >
+                                KakaoPay
+                              </PaymentButton>
+                              <PaymentButton
+                                type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                                amount={Math.round(planPrice * 100)}
+                                orderName={plan.name}
+                                payMethod="PAYPAL"
+                                planId={plan.id}
+                                billingKeyId={selectedBillingKeyId || undefined}
+                                onSuccess={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
+                                }}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                              >
+                                PayPal
+                              </PaymentButton>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </CardFooter>
                   </Card>
                 ))}

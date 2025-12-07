@@ -6,10 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 
+type PayMethodType = 'CARD' | 'KAKAO' | 'PAYPAL';
+
 interface PaymentButtonProps {
   type: 'trip_pass' | 'subscription' | 'contract';
   amount: number;
   orderName: string;
+  payMethod?: PayMethodType | undefined;
   planId?: number | undefined;
   tripPassId?: number | undefined;
   contractId?: number | undefined;
@@ -26,6 +29,7 @@ export default function PaymentButton({
   type,
   amount,
   orderName,
+  payMethod = 'CARD',
   planId,
   tripPassId,
   contractId,
@@ -73,7 +77,7 @@ export default function PaymentButton({
         return;
       }
 
-      const prepareData: any = { amount };
+      const prepareData: any = { amount, payMethod };
       if (planId) prepareData.planId = planId;
       if (tripPassId) prepareData.tripPassId = tripPassId;
       if (contractId) prepareData.contractId = contractId;
@@ -88,6 +92,7 @@ export default function PaymentButton({
           totalAmount: amount,
           customerName: user.displayName || user.email || 'Guest',
           customerEmail: user.email || '',
+          payMethod,
         },
         prepareResult.storeId,
         prepareResult.channelKey
