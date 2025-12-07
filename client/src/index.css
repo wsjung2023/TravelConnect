@@ -895,6 +895,16 @@ input[placeholder*="검색"]:focus {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* -----------------------------------------
+   Fixed: Absolute Positioned Buttons Z-Index
+   (홈 버튼, 설정 아이콘 등 클릭 가능 보장)
+   ----------------------------------------- */
+
+.absolute.top-4.left-4,
+.absolute.top-4.right-4 {
+  z-index: 40;
+}
+
 /* 뱃지 볼륨감 */
 .rounded-full.bg-red-500,
 .rounded-full.bg-green-500,
