@@ -2239,9 +2239,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         
         {!isNearbyPanelCollapsed && (
-          <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex flex-col h-[65vh]">
             {/* Filter Buttons */}
-            <div className="flex gap-2 mb-3">
+            <div className="flex gap-2 mb-3 flex-shrink-0">
               <button
                 onClick={() => setNearbyFilter('all')}
                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
