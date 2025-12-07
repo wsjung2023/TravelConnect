@@ -6285,14 +6285,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const { type, planId, tripPassId, contractId, stageId, amount } = req.body;
+      const { type, planId, tripPassId, contractId, stageId, amount, payMethod } = req.body;
       
       const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      let channelKey = process.env.PORTONE_CHANNEL_KEY || 'channel_test';
+      if (payMethod === 'KAKAO') {
+        channelKey = process.env.PORTONE_KAKAOPAY_CHANNEL_KEY || channelKey;
+      } else if (payMethod === 'PAYPAL') {
+        channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
+      }
       
       res.json({
         paymentId,
         storeId: process.env.PORTONE_STORE_ID || 'store_test',
-        channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
+        channelKey,
       });
     } catch (error) {
       console.error('Error preparing payment:', error);

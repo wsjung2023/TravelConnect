@@ -304,6 +304,8 @@ router.post('/prepare-payment', authenticateHybrid, requirePaymentEnv, async (re
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
+    console.log('[prepare-payment] Request body:', JSON.stringify(req.body));
+
     const { amount, productName, productType, payMethod } = req.body;
 
     // 결제 ID 생성
@@ -311,13 +313,17 @@ router.post('/prepare-payment', authenticateHybrid, requirePaymentEnv, async (re
 
     // 결제 수단에 따라 채널 키 선택
     let channelKey = process.env.PORTONE_CHANNEL_KEY || 'channel_test';
+    console.log('[prepare-payment] payMethod:', payMethod, 'Default channelKey:', channelKey?.substring(0, 30));
+    
     if (payMethod === 'KAKAO') {
       channelKey = process.env.PORTONE_KAKAOPAY_CHANNEL_KEY || channelKey;
+      console.log('[prepare-payment] Using KAKAO channelKey:', channelKey?.substring(0, 30));
     } else if (payMethod === 'PAYPAL') {
       channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
+      console.log('[prepare-payment] Using PAYPAL channelKey:', channelKey?.substring(0, 30));
     }
 
-    console.log('[prepare-payment] payMethod:', payMethod, 'channelKey:', channelKey?.substring(0, 30) + '...');
+    console.log('[prepare-payment] Final channelKey:', channelKey?.substring(0, 30));
 
     res.json({
       paymentId,
