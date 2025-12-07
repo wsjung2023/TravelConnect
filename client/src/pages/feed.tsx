@@ -43,6 +43,34 @@ import TrendingHashtags from '@/components/TrendingHashtags';
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
 
+// YouTube URL에서 video ID 추출
+const extractYouTubeVideoId = (text: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};
+
+// YouTube Embed 컴포넌트
+const YouTubeEmbed = ({ videoId }: { videoId: string }) => (
+  <div className="relative w-full pt-[56.25%] mb-3 rounded-lg overflow-hidden">
+    <iframe
+      className="absolute top-0 left-0 w-full h-full"
+      src={`https://www.youtube.com/embed/${videoId}`}
+      title="YouTube video"
+      frameBorder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  </div>
+);
+
 // localStorage 헬퍼 함수들
 const getLikedPostsFromStorage = (userId?: string): Set<number> => {
   if (!userId) return new Set();
@@ -654,6 +682,12 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
                 <p className="text-gray-700 text-sm leading-relaxed">
                   {item.content}
                 </p>
+
+                {/* YouTube Embed */}
+                {(() => {
+                  const videoId = extractYouTubeVideoId(item.content || '');
+                  return videoId ? <YouTubeEmbed videoId={videoId} /> : null;
+                })()}
 
                 {/* Location */}
                 {item.location && (
