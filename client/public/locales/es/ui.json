@@ -189,10 +189,15 @@
   },
   "navigation": {
     "map": "Mapa",
-    "feed": "Feed",
+    "feed": "MoVi",
     "timeline": "Cronología",
     "chat": "Bandeja de entrada",
     "profile": "Yo"
+  },
+  "feed": {
+    "title": "MoVi",
+    "subtitle": "Moments + Vibes",
+    "description": "Tus momentos de viaje cinematográficos"
   },
   "dashboard": {
     "title": "💼 Panel de comercio",

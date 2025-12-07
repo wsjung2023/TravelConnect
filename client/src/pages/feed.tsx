@@ -424,6 +424,12 @@ export default function Feed() {
           </div>
         </div>
         
+        {/* MoVi Description Banner */}
+        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-t">
+          <p className="text-xs font-semibold text-purple-600 mb-1">{t('feed.subtitle')}</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{t('feed.description')}</p>
+        </div>
+        
         {/* Feed Mode Selector */}
         <div className="px-4 pb-2">
           <FeedModeSelector mode={feedMode} onModeChange={setFeedMode} />

@@ -181,10 +181,15 @@
   },
   "navigation": {
     "map": "지도",
-    "feed": "피드",
+    "feed": "모뷔",
     "timeline": "타임라인",
     "chat": "받은편지함",
     "profile": "나"
+  },
+  "feed": {
+    "title": "모뷔",
+    "subtitle": "Moments + Vibes",
+    "description": "당신의 영화같은 여행의 순간들"
   },
   "dashboard": {
     "title": "💼 커머스 대시보드",

@@ -177,10 +177,15 @@
   },
   "navigation": {
     "map": "地图",
-    "feed": "动态",
+    "feed": "MoVi",
     "timeline": "时间线",
     "chat": "收件箱",
     "profile": "我的"
+  },
+  "feed": {
+    "title": "MoVi",
+    "subtitle": "Moments + Vibes",
+    "description": "你的电影级旅行时刻"
   },
   "dashboard": {
     "title": "💼 商务仪表板",

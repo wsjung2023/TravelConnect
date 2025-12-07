@@ -187,10 +187,15 @@
   },
   "navigation": {
     "map": "Carte",
-    "feed": "Flux",
+    "feed": "MoVi",
     "timeline": "Chronologie",
     "chat": "Boîte de réception",
     "profile": "Moi"
+  },
+  "feed": {
+    "title": "MoVi",
+    "subtitle": "Moments + Vibes",
+    "description": "Vos moments de voyage cinématiques"
   },
   "dashboard": {
     "title": "💼 Tableau de bord Commerce",

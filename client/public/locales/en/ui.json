@@ -187,10 +187,15 @@
   },
   "navigation": {
     "map": "Map",
-    "feed": "Feed",
+    "feed": "MoVi",
     "timeline": "Trips",
     "chat": "Inbox",
     "profile": "Me"
+  },
+  "feed": {
+    "title": "MoVi",
+    "subtitle": "Moments + Vibes",
+    "description": "Your cinematic travel moments"
   },
   "dashboard": {
     "title": "💼 Commerce Dashboard",
