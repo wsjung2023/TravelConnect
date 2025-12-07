@@ -648,6 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timezone: user.timezone || 'Asia/Seoul',
         portfolioMode: user.portfolioMode || false,
         publicProfileUrl: user.publicProfileUrl,
+        serendipityEnabled: user.serendipityEnabled ?? false,
       });
     } catch (error) {
       console.error('사용자 정보 조회 오류:', error);

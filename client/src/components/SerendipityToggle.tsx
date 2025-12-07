@@ -45,7 +45,7 @@ export default function SerendipityToggle({
     },
   });
 
-  const isEnabled = (user as any)?.serendipityEnabled ?? true;
+  const isEnabled = (user as any)?.serendipityEnabled ?? false;
 
   const handleToggle = (checked: boolean) => {
     toggleMutation.mutate(checked);
