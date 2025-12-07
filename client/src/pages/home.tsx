@@ -267,7 +267,7 @@ export default function Home() {
 
       {/* Feed Detail Overlay */}
       {showFeedDetail && (
-        <div className="fixed inset-0 z-50 bg-white">
+        <div className="fixed inset-0 z-40 bg-white" style={{ pointerEvents: 'auto' }}>
           <Suspense fallback={<TabLoadingSpinner />}>
             <Feed 
               initialPostId={selectedPostId || undefined}

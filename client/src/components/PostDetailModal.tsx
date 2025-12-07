@@ -89,7 +89,8 @@ export default function PostDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full"
+            className="p-1 hover:bg-gray-100 rounded-full relative z-50"
+            data-testid="button-close-post-detail"
           >
             <X size={20} />
           </button>
