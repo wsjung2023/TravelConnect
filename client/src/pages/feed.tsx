@@ -186,11 +186,19 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
 
   // posts와 experiences 통합 및 필터링
   const allItems = [...posts.map(p => ({ ...p, type: 'post' as const })), ...experiencesAsPosts];
+  
+  // 모든 탭에서 동일한 정렬 기준 적용: createdAt 최신순
+  const sortedAllItems = [...allItems].sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0).getTime();
+    const dateB = new Date(b.createdAt || 0).getTime();
+    return dateB - dateA; // 최신순
+  });
+  
   const filteredItems = filter === 'all' 
-    ? allItems 
+    ? sortedAllItems 
     : filter === 'posts' 
-      ? allItems.filter(item => item.type === 'post')
-      : allItems.filter(item => item.type === 'experience');
+      ? sortedAllItems.filter(item => item.type === 'post')
+      : sortedAllItems.filter(item => item.type === 'experience');
 
   // 디버그: 데이터 확인
   console.log('[MoVi Debug]', {
@@ -203,8 +211,8 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
     experiencesInAll: allItems.filter(i => i.type === 'experience').length,
   });
 
-  // 포스트 수가 많으면 자동으로 가상화 활성화 (단, All 탭은 experiences 때문에 비활성화)
-  const shouldUseVirtualization = (filteredItems.length > 20 || useVirtualization) && filter !== 'all';
+  // UI 통일: 모든 탭에서 가상화 비활성화하고 동일한 UI 사용
+  const shouldUseVirtualization = false; // 가상화 비활성화로 UI 통일
   const postGroups = groupSimilarPosts(posts);
 
   const likeMutation = useMutation({
