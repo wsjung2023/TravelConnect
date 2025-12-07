@@ -571,3 +571,407 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 }
+
+/* ================================================
+   App Global Style Upgrade v0.3
+   TSX 파일 수정 없이 CSS만으로 적용
+   ================================================ */
+
+/* -----------------------------------------
+   1. Feed Page Styles
+   ----------------------------------------- */
+
+/* Feed 헤더 글래스 효과 */
+.mobile-content > .border-b.bg-white.sticky {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(148, 163, 184, 0.15) !important;
+}
+
+/* Feed 필터 버튼 호버 효과 */
+.mobile-content .bg-gray-100.text-gray-700:hover {
+  background: rgba(155, 92, 255, 0.08) !important;
+  color: var(--landing-primary) !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Feed 카드 호버 효과 */
+.mobile-content .bg-white.rounded-xl.shadow-sm {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mobile-content .bg-white.rounded-xl.shadow-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 28px rgba(15, 23, 42, 0.12),
+    0 4px 10px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Feed 이미지 호버 줌 */
+.mobile-content .aspect-video img,
+.mobile-content .aspect-square img {
+  transition: transform 0.5s ease;
+}
+
+.mobile-content .aspect-video:hover img,
+.mobile-content .aspect-square:hover img {
+  transform: scale(1.03);
+}
+
+/* -----------------------------------------
+   2. Profile Page Styles
+   ----------------------------------------- */
+
+/* 프로필 통계 영역 그라디언트 */
+.mobile-content .grid.grid-cols-3.text-center {
+  background: linear-gradient(135deg, rgba(155, 92, 255, 0.05) 0%, rgba(255, 175, 95, 0.05) 100%);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 -8px;
+}
+
+/* 프로필 통계 숫자 강조 */
+.mobile-content .grid.grid-cols-3.text-center .text-xl.font-bold,
+.mobile-content .grid.grid-cols-3.text-center .text-2xl.font-bold {
+  background: linear-gradient(135deg, var(--landing-primary), var(--landing-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 프로필 섹션 카드 볼륨감 */
+.mobile-content .bg-white\/50.rounded-lg.border {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-content .bg-white\/50.rounded-lg.border:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 32px rgba(15, 23, 42, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* -----------------------------------------
+   3. Chat Page Styles
+   ----------------------------------------- */
+
+/* 채팅 메시지 버블 - 내 메시지 */
+.bg-blue-500.text-white.rounded-lg,
+.bg-blue-500.text-white.rounded-2xl {
+  background: linear-gradient(135deg, var(--landing-primary) 0%, #7C3AED 100%) !important;
+  box-shadow: 0 4px 12px rgba(155, 92, 255, 0.25);
+  border-radius: 18px 18px 4px 18px !important;
+}
+
+/* 채팅 메시지 버블 - 상대방 */
+.bg-gray-100.rounded-lg,
+.bg-gray-100.rounded-2xl {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 18px 18px 18px 4px !important;
+}
+
+/* 채팅 입력창 스타일 */
+.border-t.bg-white.p-3,
+.border-t.bg-white.p-4 {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(148, 163, 184, 0.1) !important;
+}
+
+/* 채팅 입력 필드 */
+.border-t input[type="text"],
+.border-t textarea {
+  background: rgba(248, 250, 252, 0.8) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 20px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.border-t input[type="text"]:focus,
+.border-t textarea:focus {
+  border-color: var(--landing-primary) !important;
+  box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.1) !important;
+}
+
+/* -----------------------------------------
+   4. Timeline Page Styles
+   ----------------------------------------- */
+
+/* 타임라인 카드 호버 */
+.mobile-content .bg-white.rounded-lg.shadow,
+.mobile-content .bg-white.rounded-xl.shadow {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.mobile-content .bg-white.rounded-lg.shadow:hover,
+.mobile-content .bg-white.rounded-xl.shadow:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 40px rgba(15, 23, 42, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 타임라인 CineMap 버튼 강조 */
+.bg-purple-500,
+.bg-purple-600 {
+  background: linear-gradient(135deg, var(--landing-primary) 0%, #7C3AED 100%) !important;
+  box-shadow: 0 4px 12px rgba(155, 92, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bg-purple-500:hover,
+.bg-purple-600:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 92, 255, 0.4);
+}
+
+/* -----------------------------------------
+   5. Marketplace / Experience Styles
+   ----------------------------------------- */
+
+/* 체험 카드 시네마틱 호버 */
+[class*="Card"][class*="overflow-hidden"],
+.overflow-hidden.rounded-lg,
+.overflow-hidden.rounded-xl {
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+[class*="Card"][class*="overflow-hidden"]:hover,
+.overflow-hidden.rounded-lg:hover,
+.overflow-hidden.rounded-xl:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 
+    0 24px 48px rgba(15, 23, 42, 0.18),
+    0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 체험 가격 뱃지 */
+.bg-green-500.text-white,
+.bg-emerald-500.text-white {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* -----------------------------------------
+   6. Common Button Styles
+   ----------------------------------------- */
+
+/* Primary 버튼 볼륨감 */
+button.bg-primary,
+.bg-primary.text-primary-foreground {
+  box-shadow: 
+    0 4px 12px rgba(var(--primary), 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button.bg-primary:hover,
+.bg-primary.text-primary-foreground:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 16px rgba(var(--primary), 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+button.bg-primary:active,
+.bg-primary.text-primary-foreground:active {
+  transform: translateY(1px);
+}
+
+/* Blue 버튼 그라디언트 */
+.bg-blue-500.text-white,
+.bg-blue-600.text-white {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bg-blue-500.text-white:hover,
+.bg-blue-600.text-white:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* -----------------------------------------
+   7. Common Modal Styles
+   ----------------------------------------- */
+
+/* 모달 백드롭 */
+[data-state="open"][role="dialog"],
+.fixed.inset-0.bg-black\/80 {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* 모달 콘텐츠 볼륨감 */
+[role="dialog"] > div,
+.bg-white.rounded-lg.shadow-lg {
+  box-shadow: 
+    0 24px 48px rgba(15, 23, 42, 0.25),
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* -----------------------------------------
+   8. Common Input Styles
+   ----------------------------------------- */
+
+/* 텍스트 입력 필드 포커스 */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+  border-color: var(--landing-primary) !important;
+  box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.1) !important;
+  outline: none;
+}
+
+/* 검색 입력 스타일 */
+input[type="search"],
+input[placeholder*="Search"],
+input[placeholder*="검색"] {
+  background: rgba(248, 250, 252, 0.9) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease;
+}
+
+input[type="search"]:focus,
+input[placeholder*="Search"]:focus,
+input[placeholder*="검색"]:focus {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: var(--landing-primary) !important;
+  box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.1) !important;
+}
+
+/* -----------------------------------------
+   9. Tabs & Navigation Styles
+   ----------------------------------------- */
+
+/* 탭 활성 상태 */
+[data-state="active"][role="tab"],
+.data-\[state\=active\]\:bg-background[data-state="active"] {
+  position: relative;
+}
+
+[data-state="active"][role="tab"]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--landing-primary), var(--landing-accent));
+  border-radius: 2px;
+}
+
+/* 하단 네비게이션 활성 아이콘 */
+.text-primary,
+[class*="text-blue-600"],
+[class*="text-purple-600"] {
+  filter: drop-shadow(0 2px 4px rgba(155, 92, 255, 0.3));
+}
+
+/* -----------------------------------------
+   10. Avatar & Badge Styles
+   ----------------------------------------- */
+
+/* 아바타 링 효과 */
+.rounded-full.overflow-hidden {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 뱃지 볼륨감 */
+.rounded-full.bg-red-500,
+.rounded-full.bg-green-500,
+.rounded-full.bg-blue-500 {
+  box-shadow: 0 2px 6px currentColor;
+}
+
+/* 알림 뱃지 */
+.absolute.bg-red-500.text-white.rounded-full {
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* -----------------------------------------
+   11. Loading & Skeleton Styles
+   ----------------------------------------- */
+
+/* 스켈레톤 애니메이션 개선 */
+.animate-pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 로딩 스피너 */
+.animate-spin {
+  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+}
+
+/* -----------------------------------------
+   12. Scroll & Container Styles
+   ----------------------------------------- */
+
+/* 커스텀 스크롤바 (웹킷) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* -----------------------------------------
+   13. Toast / Notification Styles
+   ----------------------------------------- */
+
+/* 토스트 볼륨감 */
+[data-sonner-toast],
+[role="status"].bg-white {
+  box-shadow: 
+    0 16px 40px rgba(15, 23, 42, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
