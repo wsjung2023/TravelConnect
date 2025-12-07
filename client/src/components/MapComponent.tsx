@@ -91,6 +91,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   );
   const [markers, setMarkers] = useState<any[]>([]);
   const [experienceMarkers, setExperienceMarkers] = useState<any[]>([]);
+  const [openUserMarkers, setOpenUserMarkers] = useState<any[]>([]);
   const [currentZoom, setCurrentZoom] = useState(13);
   const [poiMarkers, setPOIMarkers] = useState<any[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
@@ -101,8 +102,14 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const debouncedCenter = useDebounce(mapCenter, 150);
   const debouncedBounds = useDebounce(mapBounds, 150);
 
+  // 현재 사용자 정보 조회
+  const { data: currentUser } = useQuery<any>({
+    queryKey: ['/api/auth/me'],
+    retry: false,
+  });
+
   // 만남 열려있는 사용자들 조회
-  const { data: openUsers = [] } = useQuery({
+  const { data: openUsers = [] } = useQuery<any[]>({
     queryKey: ['/api/users/open'],
     refetchInterval: 60000, // 1분마다 자동 갱신
   });
@@ -814,6 +821,69 @@ const MapComponent: React.FC<MapComponentProps> = ({
       scaledSize: new window.google.maps.Size(39, 39),
       anchor: new window.google.maps.Point(19.5, 19.5),
     };
+  };
+
+  // Open to Meet 사용자 마커 (녹색 원형)
+  const createOpenUserMarker = (hasImage: boolean = false) => {
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="open-user-shadow">
+              <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <circle cx="20" cy="20" r="18" fill="#10B981" filter="url(#open-user-shadow)">
+            <animate attributeName="r" values="18;20;18" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="20" cy="20" r="14" fill="white"/>
+          <text x="20" y="26" text-anchor="middle" font-size="16" font-family="Arial">👋</text>
+        </svg>
+      `)}`,
+      scaledSize: new window.google.maps.Size(40, 40),
+      anchor: new window.google.maps.Point(20, 20),
+    };
+  };
+
+  // Open to Meet 사용자 클릭 시 DM 시작
+  const handleOpenUserClick = async (user: any) => {
+    // 로그인 확인
+    if (!currentUser?.id) {
+      toast({
+        title: '로그인 필요',
+        description: 'DM을 보내려면 먼저 로그인해 주세요.',
+        variant: 'destructive',
+      });
+      setLocation('/login');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ participant2Id: user.id }),
+      });
+      
+      if (response.ok) {
+        const conversation = await response.json();
+        setLocation(`/chat?conversationId=${conversation.id}`);
+      } else {
+        toast({
+          title: 'DM 시작 실패',
+          description: '대화를 시작할 수 없습니다.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('DM 시작 오류:', error);
+      toast({
+        title: '오류',
+        description: '대화를 시작하는 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Google Maps 스크립트 로딩
@@ -1536,6 +1606,50 @@ const MapComponent: React.FC<MapComponentProps> = ({
     console.log(`${newExperienceMarkers.length}개 Experience 마커 생성 완료`);
   }, [map, experiences]);
 
+  // Open to Meet 사용자 마커 생성
+  useEffect(() => {
+    if (!map || !window.google?.maps) return;
+
+    // 기존 마커 제거
+    openUserMarkers.forEach((marker) => marker.setMap(null));
+
+    if (!openUsers || openUsers.length === 0) {
+      setOpenUserMarkers([]);
+      return;
+    }
+
+    const newOpenUserMarkers: any[] = [];
+
+    openUsers.forEach((user: any) => {
+      // 사용자 위치가 있는 경우에만 마커 생성
+      const lat = parseFloat(user.lastLatitude);
+      const lng = parseFloat(user.lastLongitude);
+      
+      if (isNaN(lat) || isNaN(lng)) {
+        console.log(`Open User ${user.firstName} 위치 정보 없음`);
+        return;
+      }
+
+      const marker = new window.google.maps.Marker({
+        map,
+        position: { lat, lng },
+        icon: createOpenUserMarker(!!user.profileImageUrl),
+        title: `${user.firstName || 'User'} - Open to Meet`,
+        zIndex: 1200,
+      });
+
+      marker.addListener('click', () => {
+        console.log('Open User 클릭:', user.firstName);
+        handleOpenUserClick(user);
+      });
+
+      newOpenUserMarkers.push(marker);
+    });
+
+    setOpenUserMarkers(newOpenUserMarkers);
+    console.log(`${newOpenUserMarkers.length}개 Open User 마커 생성 완료`);
+  }, [map, openUsers]);
+
   // 검색 기능 - Geocoding 재시도
   useEffect(() => {
     // 전역 검색 함수 등록
@@ -2184,7 +2298,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   } else if (item.type === 'post') {
                     setSelectedPost(item);
                   } else if (item.type === 'open_user') {
-                    setLocation(`/profile?userId=${item.id}`);
+                    handleOpenUserClick(item);
                   }
                 }}
                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"

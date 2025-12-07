@@ -1749,7 +1749,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location: user.location,
         regionCode: user.regionCode,
         openUntil: user.openUntil,
-        profileImageUrl: user.profileImageUrl
+        profileImageUrl: user.profileImageUrl,
+        bio: user.bio,
+        lastLatitude: user.lastLatitude,
+        lastLongitude: user.lastLongitude,
       })));
     } catch (error) {
       console.error('Error fetching open users:', error);
@@ -1876,10 +1879,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.post('/api/conversations', authenticateToken, apiLimiter, validateSchema(CreateConversationSchema), async (req: any, res) => {
+  app.post('/api/conversations', authenticateHybrid, apiLimiter, validateSchema(CreateConversationSchema), async (req: AuthRequest, res) => {
     try {
-      const participant1Id = req.user!.id;
-      const { participant2Id } = req.validatedData;
+      if (!req.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      const participant1Id = req.user.id;
+      const { participant2Id } = req.validatedData as { participant2Id: string };
       const conversation = await storage.getOrCreateConversation(
         participant1Id,
         participant2Id
