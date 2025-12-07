@@ -110,6 +110,7 @@ interface FeedProps {
 export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
   const { t, i18n } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [hasOpenedInitialPost, setHasOpenedInitialPost] = useState(false);
   const [editPost, setEditPost] = useState<Post | null>(null);
   const [editExperience, setEditExperience] = useState<Experience | null>(null);
   const [useVirtualization, setUseVirtualization] = useState(true);
@@ -164,15 +165,16 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
     setSavedPosts(new Set(savedPostsData.map(p => p.id)));
   }, [savedPostsData]);
 
-  // initialPostId가 있으면 자동으로 해당 포스트 열기
+  // initialPostId가 있으면 자동으로 해당 포스트 열기 (한 번만)
   useEffect(() => {
-    if (initialPostId && posts.length > 0 && !selectedPost) {
+    if (initialPostId && posts.length > 0 && !hasOpenedInitialPost) {
       const post = posts.find(p => p.id === initialPostId);
       if (post) {
         setSelectedPost(post);
+        setHasOpenedInitialPost(true);
       }
     }
-  }, [initialPostId, posts, selectedPost]);
+  }, [initialPostId, posts, hasOpenedInitialPost]);
 
   const isLoading = isLoadingFeed || isLoadingExperiences;
 
