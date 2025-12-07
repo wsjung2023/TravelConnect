@@ -143,6 +143,7 @@ export const posts = pgTable('posts', {
   content: text('content'),
   images: text('images').array(),
   videos: text('videos').array(),
+  youtubeUrl: varchar('youtube_url'),
   location: varchar('location'),
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),

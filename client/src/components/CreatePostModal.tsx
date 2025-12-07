@@ -38,7 +38,23 @@ export default function CreatePostModal({
   const [theme, setTheme] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [exifData, setExifData] = useState<Map<string, ExifData>>(new Map());
+  
+  // YouTube URL에서 video ID 추출
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+  
+  const youtubeVideoId = extractYouTubeVideoId(youtubeUrl);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useTranslation('ui');
@@ -59,6 +75,7 @@ export default function CreatePostModal({
       setTheme(editPost.theme || '');
       setImages(editPost.images || []);
       setVideos(editPost.videos || []);
+      setYoutubeUrl(editPost.youtubeUrl || '');
       if (editPost.latitude && editPost.longitude) {
         setLocationCoords({
           lat: parseFloat(editPost.latitude),
@@ -84,6 +101,7 @@ export default function CreatePostModal({
       setTheme('');
       setImages([]);
       setVideos([]);
+      setYoutubeUrl('');
       setExifData(new Map());
       imageFilesMapRef.current.clear();
       videoFilesMapRef.current.clear();
@@ -148,6 +166,7 @@ export default function CreatePostModal({
     setTheme('');
     setImages([]);
     setVideos([]);
+    setYoutubeUrl('');
     setExifData(new Map());
     imageFilesMapRef.current.clear();
     videoFilesMapRef.current.clear();
@@ -391,6 +410,7 @@ export default function CreatePostModal({
       theme,
       images: finalImages.length > 0 ? finalImages : undefined,
       videos: finalVideos.length > 0 ? finalVideos : undefined,
+      youtubeUrl: youtubeUrl.trim() || undefined,
       takenAt: earliestTakenAt || undefined,
       latitude: locationCoords?.lat?.toString() || bestLatitude?.toString(),
       longitude: locationCoords?.lng?.toString() || bestLongitude?.toString(),
@@ -637,9 +657,48 @@ export default function CreatePostModal({
               </div>
             )}
             
+            {/* YouTube URL Input */}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                {t('post.youtubeUrl') || 'YouTube Video URL'}
+              </p>
+              <Input
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                className="border-gray-200 text-sm"
+                data-testid="input-youtube-url"
+              />
+              
+              {/* YouTube Preview */}
+              {youtubeVideoId && (
+                <div className="mt-2 rounded-lg overflow-hidden">
+                  <div className="relative w-full pt-[56.25%]">
+                    <iframe
+                      className="absolute top-0 left-0 w-full h-full rounded-lg"
+                      src={`https://www.youtube.com/embed/${youtubeVideoId}`}
+                      title="YouTube video preview"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {youtubeUrl && !youtubeVideoId && (
+                <p className="text-xs text-red-500 mt-1">
+                  {t('post.invalidYoutubeUrl') || 'Invalid YouTube URL'}
+                </p>
+              )}
+            </div>
+            
             {/* Empty state */}
-            {images.length === 0 && videos.length === 0 && (
-              <div className="text-center py-6 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+            {images.length === 0 && videos.length === 0 && !youtubeUrl && (
+              <div className="text-center py-6 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg mt-3">
                 {t('post.noMediaSelected') || 'No photos or videos selected'}
               </div>
             )}

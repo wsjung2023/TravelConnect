@@ -683,9 +683,9 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
                   {item.content}
                 </p>
 
-                {/* YouTube Embed */}
+                {/* YouTube Embed from youtubeUrl field */}
                 {(() => {
-                  const videoId = extractYouTubeVideoId(item.content || '');
+                  const videoId = item.youtubeUrl ? extractYouTubeVideoId(item.youtubeUrl) : null;
                   return videoId ? <YouTubeEmbed videoId={videoId} /> : null;
                 })()}
 
