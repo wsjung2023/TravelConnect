@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Clock, Users, Camera, Phone, Info } from 'lucide-react';
+import { X, Clock, Users, Camera, Phone, Info, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,6 +40,30 @@ export default function CreateExperienceModal({
   const [minLeadHours, setMinLeadHours] = useState('24');
   const [autoConfirm, setAutoConfirm] = useState(true);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  
+  // 미디어 관련 state
+  const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const imageFilesMapRef = useRef<Map<string, File>>(new Map());
+  const videoFilesMapRef = useRef<Map<string, File>>(new Map());
+  
+  // YouTube URL에서 video ID 추출
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+  
+  const youtubeVideoId = extractYouTubeVideoId(youtubeUrl);
 
   const { toast } = useToast();
   const { user } = useAuth();
@@ -62,12 +86,17 @@ export default function CreateExperienceModal({
       setCancelPolicy((editExperience as any).cancelPolicy || 'flexible');
       setMinLeadHours((editExperience as any).minLeadHours?.toString() || '24');
       setAutoConfirm((editExperience as any).autoConfirm ?? true);
+      setImages(editExperience.images || []);
+      setVideos((editExperience as any).videos || []);
+      setYoutubeUrl((editExperience as any).youtubeUrl || '');
       if (editExperience.latitude && editExperience.longitude) {
         setLocationCoords({
           lat: parseFloat(editExperience.latitude),
           lng: parseFloat(editExperience.longitude),
         });
       }
+      imageFilesMapRef.current.clear();
+      videoFilesMapRef.current.clear();
     } else {
       resetForm();
     }
@@ -145,9 +174,68 @@ export default function CreateExperienceModal({
     setMinLeadHours('24');
     setAutoConfirm(true);
     setFieldErrors({});
+    setImages([]);
+    setVideos([]);
+    setYoutubeUrl('');
+    imageFilesMapRef.current.clear();
+    videoFilesMapRef.current.clear();
+  };
+  
+  // 이미지 파일 선택 처리
+  const handleImageSelect = (files: FileList) => {
+    const fileArray = Array.from(files);
+    const newImages: string[] = [];
+    
+    for (const file of fileArray) {
+      const imageUrl = URL.createObjectURL(file);
+      newImages.push(imageUrl);
+      imageFilesMapRef.current.set(imageUrl, file);
+    }
+    
+    setImages([...images, ...newImages]);
+  };
+  
+  // 비디오 파일 선택 처리
+  const handleVideoSelect = (files: FileList) => {
+    const fileArray = Array.from(files);
+    const newVideos: string[] = [];
+    
+    for (const file of fileArray) {
+      if (file.size > 15 * 1024 * 1024) {
+        toast({
+          title: t('post.videoTooLarge') || 'Video too large',
+          description: t('post.videoTooLargeDesc') || 'Maximum video size is 15MB',
+          variant: 'destructive',
+        });
+        continue;
+      }
+      const videoUrl = URL.createObjectURL(file);
+      newVideos.push(videoUrl);
+      videoFilesMapRef.current.set(videoUrl, file);
+    }
+    
+    setVideos([...videos, ...newVideos]);
+  };
+  
+  // 이미지 삭제
+  const handleRemoveImage = (url: string) => {
+    setImages(images.filter(img => img !== url));
+    if (url.startsWith('blob:')) {
+      imageFilesMapRef.current.delete(url);
+      URL.revokeObjectURL(url);
+    }
+  };
+  
+  // 비디오 삭제
+  const handleRemoveVideo = (url: string) => {
+    setVideos(videos.filter(vid => vid !== url));
+    if (url.startsWith('blob:')) {
+      videoFilesMapRef.current.delete(url);
+      URL.revokeObjectURL(url);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!user) {
@@ -187,6 +275,51 @@ export default function CreateExperienceModal({
       return;
     }
 
+    // 미디어 파일 업로드
+    const imageFilesToUpload = Array.from(imageFilesMapRef.current.values());
+    const videoFilesToUpload = Array.from(videoFilesMapRef.current.values());
+    let uploadedImageUrls: string[] = [];
+    let uploadedVideoUrls: string[] = [];
+
+    if (imageFilesToUpload.length > 0) {
+      try {
+        const formData = new FormData();
+        imageFilesToUpload.forEach(file => formData.append('files', file));
+        const uploadResponse = await api('/api/upload', { method: 'POST', body: formData });
+        uploadedImageUrls = uploadResponse.files.map((file: any) => file.url);
+      } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        toast({
+          title: t('post.imageUploadFailed') || 'Image upload failed',
+          description: t('post.imageUploadFailedDesc') || 'Failed to upload image.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    if (videoFilesToUpload.length > 0) {
+      try {
+        const formData = new FormData();
+        videoFilesToUpload.forEach(file => formData.append('files', file));
+        const uploadResponse = await api('/api/upload', { method: 'POST', body: formData });
+        uploadedVideoUrls = uploadResponse.files.map((file: any) => file.url);
+      } catch (error) {
+        console.error('비디오 업로드 실패:', error);
+        toast({
+          title: t('post.videoUploadFailed') || 'Video upload failed',
+          description: t('post.videoUploadFailedDesc') || 'Failed to upload video.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    const existingServerImages = isEditMode ? images.filter(url => !url.startsWith('blob:')) : [];
+    const existingServerVideos = isEditMode ? videos.filter(url => !url.startsWith('blob:')) : [];
+    const finalImages = [...existingServerImages, ...uploadedImageUrls];
+    const finalVideos = [...existingServerVideos, ...uploadedVideoUrls];
+
     const experienceData: Partial<InsertExperience> = {
       hostId: isEditMode ? editExperience.hostId : user.id,
       title: title.trim(),
@@ -206,7 +339,9 @@ export default function CreateExperienceModal({
       cancelPolicy,
       minLeadHours: parseInt(minLeadHours),
       autoConfirm,
-      images: isEditMode ? editExperience.images : [],
+      images: finalImages.length > 0 ? finalImages : undefined,
+      videos: finalVideos.length > 0 ? finalVideos : undefined,
+      youtubeUrl: youtubeUrl.trim() || undefined,
     };
 
     if (isEditMode) {
@@ -450,6 +585,131 @@ export default function CreateExperienceModal({
                 rows={3}
                 data-testid="textarea-experience-requirements"
               />
+            </div>
+          </div>
+
+          {/* 미디어 업로드 섹션 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Image className="w-5 h-5" />
+              사진 및 동영상
+            </h3>
+            
+            {/* 업로드 버튼들 */}
+            <div className="flex gap-2 flex-wrap">
+              <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
+                <Image size={18} className="text-gray-500" />
+                <span className="text-gray-600">사진 추가</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) handleImageSelect(e.target.files);
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                  data-testid="input-experience-images"
+                />
+              </label>
+              
+              <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
+                <Video size={18} className="text-gray-500" />
+                <span className="text-gray-600">동영상 추가</span>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => {
+                    if (e.target.files) handleVideoSelect(e.target.files);
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                  data-testid="input-experience-videos"
+                />
+              </label>
+            </div>
+            
+            {/* 이미지 미리보기 */}
+            {images.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 mb-1">사진 ({images.length})</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {images.map((image, index) => (
+                    <div key={`img-${image}`} className="relative w-20 h-20 flex-shrink-0">
+                      <img src={image} alt={`Photo ${index + 1}`} className="w-full h-full object-cover rounded-lg" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(image)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 비디오 미리보기 */}
+            {videos.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 mb-1">동영상 ({videos.length})</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {videos.map((video, index) => (
+                    <div key={`vid-${video}`} className="relative w-20 h-20 flex-shrink-0">
+                      <video src={video} className="w-full h-full object-cover rounded-lg" muted />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                        <Video size={20} className="text-white" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVideo(video)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* YouTube URL 입력 */}
+            <div className="pt-3 border-t border-gray-100">
+              <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                YouTube 동영상 URL
+              </p>
+              <Input
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                className="text-sm"
+                data-testid="input-experience-youtube-url"
+              />
+              
+              {youtubeVideoId && (
+                <div className="mt-2 rounded-lg overflow-hidden">
+                  <div className="relative w-full pt-[56.25%]">
+                    <iframe
+                      className="absolute top-0 left-0 w-full h-full rounded-lg"
+                      src={`https://www.youtube.com/embed/${youtubeVideoId}`}
+                      title="YouTube video preview"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {youtubeUrl && !youtubeVideoId && (
+                <p className="text-xs text-red-500 mt-1">잘못된 YouTube URL입니다</p>
+              )}
             </div>
           </div>
 

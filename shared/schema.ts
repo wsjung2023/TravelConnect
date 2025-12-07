@@ -95,6 +95,8 @@ export const experiences = pgTable('experiences', {
   duration: integer('duration'), // in minutes
   maxParticipants: integer('max_participants'),
   images: text('images').array(),
+  videos: text('videos').array(),
+  youtubeUrl: varchar('youtube_url'),
   included: text('included').array(),
   requirements: text('requirements').array(),
   rating: decimal('rating', { precision: 3, scale: 2 }).default('0'),
