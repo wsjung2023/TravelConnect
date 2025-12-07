@@ -151,6 +151,14 @@ function Router() {
                 </Suspense>
               )}
             />
+            {/* Redirect /conversations to /chat */}
+            <Route
+              path="/conversations"
+              component={() => {
+                window.location.href = '/chat';
+                return <LoadingSpinner />;
+              }}
+            />
             <Route
               path="/profile"
               component={() => (
