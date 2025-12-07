@@ -57,19 +57,34 @@ const LoadingSpinner = () => (
   </div>
 );
 
-function Router() {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-
-  // 온보딩 체크 - 로컬 상태도 고려
-  const needsOnboarding = isAuthenticated && user && !user.onboardingCompleted && !onboardingCompleted;
-
+// Auth Gate component
+const AuthGate = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
   // OAuth 콜백 파라미터 확인
   const hasOAuthCallback = () => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.has('token') || urlParams.has('error');
   };
+
+  if (isLoading || hasOAuthCallback()) {
+    return <LoadingSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
+
+  return <>{children}</>;
+};
+
+function Router() {
+  const { user, isAuthenticated } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+
+  // 온보딩 체크 - 로컬 상태도 고려
+  const needsOnboarding = isAuthenticated && user && !user.onboardingCompleted && !onboardingCompleted;
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -98,152 +113,192 @@ function Router() {
           )}
         />
         
-        {isLoading || !isAuthenticated || hasOAuthCallback() ? (
-          <Route path="/" component={Landing} />
-        ) : (
-          <>
-            <Route path="/" component={Home} />
-            <Route
-              path="/map-test"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <MapTest />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/feed"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Feed />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/timeline"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <TimelinePage />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/timeline/create"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <TimelineCreatePage />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/video-test"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <VideoTestPage />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/chat"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Chat />
-                </Suspense>
-              )}
-            />
-            {/* Redirect /conversations to /chat */}
-            <Route
-              path="/conversations"
-              component={() => {
-                window.location.href = '/chat';
-                return <LoadingSpinner />;
-              }}
-            />
-            <Route
-              path="/profile"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Profile />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/admin"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Admin />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/host"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Host />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/error-test"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <ErrorTest />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/marketplace"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Marketplace />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/guide/:id"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <GuideProfile />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/experience/:id"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <ExperienceDetail />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/purchase-proxy"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <PurchaseProxy />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/slots"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <SlotsPage />
-                </Suspense>
-              )}
-            />
-            <Route
-              path="/subscription"
-              component={() => (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <SubscriptionPage />
-                </Suspense>
-              )}
-            />
-            <Route path="/config" component={Config} />
-          </>
-        )}
         {/* Legal pages accessible to everyone */}
         <Route path="/legal/:type?" component={LegalPage} />
+        
+        {/* Protected routes */}
+        <Route path="/" component={() => (
+          <AuthGate>
+            <Home />
+          </AuthGate>
+        )} />
+        <Route
+          path="/map-test"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <MapTest />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/feed"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Feed />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/timeline"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <TimelinePage />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/timeline/create"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <TimelineCreatePage />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/video-test"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <VideoTestPage />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/chat"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Chat />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        {/* Redirect /conversations to /chat */}
+        <Route
+          path="/conversations"
+          component={() => (
+            <AuthGate>
+              {(() => {
+                window.location.href = '/chat';
+                return <LoadingSpinner />;
+              })()}
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/profile"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Profile />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/admin"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Admin />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/host"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Host />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/error-test"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <ErrorTest />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/marketplace"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Marketplace />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/guide/:id"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <GuideProfile />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/experience/:id"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <ExperienceDetail />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/purchase-proxy"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <PurchaseProxy />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/slots"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <SlotsPage />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/subscription"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <SubscriptionPage />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route path="/config" component={() => (
+          <AuthGate>
+            <Config />
+          </AuthGate>
+        )} />
         <Route component={NotFound} />
       </Switch>
     </div>

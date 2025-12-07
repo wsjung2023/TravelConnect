@@ -74,7 +74,11 @@ const saveLikedPostsToStorage = (likedPosts: Set<number>, userId?: string) => {
 
 type FilterType = 'all' | 'posts' | 'experiences';
 
-export default function Feed() {
+interface FeedProps {
+  onBack?: () => void;
+}
+
+export default function Feed({ onBack }: FeedProps = {}) {
   const { t, i18n } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editPost, setEditPost] = useState<Post | null>(null);
@@ -407,13 +411,7 @@ export default function Feed() {
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                if (window.history.length > 1) {
-                  window.history.back();
-                } else {
-                  setLocation('/');
-                }
-              }}
+              onClick={onBack || (() => setLocation('/'))}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               data-testid="button-back"
             >

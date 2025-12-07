@@ -2216,7 +2216,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       {/* 하단 Nearby Posts - 접기/펼치기 가능 */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg transition-all duration-300 flex flex-col max-h-[80vh] ${
+        className={`absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg transition-all duration-300 flex flex-col max-h-[80vh] min-h-0 overflow-hidden pointer-events-auto ${
           isNearbyPanelCollapsed ? 'p-2 rounded-t-3xl' : 'p-4 rounded-t-3xl'
         }`}
       >

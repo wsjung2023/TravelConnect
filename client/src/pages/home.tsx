@@ -120,7 +120,7 @@ export default function Home() {
       case 'feed':
         return (
           <Suspense fallback={<TabLoadingSpinner />}>
-            <Feed />
+            <Feed onBack={() => setActiveTab('map')} />
           </Suspense>
         );
       case 'timeline':
