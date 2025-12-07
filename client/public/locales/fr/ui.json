@@ -197,6 +197,13 @@
     "subtitle": "Moments + Vibes",
     "description": "Vos moments de voyage cinématiques"
   },
+  "feedMode": {
+    "smart": "Pour vous",
+    "latest": "Derniers",
+    "nearby": "Proximité",
+    "popular": "Populaire",
+    "hashtag": "Suivi"
+  },
   "dashboard": {
     "title": "💼 Tableau de bord Commerce",
     "subtitle": "Gestion des expériences de voyage et réservations",

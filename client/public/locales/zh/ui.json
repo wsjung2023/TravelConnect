@@ -187,6 +187,13 @@
     "subtitle": "Moments + Vibes",
     "description": "你的电影级旅行时刻"
   },
+  "feedMode": {
+    "smart": "为你推荐",
+    "latest": "最新",
+    "nearby": "附近",
+    "popular": "流行",
+    "hashtag": "关注中"
+  },
   "dashboard": {
     "title": "💼 商务仪表板",
     "subtitle": "旅行体验和预订管理",

@@ -197,6 +197,13 @@
     "subtitle": "Moments + Vibes",
     "description": "Your cinematic travel moments"
   },
+  "feedMode": {
+    "smart": "For You",
+    "latest": "Latest",
+    "nearby": "Nearby",
+    "popular": "Popular",
+    "hashtag": "Following"
+  },
   "dashboard": {
     "title": "💼 Commerce Dashboard",
     "subtitle": "Travel experience and booking management",

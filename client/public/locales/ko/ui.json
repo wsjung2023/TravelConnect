@@ -191,6 +191,13 @@
     "subtitle": "Moments + Vibes",
     "description": "당신의 영화같은 여행의 순간들"
   },
+  "feedMode": {
+    "smart": "추천",
+    "latest": "최신",
+    "nearby": "주변",
+    "popular": "인기",
+    "hashtag": "팔로잉"
+  },
   "dashboard": {
     "title": "💼 커머스 대시보드",
     "subtitle": "여행 경험 및 예약 관리",

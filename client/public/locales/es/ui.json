@@ -199,6 +199,13 @@
     "subtitle": "Moments + Vibes",
     "description": "Tus momentos de viaje cinematográficos"
   },
+  "feedMode": {
+    "smart": "Para ti",
+    "latest": "Últimos",
+    "nearby": "Cercano",
+    "popular": "Popular",
+    "hashtag": "Siguiendo"
+  },
   "dashboard": {
     "title": "💼 Panel de comercio",
     "subtitle": "Gestión de experiencias de viaje y reservas",
