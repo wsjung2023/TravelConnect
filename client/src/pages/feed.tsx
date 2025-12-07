@@ -192,8 +192,8 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
       ? allItems.filter(item => item.type === 'post')
       : allItems.filter(item => item.type === 'experience');
 
-  // 포스트 수가 많으면 자동으로 가상화 활성화
-  const shouldUseVirtualization = filteredItems.length > 20 || useVirtualization;
+  // 포스트 수가 많으면 자동으로 가상화 활성화 (단, All 탭은 experiences 때문에 비활성화)
+  const shouldUseVirtualization = (filteredItems.length > 20 || useVirtualization) && filter !== 'all';
   const postGroups = groupSimilarPosts(posts);
 
   const likeMutation = useMutation({
