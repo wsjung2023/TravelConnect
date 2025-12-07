@@ -308,12 +308,15 @@ export default function Profile() {
       {/* Profile Header */}
       <div className="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-6">
         {/* 홈 버튼 (왼쪽 상단) */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-50">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="p-2"
-            onClick={() => setLocation('/')}
+            className="p-2 relative z-50"
+            onClick={() => {
+              console.log('[Profile] Home button clicked');
+              setLocation('/');
+            }}
             data-testid="button-home"
           >
             <Home size={20} />
