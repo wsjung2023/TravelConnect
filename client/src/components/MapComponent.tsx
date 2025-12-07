@@ -2239,7 +2239,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         
         {!isNearbyPanelCollapsed && (
-          <div className="flex flex-col h-[65vh]">
+          <div className="flex flex-col h-[50vh]">
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-3 flex-shrink-0">
               <button
