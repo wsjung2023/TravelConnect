@@ -2239,7 +2239,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         
         {!isNearbyPanelCollapsed && (
-          <>
+          <div className="flex flex-col flex-1 min-h-0">
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-3">
               <button
@@ -2289,7 +2289,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             </div>
 
             <div 
-              className="space-y-2 max-h-[65vh] overflow-y-auto"
+              className="space-y-2 flex-1 min-h-0 overflow-y-auto"
               style={{ 
                 WebkitOverflowScrolling: 'touch',
                 overscrollBehaviorY: 'contain'
@@ -2370,7 +2370,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               </div>
             )}
             </div>
-          </>
+          </div>
         )}
       </div>
 
