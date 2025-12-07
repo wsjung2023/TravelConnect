@@ -231,7 +231,19 @@ export default function Home() {
       {/* Bottom Navigation */}
       <BottomNavigation
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(tab) => {
+          if (tab === 'feed') {
+            navigate('/feed');
+          } else if (tab === 'chat') {
+            navigate('/chat');
+          } else if (tab === 'profile') {
+            navigate('/profile');
+          } else if (tab === 'timeline') {
+            navigate('/timeline');
+          } else {
+            setActiveTab(tab);
+          }
+        }}
         onCreatePost={() => setShowCreatePost(true)}
       />
 
