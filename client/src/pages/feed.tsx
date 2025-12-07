@@ -406,13 +406,14 @@ export default function Feed() {
       <div className="border-b bg-white sticky top-0 z-10">
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setLocation('/')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              data-testid="button-back"
-            >
-              <ArrowLeft size={20} className="text-gray-600" />
-            </button>
+            <Link href="/">
+              <button
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                data-testid="button-back"
+              >
+                <ArrowLeft size={20} className="text-gray-600" />
+              </button>
+            </Link>
             <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
