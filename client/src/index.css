@@ -902,7 +902,6 @@ input[placeholder*="검색"]:focus {
 
 /* 모든 모바일 컨텐츠 overflow 허용 */
 .mobile-content {
-  overflow: visible !important;
   pointer-events: auto !important;
 }
 
