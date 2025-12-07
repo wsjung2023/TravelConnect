@@ -23,6 +23,7 @@ import SerendipityToggle from '@/components/SerendipityToggle';
 import type { Post, Trip, Experience } from '@shared/schema';
 import { Seo } from '@/components/Seo';
 import { useTranslation } from 'react-i18next';
+import PostDetailModal from '@/components/PostDetailModal';
 
 export default function Profile() {
   const { user: currentUser } = useAuth();
@@ -60,6 +61,10 @@ export default function Profile() {
   
   // Profile Edit Modal 상태
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
+  
+  // Post Detail Modal 상태
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 
   // 만남 상태 토글 mutation
   const [openMeetRegion, setOpenMeetRegion] = useState('강남구');
@@ -652,7 +657,7 @@ export default function Profile() {
                 <div
                   key={post.id}
                   className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setLocation(`/feed?postId=${post.id}`)}
+                  onClick={() => setSelectedPost(post)}
                   data-testid={`post-item-${post.id}`}
                 >
                   {post.images && post.images.length > 0 ? (
@@ -810,6 +815,27 @@ export default function Profile() {
           open={showProfileEditModal}
           onOpenChange={setShowProfileEditModal}
           user={user}
+        />
+      )}
+      
+      {/* Post Detail Modal */}
+      {selectedPost && (
+        <PostDetailModal
+          post={selectedPost}
+          isOpen={!!selectedPost}
+          onClose={() => setSelectedPost(null)}
+          onLike={(postId) => {
+            setLikedPosts(prev => {
+              const newSet = new Set(prev);
+              if (newSet.has(postId)) {
+                newSet.delete(postId);
+              } else {
+                newSet.add(postId);
+              }
+              return newSet;
+            });
+          }}
+          isLiked={likedPosts.has(selectedPost.id)}
         />
       )}
     </div>
