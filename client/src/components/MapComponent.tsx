@@ -2216,13 +2216,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       {/* 하단 Nearby Posts - 접기/펼치기 가능 */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl border-t shadow-lg transition-all duration-300 ${
-          isNearbyPanelCollapsed ? 'p-2' : 'p-4 max-h-80 overflow-y-auto'
+        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl border-t shadow-lg transition-all duration-300 flex flex-col max-h-[80vh] ${
+          isNearbyPanelCollapsed ? 'p-2' : 'p-4'
         }`}
       >
         <button
           onClick={() => setIsNearbyPanelCollapsed(!isNearbyPanelCollapsed)}
-          className="w-full flex items-center justify-between mb-2"
+          className="w-full flex items-center justify-between mb-2 flex-shrink-0"
           data-testid="button-toggle-nearby-panel"
         >
           <div className="flex items-center gap-2">
@@ -2239,7 +2239,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         
         {!isNearbyPanelCollapsed && (
-          <>
+          <div className="overflow-y-auto flex-1">
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-3">
               <button
@@ -2364,7 +2364,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               </div>
             )}
           </div>
-          </>
+          </div>
         )}
       </div>
 
