@@ -76,9 +76,10 @@ type FilterType = 'all' | 'posts' | 'experiences';
 
 interface FeedProps {
   onBack?: () => void;
+  initialPostId?: number;
 }
 
-export default function Feed({ onBack }: FeedProps = {}) {
+export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
   const { t, i18n } = useTranslation('ui');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [editPost, setEditPost] = useState<Post | null>(null);
@@ -134,6 +135,16 @@ export default function Feed({ onBack }: FeedProps = {}) {
   useEffect(() => {
     setSavedPosts(new Set(savedPostsData.map(p => p.id)));
   }, [savedPostsData]);
+
+  // initialPostId가 있으면 자동으로 해당 포스트 열기
+  useEffect(() => {
+    if (initialPostId && posts.length > 0 && !selectedPost) {
+      const post = posts.find(p => p.id === initialPostId);
+      if (post) {
+        setSelectedPost(post);
+      }
+    }
+  }, [initialPostId, posts, selectedPost]);
 
   const isLoading = isLoadingFeed || isLoadingExperiences;
 
