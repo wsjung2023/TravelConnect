@@ -46,6 +46,7 @@ interface MapComponentProps {
     latitude: number;
     longitude: number;
   }) => void;
+  onPostDetailClick?: (postId: number) => void;
 }
 
 // Google Maps 전역 선언
@@ -59,6 +60,7 @@ declare global {
 const MapComponent: React.FC<MapComponentProps> = ({
   className = '',
   onCreatePost,
+  onPostDetailClick,
 }) => {
   const { t } = useTranslation('ui');
   const [, setLocation] = useLocation();
@@ -2016,9 +2018,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
                     <button
                       onClick={() => {
-                        console.log('피드 상세보기 클릭');
+                        onPostDetailClick?.(selectedPost.id);
+                        setSelectedPost(null);
                       }}
                       className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors"
+                      data-testid="button-view-post-detail"
                     >
                       📖 피드 상세보기
                     </button>

@@ -33,6 +33,8 @@ export default function Home() {
     lng: number;
     name?: string;
   } | null>(null);
+  const [showFeedDetail, setShowFeedDetail] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const mapRef = useRef<any>(null);
 
   // 전역 함수로 모달 열기 (지도 클릭 시 사용) 및 홈 네비게이션 처리
@@ -114,6 +116,10 @@ export default function Home() {
                 setPrefilledLocation(null);
               }
               setShowCreatePost(true);
+            }}
+            onPostDetailClick={(postId) => {
+              setSelectedPostId(postId);
+              setShowFeedDetail(true);
             }}
           />
         );
@@ -257,6 +263,21 @@ export default function Home() {
           }}
           location={prefilledLocation}
         />
+      )}
+
+      {/* Feed Detail Overlay */}
+      {showFeedDetail && (
+        <div className="fixed inset-0 z-50 bg-white">
+          <Suspense fallback={<TabLoadingSpinner />}>
+            <Feed 
+              initialPostId={selectedPostId || undefined}
+              onBack={() => {
+                setShowFeedDetail(false);
+                setSelectedPostId(null);
+              }}
+            />
+          </Suspense>
+        </div>
       )}
     </div>
   );
