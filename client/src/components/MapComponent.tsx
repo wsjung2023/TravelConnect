@@ -575,6 +575,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   // Combine nearby posts and experiences based on filter
   const nearbyItems = useMemo(() => {
+    console.log('🔍 Nearby 계산:', {
+      filter: nearbyFilter,
+      postsCount: nearbyPosts.length,
+      experiencesCount: nearbyExperiences.length,
+      mapCenter,
+    });
+    
     if (nearbyFilter === 'posts') return nearbyPosts;
     if (nearbyFilter === 'experiences') return nearbyExperiences;
     if (nearbyFilter === 'open_users') {
@@ -588,8 +595,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }
     
     // Combine and sort by distance - 모든 아이템 표시 (제한 제거)
-    return [...nearbyPosts, ...nearbyExperiences]
+    const combined = [...nearbyPosts, ...nearbyExperiences]
       .sort((a: any, b: any) => a.distance - b.distance);
+    
+    console.log('✅ Nearby 결과:', combined.length, '개 아이템');
+    return combined;
   }, [nearbyPosts, nearbyExperiences, nearbyFilter, openUsers, mapCenter]);
 
   // Determine clustering strategy based on marker count
