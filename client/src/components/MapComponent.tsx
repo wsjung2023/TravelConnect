@@ -2239,15 +2239,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </button>
         
         {!isNearbyPanelCollapsed && (
-          <div 
-            className="overflow-y-auto flex-1 min-h-0" 
-            style={{ 
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain'
-            }}
-          >
+          <>
             {/* Filter Buttons */}
-            <div className="flex gap-2 mb-3 flex-shrink-0">
+            <div className="flex gap-2 mb-3">
               <button
                 onClick={() => setNearbyFilter('all')}
                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
@@ -2294,7 +2288,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
               </button>
             </div>
 
-            <div className="space-y-2 flex-shrink-0">
+            <div 
+              className="space-y-2 max-h-[50vh] overflow-y-auto"
+              style={{ 
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorY: 'contain'
+              }}
+            >
             {nearbyItems.map((item: any) => (
               <div
                 key={item.id}
@@ -2369,8 +2369,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 <p className="text-sm">{t('mapPage.noNearbyExperiences')}</p>
               </div>
             )}
-          </div>
-          </div>
+            </div>
+          </>
         )}
       </div>
 
