@@ -208,10 +208,12 @@ export function usePayment() {
     try {
       const PortOne = await loadPortOneSDK();
       
+      const issueId = `billing_${data.customerId}_${Date.now()}`;
       const response = await PortOne.requestIssueBillingKey({
         storeId,
         channelKey,
         billingKeyMethod: 'CARD',
+        issueId,
         issueName: 'Tourgether 정기결제 카드 등록',
         customer: {
           id: data.customerId,
