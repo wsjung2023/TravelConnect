@@ -556,23 +556,40 @@ export default function SubscriptionPage() {
                             >
                               {plan.type === 'subscription' ? t('subscribe_button') : t('purchase_button')}
                             </PaymentButton>
-                            <PaymentButton
-                              type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
-                              amount={Math.round(planPrice * 100)}
-                              orderName={plan.name}
-                              payMethod="KAKAO"
-                              planId={plan.id}
-                              billingKeyId={selectedBillingKeyId || undefined}
-                              onSuccess={() => {
-                                queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
-                                queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
-                                queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
-                              }}
-                              className="w-full bg-yellow-400 hover:bg-yellow-500 text-black"
-                            >
-                              <CreditCard className="w-4 h-4 mr-2" />
-                              KakaoPay
-                            </PaymentButton>
+                            <div className="grid grid-cols-2 gap-2 w-full">
+                              <PaymentButton
+                                type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                                amount={Math.round(planPrice * 100)}
+                                orderName={plan.name}
+                                payMethod="KAKAO"
+                                planId={plan.id}
+                                billingKeyId={selectedBillingKeyId || undefined}
+                                onSuccess={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
+                                }}
+                                className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
+                              >
+                                KakaoPay
+                              </PaymentButton>
+                              <PaymentButton
+                                type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                                amount={Math.round(planPrice * 100)}
+                                orderName={plan.name}
+                                payMethod="PAYPAL"
+                                planId={plan.id}
+                                billingKeyId={selectedBillingKeyId || undefined}
+                                onSuccess={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
+                                }}
+                                className="bg-[#0070ba] hover:bg-[#005ea6] text-white font-medium"
+                              >
+                                PayPal
+                              </PaymentButton>
+                            </div>
                           </>
                         );
                       })()}

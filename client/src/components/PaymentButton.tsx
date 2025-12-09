@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { CreditCard, Loader2, Wallet } from 'lucide-react';
+import { SiKakaotalk, SiPaypal } from 'react-icons/si';
 import { Button } from '@/components/ui/button';
 import { usePayment } from '@/hooks/usePayment';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,6 +8,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 
 type PayMethodType = 'CARD' | 'KAKAO' | 'PAYPAL';
+
+const getPayMethodIcon = (payMethod: PayMethodType) => {
+  switch (payMethod) {
+    case 'KAKAO':
+      return <SiKakaotalk className="w-4 h-4 mr-2" />;
+    case 'PAYPAL':
+      return <SiPaypal className="w-4 h-4 mr-2" />;
+    case 'CARD':
+    default:
+      return <CreditCard className="w-4 h-4 mr-2" />;
+  }
+};
 
 interface PaymentButtonProps {
   type: 'trip_pass' | 'subscription' | 'contract';
@@ -156,7 +169,7 @@ export default function PaymentButton({
         </>
       ) : (
         <>
-          <CreditCard className="w-4 h-4 mr-2" />
+          {getPayMethodIcon(payMethod)}
           {children || t('pay_amount', { amount: amount.toLocaleString() })}
         </>
       )}
