@@ -75,6 +75,8 @@ const feedResultCache = new LRUCache<any[]>(200);
 
 // 빌링 관련 캐시 - 자주 변경되지 않으므로 긴 TTL 사용
 const billingPlanCache = new LRUCache<any[]>(10);
+// 빌링 일반 캐시 (플랜 limit, 우선순위 등)
+const billingCache = new LRUCache<any>(500);
 // Trip Pass 캐시 - 사용자별 활성 패스 정보
 const tripPassCache = new LRUCache<any>(1000);
 // AI 사용량 통계 캐시 - 짧은 TTL로 최신 데이터 유지
@@ -190,6 +192,25 @@ export const cacheService = {
   },
 
   // ============================================
+  // 빌링 일반 캐시 (플랜 limit, 우선순위 등)
+  // ============================================
+  billing: {
+    get: (key: string): any | undefined => {
+      return billingCache.get(key);
+    },
+    set: (key: string, value: any, ttl: number = CACHE_TTL.BILLING_PLAN): void => {
+      billingCache.set(key, value, ttl);
+    },
+    invalidate: (key: string): void => {
+      billingCache.delete(key);
+    },
+    invalidateAll: (): void => {
+      billingCache.clear();
+      console.log('[Cache] 빌링 캐시 전체 무효화');
+    }
+  },
+
+  // ============================================
   // Trip Pass 캐시
   // ============================================
   // 활성 Trip Pass 정보 캐싱 (사용량 포함)
@@ -246,6 +267,7 @@ export const cacheService = {
     userAffinityCache.clear();
     feedResultCache.clear();
     billingPlanCache.clear();
+    billingCache.clear();
     tripPassCache.clear();
     aiUsageStatsCache.clear();
     console.log('[Cache] 전체 캐시 무효화 완료');
@@ -259,6 +281,7 @@ export const cacheService = {
     userAffinity: userAffinityCache.size(),
     feedResult: feedResultCache.size(),
     billingPlan: billingPlanCache.size(),
+    billing: billingCache.size(),
     tripPass: tripPassCache.size(),
     aiUsage: aiUsageStatsCache.size(),
   })
