@@ -208,7 +208,7 @@ export function usePayment() {
     try {
       const PortOne = await loadPortOneSDK();
       
-      const issueId = `billing_${data.customerId}_${Date.now()}`;
+      const issueId = `b_${Date.now()}`;
       const response = await PortOne.requestIssueBillingKey({
         storeId,
         channelKey,
