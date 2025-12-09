@@ -212,6 +212,7 @@ export function usePayment() {
         storeId,
         channelKey,
         billingKeyMethod: 'CARD',
+        issueName: 'Tourgether 정기결제 카드 등록',
         customer: {
           id: data.customerId,
           fullName: data.customerName,
