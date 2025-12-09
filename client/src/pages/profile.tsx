@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock, Home } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock, Home, CreditCard, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -328,18 +328,31 @@ export default function Profile() {
           </Button>
         </div>
 
-        {/* 설정 아이콘 (관리자 전용, 오른쪽 상단, 자기 프로필만) */}
-        {isViewingOwnProfile && user?.role === 'admin' && (
-          <div className="absolute top-4 right-4">
+        {/* 오른쪽 상단 버튼들 */}
+        {isViewingOwnProfile && (
+          <div className="absolute top-4 right-4 flex items-center gap-1">
+            {/* 구독/멤버십 버튼 */}
             <Button 
               variant="ghost" 
               size="sm" 
               className="p-2"
-              onClick={() => setLocation('/config')}
-              data-testid="button-settings"
+              onClick={() => setLocation('/subscription')}
+              data-testid="button-subscription"
             >
-              <Settings size={20} />
+              <Crown size={20} className="text-amber-500" />
             </Button>
+            {/* 설정 아이콘 (관리자 전용) */}
+            {user?.role === 'admin' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2"
+                onClick={() => setLocation('/config')}
+                data-testid="button-settings"
+              >
+                <Settings size={20} />
+              </Button>
+            )}
           </div>
         )}
 
