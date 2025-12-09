@@ -109,7 +109,7 @@ export default function SubscriptionPage() {
 
   // Locale mapping for date-fns (normalize language codes)
   const getDateLocale = () => {
-    const lang = i18n.language.split('-')[0]; // Extract primary language code
+    const lang = (i18n.language || 'en').split('-')[0]; // Extract primary language code
     const localeMap: Record<string, Locale> = {
       ko, en: enUS, ja, zh: zhCN, fr, es
     };
@@ -120,7 +120,7 @@ export default function SubscriptionPage() {
   const formatDate = (date: Date | string, formatStr?: string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     const locale = getDateLocale();
-    const lang = i18n.language.split('-')[0]; // Extract primary language code
+    const lang = (i18n.language || 'en').split('-')[0]; // Extract primary language code
     
     // Default format patterns for each language
     const defaultFormats: Record<string, string> = {
@@ -638,7 +638,7 @@ export default function SubscriptionPage() {
                           <p className="font-medium">{payment.description}</p>
                           <p className="text-sm text-gray-500">
                             {(() => {
-                              const lang = i18n.language.split('-')[0];
+                              const lang = (i18n.language || 'en').split('-')[0];
                               const timeFormats: Record<string, string> = {
                                 ko: 'yyyy년 M월 d일 HH:mm',
                                 en: 'MMM d, yyyy HH:mm',
