@@ -8,6 +8,24 @@ The sharing economy flow involves travelers posting requests on the feed, local 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Development Guidelines (필수 준수 사항)
+
+### 코드 작성 규칙
+- **코드 주석은 한국어로 작성**
+- **API 응답은 항상 camelCase** 사용
+
+### 작업 프로세스
+- **새 기능 추가 전 먼저 설명 후 확인 받기** - 구현 전 반드시 사용자 승인 필요
+- **기존 기능 보호** - 새 기능 추가/변경/수정 시 절대로 기존 성공적으로 완료된 기능을 망가뜨리지 말 것
+
+### UI/UX 규칙
+- **새로운 화면은 반드시 버튼 기반으로 이동 가능하게 구현** - URL 직접 입력으로만 접근 가능한 페이지 금지 (예: `/admin` 같은 숨겨진 경로 금지)
+- **모든 텍스트(버튼, 라벨, 메시지 등)는 i18n 기반으로 구현** - translations 테이블 사용
+
+### 데이터 관리 규칙
+- **마스터 데이터는 반드시 DB 기반으로 처리** - 소스 코드에 하드코딩 절대 금지
+- **번역 데이터는 DB(translations 테이블)로 관리** - 프론트엔드 하드코딩 금지
+
 ## System Architecture
 
 ### Frontend
