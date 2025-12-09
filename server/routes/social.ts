@@ -511,4 +511,120 @@ router.get('/me/saved-posts', authenticateHybrid, async (req: AuthRequest, res: 
   }
 });
 
+// ============================================
+// 포스트 검색 (ILIKE 패턴 매칭)
+// ============================================
+// GET /api/search/posts?term=검색어&location=위치&limit=20&offset=0
+// 제목, 내용, 위치에서 검색어를 매칭합니다.
+// 유료 구독자 포스트가 상단에 노출됩니다.
+router.get('/search/posts', async (req: Request, res: Response) => {
+  try {
+    const term = req.query.term as string;
+    const location = req.query.location as string | undefined;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    if (!term || term.trim().length === 0) {
+      return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    // 최소 2자 이상 검색어 필요
+    if (term.trim().length < 2) {
+      return res.status(400).json({ error: 'Search term must be at least 2 characters' });
+    }
+
+    const posts = await storage.searchPosts(term.trim(), { location, limit, offset });
+    
+    res.json({
+      results: posts,
+      term: term.trim(),
+      count: posts.length,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('포스트 검색 오류:', error);
+    res.status(500).json({ error: 'Failed to search posts' });
+  }
+});
+
+// ============================================
+// 체험(Experience) 검색 (ILIKE 패턴 매칭)
+// ============================================
+// GET /api/search/experiences?term=검색어&category=카테고리&location=위치&limit=20&offset=0
+// 제목, 설명, 위치, 카테고리에서 검색어를 매칭합니다.
+router.get('/search/experiences', async (req: Request, res: Response) => {
+  try {
+    const term = req.query.term as string;
+    const category = req.query.category as string | undefined;
+    const location = req.query.location as string | undefined;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    if (!term || term.trim().length === 0) {
+      return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    // 최소 2자 이상 검색어 필요
+    if (term.trim().length < 2) {
+      return res.status(400).json({ error: 'Search term must be at least 2 characters' });
+    }
+
+    const experiences = await storage.searchExperiences(term.trim(), { category, location, limit, offset });
+    
+    res.json({
+      results: experiences,
+      term: term.trim(),
+      count: experiences.length,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('체험 검색 오류:', error);
+    res.status(500).json({ error: 'Failed to search experiences' });
+  }
+});
+
+// ============================================
+// 통합 검색 (포스트 + 체험)
+// ============================================
+// GET /api/search?term=검색어&type=all|posts|experiences&limit=20&offset=0
+// 포스트와 체험을 동시에 검색합니다.
+router.get('/search', async (req: Request, res: Response) => {
+  try {
+    const term = req.query.term as string;
+    const type = (req.query.type as string) || 'all';
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    if (!term || term.trim().length === 0) {
+      return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    if (term.trim().length < 2) {
+      return res.status(400).json({ error: 'Search term must be at least 2 characters' });
+    }
+
+    const results: { posts?: any[]; experiences?: any[] } = {};
+
+    // 타입에 따라 검색 수행
+    if (type === 'all' || type === 'posts') {
+      results.posts = await storage.searchPosts(term.trim(), { limit, offset });
+    }
+
+    if (type === 'all' || type === 'experiences') {
+      results.experiences = await storage.searchExperiences(term.trim(), { limit, offset });
+    }
+
+    res.json({
+      term: term.trim(),
+      type,
+      ...results,
+    });
+  } catch (error) {
+    console.error('통합 검색 오류:', error);
+    res.status(500).json({ error: 'Failed to search' });
+  }
+});
+
 export const socialRouter = router;
