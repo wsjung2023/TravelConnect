@@ -448,7 +448,7 @@ export default function SubscriptionPage() {
                 {plans.map((plan) => (
                   <Card 
                     key={plan.id} 
-                    className={`relative ${plan.popular ? 'border-blue-500 border-2' : ''}`}
+                    className={`relative overflow-hidden ${plan.popular ? 'border-blue-500 border-2' : ''}`}
                   >
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -489,16 +489,14 @@ export default function SubscriptionPage() {
                                 const isIncluded = value !== 0 && value !== false;
                                 
                                 return (
-                                  <li key={key} className={`flex items-center gap-3 text-sm ${!isIncluded ? 'text-gray-400' : ''}`}>
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isIncluded ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
-                                      <Icon className="w-3.5 h-3.5" />
+                                  <li key={key} className={`flex items-center gap-2 text-sm ${!isIncluded ? 'text-gray-400' : ''}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${isIncluded ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                      <Icon className="w-3 h-3" />
                                     </div>
-                                    <div className="flex-1">
-                                      <span className="font-medium">{getFeatureLabel(key, lang)}</span>
-                                      <span className="text-gray-500 ml-2">
-                                        {formatFeatureValue(key, value, lang)}
-                                      </span>
-                                    </div>
+                                    <span className="font-medium truncate">{getFeatureLabel(key, lang)}</span>
+                                    <span className="text-gray-500 whitespace-nowrap ml-auto">
+                                      {formatFeatureValue(key, value, lang)}
+                                    </span>
                                   </li>
                                 );
                               });
@@ -558,40 +556,23 @@ export default function SubscriptionPage() {
                             >
                               {plan.type === 'subscription' ? t('subscribe_button') : t('purchase_button')}
                             </PaymentButton>
-                            <div className="flex gap-2 w-full">
-                              <PaymentButton
-                                type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
-                                amount={Math.round(planPrice * 100)}
-                                orderName={plan.name}
-                                payMethod="KAKAO"
-                                planId={plan.id}
-                                billingKeyId={selectedBillingKeyId || undefined}
-                                onSuccess={() => {
-                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
-                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
-                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
-                                }}
-                                className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black"
-                              >
-                                KakaoPay
-                              </PaymentButton>
-                              <PaymentButton
-                                type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
-                                amount={Math.round(planPrice * 100)}
-                                orderName={plan.name}
-                                payMethod="PAYPAL"
-                                planId={plan.id}
-                                billingKeyId={selectedBillingKeyId || undefined}
-                                onSuccess={() => {
-                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
-                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
-                                  queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
-                                }}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700"
-                              >
-                                PayPal
-                              </PaymentButton>
-                            </div>
+                            <PaymentButton
+                              type={plan.type === 'subscription' ? 'subscription' : 'trip_pass'}
+                              amount={Math.round(planPrice * 100)}
+                              orderName={plan.name}
+                              payMethod="KAKAO"
+                              planId={plan.id}
+                              billingKeyId={selectedBillingKeyId || undefined}
+                              onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
+                                queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
+                                queryClient.invalidateQueries({ queryKey: ['/api/billing/usage'] });
+                              }}
+                              className="w-full bg-yellow-400 hover:bg-yellow-500 text-black"
+                            >
+                              <CreditCard className="w-4 h-4 mr-2" />
+                              KakaoPay
+                            </PaymentButton>
                           </>
                         );
                       })()}

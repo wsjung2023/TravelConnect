@@ -106,7 +106,7 @@ integrations = ["javascript_websocket:1.0.0", "javascript_object_storage:1.0.0",
 [userenv.shared]
 PORTONE_API_SECRET = "u73emN2fzw6bDliWlV3qmVDrrlm6Jg386OGwOA70M33pXytUJZbG20b0gJ6vuNlGuqo7bR53fhWwbLet"
 PORTONE_STORE_ID = "store-c1218f56-40d1-41da-b404-c866d4135ffc"
-PORTONE_CHANNEL_KEY = "channel-key-6229894c-65b4-4df2-8c81-2a4a0abda399"
+PORTONE_CHANNEL_KEY = "channel-key-35176a29-f4f6-4a82-a938-0820a297c48c"
 PORTONE_KAKAOPAY_CHANNEL_KEY = "channel-key-c992e7c6-fd4f-4507-b73d-c2ee719d140c"
 PORTONE_PAYPAL_CHANNEL_KEY = "channel-key-75462761-634f-4796-8759-62b36d656ae0"
 # "javascript_stripe:1.0.0"]스트라시프 가십후 다시 풀기
