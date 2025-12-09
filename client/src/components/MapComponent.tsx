@@ -1686,58 +1686,73 @@ const MapComponent: React.FC<MapComponentProps> = ({
       });
     };
 
-    (window as any).mapContentSearch = (query: string) => {
-      console.log('컨텐츠 검색:', query);
+    (window as any).mapContentSearch = async (query: string) => {
+      console.log('컨텐츠 검색 (서버 API):', query);
 
-      if (!posts || posts.length === 0) {
-        console.log('검색할 포스트가 없습니다');
+      if (query.trim().length < 2) {
+        console.log('검색어는 최소 2글자 이상 입력해주세요');
         return;
       }
 
-      console.log('전체 포스트 수:', posts.length);
-      console.log('첫 번째 포스트 샘플:', posts[0]);
-
-      // 포스트에서 키워드 검색
-      const searchResults = posts.filter((post) => {
-        const title = post.title?.toLowerCase() || '';
-        const content = post.content?.toLowerCase() || '';
-        const location = post.location?.toLowerCase() || '';
-        const theme = post.theme?.toLowerCase() || '';
-        const searchTerm = query.toLowerCase();
-
-        return (
-          title.includes(searchTerm) ||
-          content.includes(searchTerm) ||
-          location.includes(searchTerm) ||
-          theme.includes(searchTerm)
-        );
-      });
-
-      console.log('검색 결과:', searchResults.length, '개');
-      console.log('검색 결과 데이터:', searchResults);
-
-      if (searchResults.length > 0) {
-        // 첫 번째 결과로 지도 이동
-        const firstResult = searchResults[0];
-        console.log('선택된 결과:', firstResult);
-
-        if (firstResult.latitude && firstResult.longitude) {
-          const lat = parseFloat(firstResult.latitude);
-          const lng = parseFloat(firstResult.longitude);
-          console.log('이동할 좌표:', lat, lng);
-
-          map.setCenter({ lat, lng });
-          map.setZoom(15);
-          console.log('컨텐츠 검색 성공:', firstResult.title);
-        } else {
-          console.log(
-            '좌표 정보 없음:',
-            firstResult.latitude,
-            firstResult.longitude
-          );
+      try {
+        // 서버 검색 API 호출 (ILIKE 패턴 매칭)
+        const response = await fetch(`/api/search?term=${encodeURIComponent(query)}&type=all&limit=20`);
+        
+        if (!response.ok) {
+          throw new Error('검색 API 오류');
         }
-      } else {
-        console.log('검색 결과 없음');
+
+        const data = await response.json();
+        console.log('서버 검색 결과:', data);
+
+        // 포스트와 체험 결과 합치기
+        const allResults = [
+          ...(data.posts || []),
+          ...(data.experiences || [])
+        ];
+
+        console.log('검색 결과:', allResults.length, '개');
+
+        if (allResults.length > 0) {
+          // 좌표가 있는 첫 번째 결과로 지도 이동
+          const firstWithLocation = allResults.find((result: any) => 
+            result.latitude && result.longitude
+          );
+          
+          if (firstWithLocation) {
+            const lat = parseFloat(firstWithLocation.latitude);
+            const lng = parseFloat(firstWithLocation.longitude);
+            console.log('이동할 좌표:', lat, lng);
+
+            map.setCenter({ lat, lng });
+            map.setZoom(15);
+            console.log('컨텐츠 검색 성공:', firstWithLocation.title);
+          } else {
+            console.log('좌표가 있는 검색 결과 없음');
+          }
+        } else {
+          console.log('검색 결과 없음');
+        }
+      } catch (error) {
+        console.error('검색 API 호출 실패:', error);
+        
+        // 폴백: 로컬 포스트에서 검색
+        if (posts && posts.length > 0) {
+          const searchResults = posts.filter((post) => {
+            const title = post.title?.toLowerCase() || '';
+            const content = post.content?.toLowerCase() || '';
+            const location = post.location?.toLowerCase() || '';
+            const searchTerm = query.toLowerCase();
+            return title.includes(searchTerm) || content.includes(searchTerm) || location.includes(searchTerm);
+          });
+
+          if (searchResults.length > 0 && searchResults[0].latitude && searchResults[0].longitude) {
+            const lat = parseFloat(searchResults[0].latitude);
+            const lng = parseFloat(searchResults[0].longitude);
+            map.setCenter({ lat, lng });
+            map.setZoom(15);
+          }
+        }
       }
     };
 
