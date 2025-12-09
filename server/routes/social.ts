@@ -66,8 +66,8 @@ router.get('/posts', async (req: Request, res: Response) => {
       return;
     }
 
-    // 전체 포스트 조회
-    const posts = await storage.getPosts(limit, offset);
+    // 전체 포스트 조회 (우선 매칭 적용 - 유료 구독자 우선)
+    const posts = await storage.getPostsWithPriority(limit, offset);
     res.json(posts);
   } catch (error) {
     console.error('포스트 목록 조회 오류:', error);
@@ -482,8 +482,8 @@ router.get('/feed', authenticateHybrid, async (req: AuthRequest, res: Response) 
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // 기본 피드 조회 (전체 포스트)
-    const posts = await storage.getPosts(limit, offset);
+    // 피드 조회 (우선 매칭 적용 - 유료 구독자 우선)
+    const posts = await storage.getPostsWithPriority(limit, offset);
     res.json(posts);
   } catch (error) {
     console.error('피드 조회 오류:', error);

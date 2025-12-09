@@ -773,6 +773,42 @@ export class DatabaseStorage implements IStorage {
       .offset(offset);
   }
 
+  // ============================================
+  // 우선 매칭 적용 포스트 조회
+  // ============================================
+  // 유료 구독자(priority_matching=true)의 포스트를 상단에 노출
+  // 정렬: 1) 우선순위 (유료 > 무료), 2) 생성시간, 3) ID
+  async getPostsWithPriority(limit: number = 20, offset: number = 0): Promise<Post[]> {
+    // 포스트 + 사용자 구독 정보 + 플랜 features 조인
+    const result = await db.execute(sql`
+      WITH user_priority AS (
+        SELECT 
+          u.id as user_id,
+          CASE 
+            WHEN us.status = 'active' 
+              AND us.current_period_end > NOW()
+              AND bp.features->>'priority_matching' = 'true'
+            THEN 1
+            ELSE 0
+          END as has_priority
+        FROM users u
+        LEFT JOIN user_subscriptions us ON u.id = us.user_id AND us.status = 'active'
+        LEFT JOIN billing_plans bp ON us.plan_id = bp.id
+      )
+      SELECT p.*
+      FROM posts p
+      LEFT JOIN user_priority up ON p.user_id = up.user_id
+      ORDER BY 
+        COALESCE(up.has_priority, 0) DESC,
+        p.created_at DESC,
+        p.id DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `);
+    
+    return result.rows as Post[];
+  }
+
   async getPostsByUser(userId: string): Promise<Post[]> {
     return await db
       .select()

@@ -448,6 +448,7 @@ export interface IFeedRepository {
   // 포스트 (Posts) - 전체 CRUD
   createPost(post: InsertPost): Promise<Post>;
   getPosts(limit?: number, offset?: number): Promise<Post[]>;
+  getPostsWithPriority(limit?: number, offset?: number): Promise<Post[]>; // 우선 매칭 적용
   getPostById(postId: number): Promise<Post | null>;
   getPostsByUser(userId: string): Promise<Post[]>;
   getPostsByUserWithTakenAt(userId: string): Promise<Post[]>;
