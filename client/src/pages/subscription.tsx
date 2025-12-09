@@ -38,6 +38,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { ko, enUS, ja, zhCN, fr, es, type Locale } from 'date-fns/locale';
+import { 
+  FEATURE_DICTIONARY, 
+  IMPORTANT_FEATURES, 
+  formatFeatureValue, 
+  getFeatureLabel, 
+  getPlanLabel 
+} from '@/constants/billingFeatures';
 
 interface Plan {
   id: number;
@@ -455,7 +462,7 @@ export default function SubscriptionPage() {
                         ) : (
                           <Crown className="w-5 h-5 text-amber-500" />
                         )}
-                        {plan.name}
+                        {getPlanLabel(plan.name, i18n.language?.startsWith('ko') ? 'ko' : 'en')}
                       </CardTitle>
                       <CardDescription>
                         <span className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -467,21 +474,48 @@ export default function SubscriptionPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2">
+                      <ul className="space-y-3">
                         {(() => {
-                          const featureList = Array.isArray(plan.features) 
-                            ? plan.features 
-                            : plan.features && typeof plan.features === 'object'
-                              ? Object.entries(plan.features)
-                                  .filter(([_, v]) => v !== null && v !== undefined && v !== false)
-                                  .map(([k, v]) => typeof v === 'boolean' ? k : `${k}: ${v}`)
-                              : [];
-                          return featureList.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span>{String(feature)}</span>
-                            </li>
-                          ));
+                          const lang = i18n.language?.startsWith('ko') ? 'ko' : 'en';
+                          
+                          if (plan.features && typeof plan.features === 'object' && !Array.isArray(plan.features)) {
+                            const features = plan.features as Record<string, any>;
+                            return IMPORTANT_FEATURES
+                              .filter(key => features[key] !== undefined && features[key] !== null)
+                              .map((key) => {
+                                const value = features[key];
+                                const config = FEATURE_DICTIONARY[key];
+                                const Icon = config?.icon || Check;
+                                const isIncluded = value !== 0 && value !== false;
+                                
+                                return (
+                                  <li key={key} className={`flex items-center gap-3 text-sm ${!isIncluded ? 'text-gray-400' : ''}`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isIncluded ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                      <Icon className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="font-medium">{getFeatureLabel(key, lang)}</span>
+                                      <span className="text-gray-500 ml-2">
+                                        {formatFeatureValue(key, value, lang)}
+                                      </span>
+                                    </div>
+                                  </li>
+                                );
+                              });
+                          }
+                          
+                          if (Array.isArray(plan.features)) {
+                            return plan.features.map((feature, idx) => (
+                              <li key={idx} className="flex items-center gap-3 text-sm">
+                                <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                  <Check className="w-3.5 h-3.5 text-green-600" />
+                                </div>
+                                <span>{String(feature)}</span>
+                              </li>
+                            ));
+                          }
+                          
+                          return null;
                         })()}
                       </ul>
                     </CardContent>
@@ -500,8 +534,8 @@ export default function SubscriptionPage() {
                         
                         if (isFree) {
                           return (
-                            <Button className="w-full" variant="outline">
-                              {t('free_plan_button') || 'Current Free Plan'}
+                            <Button className="w-full" variant="outline" disabled>
+                              {i18n.language?.startsWith('ko') ? '현재 무료 플랜' : 'Current Free Plan'}
                             </Button>
                           );
                         }
