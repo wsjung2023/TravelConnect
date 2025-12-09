@@ -12,6 +12,7 @@ import Home from '@/pages/home';
 import Config from '@/pages/config';
 import LegalPage from '@/pages/legal';
 import { useAuth } from '@/hooks/useAuth';
+import InAppBrowserRedirect from '@/components/InAppBrowserRedirect';
 import { OnboardingModal } from '@/components/OnboardingModal';
 
 // Initialize Sentry for error tracking
@@ -311,6 +312,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="mobile-container">
+            <InAppBrowserRedirect />
             <Toaster />
             <Router />
           </div>
