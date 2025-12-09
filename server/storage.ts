@@ -176,7 +176,7 @@ import {
   type InsertPaymentLog,
 } from '@shared/schema';
 import { db } from './db';
-import { eq, desc, and, or, sql, like, gte, asc, lte, inArray, ne } from 'drizzle-orm';
+import { eq, desc, and, or, sql, like, ilike, gte, asc, lte, inArray, ne } from 'drizzle-orm';
 import { cacheService } from './services/cache';
 
 // Interface for storage operations
@@ -807,6 +807,92 @@ export class DatabaseStorage implements IStorage {
     `);
     
     return result.rows as Post[];
+  }
+
+  // ============================================
+  // 포스트 검색 (ILIKE 패턴 매칭)
+  // ============================================
+  // 제목, 내용, 위치에서 검색어 매칭
+  // 유료 구독자 우선 정렬 적용
+  async searchPosts(
+    term: string,
+    options: { location?: string; limit?: number; offset?: number } = {}
+  ): Promise<Post[]> {
+    const { location, limit = 20, offset = 0 } = options;
+    const searchPattern = `%${term}%`;
+    
+    // 검색 조건 + 우선 매칭 + 정렬
+    const result = await db.execute(sql`
+      WITH user_priority AS (
+        SELECT 
+          u.id as user_id,
+          CASE 
+            WHEN us.status = 'active' 
+              AND us.current_period_end > NOW()
+              AND bp.features->>'priority_matching' = 'true'
+            THEN 1
+            ELSE 0
+          END as has_priority
+        FROM users u
+        LEFT JOIN user_subscriptions us ON u.id = us.user_id AND us.status = 'active'
+        LEFT JOIN billing_plans bp ON us.plan_id = bp.id
+      )
+      SELECT p.*
+      FROM posts p
+      LEFT JOIN user_priority up ON p.user_id = up.user_id
+      WHERE (
+        p.title ILIKE ${searchPattern}
+        OR p.content ILIKE ${searchPattern}
+        OR p.location ILIKE ${searchPattern}
+      )
+      ${location ? sql`AND p.location ILIKE ${'%' + location + '%'}` : sql``}
+      ORDER BY 
+        COALESCE(up.has_priority, 0) DESC,
+        p.created_at DESC,
+        p.id DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `);
+    
+    return result.rows as Post[];
+  }
+
+  // ============================================
+  // 체험 검색 (ILIKE 패턴 매칭)
+  // ============================================
+  // 제목, 설명, 위치, 카테고리에서 검색어 매칭
+  async searchExperiences(
+    term: string,
+    options: { category?: string; location?: string; limit?: number; offset?: number } = {}
+  ): Promise<Experience[]> {
+    const { category, location, limit = 20, offset = 0 } = options;
+    const searchPattern = `%${term}%`;
+    
+    // 검색 조건 동적 구성
+    let conditions = [
+      eq(experiences.isActive, true),
+      or(
+        ilike(experiences.title, searchPattern),
+        ilike(experiences.description, searchPattern),
+        ilike(experiences.location, searchPattern)
+      )
+    ];
+    
+    if (category) {
+      conditions.push(eq(experiences.category, category));
+    }
+    
+    if (location) {
+      conditions.push(ilike(experiences.location, `%${location}%`));
+    }
+    
+    return await db
+      .select()
+      .from(experiences)
+      .where(and(...conditions))
+      .orderBy(desc(experiences.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   async getPostsByUser(userId: string): Promise<Post[]> {
