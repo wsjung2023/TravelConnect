@@ -75,6 +75,7 @@ export default function BillingKeyForm({
           customerId: user.id.toString(),
           customerName: user.displayName || user.email || 'Guest',
           customerEmail: user.email || '',
+          customerPhone: user.phoneNumber || '010-0000-0000',
         },
         config.storeId,
         config.channelKey
