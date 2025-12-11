@@ -209,8 +209,11 @@ app.use(helmet({
 app.set('trust proxy', 1);
 
 // Rate limiting
-app.use('/api/', rateLimit({ windowMs: 60_000, max: 120 })); // 1분 120회
-app.use('/api/auth', rateLimit({ windowMs: 60_000, max: 20 })); // 로그인/회원가입엔 더 촘촘히
+app.use('/api/', rateLimit({ windowMs: 60_000, max: 200 })); // 1분 200회 (일반 API)
+// 로그인/회원가입만 엄격하게, /me는 제외 (자주 호출됨)
+app.use('/api/auth/login', rateLimit({ windowMs: 60_000, max: 10 })); // 로그인 분당 10회
+app.use('/api/auth/register', rateLimit({ windowMs: 60_000, max: 10 })); // 회원가입 분당 10회
+app.use('/api/auth/demo-login', rateLimit({ windowMs: 60_000, max: 10 })); // 데모 로그인 분당 10회
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
