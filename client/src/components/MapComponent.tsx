@@ -14,6 +14,8 @@ import { MiniPlanExecutionView } from '@/components/MiniConcierge/MiniPlanExecut
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useMapMarkers } from '@/hooks/useMapMarkers';
+import { usePOIMarkers } from '@/hooks/usePOIMarkers';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -92,11 +94,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
     'selectedPost 존재:',
     !!selectedPost
   );
-  const [markers, setMarkers] = useState<any[]>([]);
-  const [experienceMarkers, setExperienceMarkers] = useState<any[]>([]);
-  const [openUserMarkers, setOpenUserMarkers] = useState<any[]>([]);
+  // 마커 상태는 useMapMarkers/usePOIMarkers 훅에서 useRef로 관리 (무한 루프 방지)
   const [currentZoom, setCurrentZoom] = useState(13);
-  const [poiMarkers, setPOIMarkers] = useState<any[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
   const [mapBounds, setMapBounds] = useState<ViewportBounds | null>(null);
 
@@ -297,154 +296,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   //   updateMiniMeetMarkers();
   // }, [map, miniMeets]);
 
-  // POI 업데이트 함수
-  const updatePOIs = async () => {
-    if (!map || currentZoom < 13 || enabledPOITypes.length === 0) {
-      // 기존 마커만 제거하고 종료
-      poiMarkers.forEach((marker) => marker.setMap(null));
-      setPOIMarkers([]);
-      return;
-    }
-
-    console.log(
-      'POI 업데이트 시작, 줌 레벨:',
-      currentZoom,
-      '활성 타입:',
-      enabledPOITypes
-    );
-
-    // 기존 POI 마커 제거
-    poiMarkers.forEach((marker) => marker.setMap(null));
-    console.log('기존 POI 마커 제거 완료');
-
-    const center = map.getCenter();
-    const newPOIMarkers: any[] = [];
-
-    // 각 활성화된 POI 타입별로 검색
-    for (const poiType of enabledPOITypes) {
-      const request = {
-        location: center,
-        radius: 2000,
-        type: poiType,
-      };
-
-      console.log(`${poiType} 검색 요청:`, request);
-
-      const service = new window.google.maps.places.PlacesService(map);
-
-      await new Promise((resolve) => {
-        service.nearbySearch(request, (results: any, status: any) => {
-          console.log(`${poiType} 검색 결과:`, status, results?.length);
-
-          if (
-            status === window.google.maps.places.PlacesServiceStatus.OK &&
-            results
-          ) {
-            console.log(`${poiType} 검색 성공, 결과 개수:`, results.length);
-
-            results.slice(0, 5).forEach((place: any, index: number) => {
-              console.log(`${poiType} ${index + 1}:`, place.name, place.types);
-
-              const icon = getIconForPlaceType(place.types[0]);
-
-              const marker = new window.google.maps.Marker({
-                position: place.geometry.location,
-                map: map,
-                icon: createPOIMarker({ icon }),
-                title: place.name,
-              });
-
-              console.log(`${poiType} 마커 생성:`, place.name);
-
-              // POI 클릭 이벤트 - 기존 관광명소와 동일한 로직 사용
-              marker.addListener('click', (event: any) => {
-                event.stop();
-                console.log(`${poiType} POI 클릭:`, place.name);
-
-                // 다른 모달 먼저 닫기
-                setSelectedPost(null);
-
-                // Places API에서 상세 정보 가져오기 (사진 포함)
-                const service = new window.google.maps.places.PlacesService(
-                  map
-                );
-                service.getDetails(
-                  {
-                    placeId: place.place_id,
-                    fields: [
-                      'name',
-                      'photos',
-                      'formatted_address',
-                      'types',
-                      'rating',
-                      'reviews',
-                    ],
-                  },
-                  (placeDetails: any, status: any) => {
-                    if (
-                      status ===
-                        window.google.maps.places.PlacesServiceStatus.OK &&
-                      placeDetails
-                    ) {
-                      console.log(
-                        `${poiType} POI 상세 정보 가져오기 성공:`,
-                        placeDetails.name
-                      );
-
-                      const photoUrl = placeDetails.photos?.[0]?.getUrl({
-                        maxWidth: 400,
-                        maxHeight: 300,
-                      });
-
-                      setSelectedPOI({
-                        name: placeDetails.name || place.name,
-                        type: place.types?.[0]?.replace(/_/g, ' ') || 'POI',
-                        lat: place.geometry.location.lat(),
-                        lng: place.geometry.location.lng(),
-                        icon: getIconForPlaceType(
-                          place.types?.[0] || 'point_of_interest'
-                        ),
-                        image:
-                          photoUrl ||
-                          `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop`,
-                        description:
-                          placeDetails.formatted_address ||
-                          place.vicinity ||
-                          '흥미로운 장소입니다.',
-                        rating: placeDetails.rating,
-                        reviews: placeDetails.reviews,
-                      });
-                    } else {
-                      // 상세 정보 없어도 기본 POI 정보로 모달 열기
-                      setSelectedPOI({
-                        name: place.name,
-                        type: place.types?.[0]?.replace(/_/g, ' ') || 'POI',
-                        lat: place.geometry.location.lat(),
-                        lng: place.geometry.location.lng(),
-                        icon: getIconForPlaceType(
-                          place.types?.[0] || 'point_of_interest'
-                        ),
-                        image: `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop`,
-                        description: place.vicinity || '흥미로운 장소입니다.',
-                      });
-                    }
-                  }
-                );
-              });
-
-              newPOIMarkers.push(marker);
-            });
-          } else {
-            console.log(`${poiType} 검색 실패:`, status);
-          }
-          resolve(null);
-        });
-      });
-    }
-
-    setPOIMarkers(newPOIMarkers);
-    console.log('전체 POI 마커 생성 완료, 총 개수:', newPOIMarkers.length);
-  };
+  // POI 업데이트는 usePOIMarkers 훅에서 처리
 
   // 포스트 데이터 가져오기
   const {
@@ -885,6 +737,30 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }
   };
 
+  // 마커 관리 훅 (무한 루프 방지를 위해 useRef 기반)
+  useMapMarkers({
+    map,
+    posts,
+    experiences,
+    openUsers,
+    currentZoom,
+    onPostClick: setSelectedPost,
+    onExperienceClick: (expId: number) => setLocation(`/experience/${expId}`),
+    onOpenUserClick: handleOpenUserClick,
+    getThemeIcon,
+  });
+
+  // POI 마커 관리 훅
+  usePOIMarkers({
+    map,
+    enabledPOITypes,
+    currentZoom,
+    onPOIClick: (poi: any) => {
+      setSelectedPost(null);
+      setSelectedPOI(poi);
+    },
+  });
+
   // Google Maps 스크립트 로딩
   useEffect(() => {
     const initializeGoogleMaps = async () => {
@@ -1072,181 +948,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
         }
       });
 
-      // Places API를 사용해서 실제 POI 데이터 가져오기
-      if (window.google?.maps?.places) {
-        const service = new window.google.maps.places.PlacesService(newMap);
+      // POI 마커는 usePOIMarkers 훅에서 관리됨
 
-        // POI 마커들을 저장할 배열
-        const poiMarkers: any[] = [];
-
-        // 지도 이동/줌 변경시 POI 업데이트 (디바운스 적용)
-        let poiUpdateTimeout: any = null;
-        const updatePOIs = () => {
-          if (poiUpdateTimeout) {
-            clearTimeout(poiUpdateTimeout);
-          }
-
-          poiUpdateTimeout = setTimeout(() => {
-            const zoom = newMap.getZoom();
-            console.log('POI 업데이트 시작, 줌 레벨:', zoom);
-
-            if (zoom >= 13) {
-              // 높은 줌에서만 POI 표시
-              // 기존 POI 마커 제거
-              poiMarkers.forEach((marker) => marker.setMap(null));
-              poiMarkers.length = 0;
-              console.log('기존 POI 마커 제거 완료');
-
-              // 현재 지도 영역에서 POI 검색
-              const request = {
-                location: newMap.getCenter(),
-                radius: 2000, // 2km 반경
-                type: 'tourist_attraction', // 문자열로 변경
-              };
-
-              console.log('POI 검색 요청:', request);
-
-              service.nearbySearch(request, (results: any, status: any) => {
-                console.log('POI 검색 결과:', status, results?.length);
-
-                if (
-                  status === window.google.maps.places.PlacesServiceStatus.OK &&
-                  results
-                ) {
-                  console.log('POI 검색 성공, 결과 개수:', results.length);
-
-                  results.slice(0, 10).forEach((place: any, index: number) => {
-                    if (place.geometry?.location) {
-                      console.log(`POI ${index + 1}:`, place.name, place.types);
-
-                      const placeIcon = getIconForPlaceType(
-                        place.types?.[0] || 'point_of_interest'
-                      );
-                      const poiMarker = new window.google.maps.Marker({
-                        position: place.geometry.location,
-                        map: newMap,
-                        icon: createPOIMarker({ icon: placeIcon }),
-                        title: place.name,
-                        zIndex: 1000,
-                      });
-
-                      console.log('POI 마커 생성:', place.name);
-
-                      poiMarker.addListener('click', (event: any) => {
-                        event.stop();
-                        console.log('POI 클릭:', place.name);
-
-                        // 다른 모달 먼저 닫기
-                        setSelectedPost(null);
-
-                        // Places API에서 상세 정보 가져오기
-                        service.getDetails(
-                          {
-                            placeId: place.place_id,
-                            fields: [
-                              'name',
-                              'photos',
-                              'formatted_address',
-                              'types',
-                              'rating',
-                              'reviews',
-                            ],
-                          },
-                          (placeDetails: any, status: any) => {
-                            if (
-                              status ===
-                                window.google.maps.places.PlacesServiceStatus
-                                  .OK &&
-                              placeDetails
-                            ) {
-                              console.log(
-                                'POI 상세 정보 가져오기 성공:',
-                                placeDetails.name
-                              );
-
-                              const photoUrl = placeDetails.photos?.[0]?.getUrl(
-                                {
-                                  maxWidth: 400,
-                                  maxHeight: 300,
-                                }
-                              );
-
-                              setSelectedPOI({
-                                name: placeDetails.name || place.name,
-                                type:
-                                  place.types?.[0]?.replace(/_/g, ' ') || 'POI',
-                                lat: place.geometry.location.lat(),
-                                lng: place.geometry.location.lng(),
-                                icon: getIconForPlaceType(
-                                  place.types?.[0] || 'point_of_interest'
-                                ),
-                                image:
-                                  photoUrl ||
-                                  `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop`,
-                                description:
-                                  placeDetails.formatted_address ||
-                                  place.vicinity ||
-                                  '흥미로운 장소입니다.',
-                                rating: placeDetails.rating,
-                                reviews: placeDetails.reviews,
-                              });
-                            } else {
-                              // 상세 정보 없어도 기본 POI 정보로 모달 열기
-                              setSelectedPOI({
-                                name: place.name,
-                                type:
-                                  place.types?.[0]?.replace(/_/g, ' ') || 'POI',
-                                lat: place.geometry.location.lat(),
-                                lng: place.geometry.location.lng(),
-                                icon: getIconForPlaceType(
-                                  place.types?.[0] || 'point_of_interest'
-                                ),
-                                image: `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop`,
-                                description:
-                                  place.vicinity || '흥미로운 장소입니다.',
-                              });
-                            }
-                          }
-                        );
-                      });
-
-                      poiMarkers.push(poiMarker);
-                    }
-                  });
-
-                  console.log(
-                    'POI 마커 생성 완료, 총 개수:',
-                    poiMarkers.length
-                  );
-                } else {
-                  console.log('POI 검색 실패:', status);
-                  if (
-                    status ===
-                    window.google.maps.places.PlacesServiceStatus.REQUEST_DENIED
-                  ) {
-                    console.error(
-                      'Places API 권한 거부됨. API 키 설정을 확인하세요.'
-                    );
-                  }
-                }
-              });
-            } else {
-              // 낮은 줌에서는 POI 마커 제거
-              poiMarkers.forEach((marker) => marker.setMap(null));
-              poiMarkers.length = 0;
-              console.log('줌 레벨 낮음, POI 마커 제거');
-            }
-          }, 300); // 300ms 디바운스
-        };
-
-        // POI 업데이트를 위한 idle 이벤트 리스너 추가
-        newMap.addListener('idle', () => {
-          updatePOIs();
-        });
-
-        // 지도 클릭 이벤트 - 피드 생성 모달 열기
-        // 롱탭을 위한 마우스다운 이벤트
-        newMap.addListener('mousedown', (event: any) => {
+      // 지도 클릭 이벤트 - 피드 생성 모달 열기
+      // 롱탭을 위한 마우스다운 이벤트
+      newMap.addListener('mousedown', (event: any) => {
           // POST 모드에서만 롱탭 활성화
           if (mapModeRef.current !== 'POST') return;
           
@@ -1344,7 +1050,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
             }
           }
         });
-      }
 
       setMap(newMap);
       console.log('Google Maps 초기화 완료');
@@ -1353,303 +1058,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     initializeMapWithUserLocation();
   }, [isGoogleMapsLoaded]);
 
-  // 마커 생성 (줌 레벨에 따라 클러스터링)
-  useEffect(() => {
-    if (!map || !window.google || !posts.length) {
-      console.log('마커 생성 조건 실패:', {
-        map: !!map,
-        google: !!window.google,
-        postsLength: posts.length,
-      });
-      return;
-    }
-
-    console.log(
-      `줌 레벨 ${currentZoom}에서 ${posts.length}개 포스트로 마커 생성 시작`
-    );
-    console.log(
-      '첫 5개 포스트:',
-      posts
-        .slice(0, 5)
-        .map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          lat: p.latitude,
-          lng: p.longitude,
-          theme: p.theme,
-        }))
-    );
-
-    // 한국 지역 포스트만 따로 확인
-    const koreaPostsInFunction = posts.filter(
-      (p: any) =>
-        parseFloat(p.latitude) >= 33 &&
-        parseFloat(p.latitude) <= 38 &&
-        parseFloat(p.longitude) >= 125 &&
-        parseFloat(p.longitude) <= 130
-    );
-    console.log(
-      '한국 지역 포스트들:',
-      koreaPostsInFunction.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        lat: parseFloat(p.latitude),
-        lng: parseFloat(p.longitude),
-      }))
-    );
-
-    // 기존 마커 제거
-    markers.forEach((marker) => marker.setMap(null));
-
-    const newMarkers: any[] = [];
-
-    // 사용자 포스트 마커
-    if (currentZoom >= 11) {
-      // 높은 줌: 개별 테마 아이콘 마커 표시
-      const locationGroups = new Map();
-
-      posts.forEach((post: any) => {
-        if (!post.latitude || !post.longitude) {
-          console.log('좌표 없음:', post.title);
-          return;
-        }
-
-        const lat = parseFloat(post.latitude);
-        const lng = parseFloat(post.longitude);
-
-        if (isNaN(lat) || isNaN(lng)) {
-          console.log(
-            '좌표 변환 실패:',
-            post.title,
-            post.latitude,
-            post.longitude
-          );
-          return;
-        }
-
-        console.log('마커 추가:', post.title, lat, lng);
-        const key = `${lat.toFixed(5)}_${lng.toFixed(5)}`;
-        if (!locationGroups.has(key)) {
-          locationGroups.set(key, []);
-        }
-        locationGroups.get(key).push(post);
-      });
-
-      console.log(`위치 그룹 개수: ${locationGroups.size}`);
-
-      locationGroups.forEach((groupPosts) => {
-        const post = groupPosts[0];
-        const count = groupPosts.length;
-
-        console.log(
-          `마커 생성: ${post.title} (${count}개 포스트) - 테마: ${post.theme}`
-        );
-
-        // 사용자가 만남 열려있는지 확인
-        const isUserOpen = Array.isArray(openUsers) && openUsers.some((openUser: any) => openUser.id === post.userId);
-        
-        const marker = new window.google.maps.Marker({
-          position: {
-            lat: parseFloat(post.latitude),
-            lng: parseFloat(post.longitude),
-          },
-          map: map,
-          icon:
-            count > 1
-              ? createFeedClusterMarker(count)
-              : createFeedMarker(post.theme || 'emotional', 1, isUserOpen),
-          title: count > 1 ? `${count}개의 포스트` : post.title,
-        });
-
-        marker.addListener('click', () => {
-          if (groupPosts.length === 1) {
-            setSelectedPost(groupPosts[0]);
-          } else {
-            console.log(
-              `클러스터 클릭: ${groupPosts.length}개 피드`,
-              groupPosts.map((p: any) => p.title)
-            );
-            setSelectedPost({
-              isMultiple: true,
-              posts: groupPosts,
-              count: groupPosts.length,
-              location: groupPosts[0].location || '여러 피드',
-            });
-          }
-        });
-
-        newMarkers.push(marker);
-      });
-    } else {
-      // 낮은 줌: 클러스터 마커 표시 (숫자로)
-      let clusterSize;
-      if (currentZoom <= 3)
-        clusterSize = 5.0; // 대륙 레벨
-      else if (currentZoom <= 6)
-        clusterSize = 2.0; // 국가 레벨
-      else if (currentZoom <= 9)
-        clusterSize = 0.5; // 지역 레벨
-      else if (currentZoom <= 11)
-        clusterSize = 0.1; // 도시 레벨
-      else clusterSize = 0.05; // 구역 레벨
-
-      const clusters = new Map();
-
-      posts.forEach((post: any) => {
-        if (!post.latitude || !post.longitude) {
-          console.log('클러스터 - 좌표 없음:', post.title);
-          return;
-        }
-
-        const lat = parseFloat(post.latitude);
-        const lng = parseFloat(post.longitude);
-
-        if (isNaN(lat) || isNaN(lng)) {
-          console.log(
-            '클러스터 - 좌표 변환 실패:',
-            post.title,
-            post.latitude,
-            post.longitude
-          );
-          return;
-        }
-
-        const clusterLat = Math.round(lat / clusterSize) * clusterSize;
-        const clusterLng = Math.round(lng / clusterSize) * clusterSize;
-        const key = `${clusterLat.toFixed(2)}_${clusterLng.toFixed(2)}`;
-
-        if (!clusters.has(key)) {
-          clusters.set(key, { lat: clusterLat, lng: clusterLng, posts: [] });
-        }
-        clusters.get(key).posts.push(post);
-      });
-
-      clusters.forEach((cluster) => {
-        const count = cluster.posts.length;
-        if (count === 0) return;
-
-        const marker = new window.google.maps.Marker({
-          position: { lat: cluster.lat, lng: cluster.lng },
-          map: map,
-          icon: createSmallClusterMarker(count),
-          title: `${count}개의 포스트`,
-        });
-
-        marker.addListener('click', () => {
-          const newZoom = Math.min(currentZoom + 4, 18);
-          map.setZoom(newZoom);
-          map.setCenter({ lat: cluster.lat, lng: cluster.lng });
-        });
-
-        newMarkers.push(marker);
-      });
-    }
-
-    setMarkers(newMarkers);
-
-    console.log(
-      `줌 레벨 ${currentZoom}: ${newMarkers.length}개 마커 생성 완료`
-    );
-  }, [map, posts, currentZoom]);
-
-  // Experience 마커 생성 (별 모양, 클러스터링 없음)
-  useEffect(() => {
-    if (!map || !window.google || !experiences.length) {
-      console.log('Experience 마커 생성 조건 실패:', {
-        map: !!map,
-        google: !!window.google,
-        experiencesLength: experiences.length,
-      });
-      return;
-    }
-
-    console.log(`${experiences.length}개 Experience 마커 생성 시작`);
-
-    // 기존 experience 마커 제거
-    experienceMarkers.forEach((marker) => marker.setMap(null));
-
-    const newExperienceMarkers: any[] = [];
-
-    experiences.forEach((exp: any) => {
-      if (!exp.latitude || !exp.longitude) {
-        console.log('Experience 좌표 없음:', exp.title);
-        return;
-      }
-
-      const lat = parseFloat(exp.latitude);
-      const lng = parseFloat(exp.longitude);
-
-      if (isNaN(lat) || isNaN(lng)) {
-        console.log('Experience 좌표 변환 실패:', exp.title, exp.latitude, exp.longitude);
-        return;
-      }
-
-      console.log('Experience 마커 추가:', exp.title, lat, lng, 'category:', exp.category);
-
-      const marker = new window.google.maps.Marker({
-        position: { lat, lng },
-        map: map,
-        icon: createExperienceMarker(exp.category || 'tour'),
-        title: exp.title,
-        zIndex: 1000, // Experience 마커를 다른 마커보다 위에 표시
-      });
-
-      marker.addListener('click', () => {
-        console.log('Experience 클릭:', exp.title);
-        // Experience 상세 페이지로 이동 (SPA navigation)
-        setLocation(`/experience/${exp.id}`);
-      });
-
-      newExperienceMarkers.push(marker);
-    });
-
-    setExperienceMarkers(newExperienceMarkers);
-    console.log(`${newExperienceMarkers.length}개 Experience 마커 생성 완료`);
-  }, [map, experiences]);
-
-  // Open to Meet 사용자 마커 생성
-  useEffect(() => {
-    if (!map || !window.google?.maps) return;
-
-    // 기존 마커 제거
-    openUserMarkers.forEach((marker) => marker.setMap(null));
-
-    if (!openUsers || openUsers.length === 0) {
-      setOpenUserMarkers([]);
-      return;
-    }
-
-    const newOpenUserMarkers: any[] = [];
-
-    openUsers.forEach((user: any) => {
-      // 사용자 위치가 있는 경우에만 마커 생성
-      const lat = parseFloat(user.lastLatitude);
-      const lng = parseFloat(user.lastLongitude);
-      
-      if (isNaN(lat) || isNaN(lng)) {
-        console.log(`Open User ${user.firstName} 위치 정보 없음`);
-        return;
-      }
-
-      const marker = new window.google.maps.Marker({
-        map,
-        position: { lat, lng },
-        icon: createOpenUserMarker(!!user.profileImageUrl),
-        title: `${user.firstName || 'User'} - Open to Meet`,
-        zIndex: 1200,
-      });
-
-      marker.addListener('click', () => {
-        console.log('Open User 클릭:', user.firstName);
-        handleOpenUserClick(user);
-      });
-
-      newOpenUserMarkers.push(marker);
-    });
-
-    setOpenUserMarkers(newOpenUserMarkers);
-    console.log(`${newOpenUserMarkers.length}개 Open User 마커 생성 완료`);
-  }, [map, openUsers]);
+  // 마커 생성은 useMapMarkers 훅에서 처리 (무한 루프 방지)
 
   // 검색 기능 - Geocoding 재시도
   useEffect(() => {
@@ -1760,13 +1169,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     };
   }, [map, posts]);
 
-  // POI 필터 변경 시 업데이트
-  useEffect(() => {
-    if (map && currentZoom >= 13) {
-      console.log('POI 필터 변경됨:', enabledPOITypes);
-      updatePOIs();
-    }
-  }, [enabledPOITypes, map, currentZoom]);
+  // POI 필터 변경은 usePOIMarkers 훅에서 처리
 
   // 로딩 상태 처리
   if (!isGoogleMapsLoaded) {
