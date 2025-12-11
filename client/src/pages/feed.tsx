@@ -39,6 +39,7 @@ import SmartImage from '@/components/SmartImage';
 import { Seo } from '@/components/Seo';
 import FeedModeSelector, { type FeedMode } from '@/components/FeedModeSelector';
 import TrendingHashtags from '@/components/TrendingHashtags';
+import { useAuth } from '@/hooks/useAuth';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -178,9 +179,8 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
 
   const isLoading = isLoadingFeed || isLoadingExperiences;
 
-  const { data: currentUser } = useQuery<{ id: string; email: string; role?: string }>({
-    queryKey: ['/api/auth/me'],
-  });
+  // 중앙화된 useAuth 훅 사용 (중복 요청 방지)
+  const { user: currentUser } = useAuth();
 
   // 좋아요 상태 - localStorage에서 초기화
   const [likedPosts, setLikedPosts] = useState<Set<number>>(() => 

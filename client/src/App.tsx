@@ -11,7 +11,7 @@ import Landing from '@/pages/landing';
 import Home from '@/pages/home';
 import Config from '@/pages/config';
 import LegalPage from '@/pages/legal';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import InAppBrowserRedirect from '@/components/InAppBrowserRedirect';
 import { OnboardingModal } from '@/components/OnboardingModal';
 
@@ -91,7 +91,7 @@ function Router() {
     setShowOnboarding(false);
     setOnboardingCompleted(true); // 즉시 로컬 상태 업데이트
     // useAuth를 다시 호출하여 사용자 정보를 새로고침
-    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
   };
 
   return (

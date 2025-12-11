@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
 import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
+import { AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { INTEREST_OPTIONS, LANGUAGE_OPTIONS } from '@shared/constants';
 import type { User } from '@shared/schema';
@@ -175,7 +176,7 @@ export default function ProfileEditModal({
         title: t('ui:profileEdit.updated'),
         description: t('ui:profileEdit.updatedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       onOpenChange(false);
       setImageFile(null);
       setImagePreview(null);

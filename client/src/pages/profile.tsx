@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import HelpRequestForm from '@/components/HelpRequestForm';
@@ -102,7 +102,7 @@ export default function Profile() {
         title: t('profile.hostApplySuccess'),
         description: t('profile.hostApplySuccessDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
     },
     onError: (error) => {
       console.error('Host application error:', error);
@@ -150,9 +150,9 @@ export default function Profile() {
     },
     onMutate: async ({ open }) => {
       console.log('[Profile] Mutation starting: openToMeet =', open);
-      await queryClient.cancelQueries({ queryKey: ['/api/auth/me'] });
+      await queryClient.cancelQueries({ queryKey: AUTH_QUERY_KEY });
       
-      const previousUser = queryClient.getQueryData(['/api/auth/me']);
+      const previousUser = queryClient.getQueryData(AUTH_QUERY_KEY);
       
       // Switch 상태는 이미 즉시 업데이트됨
       return { previousUser };
@@ -160,13 +160,13 @@ export default function Profile() {
     onSuccess: (data, variables) => {
       console.log('[Profile] Mutation success, invalidating queries');
       // 여러 관련 쿼리 무효화
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ['/api/profile/open'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/open'] });
       
       // 강제 리페치 (로컬 상태는 useEffect에서 동기화)
       setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/auth/me'] }).then(() => {
+        queryClient.refetchQueries({ queryKey: AUTH_QUERY_KEY }).then(() => {
           console.log('[Profile] Refetch completed, waiting for useEffect sync');
           // 로컬 상태 clear는 useEffect에서 안전하게 처리
         });
@@ -186,7 +186,7 @@ export default function Profile() {
       
       // 캐시도 롤백
       if (context?.previousUser) {
-        queryClient.setQueryData(['/api/auth/me'], context.previousUser);
+        queryClient.setQueryData(AUTH_QUERY_KEY, context.previousUser);
       }
       
       toast({
@@ -208,20 +208,20 @@ export default function Profile() {
     },
     onMutate: async ({ portfolioMode }) => {
       console.log('[Profile] Portfolio mode mutation starting:', portfolioMode);
-      await queryClient.cancelQueries({ queryKey: ['/api/auth/me'] });
+      await queryClient.cancelQueries({ queryKey: AUTH_QUERY_KEY });
       
-      const previousUser = queryClient.getQueryData(['/api/auth/me']);
+      const previousUser = queryClient.getQueryData(AUTH_QUERY_KEY);
       
       // Switch 상태는 이미 즉시 업데이트됨
       return { previousUser };
     },
     onSuccess: (data, variables) => {
       console.log('[Profile] Portfolio mode mutation success, invalidating queries');
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       
       // 강제 리페치
       setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/auth/me'] }).then(() => {
+        queryClient.refetchQueries({ queryKey: AUTH_QUERY_KEY }).then(() => {
           console.log('[Profile] Portfolio mode refetch completed');
         });
       }, 100);
@@ -240,7 +240,7 @@ export default function Profile() {
       
       // 캐시도 롤백
       if (context?.previousUser) {
-        queryClient.setQueryData(['/api/auth/me'], context.previousUser);
+        queryClient.setQueryData(AUTH_QUERY_KEY, context.previousUser);
       }
       
       toast({

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Clock } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 
 interface OpenToMeetToggleProps {
@@ -20,10 +21,8 @@ export default function OpenToMeetToggle({
   const [hours, setHours] = useState(12);
   const [showSettings, setShowSettings] = useState(false);
 
-  // 현재 사용자 정보 가져오기
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/me']
-  });
+  // 중앙화된 useAuth 훅 사용 (중복 요청 방지)
+  const { user } = useAuth();
 
   // "Open to meet" 상태 API
   const { data: openStatus, refetch: refetchOpenStatus } = useQuery({
@@ -64,7 +63,7 @@ export default function OpenToMeetToggle({
       });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ['/api/profile/open'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/open'] });
       refetchOpenStatus();

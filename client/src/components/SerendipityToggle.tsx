@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sparkles } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 
 interface SerendipityToggleProps {
@@ -16,9 +17,8 @@ export default function SerendipityToggle({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/me']
-  });
+  // 중앙화된 useAuth 훅 사용 (중복 요청 방지)
+  const { user } = useAuth();
 
   const toggleMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
@@ -28,7 +28,7 @@ export default function SerendipityToggle({
       });
     },
     onSuccess: (_, enabled) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       toast({
         title: enabled ? '🍀 Serendipity 활성화' : 'Serendipity 비활성화',
         description: enabled 

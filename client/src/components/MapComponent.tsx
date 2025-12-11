@@ -13,6 +13,7 @@ import { MiniPlanCardsView, type MiniPlan } from '@/components/MiniConcierge/Min
 import { MiniPlanExecutionView } from '@/components/MiniConcierge/MiniPlanExecutionView';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -104,11 +105,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const debouncedCenter = useDebounce(mapCenter, 150);
   const debouncedBounds = useDebounce(mapBounds, 150);
 
-  // 현재 사용자 정보 조회
-  const { data: currentUser } = useQuery<any>({
-    queryKey: ['/api/auth/me'],
-    retry: false,
-  });
+  // 현재 사용자 정보 조회 (중앙화된 useAuth 훅 사용)
+  const { user: currentUser } = useAuth();
 
   // 만남 열려있는 사용자들 조회
   const { data: openUsers = [] } = useQuery<any[]>({

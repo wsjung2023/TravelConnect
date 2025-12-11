@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import type { Post, Experience } from '@shared/schema';
 
 export type FeedMode = 'smart' | 'latest' | 'nearby' | 'popular' | 'hashtag';
@@ -59,9 +60,8 @@ export function useFeedController(options: UseFeedControllerOptions = {}) {
   const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 
-  const { data: currentUser } = useQuery<{ id: string; email: string; role?: string }>({
-    queryKey: ['/api/auth/me'],
-  });
+  // 중앙화된 useAuth 훅 사용 (중복 요청 방지)
+  const { user: currentUser } = useAuth();
 
   useEffect(() => {
     if (currentUser?.id) {

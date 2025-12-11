@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Star, Languages, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { apiRequest } from '@/lib/queryClient';
+import { AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { INTEREST_OPTIONS, LANGUAGE_OPTIONS } from '@shared/constants';
 
 interface OnboardingModalProps {
@@ -39,7 +40,7 @@ export function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModal
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
       toast({
         title: '설정 완료',
         description: '환영합니다! 투어게더를 시작해보세요.'

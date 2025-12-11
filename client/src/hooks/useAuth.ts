@@ -1,72 +1,76 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
+
+// 인증 쿼리 키 (전체 앱에서 일관성 있게 사용)
+export const AUTH_QUERY_KEY = ['/api/auth/me'] as const;
+
+// 인증 정보 가져오기 함수 (단일 요청)
+async function fetchAuthUser(): Promise<any> {
+  const token = localStorage.getItem('token');
+  
+  // 단일 요청으로 통합 - JWT 우선, 세션 쿠키 포함
+  const response = await fetch('/api/auth/me', {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    // 401인 경우 토큰 정리
+    if (response.status === 401 && token) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    return null; // 인증되지 않음
+  }
+
+  const userData = await response.json();
+  
+  // 세션 인증 성공 but JWT 없으면 토큰 생성 (백그라운드)
+  if (!token && userData) {
+    fetch('/api/auth/generate-token', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+      })
+      .catch(() => {}); // 조용히 실패
+  }
+
+  return userData;
+}
 
 export function useAuth() {
-  // JWT 토큰 확인 (선택적)
-  const token = localStorage.getItem('token');
+  const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/auth/me', token],
-    enabled: true, // 항상 활성화하여 세션 기반 인증도 확인
+  const { data: user, isLoading, refetch } = useQuery({
+    queryKey: AUTH_QUERY_KEY,
+    queryFn: fetchAuthUser,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지 (중복 요청 방지)
+    gcTime: 10 * 60 * 1000, // 10분간 가비지 컬렉션 방지
     retry: false,
-    queryFn: async () => {
-      // JWT 토큰이 있으면 Bearer 인증 시도
-      if (token) {
-        const response = await fetch('/api/auth/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: 'include', // 세션 쿠키도 포함
-        });
-
-        if (response.ok) {
-          return response.json();
-        }
-        
-        // 토큰이 유효하지 않으면 로컬스토리지에서 제거
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-
-      // JWT 토큰이 없거나 실패한 경우, 세션 기반 인증 시도
-      const sessionResponse = await fetch('/api/auth/me', {
-        credentials: 'include', // 세션 쿠키 포함
-      });
-
-      if (!sessionResponse.ok) {
-        throw new Error('Not authenticated');
-      }
-
-      const userData = await sessionResponse.json();
-      
-      // 세션 인증은 성공했지만 JWT 토큰이 없는 경우, 토큰 생성 요청
-      if (!token && userData) {
-        try {
-          const tokenResponse = await fetch('/api/auth/generate-token', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          if (tokenResponse.ok) {
-            const tokenData = await tokenResponse.json();
-            localStorage.setItem('token', tokenData.token);
-            localStorage.setItem('user', JSON.stringify(userData));
-            console.log('JWT 토큰 자동 생성 완료');
-          }
-        } catch (error) {
-          console.warn('JWT 토큰 생성 실패:', error);
-        }
-      }
-
-      return userData;
-    },
+    refetchOnMount: false, // 마운트 시 재요청 방지
+    refetchOnWindowFocus: false, // 포커스 변경 시 재요청 방지
+    refetchOnReconnect: false, // 네트워크 재연결 시 재요청 방지
   });
+
+  // 로그아웃 시 캐시 초기화
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    queryClient.setQueryData(AUTH_QUERY_KEY, null);
+  }, [queryClient]);
 
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
+    refetch,
+    clearAuth,
   };
 }
