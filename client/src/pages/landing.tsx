@@ -1,6 +1,7 @@
 import { MapPin, Users, MessageCircle, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet-async';
 import { LoginModal } from '@/components/LoginModal';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -104,6 +105,32 @@ export default function Landing() {
 
   return (
     <div className="w-full bg-[var(--landing-bg-light)] min-h-screen">
+      <Helmet>
+        <title>Tourgether – Connect with Local Guides & Discover Authentic Travel Experiences</title>
+        <meta name="description" content="Tourgether is a travel sharing platform connecting travelers with local guides worldwide. Discover hidden gems, join unique experiences, and create unforgettable memories. Explore 5,000+ local experiences in 150+ cities." />
+        <meta name="keywords" content="travel, local guide, travel experiences, sharing economy, travel community, local tours, travel SNS" />
+        <link rel="canonical" href="https://tourgether.io/" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://tourgether.io/" />
+        <meta property="og:title" content="Tourgether – Connect with Local Guides & Discover Authentic Travel" />
+        <meta property="og:description" content="Join Tourgether to connect with local guides, explore hidden gems, and create unforgettable travel memories. 5,000+ experiences in 150+ cities worldwide." />
+        <meta property="og:image" content="https://tourgether.io/og-image.jpg" />
+        <meta property="og:site_name" content="Tourgether" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://tourgether.io/" />
+        <meta name="twitter:title" content="Tourgether – Connect with Local Guides & Discover Authentic Travel" />
+        <meta name="twitter:description" content="Join Tourgether to connect with local guides, explore hidden gems, and create unforgettable travel memories." />
+        <meta name="twitter:image" content="https://tourgether.io/og-image.jpg" />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="Tourgether" />
+      </Helmet>
+      
       {/* ========================================
           HERO SECTION
           ======================================== */}
