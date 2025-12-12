@@ -806,5 +806,36 @@
     "duration": "Duration",
     "photos": "Photos",
     "route": "Route"
+  },
+  "landingPage": {
+    "connectTravelers": "Connecter les voyageurs du monde entier",
+    "heroTitle": "Découvrez des expériences de voyage authentiques",
+    "heroSubtitle": "Connectez-vous avec des guides locaux, explorez des trésors cachés et créez des souvenirs inoubliables",
+    "getStarted": "Commencer",
+    "learnMore": "En savoir plus",
+    "seoSection": {
+      "title": "Pourquoi Tourgether ?",
+      "subtitle": "Une nouvelle façon de redécouvrir l'essence du voyage",
+      "article1": {
+        "title": "Dites adieu aux voyages organisés classiques",
+        "desc": "Fatigué de descendre du bus touristique, prendre une photo et remonter ? Tourgether vous permet de découvrir des trésors cachés que seuls les locaux connaissent, des restaurants authentiques et la vraie ambiance de chaque ville. Connectez-vous directement avec des guides locaux et planifiez votre voyage personnalisé."
+      },
+      "article2": {
+        "title": "Une plateforme de connexion pour les voyageurs solo",
+        "desc": "Vous voulez voyager seul mais vous craignez de manger seul ou de n'avoir personne pour vous photographier ? Utilisez notre fonction \"Ouvert aux rencontres\" pour trouver d'autres voyageurs dans la même zone. Partagez repas, visites et activités avec des personnes partageant les mêmes idées."
+      },
+      "article3": {
+        "title": "Une économie de partage où les locaux peuvent gagner",
+        "desc": "Personne ne connaît votre ville mieux que vous. Devenez guide local sur Tourgether, offrez des expériences uniques aux voyageurs et gagnez un revenu. Inscrivez divers services comme des tours gastronomiques, des services photo, un accompagnement shopping et de l'interprétation."
+      },
+      "article4": {
+        "title": "Système de transaction P2P sécurisé",
+        "desc": "Commercez en toute confiance avec notre système de paiement basé sur le séquestre. Les fonds sont conservés en sécurité jusqu'à la fin du service, et notre système de résolution des litiges protège les deux parties. Trouvez facilement des partenaires fiables grâce aux avis et aux badges d'hôte vérifiés."
+      },
+      "article5": {
+        "title": "Préservez magnifiquement vos souvenirs de voyage",
+        "desc": "Partagez vos moments de voyage avec des photos sur le fil et visualisez votre parcours sur une chronologie basée sur la carte. Notre fonction CineMap alimentée par l'IA analyse les données de localisation des photos pour créer automatiquement des storyboards de voyage cinématographiques."
+      }
+    }
   }
 }
