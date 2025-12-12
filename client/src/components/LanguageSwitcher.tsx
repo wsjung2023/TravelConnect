@@ -57,16 +57,18 @@ export function LanguageSwitcher({ floating = false }: LanguageSwitcherProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant="default"
-              size="icon"
-              className="w-12 h-12 rounded-full shadow-lg bg-white hover:bg-gray-50 border border-gray-200"
+              className="h-10 px-3 rounded-full shadow-lg bg-white hover:bg-gray-50 border border-gray-200 flex items-center gap-2"
               title={`Current language: ${currentLanguage.name}`}
               data-testid="button-floating-language"
               disabled={isChanging}
             >
               {isChanging ? (
-                <Globe className="h-5 w-5 text-gray-600 animate-spin" />
+                <Globe className="h-4 w-4 text-gray-600 animate-spin" />
               ) : (
-                <span className="text-xl">{currentLanguage.flag}</span>
+                <>
+                  <Globe className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">{currentLanguage.code.toUpperCase()}</span>
+                </>
               )}
             </Button>
           </DropdownMenuTrigger>
