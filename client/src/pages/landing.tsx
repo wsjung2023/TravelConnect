@@ -341,6 +341,84 @@ export default function Landing() {
       </section>
 
       {/* ========================================
+          SEO CONTENT SECTION - 검색엔진 최적화용 텍스트
+          ======================================== */}
+      <section className="landing-section px-4 py-16 md:py-20" style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%)' }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--landing-text-main)' }}>
+              왜 Tourgether인가요?
+            </h2>
+            <p className="text-lg" style={{ color: 'var(--landing-text-muted)' }}>
+              여행의 본질을 되찾는 새로운 방법
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--landing-text-main)' }}>
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center text-white">1</span>
+                패키지 여행의 아쉬움을 해결합니다
+              </h3>
+              <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
+                대형 관광버스에서 내려 사진 한 장 찍고 다시 버스에 오르는 여행에 지치셨나요? 
+                Tourgether는 현지인만 아는 숨은 명소, 로컬 맛집, 진짜 그 도시의 분위기를 경험할 수 있게 해드립니다.
+                현지 가이드와 직접 연결되어 나만의 맞춤 여행을 계획하세요.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--landing-text-main)' }}>
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center text-white">2</span>
+                혼자 여행하는 분들을 위한 연결 플랫폼
+              </h3>
+              <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
+                혼자 여행하고 싶지만 혼밥이 두렵거나, 사진 찍어줄 사람이 없어 아쉬웠던 경험이 있으신가요?
+                "Open to Meet" 기능으로 같은 지역에 있는 다른 여행자들을 만나보세요.
+                취향이 맞는 사람들과 함께하는 식사, 투어, 액티비티로 혼자 여행의 외로움을 채워드립니다.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--landing-text-main)' }}>
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center text-white">3</span>
+                현지인도 수익을 올릴 수 있는 공유경제
+              </h3>
+              <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
+                당신의 도시를 가장 잘 아는 사람은 바로 당신입니다. 
+                Tourgether에서 로컬 가이드가 되어 여행자들에게 특별한 경험을 제공하고 수익을 창출하세요.
+                맛집 투어, 사진 촬영 서비스, 쇼핑 동행, 언어 통역 등 다양한 서비스를 등록할 수 있습니다.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--landing-text-main)' }}>
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center text-white">4</span>
+                안전한 P2P 거래 시스템
+              </h3>
+              <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
+                에스크로 기반 결제 시스템으로 안심하고 거래하세요.
+                서비스가 완료되기 전까지 대금은 안전하게 보관되며, 문제 발생 시 분쟁 해결 시스템이 양측을 보호합니다.
+                리뷰 시스템과 인증된 호스트 배지로 신뢰할 수 있는 상대를 쉽게 찾을 수 있습니다.
+              </p>
+            </article>
+
+            <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--landing-text-main)' }}>
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center text-white">5</span>
+                여행 기록을 아름답게 남기세요
+              </h3>
+              <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
+                사진과 함께 여행 순간을 피드에 공유하고, 지도 기반 타임라인으로 여정을 시각화하세요.
+                AI 기반 CineMap 기능은 사진의 위치 정보를 분석해 영화 같은 여행 스토리보드를 자동으로 생성합니다.
+                여행 후에도 추억을 쉽게 되돌아볼 수 있습니다.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================
           TESTIMONIALS SECTION
           ======================================== */}
       <section className="landing-section px-4 py-12 md:py-16" style={{ background: '#FFFFFF' }}>
