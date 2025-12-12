@@ -24,7 +24,11 @@ const languages: Language[] = [
   { code: 'es', name: 'Español', flag: '🇪🇸' },
 ];
 
-export function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  floating?: boolean;
+}
+
+export function LanguageSwitcher({ floating = false }: LanguageSwitcherProps) {
   const { i18n } = useTranslation();
   const [isChanging, setIsChanging] = useState(false);
 
@@ -34,6 +38,8 @@ export function LanguageSwitcher() {
     setIsChanging(true);
     try {
       await i18n.changeLanguage(languageCode);
+      // 사용자 선택을 localStorage에 저장
+      localStorage.setItem('i18nextLng', languageCode);
     } catch (error) {
       console.error('Failed to change language:', error);
     } finally {
@@ -43,6 +49,48 @@ export function LanguageSwitcher() {
 
   const currentLanguage: Language = languages.find(lang => lang.code === i18n.language) ?? languages[0];
 
+  // 플로팅 스타일 (화면 우측 하단 고정)
+  if (floating) {
+    return (
+      <div className="fixed bottom-20 right-4 z-50" data-testid="floating-language-switcher">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="default"
+              size="icon"
+              className="w-12 h-12 rounded-full shadow-lg bg-white hover:bg-gray-50 border border-gray-200"
+              title={`Current language: ${currentLanguage.name}`}
+              data-testid="button-floating-language"
+              disabled={isChanging}
+            >
+              {isChanging ? (
+                <Globe className="h-5 w-5 text-gray-600 animate-spin" />
+              ) : (
+                <span className="text-xl">{currentLanguage.flag}</span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="mb-2">
+            {languages.map((language) => (
+              <DropdownMenuItem
+                key={language.code}
+                onClick={() => handleLanguageChange(language.code)}
+                className={`cursor-pointer ${
+                  i18n.language === language.code ? 'bg-gray-100' : ''
+                }`}
+                data-testid={`floating-language-option-${language.code}`}
+              >
+                <span className="mr-2">{language.flag}</span>
+                {language.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
+
+  // 기본 스타일 (헤더용)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LoginModal } from '@/components/LoginModal';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import Footer from '@/components/Footer';
 import heroImage from '@assets/stock_images/traveler_sunset_moun_6f45f15a.jpg';
 import meetingImage from '@assets/stock_images/people_meeting_trave_1a5f85aa.jpg';
@@ -486,6 +487,9 @@ export default function Landing() {
         onClose={() => setShowLoginModal(false)}
         onSuccess={handleLoginSuccess}
       />
+      
+      {/* 플로팅 언어 선택 버튼 */}
+      <LanguageSwitcher floating />
       
       <Footer />
     </div>

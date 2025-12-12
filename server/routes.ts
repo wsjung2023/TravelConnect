@@ -255,6 +255,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // ========================================
+  // 위치 기반 언어 감지 API
+  // IP 주소를 기반으로 국가를 판별하고 해당 언어 코드 반환
+  // ========================================
+  app.get('/api/geo/detect-language', async (req: Request, res: Response) => {
+    try {
+      // 클라이언트 IP 추출 (프록시 환경 고려)
+      const forwarded = req.headers['x-forwarded-for'];
+      const clientIp = forwarded 
+        ? (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : forwarded[0])
+        : req.socket.remoteAddress || '';
+      
+      // 국가 코드 → 언어 코드 매핑
+      const countryToLanguage: Record<string, string> = {
+        'JP': 'ja',  // 일본
+        'KR': 'ko',  // 한국
+        'CN': 'zh',  // 중국
+        'TW': 'zh',  // 대만
+        'HK': 'zh',  // 홍콩
+        'FR': 'fr',  // 프랑스
+        'BE': 'fr',  // 벨기에 (프랑스어권)
+        'CH': 'fr',  // 스위스 (프랑스어 우선)
+        'ES': 'es',  // 스페인
+        'MX': 'es',  // 멕시코
+        'AR': 'es',  // 아르헨티나
+        'CO': 'es',  // 콜롬비아
+      };
+      
+      let countryCode = '';
+      let detectedLanguage = 'en'; // 기본값: 영어
+      
+      // IP가 로컬호스트가 아닌 경우에만 외부 API 호출
+      const isLocalIp = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp.startsWith('192.168.') || clientIp.startsWith('10.');
+      
+      if (!isLocalIp && clientIp) {
+        try {
+          // ip-api.com 무료 API 사용 (HTTP only, 분당 45회 제한)
+          const response = await fetch(`http://ip-api.com/json/${clientIp}?fields=countryCode`);
+          if (response.ok) {
+            const data = await response.json() as { countryCode?: string };
+            countryCode = data.countryCode || '';
+            detectedLanguage = countryToLanguage[countryCode] || 'en';
+          }
+        } catch (geoError) {
+          console.warn('[GEO] IP 지오로케이션 실패, 기본 언어(en) 사용:', geoError);
+        }
+      }
+      
+      res.json({
+        language: detectedLanguage,
+        countryCode: countryCode || 'UNKNOWN',
+        ip: isLocalIp ? 'local' : clientIp.substring(0, 10) + '...',
+      });
+    } catch (error) {
+      console.error('[GEO] 언어 감지 오류:', error);
+      res.json({ language: 'en', countryCode: 'UNKNOWN', ip: 'error' });
+    }
+  });
+
   // 정적 파일 서빙 제거 - 보안상 이유로 직접 접근 차단
   // app.use('/uploads', express.static('uploads')); // 제거됨
   
