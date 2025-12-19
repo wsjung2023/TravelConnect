@@ -69,7 +69,15 @@ Preferred communication style: Simple, everyday language.
 - **DM Translation**: Direct message translation with Google Translate API, caching, and language selection.
 - **Unified Content Display**: Feed page and Nearby panel display posts and experiences with filter toggles.
 - **Unified Map Experience**: All map functionality integrated into the home page MapComponent.
-- **SEO Enhancement**: Open Graph, Twitter Card, canonical URL, and JSON-LD structured data.
+- **SEO Enhancement (2025-12 Update)**: Comprehensive SEO implementation based on `docs/tourgether_SEO_upgrade.md` master document:
+    - **Korean-focused keywords**: 여행 SNS, 지도 기반 여행, 여행 타임라인, 로컬 가이드, 여행 일정 공유
+    - **SEO Config**: Central configuration in `client/src/lib/seoConfig.ts` with route-specific meta data
+    - **Meta Tags**: Title (≤60 chars), description (80-160 chars), canonical URL per page
+    - **Open Graph & Twitter Cards**: og:title, og:description, og:image, og:url for social sharing
+    - **JSON-LD Schemas**: Organization + WebSite (site-wide), FAQPage/Place for specific pages
+    - **Sitemap**: Only indexable public pages (/, /legal/*) - login-required pages excluded
+    - **Robots.txt**: Blocks private routes (/feed, /timeline, /chat, /profile, /marketplace, etc.) and parameterized map states
+    - **Indexable Routes**: `/`, `/legal/*`, `/portfolio/:publicProfileUrl` (future: /features, /pricing, /about, /destinations/*, /guides/*, /blog/*)
 - **Profile Management**: Redesigned edit modal with multi-select components for languages/interests, Google Places integration, and enhanced validation.
 - **Simplified Onboarding**: Action-based role system, skippable onboarding, and optional profile setup.
 - **Internationalization (i18n)**: All user-facing text is DB-driven using a `translations` table, supporting 6 languages (en, ko, ja, zh, fr, es) across 5 namespaces.
