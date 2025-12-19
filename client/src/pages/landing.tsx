@@ -106,29 +106,59 @@ export default function Landing() {
   return (
     <div className="w-full bg-[var(--landing-bg-light)] min-h-screen">
       <Helmet>
-        <title>Tourgether – Connect with Local Guides & Discover Authentic Travel Experiences</title>
-        <meta name="description" content="Tourgether is a travel sharing platform connecting travelers with local guides worldwide. Discover hidden gems, join unique experiences, and create unforgettable memories. Explore 5,000+ local experiences in 150+ cities." />
-        <meta name="keywords" content="travel, local guide, travel experiences, sharing economy, travel community, local tours, travel SNS" />
+        {/* SEO 문서 Section 4.1 기준 - Home */}
+        <title>Tourgether - 지도 기반 여행 SNS | 로컬과 함께 만드는 여행 지도</title>
+        <meta name="description" content="Tourgether는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에 경험하세요." />
+        <meta name="keywords" content="여행 SNS, 지도 기반 여행, 여행 타임라인, 로컬 가이드, 여행 일정 공유, 현지 추천, 여행 경험 공유, travel, local guide" />
         <link rel="canonical" href="https://tourgether.io/" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tourgether.io/" />
-        <meta property="og:title" content="Tourgether – Connect with Local Guides & Discover Authentic Travel" />
-        <meta property="og:description" content="Join Tourgether to connect with local guides, explore hidden gems, and create unforgettable travel memories. 5,000+ experiences in 150+ cities worldwide." />
+        <meta property="og:title" content="Tourgether - 지도 기반 여행 SNS | 로컬과 함께 만드는 여행 지도" />
+        <meta property="og:description" content="Tourgether는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에." />
         <meta property="og:image" content="https://tourgether.io/og-image.jpg" />
         <meta property="og:site_name" content="Tourgether" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://tourgether.io/" />
-        <meta name="twitter:title" content="Tourgether – Connect with Local Guides & Discover Authentic Travel" />
-        <meta name="twitter:description" content="Join Tourgether to connect with local guides, explore hidden gems, and create unforgettable travel memories." />
+        <meta name="twitter:title" content="Tourgether - 지도 기반 여행 SNS | 로컬과 함께 만드는 여행 지도" />
+        <meta name="twitter:description" content="Tourgether는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천까지." />
         <meta name="twitter:image" content="https://tourgether.io/og-image.jpg" />
         
         {/* Additional SEO */}
         <meta name="robots" content="index, follow" />
         <meta name="author" content="Tourgether" />
+        
+        {/* JSON-LD Schema - Organization + WebSite */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "name": "Tourgether",
+                "url": "https://tourgether.io",
+                "logo": "https://tourgether.io/travel-icon.svg",
+                "description": "여행자와 로컬을 연결하는 지도 기반 여행 SNS"
+              },
+              {
+                "@type": "WebSite",
+                "name": "Tourgether",
+                "url": "https://tourgether.io",
+                "potentialAction": {
+                  "@type": "SearchAction",
+                  "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "https://tourgether.io/search?q={search_term_string}"
+                  },
+                  "query-input": "required name=search_term_string"
+                }
+              }
+            ]
+          })}
+        </script>
       </Helmet>
       
       {/* ========================================
