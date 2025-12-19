@@ -1,4 +1,36 @@
+# Tourgether robots.txt
+# SEO 문서 기준: Section 5.3
+
 User-agent: *
 Allow: /
 
+# 비공개 경로 차단 (로그인 필요 페이지)
+Disallow: /feed
+Disallow: /timeline
+Disallow: /chat
+Disallow: /profile
+Disallow: /marketplace
+Disallow: /map-test
+Disallow: /admin
+Disallow: /host
+Disallow: /config
+Disallow: /experience/
+Disallow: /guide/
+Disallow: /purchase-proxy
+Disallow: /slots
+Disallow: /subscription
+Disallow: /video-test
+Disallow: /error-test
+Disallow: /conversations
+
+# 파라미터화된 맵 상태 차단 (크롤 트랩 방지)
+Disallow: /*?lat=
+Disallow: /*?lng=
+Disallow: /*?zoom=
+Disallow: /*?q=
+
+# API 경로 차단
+Disallow: /api/
+
+# Sitemap
 Sitemap: https://tourgether.io/sitemap.xml
