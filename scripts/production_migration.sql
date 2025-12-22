@@ -7,6 +7,27 @@
 -- ============================================
 
 -- ============================================
+-- 0. poi_categories (9 rows) - 먼저 실행 필수!
+-- ============================================
+INSERT INTO poi_categories (id, code, icon, sort_order, is_active, is_system, created_at)
+VALUES
+(1, 'food_drink', '🍽️', 1, true, false, '2025-11-26 14:20:16.599322'),
+(2, 'lodging', '🏨', 2, true, false, '2025-11-26 14:20:16.599322'),
+(3, 'culture', '🎭', 3, true, false, '2025-11-26 14:20:16.599322'),
+(4, 'shopping', '🛍️', 4, true, false, '2025-11-26 14:20:16.599322'),
+(5, 'transport', '🚇', 5, true, false, '2025-11-26 14:20:16.599322'),
+(6, 'nature', '🌳', 6, true, false, '2025-11-26 14:20:16.599322'),
+(7, 'utilities', '💊', 7, true, false, '2025-11-26 14:20:16.599322'),
+(8, 'open_to_meet', '👋', 8, true, true, '2025-11-26 14:20:16.599322'),
+(9, 'serendipity', '✨', 9, true, true, '2025-11-26 14:20:16.599322')
+ON CONFLICT (id) DO UPDATE SET
+  code = EXCLUDED.code,
+  icon = EXCLUDED.icon,
+  sort_order = EXCLUDED.sort_order,
+  is_active = EXCLUDED.is_active,
+  is_system = EXCLUDED.is_system;
+
+-- ============================================
 -- 1. poi_types (27 rows)
 -- ============================================
 INSERT INTO poi_types (id, category_id, code, google_place_type, icon, sort_order, is_active, created_at)
@@ -425,6 +446,7 @@ ON CONFLICT (namespace, key, locale) DO UPDATE SET
 -- ============================================
 -- Sequence 동기화 (필요시)
 -- ============================================
+SELECT setval('poi_categories_id_seq', (SELECT MAX(id) FROM poi_categories));
 SELECT setval('poi_types_id_seq', (SELECT MAX(id) FROM poi_types));
 SELECT setval('poi_category_translations_id_seq', (SELECT MAX(id) FROM poi_category_translations));
 SELECT setval('poi_type_translations_id_seq', (SELECT MAX(id) FROM poi_type_translations));
