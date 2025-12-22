@@ -23,7 +23,8 @@
  * mountRouters(app);
  */
 
-import { Express, Router } from 'express';
+import { Express, Router, Request, Response } from 'express';
+import { storage } from '../storage';
 
 // ============================================
 // 기능별 라우터 임포트
@@ -132,6 +133,21 @@ export function mountRouters(app: Express): void {
   // 경험 라우터 - 경험, 가이드, 호스트 대시보드 등
   app.use('/api', experienceRouter);
   console.log('  ✓ 경험 라우터 마운트됨: /api/experiences, /api/guide, /api/host');
+
+  // 번역 API - DB 기반 i18n 데이터 조회
+  app.get('/api/translations/:namespace', async (req: Request, res: Response) => {
+    try {
+      const { namespace } = req.params;
+      const locale = (req.query.locale as string) || 'en';
+      
+      const translations = await storage.getTranslationsByNamespace(namespace, locale);
+      res.json(translations);
+    } catch (error) {
+      console.error('Translation API error:', error);
+      res.status(500).json({ error: 'Failed to fetch translations' });
+    }
+  });
+  console.log('  ✓ 번역 API 마운트됨: /api/translations/:namespace');
 
   console.log('📦 라우터 마운트 완료!');
 }
