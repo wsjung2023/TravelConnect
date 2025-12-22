@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -28,7 +28,7 @@ import { LocationSearchInput } from '@/components/ui/location-search-input';
 import { useToast } from '@/hooks/use-toast';
 import { AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
-import { INTEREST_OPTIONS, LANGUAGE_OPTIONS } from '@shared/constants';
+import { LANGUAGE_OPTIONS } from '@shared/constants';
 import type { User } from '@shared/schema';
 
 const profileEditSchema = z.object({
@@ -54,12 +54,18 @@ export default function ProfileEditModal({
   onOpenChange,
   user,
 }: ProfileEditModalProps) {
-  const { t } = useTranslation(['ui', 'common']);
+  const { t, i18n } = useTranslation(['ui', 'common']);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  
+  // DB 기반 관심사 번역 조회
+  const { data: interestTranslations } = useQuery<Record<string, string>>({
+    queryKey: ['/api/translations/interests', { locale: i18n.language }],
+    enabled: open,
+  });
 
   const form = useForm<ProfileEditFormData>({
     resolver: zodResolver(profileEditSchema),
@@ -196,11 +202,13 @@ export default function ProfileEditModal({
     updateProfileMutation.mutate(data);
   };
 
-  // 관심사 옵션 변환
-  const interestOptions: MultiSelectOption[] = INTEREST_OPTIONS.map((interest) => ({
-    value: interest,
-    label: t(`ui:interests.${interest}`),
-  }));
+  // DB 기반 관심사 옵션 변환
+  const interestOptions: MultiSelectOption[] = interestTranslations 
+    ? Object.entries(interestTranslations).map(([interest, label]) => ({
+        value: interest,
+        label,
+      }))
+    : [];
 
   // 언어 옵션 변환
   const languageOptions: MultiSelectOption[] = LANGUAGE_OPTIONS.map((lang) => ({

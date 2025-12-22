@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Star, Languages, X } from 'lucide-react';
+import { Star, Languages, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { apiRequest } from '@/lib/queryClient';
 import { AUTH_QUERY_KEY } from '@/hooks/useAuth';
-import { INTEREST_OPTIONS, LANGUAGE_OPTIONS } from '@shared/constants';
+import { LANGUAGE_OPTIONS } from '@shared/constants';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -22,9 +22,15 @@ interface OnboardingData {
 }
 
 export function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModalProps) {
-  const { t } = useTranslation(['ui', 'common']);
+  const { t, i18n } = useTranslation(['ui', 'common']);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // DB 기반 관심사 번역 조회
+  const { data: interestTranslations, isLoading: isLoadingInterests } = useQuery<Record<string, string>>({
+    queryKey: ['/api/translations/interests', { locale: i18n.language }],
+    enabled: isOpen,
+  });
 
   const [formData, setFormData] = useState<OnboardingData>({
     interests: [],
@@ -115,20 +121,26 @@ export function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModal
               <Star className="w-5 h-5 mr-2" />
               관심사 (선택사항)
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {INTEREST_OPTIONS.map(interest => (
-                <Button
-                  key={interest}
-                  variant={formData.interests.includes(interest) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleInterestToggle(interest)}
-                  data-testid={`interest-${interest}`}
-                  className="justify-start"
-                >
-                  {t(`themes.${interest}`)}
-                </Button>
-              ))}
-            </div>
+            {isLoadingInterests ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {interestTranslations && Object.entries(interestTranslations).map(([interest, label]) => (
+                  <Button
+                    key={interest}
+                    variant={formData.interests.includes(interest) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleInterestToggle(interest)}
+                    data-testid={`interest-${interest}`}
+                    className="justify-start"
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 언어 선택 */}
