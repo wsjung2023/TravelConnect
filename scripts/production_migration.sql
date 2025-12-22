@@ -9,6 +9,12 @@
 -- ============================================
 -- 0. poi_categories (9 rows) - 먼저 실행 필수!
 -- ============================================
+-- 기존 데이터 삭제 후 삽입 (TRUNCATE는 FK 제약 때문에 불가)
+DELETE FROM poi_category_translations WHERE category_id IN (1,2,3,4,5,6,7,8,9);
+DELETE FROM poi_type_translations WHERE type_id IN (SELECT id FROM poi_types WHERE category_id IN (1,2,3,4,5,6,7,8,9));
+DELETE FROM poi_types WHERE category_id IN (1,2,3,4,5,6,7,8,9);
+DELETE FROM poi_categories WHERE id IN (1,2,3,4,5,6,7,8,9);
+
 INSERT INTO poi_categories (id, code, icon, sort_order, is_active, is_system, created_at)
 VALUES
 (1, 'food_drink', '🍽️', 1, true, false, '2025-11-26 14:20:16.599322'),
@@ -19,13 +25,7 @@ VALUES
 (6, 'nature', '🌳', 6, true, false, '2025-11-26 14:20:16.599322'),
 (7, 'utilities', '💊', 7, true, false, '2025-11-26 14:20:16.599322'),
 (8, 'open_to_meet', '👋', 8, true, true, '2025-11-26 14:20:16.599322'),
-(9, 'serendipity', '✨', 9, true, true, '2025-11-26 14:20:16.599322')
-ON CONFLICT (id) DO UPDATE SET
-  code = EXCLUDED.code,
-  icon = EXCLUDED.icon,
-  sort_order = EXCLUDED.sort_order,
-  is_active = EXCLUDED.is_active,
-  is_system = EXCLUDED.is_system;
+(9, 'serendipity', '✨', 9, true, true, '2025-11-26 14:20:16.599322');
 
 -- ============================================
 -- 1. poi_types (27 rows)
@@ -58,14 +58,7 @@ VALUES
 (24, 7, 'atm', 'atm', '🏧', 3, true, '2025-11-26 14:20:16.648112'),
 (25, 7, 'convenience_store', 'convenience_store', '🏪', 4, true, '2025-11-26 14:20:16.648112'),
 (26, 8, 'open_users', '', '👋', 1, true, '2025-11-26 14:20:16.648112'),
-(27, 9, 'serendipity_users', '', '✨', 1, true, '2025-11-26 14:20:16.648112')
-ON CONFLICT (id) DO UPDATE SET
-  category_id = EXCLUDED.category_id,
-  code = EXCLUDED.code,
-  google_place_type = EXCLUDED.google_place_type,
-  icon = EXCLUDED.icon,
-  sort_order = EXCLUDED.sort_order,
-  is_active = EXCLUDED.is_active;
+(27, 9, 'serendipity_users', '', '✨', 1, true, '2025-11-26 14:20:16.648112');
 
 -- ============================================
 -- 2. poi_category_translations (54 rows)
@@ -125,12 +118,7 @@ VALUES
 (51, 9, 'ja', 'セレンディピティ', '予期せぬ出会いを発見'),
 (52, 9, 'zh', '偶遇', '发现意想不到的缘分'),
 (53, 9, 'fr', 'Sérendipité', 'Découvrez des connexions inattendues'),
-(54, 9, 'es', 'Serendipia', 'Descubre conexiones inesperadas')
-ON CONFLICT (id) DO UPDATE SET
-  category_id = EXCLUDED.category_id,
-  language_code = EXCLUDED.language_code,
-  name = EXCLUDED.name,
-  description = EXCLUDED.description;
+(54, 9, 'es', 'Serendipia', 'Descubre conexiones inesperadas');
 
 -- ============================================
 -- 3. poi_type_translations (162 rows)
@@ -298,11 +286,7 @@ VALUES
 (159, 27, 'ja', 'セレンディピティ'),
 (160, 27, 'zh', '偶遇'),
 (161, 27, 'fr', 'Sérendipité'),
-(162, 27, 'es', 'Serendipia')
-ON CONFLICT (id) DO UPDATE SET
-  type_id = EXCLUDED.type_id,
-  language_code = EXCLUDED.language_code,
-  name = EXCLUDED.name;
+(162, 27, 'es', 'Serendipia');
 
 -- ============================================
 -- 4. system_settings (37 rows)
@@ -345,14 +329,7 @@ VALUES
 ('ui_max_upload_size', 'ui', 'max_upload_size', '10485760', '최대 업로드 크기 (10MB, bytes)', true, '2025-08-31 15:47:05.377155', '2025-08-31 15:47:05.377155'),
 ('upload_allowed_types', 'business', 'allowed_file_types', '["image/jpeg", "image/png", "image/gif", "video/mp4", "video/mov"]', '허용되는 파일 타입', true, '2025-08-31 16:01:46.904404', '2025-08-31 16:01:46.904404'),
 ('upload_max_file_size', 'business', 'max_file_size', '52428800', '파일 업로드 최대 크기 (바이트)', true, '2025-08-31 16:01:46.904404', '2025-08-31 16:01:46.904404'),
-('user_bio_max_length', 'business', 'bio_max_length', '500', '사용자 소개 최대 길이', true, '2025-08-31 16:01:46.904404', '2025-08-31 16:01:46.904404')
-ON CONFLICT (id) DO UPDATE SET
-  category = EXCLUDED.category,
-  key = EXCLUDED.key,
-  value = EXCLUDED.value,
-  description = EXCLUDED.description,
-  is_active = EXCLUDED.is_active,
-  updated_at = NOW();
+('user_bio_max_length', 'business', 'bio_max_length', '500', '사용자 소개 최대 길이', true, '2025-08-31 16:01:46.904404', '2025-08-31 16:01:46.904404');
 
 -- ============================================
 -- 5. translations (interests namespace - 72 rows)
@@ -438,10 +415,7 @@ VALUES
 ('interests', 'art', 'es', 'Arte', false, 1, NOW(), NOW()),
 ('interests', 'music', 'es', 'Música', false, 1, NOW(), NOW()),
 ('interests', 'sports', 'es', 'Deportes', false, 1, NOW(), NOW()),
-('interests', 'wellness', 'es', 'Bienestar', false, 1, NOW(), NOW())
-ON CONFLICT (namespace, key, locale) DO UPDATE SET
-  value = EXCLUDED.value,
-  updated_at = NOW();
+('interests', 'wellness', 'es', 'Bienestar', false, 1, NOW(), NOW());
 
 -- ============================================
 -- Sequence 동기화 (필요시)
