@@ -291,6 +291,20 @@ VALUES
 -- ============================================
 -- 4. system_settings (37 rows)
 -- ============================================
+-- 기존 데이터 삭제 후 삽입
+DELETE FROM system_settings WHERE id IN (
+  'api_pagination_default', 'api_rate_limit', 'api_request_timeout', 'app_version',
+  'business_default_timeline_days', 'business_max_content_length', 'business_max_images_per_post',
+  'business_max_title_length', 'chat_message_limit', 'feature_booking_enabled', 'feature_chat_enabled',
+  'feature_timeline_enabled', 'feed_pagination_limit', 'legal_terms_ui', 'maintenance_mode',
+  'map_cluster_threshold', 'map_default_zoom', 'notification_demo_interval', 'notification_types',
+  'oauth_callback_timeout', 'oauth_google_scope', 'oauth_session_duration', 'privacy_policy_url',
+  'rate_limit_requests', 'rate_limit_window_hours', 'search_radius_km', 'seo_meta_description',
+  'seo_meta_title', 'terms_of_service_url', 'theme_colors_ui', 'timeline_max_days',
+  'ui_default_language', 'ui_default_theme', 'ui_max_upload_size', 'upload_allowed_types',
+  'upload_max_file_size', 'user_bio_max_length'
+);
+
 INSERT INTO system_settings (id, category, key, value, description, is_active, created_at, updated_at)
 VALUES
 ('api_pagination_default', 'api', 'pagination_default', '20', '기본 페이지네이션 크기', true, '2025-08-31 15:47:05.377155', '2025-08-31 15:47:05.377155'),
@@ -336,6 +350,9 @@ VALUES
 -- 기존 billing 등 다른 namespace는 이미 운영에 있을 수 있으므로
 -- interests namespace만 마이그레이션
 -- ============================================
+-- 기존 interests namespace 데이터 삭제 후 삽입
+DELETE FROM translations WHERE namespace = 'interests';
+
 INSERT INTO translations (namespace, key, locale, value, is_reviewed, version, created_at, updated_at)
 VALUES
 -- Korean
