@@ -314,6 +314,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================
+  // 번역 API - DB 기반 i18n 데이터 조회
+  // ========================================
+  app.get('/api/translations/:namespace', async (req: Request, res: Response) => {
+    try {
+      const namespace = req.params.namespace as string;
+      const locale = (req.query.locale as string) || 'en';
+      
+      console.log(`[Translations API] Fetching namespace: ${namespace}, locale: ${locale}`);
+      const translations = await storage.getTranslationsByNamespace(namespace, locale);
+      console.log(`[Translations API] Found ${Object.keys(translations).length} translations`);
+      
+      res.json(translations);
+    } catch (error) {
+      console.error('Translation API error:', error);
+      res.status(500).json({ error: 'Failed to fetch translations' });
+    }
+  });
+
   // 정적 파일 서빙 제거 - 보안상 이유로 직접 접근 차단
   // app.use('/uploads', express.static('uploads')); // 제거됨
   

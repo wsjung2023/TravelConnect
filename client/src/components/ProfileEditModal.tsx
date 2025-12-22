@@ -63,7 +63,7 @@ export default function ProfileEditModal({
   
   // DB 기반 관심사 번역 조회
   const { data: interestTranslations } = useQuery<Record<string, string>>({
-    queryKey: ['/api/translations/interests', { locale: i18n.language }],
+    queryKey: [`/api/translations/interests?locale=${i18n.language}`],
     enabled: open,
   });
 

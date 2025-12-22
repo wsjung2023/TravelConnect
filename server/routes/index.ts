@@ -134,20 +134,8 @@ export function mountRouters(app: Express): void {
   app.use('/api', experienceRouter);
   console.log('  ✓ 경험 라우터 마운트됨: /api/experiences, /api/guide, /api/host');
 
-  // 번역 API - DB 기반 i18n 데이터 조회
-  app.get('/api/translations/:namespace', async (req: Request, res: Response) => {
-    try {
-      const { namespace } = req.params;
-      const locale = (req.query.locale as string) || 'en';
-      
-      const translations = await storage.getTranslationsByNamespace(namespace, locale);
-      res.json(translations);
-    } catch (error) {
-      console.error('Translation API error:', error);
-      res.status(500).json({ error: 'Failed to fetch translations' });
-    }
-  });
-  console.log('  ✓ 번역 API 마운트됨: /api/translations/:namespace');
+  // 번역 API는 server/routes.ts에 직접 정의됨 (DB 기반 i18n 데이터 조회)
+  // /api/translations/:namespace 경로는 registerRoutes에서 처리됨
 
   console.log('📦 라우터 마운트 완료!');
 }

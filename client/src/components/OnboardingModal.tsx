@@ -28,7 +28,7 @@ export function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModal
   
   // DB 기반 관심사 번역 조회
   const { data: interestTranslations, isLoading: isLoadingInterests } = useQuery<Record<string, string>>({
-    queryKey: ['/api/translations/interests', { locale: i18n.language }],
+    queryKey: [`/api/translations/interests?locale=${i18n.language}`],
     enabled: isOpen,
   });
 
