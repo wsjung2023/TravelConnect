@@ -17,48 +17,48 @@ DELETE FROM poi_categories WHERE id IN (1,2,3,4,5,6,7,8,9);
 
 INSERT INTO poi_categories (id, code, icon, sort_order, is_active, is_system, created_at)
 VALUES
-(1, 'food_drink', '🍽️', 1, true, false, '2025-11-26 14:20:16.599322'),
-(2, 'lodging', '🏨', 2, true, false, '2025-11-26 14:20:16.599322'),
-(3, 'culture', '🎭', 3, true, false, '2025-11-26 14:20:16.599322'),
-(4, 'shopping', '🛍️', 4, true, false, '2025-11-26 14:20:16.599322'),
-(5, 'transport', '🚇', 5, true, false, '2025-11-26 14:20:16.599322'),
-(6, 'nature', '🌳', 6, true, false, '2025-11-26 14:20:16.599322'),
-(7, 'utilities', '💊', 7, true, false, '2025-11-26 14:20:16.599322'),
-(8, 'open_to_meet', '👋', 8, true, true, '2025-11-26 14:20:16.599322'),
-(9, 'serendipity', '✨', 9, true, true, '2025-11-26 14:20:16.599322');
+(1, 'food_drink', 'utensils', 1, true, false, '2025-11-26 14:20:16.599322'),
+(2, 'lodging', 'hotel', 2, true, false, '2025-11-26 14:20:16.599322'),
+(3, 'culture', 'theater', 3, true, false, '2025-11-26 14:20:16.599322'),
+(4, 'shopping', 'shopping-bag', 4, true, false, '2025-11-26 14:20:16.599322'),
+(5, 'transport', 'train', 5, true, false, '2025-11-26 14:20:16.599322'),
+(6, 'nature', 'tree', 6, true, false, '2025-11-26 14:20:16.599322'),
+(7, 'utilities', 'pill', 7, true, false, '2025-11-26 14:20:16.599322'),
+(8, 'open_to_meet', 'hand-wave', 8, true, true, '2025-11-26 14:20:16.599322'),
+(9, 'serendipity', 'sparkles', 9, true, true, '2025-11-26 14:20:16.599322');
 
 -- ============================================
 -- 1. poi_types (27 rows)
 -- ============================================
 INSERT INTO poi_types (id, category_id, code, google_place_type, icon, sort_order, is_active, created_at)
 VALUES
-(1, 1, 'restaurant', 'restaurant', '🍽️', 1, true, '2025-11-26 14:20:16.648112'),
-(2, 1, 'cafe', 'cafe', '☕', 2, true, '2025-11-26 14:20:16.648112'),
-(3, 1, 'bar', 'bar', '🍺', 3, true, '2025-11-26 14:20:16.648112'),
-(4, 1, 'bakery', 'bakery', '🥐', 4, true, '2025-11-26 14:20:16.648112'),
-(5, 2, 'hotel', 'lodging', '🏨', 1, true, '2025-11-26 14:20:16.648112'),
-(6, 2, 'guesthouse', 'lodging', '🏠', 2, true, '2025-11-26 14:20:16.648112'),
-(7, 3, 'tourist_attraction', 'tourist_attraction', '🏛️', 1, true, '2025-11-26 14:20:16.648112'),
-(8, 3, 'museum', 'museum', '🏛️', 2, true, '2025-11-26 14:20:16.648112'),
-(9, 3, 'art_gallery', 'art_gallery', '🎨', 3, true, '2025-11-26 14:20:16.648112'),
-(10, 3, 'movie_theater', 'movie_theater', '🎬', 4, true, '2025-11-26 14:20:16.648112'),
-(11, 3, 'amusement_park', 'amusement_park', '🎢', 5, true, '2025-11-26 14:20:16.648112'),
-(12, 4, 'shopping_mall', 'shopping_mall', '🛒', 1, true, '2025-11-26 14:20:16.648112'),
-(13, 4, 'department_store', 'department_store', '🏬', 2, true, '2025-11-26 14:20:16.648112'),
-(14, 4, 'store', 'store', '🏪', 3, true, '2025-11-26 14:20:16.648112'),
-(15, 5, 'train_station', 'train_station', '🚆', 1, true, '2025-11-26 14:20:16.648112'),
-(16, 5, 'bus_station', 'bus_station', '🚌', 2, true, '2025-11-26 14:20:16.648112'),
-(17, 5, 'airport', 'airport', '✈️', 3, true, '2025-11-26 14:20:16.648112'),
-(18, 5, 'subway_station', 'subway_station', '🚇', 4, true, '2025-11-26 14:20:16.648112'),
-(19, 6, 'park', 'park', '🌳', 1, true, '2025-11-26 14:20:16.648112'),
-(20, 6, 'natural_feature', 'natural_feature', '🏔️', 2, true, '2025-11-26 14:20:16.648112'),
-(21, 6, 'campground', 'campground', '⛺', 3, true, '2025-11-26 14:20:16.648112'),
-(22, 7, 'pharmacy', 'pharmacy', '💊', 1, true, '2025-11-26 14:20:16.648112'),
-(23, 7, 'hospital', 'hospital', '🏥', 2, true, '2025-11-26 14:20:16.648112'),
-(24, 7, 'atm', 'atm', '🏧', 3, true, '2025-11-26 14:20:16.648112'),
-(25, 7, 'convenience_store', 'convenience_store', '🏪', 4, true, '2025-11-26 14:20:16.648112'),
-(26, 8, 'open_users', '', '👋', 1, true, '2025-11-26 14:20:16.648112'),
-(27, 9, 'serendipity_users', '', '✨', 1, true, '2025-11-26 14:20:16.648112');
+(1, 1, 'restaurant', 'restaurant', 'utensils', 1, true, '2025-11-26 14:20:16.648112'),
+(2, 1, 'cafe', 'cafe', 'coffee', 2, true, '2025-11-26 14:20:16.648112'),
+(3, 1, 'bar', 'bar', 'beer', 3, true, '2025-11-26 14:20:16.648112'),
+(4, 1, 'bakery', 'bakery', 'croissant', 4, true, '2025-11-26 14:20:16.648112'),
+(5, 2, 'hotel', 'lodging', 'hotel', 1, true, '2025-11-26 14:20:16.648112'),
+(6, 2, 'guesthouse', 'lodging', 'home', 2, true, '2025-11-26 14:20:16.648112'),
+(7, 3, 'tourist_attraction', 'tourist_attraction', 'landmark', 1, true, '2025-11-26 14:20:16.648112'),
+(8, 3, 'museum', 'museum', 'landmark', 2, true, '2025-11-26 14:20:16.648112'),
+(9, 3, 'art_gallery', 'art_gallery', 'palette', 3, true, '2025-11-26 14:20:16.648112'),
+(10, 3, 'movie_theater', 'movie_theater', 'clapperboard', 4, true, '2025-11-26 14:20:16.648112'),
+(11, 3, 'amusement_park', 'amusement_park', 'ferris-wheel', 5, true, '2025-11-26 14:20:16.648112'),
+(12, 4, 'shopping_mall', 'shopping_mall', 'shopping-cart', 1, true, '2025-11-26 14:20:16.648112'),
+(13, 4, 'department_store', 'department_store', 'building', 2, true, '2025-11-26 14:20:16.648112'),
+(14, 4, 'store', 'store', 'store', 3, true, '2025-11-26 14:20:16.648112'),
+(15, 5, 'train_station', 'train_station', 'train', 1, true, '2025-11-26 14:20:16.648112'),
+(16, 5, 'bus_station', 'bus_station', 'bus', 2, true, '2025-11-26 14:20:16.648112'),
+(17, 5, 'airport', 'airport', 'plane', 3, true, '2025-11-26 14:20:16.648112'),
+(18, 5, 'subway_station', 'subway_station', 'train-subway', 4, true, '2025-11-26 14:20:16.648112'),
+(19, 6, 'park', 'park', 'tree', 1, true, '2025-11-26 14:20:16.648112'),
+(20, 6, 'natural_feature', 'natural_feature', 'mountain', 2, true, '2025-11-26 14:20:16.648112'),
+(21, 6, 'campground', 'campground', 'tent', 3, true, '2025-11-26 14:20:16.648112'),
+(22, 7, 'pharmacy', 'pharmacy', 'pill', 1, true, '2025-11-26 14:20:16.648112'),
+(23, 7, 'hospital', 'hospital', 'hospital', 2, true, '2025-11-26 14:20:16.648112'),
+(24, 7, 'atm', 'atm', 'banknote', 3, true, '2025-11-26 14:20:16.648112'),
+(25, 7, 'convenience_store', 'convenience_store', 'store', 4, true, '2025-11-26 14:20:16.648112'),
+(26, 8, 'open_users', '', 'hand-wave', 1, true, '2025-11-26 14:20:16.648112'),
+(27, 9, 'serendipity_users', '', 'sparkles', 1, true, '2025-11-26 14:20:16.648112');
 
 -- ============================================
 -- 2. poi_category_translations (54 rows)
