@@ -106,25 +106,27 @@ export default function Landing() {
   return (
     <div className="w-full bg-[var(--landing-bg-light)] min-h-screen">
       <Helmet>
-        {/* SEO 문서 Section 4.1 기준 - Home */}
-        <title>Tourgether - 지도 기반 여행 SNS | 로컬과 함께 만드는 여행 지도</title>
-        <meta name="description" content="Tourgether는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에 경험하세요." />
-        <meta name="keywords" content="여행 SNS, 지도 기반 여행, 여행 타임라인, 로컬 가이드, 여행 일정 공유, 현지 추천, 여행 경험 공유, travel, local guide" />
+        {/* SEO 최적화 - 한글/영어 브랜드명 병기 */}
+        <title>투어게더(Tourgether) - 지도 기반 여행 SNS | 로컬과 함께하는 여행</title>
+        <meta name="description" content="투어게더(Tourgether)는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에 경험하세요. Travel SNS connecting travelers with locals." />
+        <meta name="keywords" content="투어게더, Tourgether, 여행 SNS, 지도 기반 여행, 여행 타임라인, 로컬 가이드, 여행 일정 공유, 현지 추천, 여행 경험 공유, travel SNS, local guide, travel app" />
         <link rel="canonical" href="https://tourgether.io/" />
         
-        {/* Open Graph / Facebook */}
+        {/* Open Graph / Facebook - 한글/영어 병기 */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tourgether.io/" />
-        <meta property="og:title" content="Tourgether - 지도 기반 여행 SNS | 로컬과 함께 만드는 여행 지도" />
-        <meta property="og:description" content="Tourgether는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에." />
+        <meta property="og:title" content="투어게더(Tourgether) - 지도 기반 여행 SNS | Map-based Travel Social Network" />
+        <meta property="og:description" content="투어게더는 여행자와 로컬을 연결하는 여행 SNS입니다. 여행 일정 공유, 타임라인 기록, 현지 추천까지. Tourgether connects travelers with locals." />
         <meta property="og:image" content="https://tourgether.io/og-image.jpg" />
-        <meta property="og:site_name" content="Tourgether" />
+        <meta property="og:site_name" content="투어게더 Tourgether" />
+        <meta property="og:locale" content="ko_KR" />
+        <meta property="og:locale:alternate" content="en_US" />
         
-        {/* Twitter */}
+        {/* Twitter - 한글/영어 병기 */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://tourgether.io/" />
-        <meta name="twitter:title" content="Tourgether - 지도 기반 여행 SNS | 로컬과 함께 만드는 여행 지도" />
-        <meta name="twitter:description" content="Tourgether는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천까지." />
+        <meta name="twitter:title" content="투어게더(Tourgether) - 지도 기반 여행 SNS" />
+        <meta name="twitter:description" content="투어게더는 여행자와 로컬을 연결하는 여행 SNS. Travel SNS connecting travelers with locals." />
         <meta name="twitter:image" content="https://tourgether.io/og-image.jpg" />
         
         {/* Additional SEO */}
