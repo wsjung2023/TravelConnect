@@ -1916,7 +1916,7 @@ export const questHighlightsRelations = relations(questHighlights, ({ one }) => 
 export const poiCategories = pgTable('poi_categories', {
   id: serial('id').primaryKey(),
   code: varchar('code', { length: 50 }).notNull().unique(), // food_drink, lodging, culture 등
-  icon: varchar('icon', { length: 10 }).notNull(), // 🍽️, 🏨, 🎭 등
+  icon: varchar('icon', { length: 30 }).notNull(), // lucide icon name
   sortOrder: integer('sort_order').default(0),
   isActive: boolean('is_active').default(true),
   isSystem: boolean('is_system').default(false), // 시스템 기본 카테고리 (만남활성화, 세렌디피티)
@@ -1933,7 +1933,7 @@ export const poiTypes = pgTable('poi_types', {
     .references(() => poiCategories.id, { onDelete: 'cascade' }),
   code: varchar('code', { length: 50 }).notNull().unique(), // Google Places API 타입명
   googlePlaceType: varchar('google_place_type', { length: 100 }), // Google Places API 검색 타입
-  icon: varchar('icon', { length: 10 }), // 개별 아이콘 (없으면 카테고리 아이콘 사용)
+  icon: varchar('icon', { length: 30 }), // lucide icon name
   sortOrder: integer('sort_order').default(0),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
