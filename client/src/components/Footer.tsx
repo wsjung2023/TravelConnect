@@ -63,14 +63,14 @@ export default function Footer() {
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-[hsl(280,15%,45%)] dark:text-gray-400">
               <div className="space-y-1">
-                <p><span className="font-medium">상호명:</span> 투게더 주식회사</p>
-                <p><span className="font-medium">대표:</span> 홍길동</p>
-                <p><span className="font-medium">사업자등록번호:</span> 000-00-00000</p>
-                <p><span className="font-medium">통신판매업신고:</span> 제0000-서울강남-0000호</p>
+                <p><span className="font-medium">상호명:</span> 발렌시아</p>
+                <p><span className="font-medium">대표자:</span> 정우섭</p>
+                <p><span className="font-medium">사업자등록번호:</span> 124-51-71915</p>
+                <p><span className="font-medium">통신판매업번호:</span> 제2014-서울강남-03505호</p>
               </div>
               <div className="space-y-1">
-                <p><span className="font-medium">주소:</span> 서울특별시 강남구 테헤란로 000, 0층</p>
-                <p><span className="font-medium">고객센터:</span> 1234-5678 (평일 09:00~18:00)</p>
+                <p><span className="font-medium">주소:</span> 서울시 강남구 자곡로3길45 407-1102</p>
+                <p><span className="font-medium">대표전화:</span> 0507-1449-3399</p>
                 <p><span className="font-medium">이메일:</span> support@tourgether.com</p>
               </div>
             </div>
