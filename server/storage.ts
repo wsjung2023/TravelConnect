@@ -174,6 +174,7 @@ import {
   type InsertBillingKey,
   type PaymentLog,
   type InsertPaymentLog,
+  translations,
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, and, or, sql, like, ilike, gte, asc, lte, inArray, ne } from 'drizzle-orm';
@@ -605,6 +606,9 @@ export interface IStorage {
   createPaymentLog(data: InsertPaymentLog): Promise<PaymentLog>;
   getPaymentLogsByPaymentId(paymentId: string): Promise<PaymentLog[]>;
   getPaymentLogsByUserId(userId: string, limit?: number): Promise<PaymentLog[]>;
+  
+  // Translations (DB 기반 i18n)
+  getTranslationsByNamespace(namespace: string, locale: string): Promise<Record<string, string>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4647,6 +4651,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(paymentLogs.userId, userId))
       .orderBy(desc(paymentLogs.createdAt))
       .limit(limit);
+  }
+  
+  // Translations (DB 기반 i18n)
+  async getTranslationsByNamespace(namespace: string, locale: string): Promise<Record<string, string>> {
+    const results = await db
+      .select({ key: translations.key, value: translations.value })
+      .from(translations)
+      .where(and(
+        eq(translations.namespace, namespace),
+        eq(translations.locale, locale)
+      ));
+    
+    return results.reduce((acc, row) => {
+      acc[row.key] = row.value;
+      return acc;
+    }, {} as Record<string, string>);
   }
 }
 
