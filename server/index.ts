@@ -208,6 +208,10 @@ app.use(helmet({
 // Trust proxy for Replit environment (only trust first proxy for security)
 app.set('trust proxy', 1);
 
+// SEO 301 리다이렉트 - 이전 sitemap에 있던 경로들을 홈으로 리다이렉트
+// 구글 인덱스에 남아있는 잘못된 URL들에 대한 처리
+app.get('/map', (req, res) => res.redirect(301, '/'));
+
 // Rate limiting
 app.use('/api/', rateLimit({ windowMs: 60_000, max: 200 })); // 1분 200회 (일반 API)
 // 로그인/회원가입만 엄격하게, /me는 제외 (자주 호출됨)
