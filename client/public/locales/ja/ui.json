@@ -69,7 +69,18 @@
     "cafe": "カフェ",
     "emotional": "感動",
     "landmark": "名所",
-    "activity": "アクティビティ"
+    "activity": "アクティビティ",
+    "food": "グルメ",
+    "culture": "文化",
+    "nightlife": "ナイトライフ",
+    "nature": "自然",
+    "adventure": "アドベンチャー",
+    "photography": "写真",
+    "history": "歴史",
+    "art": "アート",
+    "music": "音楽",
+    "sports": "スポーツ",
+    "wellness": "ウェルネス"
   },
   "filters": {
     "poi": "POIフィルター",

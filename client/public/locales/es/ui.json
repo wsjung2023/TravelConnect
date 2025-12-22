@@ -69,7 +69,18 @@
     "cafe": "Café",
     "emotional": "Emocional",
     "landmark": "Monumento",
-    "activity": "Actividad"
+    "activity": "Actividad",
+    "food": "Gastronomía",
+    "culture": "Cultura",
+    "nightlife": "Vida nocturna",
+    "nature": "Naturaleza",
+    "adventure": "Aventura",
+    "photography": "Fotografía",
+    "history": "Historia",
+    "art": "Arte",
+    "music": "Música",
+    "sports": "Deportes",
+    "wellness": "Bienestar"
   },
   "filters": {
     "poi": "Filtros de PDI",

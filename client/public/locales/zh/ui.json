@@ -69,7 +69,18 @@
     "cafe": "咖啡厅",
     "emotional": "情感",
     "landmark": "地标",
-    "activity": "活动"
+    "activity": "活动",
+    "food": "美食",
+    "culture": "文化",
+    "nightlife": "夜生活",
+    "nature": "自然",
+    "adventure": "冒险",
+    "photography": "摄影",
+    "history": "历史",
+    "art": "艺术",
+    "music": "音乐",
+    "sports": "运动",
+    "wellness": "养生"
   },
   "filters": {
     "poi": "兴趣点筛选",

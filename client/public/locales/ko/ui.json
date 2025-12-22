@@ -71,7 +71,18 @@
     "cafe": "카페",
     "emotional": "감성",
     "landmark": "명소",
-    "activity": "액티비티"
+    "activity": "액티비티",
+    "food": "음식",
+    "culture": "문화",
+    "nightlife": "나이트라이프",
+    "nature": "자연",
+    "adventure": "모험",
+    "photography": "사진",
+    "history": "역사",
+    "art": "예술",
+    "music": "음악",
+    "sports": "스포츠",
+    "wellness": "웰니스"
   },
   "filters": {
     "poi": "POI 필터",

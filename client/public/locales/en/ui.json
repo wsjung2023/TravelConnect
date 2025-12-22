@@ -71,7 +71,18 @@
     "cafe": "Cafe",
     "emotional": "Emotional",
     "landmark": "Landmark",
-    "activity": "Activity"
+    "activity": "Activity",
+    "food": "Food",
+    "culture": "Culture",
+    "nightlife": "Nightlife",
+    "nature": "Nature",
+    "adventure": "Adventure",
+    "photography": "Photography",
+    "history": "History",
+    "art": "Art",
+    "music": "Music",
+    "sports": "Sports",
+    "wellness": "Wellness"
   },
   "filters": {
     "poi": "POI Filters",
