@@ -58,7 +58,7 @@ export function usePOIMarkers({
     return iconMap[type] || '📍';
   }, []);
 
-  // POI 마커 아이콘 생성
+  // POI 마커 아이콘 생성 (foreignObject로 이모지 렌더링)
   const createPOIMarkerIcon = useCallback((icon: string) => {
     if (!window.google) return null;
     
@@ -72,7 +72,9 @@ export function usePOIMarkers({
           </defs>
           <circle cx="13" cy="13" r="12" fill="#FF6B9D" filter="url(#poi-shadow)"/>
           <circle cx="13" cy="13" r="9" fill="white"/>
-          <text x="13" y="17" text-anchor="middle" font-size="11" font-family="Arial">${icon}</text>
+          <foreignObject x="4" y="4" width="18" height="18">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;width:18px;height:18px;font-size:11px;">${icon}</div>
+          </foreignObject>
         </svg>
       `)}`,
       scaledSize: new window.google.maps.Size(39, 39),

@@ -81,7 +81,9 @@ export function useMapMarkers({
                 fill="${themeData.color}" fill-opacity="${opacity}" stroke="white" 
                 stroke-width="2" filter="url(#pin-shadow)"/>
           <circle cx="16" cy="15" r="7" fill="white"/>
-          <text x="16" y="20" text-anchor="middle" font-size="10" font-family="Arial">${themeData.icon}</text>
+          <foreignObject x="9" y="8" width="14" height="14">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;width:14px;height:14px;font-size:10px;">${themeData.icon}</div>
+          </foreignObject>
         </svg>
       `)}`,
       scaledSize: new window.google.maps.Size(40, 50),
@@ -158,7 +160,9 @@ export function useMapMarkers({
           <path d="M20 2 L24 14 L37 14 L27 22 L31 35 L20 27 L9 35 L13 22 L3 14 L16 14 Z" 
                 fill="${color}" stroke="white" stroke-width="2" filter="url(#exp-shadow)"/>
           <circle cx="20" cy="18" r="8" fill="white"/>
-          <text x="20" y="23" text-anchor="middle" font-size="12" font-family="Arial">⭐</text>
+          <foreignObject x="12" y="10" width="16" height="16">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;width:16px;height:16px;font-size:12px;">⭐</div>
+          </foreignObject>
         </svg>
       `)}`,
       scaledSize: new window.google.maps.Size(40, 40),
@@ -180,7 +184,9 @@ export function useMapMarkers({
             <animate attributeName="r" values="18;20;18" dur="2s" repeatCount="indefinite"/>
           </circle>
           <circle cx="20" cy="20" r="14" fill="white"/>
-          <text x="20" y="26" text-anchor="middle" font-size="16" font-family="Arial">👋</text>
+          <foreignObject x="10" y="10" width="20" height="20">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;font-size:16px;">👋</div>
+          </foreignObject>
         </svg>
       `)}`,
       scaledSize: new window.google.maps.Size(40, 40),
