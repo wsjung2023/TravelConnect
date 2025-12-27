@@ -33,13 +33,29 @@ self.addEventListener('activate', (event) => {
 
 // 네트워크 우선 전략 (Network First with Cache Fallback)
 self.addEventListener('fetch', (event) => {
+  const url = event.request.url;
+  
+  // Replit 관련 요청 무시 (프리뷰 정상화)
+  if (url.includes('__replit') || 
+      url.includes('replit.dev') ||
+      url.includes('replit.com') ||
+      url.includes('replitcdn') ||
+      url.includes('replit-dev-banner')) {
+    return;
+  }
+  
   // API 요청은 캐싱하지 않음
-  if (event.request.url.includes('/api/')) {
+  if (url.includes('/api/')) {
     return;
   }
 
   // WebSocket 요청 무시
-  if (event.request.url.includes('/ws')) {
+  if (url.includes('/ws')) {
+    return;
+  }
+  
+  // 외부 도메인 요청 무시
+  if (!url.startsWith(self.location.origin)) {
     return;
   }
 
