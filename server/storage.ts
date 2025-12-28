@@ -190,6 +190,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User>;
   getOpenUsers(): Promise<User[]>;
+  getHostApplications(status?: string): Promise<User[]>;
 
   // Experience operations
   createExperience(experience: InsertExperience): Promise<Experience>;
@@ -669,6 +670,24 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return openUsers;
+  }
+
+  async getHostApplications(status?: string): Promise<User[]> {
+    let conditions = [];
+    
+    if (status) {
+      conditions.push(eq(users.hostStatus, status));
+    } else {
+      conditions.push(sql`${users.hostStatus} IS NOT NULL`);
+    }
+    
+    const applications = await db
+      .select()
+      .from(users)
+      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+      .orderBy(desc(users.createdAt));
+    
+    return applications;
   }
 
   // Experience operations

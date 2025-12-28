@@ -39,6 +39,7 @@ export const users = pgTable('users', {
   bio: text('bio'),
   location: varchar('location'),
   isHost: boolean('is_host').default(false),
+  hostStatus: varchar('host_status', { length: 20 }), // null (not applied), 'pending', 'approved', 'rejected'
   role: varchar('role').default('user'), // admin, user
   authProvider: varchar('auth_provider').default('email'), // email, google, replit
   isEmailVerified: boolean('is_email_verified').default(false),

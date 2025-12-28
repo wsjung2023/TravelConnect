@@ -509,9 +509,30 @@ export default function Profile() {
           </div>
 
           {user?.isHost ? (
-            <Badge className="bg-gradient-to-r from-primary to-secondary text-white mb-4">
+            <Badge className="bg-gradient-to-r from-primary to-secondary text-white mb-4" data-testid="badge-verified-host">
               {t('profile.verifiedHost')}
             </Badge>
+          ) : user?.hostStatus === 'pending' ? (
+            <Badge className="bg-yellow-500 text-white mb-4" data-testid="badge-host-pending">
+              ⏳ {t('profile.hostPending')}
+            </Badge>
+          ) : user?.hostStatus === 'rejected' && isViewingOwnProfile ? (
+            <div className="flex flex-col items-center gap-2 mb-4">
+              <Badge className="bg-red-500 text-white" data-testid="badge-host-rejected">
+                ❌ {t('profile.hostRejected')}
+              </Badge>
+              <Button
+                onClick={() => applyHostMutation.mutate()}
+                disabled={applyHostMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="text-primary border-primary"
+                data-testid="button-reapply-host"
+              >
+                <Briefcase className="w-4 h-4 mr-2" />
+                {applyHostMutation.isPending ? t('profile.applying') : t('profile.reapplyHost')}
+              </Button>
+            </div>
           ) : isViewingOwnProfile ? (
             <Button
               onClick={() => applyHostMutation.mutate()}

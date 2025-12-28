@@ -359,7 +359,7 @@ router.get('/users/:id', async (req: Request, res: Response) => {
 // 호스트 신청
 // ============================================
 // POST /api/user/apply-host
-// 일반 사용자가 호스트로 신청합니다.
+// 일반 사용자가 호스트로 신청합니다. (심사 대기 상태로 설정)
 router.post('/user/apply-host', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {
@@ -376,16 +376,20 @@ router.post('/user/apply-host', authenticateHybrid, async (req: AuthRequest, res
       return res.status(400).json({ error: 'Already a host' });
     }
 
-    // 호스트로 업데이트
+    // 이미 신청 대기중인 경우
+    if (user.hostStatus === 'pending') {
+      return res.status(400).json({ error: 'Application already pending' });
+    }
+
+    // 심사 대기 상태로 업데이트 (isHost는 false 유지)
     const updatedUser = await storage.updateUserProfile(req.user.id, {
-      isHost: true,
-      userType: 'host',
+      hostStatus: 'pending',
     });
 
     res.json({
-      message: '호스트 신청이 완료되었습니다',
+      message: '호스트 신청이 완료되었습니다. 관리자 심사 후 승인됩니다.',
       isHost: updatedUser?.isHost,
-      userType: updatedUser?.userType,
+      hostStatus: updatedUser?.hostStatus,
     });
   } catch (error) {
     console.error('호스트 신청 오류:', error);
