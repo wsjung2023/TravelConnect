@@ -812,6 +812,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[PATCH /api/profile/open] 업데이트 완료: openToMeet=${updatedUser.openToMeet}, openUntil=${updatedUser.openUntil}`);
 
+      // Open to Meet 상태가 활성화되면 근처 사용자들에게 알림 발송
+      if (open && updatedUser.lastLatitude && updatedUser.lastLongitude) {
+        try {
+          // 근처 사용자 검색 (5km 반경)
+          const nearbyUsers = await storage.getNearbyUsers(
+            parseFloat(updatedUser.lastLatitude as string),
+            parseFloat(updatedUser.lastLongitude as string),
+            5, // 5km 반경
+            50 // 최대 50명
+          );
+
+          // 자신을 제외한 근처 사용자들에게 알림 발송
+          const displayName = updatedUser.nickname || 
+            (updatedUser.firstName && updatedUser.lastName 
+              ? `${updatedUser.firstName} ${updatedUser.lastName}` 
+              : updatedUser.firstName || '여행자');
+
+          for (const nearbyUser of nearbyUsers) {
+            if (nearbyUser.id !== userId) {
+              // 알림 생성
+              const notification = await storage.createNotification({
+                userId: nearbyUser.id,
+                type: 'open_to_meet',
+                title: '근처에 새로운 여행자!',
+                message: `${displayName}님이 만남을 열었습니다`,
+                location: updatedUser.location || undefined,
+                relatedUserId: userId,
+              });
+
+              // WebSocket으로 실시간 알림 전송
+              const sendNotificationToUser = (app as any).sendNotificationToUser;
+              if (sendNotificationToUser) {
+                sendNotificationToUser(nearbyUser.id, notification);
+              }
+            }
+          }
+
+          console.log(`[PATCH /api/profile/open] ${nearbyUsers.length - 1}명의 근처 사용자에게 알림 발송 완료`);
+        } catch (notifyError) {
+          console.error('[PATCH /api/profile/open] 근처 사용자 알림 발송 오류:', notifyError);
+          // 알림 실패는 메인 응답에 영향 주지 않음
+        }
+      }
+
       res.json({
         message: '프로필이 업데이트되었습니다',
         openToMeet: updatedUser.openToMeet,

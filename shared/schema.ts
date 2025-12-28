@@ -35,6 +35,7 @@ export const users = pgTable('users', {
   password: varchar('password'), // 이메일 로그인용 해시된 비밀번호
   firstName: varchar('first_name'),
   lastName: varchar('last_name'),
+  nickname: varchar('nickname', { length: 50 }), // 사용자 닉네임 (별명)
   profileImageUrl: varchar('profile_image_url'),
   bio: text('bio'),
   location: varchar('location'),
@@ -1152,7 +1153,7 @@ export const notifications = pgTable('notifications', {
   userId: varchar('user_id')
     .notNull()
     .references(() => users.id),
-  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion', 'comment', 'timeline_followed', 'booking'] })
+  type: varchar('type', { enum: ['feed', 'help', 'chat', 'follow', 'reaction', 'promotion', 'comment', 'timeline_followed', 'booking', 'open_to_meet', 'event_nearby'] })
     .notNull(),
   title: varchar('title').notNull(),
   message: text('message').notNull(),
