@@ -1098,6 +1098,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hostId: userId,
       });
       const experience = await storage.createExperience(experienceData);
+
+      // 이벤트/Experience 생성 시 근처 사용자에게 알림 발송
+      if (experience.latitude && experience.longitude) {
+        try {
+          const host = await storage.getUser(userId);
+          const hostDisplayName = host?.nickname || 
+            (host?.firstName && host?.lastName 
+              ? `${host.firstName} ${host.lastName}` 
+              : host?.firstName || '호스트');
+
+          // 근처 사용자 검색 (10km 반경)
+          const nearbyUsers = await storage.getNearbyUsers(
+            parseFloat(experience.latitude as string),
+            parseFloat(experience.longitude as string),
+            10, // 10km 반경
+            100 // 최대 100명
+          );
+
+          // 자신을 제외한 근처 사용자들에게 알림 발송
+          for (const nearbyUser of nearbyUsers) {
+            if (nearbyUser.id !== userId) {
+              const notification = await storage.createNotification({
+                userId: nearbyUser.id,
+                type: 'event_nearby',
+                title: '근처에 새로운 이벤트!',
+                message: `${hostDisplayName}님이 "${experience.title}" 이벤트를 개설했습니다`,
+                location: experience.location || undefined,
+                relatedUserId: userId,
+              });
+
+              // WebSocket으로 실시간 알림 전송
+              const sendNotificationToUser = (app as any).sendNotificationToUser;
+              if (sendNotificationToUser) {
+                sendNotificationToUser(nearbyUser.id, notification);
+              }
+            }
+          }
+
+          console.log(`[POST /api/experiences] ${nearbyUsers.length - 1}명의 근처 사용자에게 알림 발송 완료`);
+        } catch (notifyError) {
+          console.error('[POST /api/experiences] 근처 사용자 알림 발송 오류:', notifyError);
+          // 알림 실패는 메인 응답에 영향 주지 않음
+        }
+      }
+
       res.status(201).json(experience);
     } catch (error) {
       console.error('Error creating experience:', error);
@@ -2150,6 +2195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const { 
+        nickname,
         firstName, 
         lastName, 
         bio, 
@@ -2161,6 +2207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } = req.body;
 
       console.log(`[PATCH /api/user/profile] User ${userId} updating profile with:`, {
+        nickname,
         firstName,
         lastName,
         bio: bio?.substring(0, 50),
@@ -2200,6 +2247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // 값이 제공된 필드만 업데이트
+      if (nickname !== undefined) updateData.nickname = nickname;
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
       if (bio !== undefined) updateData.bio = bio;

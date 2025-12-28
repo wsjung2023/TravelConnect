@@ -434,9 +434,10 @@ export default function Profile() {
   return (
     <div className="mobile-content bg-white custom-scrollbar">
       <Seo 
-        title={user?.firstName && user?.lastName 
-          ? `${user.firstName} ${user.lastName}` 
-          : user?.email?.split('@')[0] || 'Profile'}
+        title={user?.nickname 
+          || (user?.firstName && user?.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user?.email?.split('@')[0] || 'Profile')}
         desc={user?.bio || 'Tourgether user profile - Connect with travelers and local hosts'}
       />
       {/* Profile Header */}
@@ -494,9 +495,10 @@ export default function Profile() {
           </Avatar>
 
           <h2 className="text-xl font-bold text-gray-900 mb-1">
-            {user?.firstName && user?.lastName
-              ? `${user.firstName} ${user.lastName}`
-              : user?.email?.split('@')[0] || t('profile.user')}
+            {user?.nickname 
+              || (user?.firstName && user?.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user?.email?.split('@')[0] || t('profile.user'))}
           </h2>
 
           {user?.bio && (

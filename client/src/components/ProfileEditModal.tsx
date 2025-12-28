@@ -32,6 +32,7 @@ import { LANGUAGE_OPTIONS } from '@shared/constants';
 import type { User } from '@shared/schema';
 
 const profileEditSchema = z.object({
+  nickname: z.string().max(50).optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   bio: z.string().max(500).optional(),
@@ -70,6 +71,7 @@ export default function ProfileEditModal({
   const form = useForm<ProfileEditFormData>({
     resolver: zodResolver(profileEditSchema),
     defaultValues: {
+      nickname: (user as any).nickname || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       bio: user.bio || '',
@@ -84,6 +86,7 @@ export default function ProfileEditModal({
   useEffect(() => {
     if (open) {
       form.reset({
+        nickname: (user as any).nickname || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         bio: user.bio || '',
@@ -154,6 +157,7 @@ export default function ProfileEditModal({
 
       // 프로필 정보 업데이트
       const updateData = {
+        nickname: data.nickname || null,
         firstName: data.firstName || null,
         lastName: data.lastName || null,
         bio: data.bio || null,
@@ -261,6 +265,25 @@ export default function ProfileEditModal({
                 </label>
               </div>
             </div>
+
+            {/* 닉네임 (별명) */}
+            <FormField
+              control={form.control}
+              name="nickname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('ui:profileEdit.nickname')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('ui:profileEdit.nicknamePlaceholder')}
+                      {...field}
+                      data-testid="input-nickname"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* 이름 */}
             <div className="grid grid-cols-2 gap-4">

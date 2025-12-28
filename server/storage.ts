@@ -190,6 +190,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User>;
   getOpenUsers(): Promise<User[]>;
+  getNearbyUsers(latitude: number, longitude: number, radiusKm: number, limit: number): Promise<User[]>;
   getHostApplications(status?: string): Promise<User[]>;
 
   // Experience operations
@@ -670,6 +671,30 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return openUsers;
+  }
+
+  // 근처 사용자 검색 (위치 기반)
+  async getNearbyUsers(latitude: number, longitude: number, radiusKm: number, limit: number): Promise<User[]> {
+    // Haversine 공식으로 거리 계산 (km)
+    const nearbyUsers = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          sql`${users.lastLatitude} IS NOT NULL`,
+          sql`${users.lastLongitude} IS NOT NULL`,
+          // Haversine 거리 계산 (km)
+          sql`(
+            6371 * acos(
+              cos(radians(${latitude})) * cos(radians(${users.lastLatitude}::float)) *
+              cos(radians(${users.lastLongitude}::float) - radians(${longitude})) +
+              sin(radians(${latitude})) * sin(radians(${users.lastLatitude}::float))
+            )
+          ) < ${radiusKm}`
+        )
+      )
+      .limit(limit);
+    return nearbyUsers;
   }
 
   async getHostApplications(status?: string): Promise<User[]> {
