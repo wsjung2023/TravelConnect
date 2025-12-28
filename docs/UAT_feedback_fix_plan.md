@@ -592,9 +592,336 @@ if (post.userId !== userId) {
 
 ---
 
+## Phase 2: 미구현 항목 상세 구현 계획 (2025-12-28 추가)
+
+### 구현 순서 (의존성 고려)
+1. 북마크 데이터 모델 + API
+2. Feed에서 북마크 버튼 연결 + 툴팁
+3. Profile에 북마크 탭 추가
+4. 피드 정렬 UI + 쿼리
+5. SNS 공유 (링크/OG/카카오)
+6. 마지막에 툴팁/문구/i18n 마감
+
+---
+
+### P2-1. 북마크(저장) 기능: 데이터 모델 + API
+
+#### DB 스키마 (shared/schema.ts)
+```typescript
+// bookmarks 테이블 추가
+export const bookmarks = pgTable('bookmarks', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  postId: integer('post_id').notNull().references(() => posts.id),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  uniqueUserPost: unique().on(table.userId, table.postId),
+  userIdx: index('bookmarks_user_idx').on(table.userId),
+  postIdx: index('bookmarks_post_idx').on(table.postId),
+}));
+```
+
+#### API 엔드포인트
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | `/api/bookmarks` | 북마크 토글 (있으면 삭제, 없으면 생성) |
+| GET | `/api/bookmarks` | 내 북마크 목록 조회 |
+| GET | `/api/posts/:id/bookmark-status` | 특정 포스트 북마크 여부 |
+
+#### 수정 파일
+- `shared/schema.ts` - bookmarks 테이블 추가
+- `server/storage.ts` - IBookmarkRepository 인터페이스 + 구현
+- `server/routes.ts` - 북마크 API 라우트 추가
+
+---
+
+### P2-2. 북마크 버튼 + 툴팁 (#9)
+
+#### UI 구현 (Radix Tooltip 활용)
+```tsx
+// client/src/components/BookmarkButton.tsx
+import * as Tooltip from "@radix-ui/react-tooltip";
+
+function BookmarkButton({ postId, initialBookmarked }: Props) {
+  const [bookmarked, setBookmarked] = useState(initialBookmarked);
+  
+  const toggle = async () => {
+    const res = await apiRequest('/api/bookmarks', 'POST', { postId });
+    setBookmarked(res.bookmarked);
+  };
+
+  return (
+    <Tooltip.Provider>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <button onClick={toggle}>
+            {bookmarked ? <BookmarkCheck /> : <Bookmark />}
+          </button>
+        </Tooltip.Trigger>
+        <Tooltip.Content>
+          {bookmarked ? t('bookmark.saved') : t('bookmark.save')}
+        </Tooltip.Content>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
+```
+
+#### 수정 파일
+- `client/src/components/BookmarkButton.tsx` (신규)
+- `client/src/components/PostCard.tsx` - BookmarkButton 컴포넌트 사용
+- `client/src/components/PostDetailModal.tsx` - BookmarkButton 컴포넌트 사용
+
+#### i18n 키 추가
+- `bookmark.save` - "저장" / "Save"
+- `bookmark.saved` - "저장됨" / "Saved"
+- `bookmark.removed` - "저장 취소됨" / "Removed from saved"
+
+---
+
+### P2-3. 프로필 북마크 탭 (25-7)
+
+#### 탭 구조
+```
+프로필 탭: Posts | Experiences | Bookmarks | Reservations
+```
+
+#### 수정 파일
+- `client/src/pages/profile.tsx`
+  - TabsTrigger 추가: `bookmarks`
+  - TabsContent 추가: 북마크 목록 (기존 PostCard 재사용)
+  - useQuery로 `/api/bookmarks` 호출
+
+#### 쿼리 예시
+```typescript
+const { data: bookmarks } = useQuery({
+  queryKey: ['/api/bookmarks'],
+  enabled: activeTab === 'bookmarks',
+});
+```
+
+---
+
+### P2-4. 피드 정렬 UI (#13)
+
+#### 정렬 옵션
+| 값 | 설명 | 쿼리 |
+|----|------|------|
+| `latest` | 최신순 | `ORDER BY created_at DESC` |
+| `popular` | 인기순 | `ORDER BY like_count DESC, created_at DESC` |
+| `nearby` | 가까운순 | `ORDER BY distance ASC` (위치 기반) |
+
+#### UI 컴포넌트 (드롭다운)
+```tsx
+// client/src/components/FeedSortSelect.tsx
+function FeedSortSelect({ value, onChange }: Props) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-32">
+        <SelectValue placeholder={t('feed.sortBy')} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="latest">{t('feed.latest')}</SelectItem>
+        <SelectItem value="popular">{t('feed.popular')}</SelectItem>
+        <SelectItem value="nearby">{t('feed.nearby')}</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+```
+
+#### 수정 파일
+- `client/src/components/FeedSortSelect.tsx` (신규)
+- `client/src/pages/feed.tsx` - 상단에 FeedSortSelect 추가
+- `server/routes.ts` - GET /api/posts에 sort 쿼리 파라미터 처리
+
+#### 백엔드 변경
+```typescript
+// GET /api/posts?sort=latest|popular|nearby&lat=&lng=
+const sort = req.query.sort || 'latest';
+let orderBy;
+switch(sort) {
+  case 'popular': orderBy = { likeCount: 'desc' }; break;
+  case 'nearby': /* 거리 계산 */ break;
+  default: orderBy = { createdAt: 'desc' };
+}
+```
+
+#### i18n 키 추가
+- `feed.sortBy` - "정렬" / "Sort by"
+- `feed.latest` - "최신순" / "Latest"
+- `feed.popular` - "인기순" / "Popular"
+- `feed.nearby` - "가까운순" / "Nearby"
+
+---
+
+### P2-5. SNS 공유 기능 (25-8)
+
+#### 구현 방식 (우선순위)
+1. **Web Share API** (모바일 최적) - 카카오톡/인스타/문자 등 자동 지원
+2. **Twitter/Facebook 전용 링크** (웹 fallback)
+3. **카카오톡 SDK** (Phase 3로 미룸 - 앱 등록 필요)
+
+#### Web Share API 구현
+```typescript
+// client/src/lib/share.ts
+export async function sharePost({ url, title, text }: ShareParams) {
+  if (navigator.share) {
+    await navigator.share({ title, text, url });
+    return true;
+  }
+  // fallback: 클립보드 복사
+  await navigator.clipboard.writeText(url);
+  return false;
+}
+```
+
+#### Twitter/Facebook 버튼
+```typescript
+const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+```
+
+#### OG 태그 (포스트 상세 페이지)
+```html
+<meta property="og:title" content="{post.title}" />
+<meta property="og:description" content="{post.content.slice(0, 150)}" />
+<meta property="og:image" content="{post.images[0]}" />
+<meta property="og:url" content="https://tourgether.io/posts/{post.id}" />
+```
+
+#### 수정 파일
+- `client/src/lib/share.ts` (신규)
+- `client/src/components/ShareButton.tsx` (신규)
+- `client/src/components/PostDetailModal.tsx` - ShareButton 추가
+- `server/routes.ts` - 포스트 상세 페이지 OG 메타 태그 서버 렌더링
+
+#### i18n 키 추가
+- `share.share` - "공유" / "Share"
+- `share.copied` - "링크가 복사되었습니다" / "Link copied"
+- `share.twitter` - "트위터에 공유" / "Share on Twitter"
+- `share.facebook` - "페이스북에 공유" / "Share on Facebook"
+
+---
+
+## Phase 3: 호스트 인증 레벨 시스템 (25-1, 25-13 관련)
+
+### 핵심 설계 원칙
+- **역할(role)과 인증(level) 분리**: 호스트 = 역할, 신뢰 = 레벨
+- **글로벌 대응**: 국가별 인증 방식 차이 흡수 (SMS 불가 국가 대응)
+- **KYC 외부 위임**: 직접 신분증 검증 X, 외부 서비스 결과만 저장
+
+---
+
+### 인증 레벨 정의 (Level 0~4)
+
+| Level | 명칭 | 조건 | 권한 |
+|-------|------|------|------|
+| **0** | Basic | 이메일 인증 + 기본 프로필 | 호스트 목록 노출 (미검증 배지), DM 불가 |
+| **1** | Contact Verified | Level0 + 연락처 인증 (SMS/WhatsApp/2FA 중 택1) | DM 가능, 검색 가중치 + |
+| **2** | Payment Verified | 결제수단 등록 OR 정산 온보딩 완료 | **유료 서비스 등록/예약/결제/정산 가능** |
+| **3** | ID Verified | 신분증 + 셀피 검증 (외부 KYC) | 고액 상품, "Trusted" 배지, 상위 노출 |
+| **4** | Reputation Verified | 거래 n회 + 분쟁율 낮음 + 후기 질 | "Elite Host" 배지, 수수료 할인 |
+
+---
+
+### DB 스키마 변경
+
+#### users 테이블 수정
+```typescript
+// 기존 필드에 추가
+verificationLevel: integer('verification_level').default(0), // 0~4
+hostEnabled: boolean('host_enabled').default(false), // 호스트 모드 활성화
+contactVerifiedAt: timestamp('contact_verified_at'),
+paymentVerifiedAt: timestamp('payment_verified_at'),
+idVerifiedAt: timestamp('id_verified_at'),
+```
+
+#### verifications 테이블 (신규)
+```typescript
+export const verifications = pgTable('verifications', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  type: text('type').notNull(), // 'contact' | 'payment' | 'id' | 'reputation'
+  provider: text('provider'), // 'twilio' | 'portone' | 'persona' | 'onfido'
+  status: text('status').notNull(), // 'pending' | 'passed' | 'failed'
+  providerRefId: text('provider_ref_id'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+```
+
+---
+
+### 기능 게이팅 (레벨별 권한 제어)
+
+```typescript
+// server/middleware/verificationGate.ts
+export function requireVerificationLevel(minLevel: number) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    if (!user || user.verificationLevel < minLevel) {
+      return res.status(403).json({ 
+        error: 'VERIFICATION_REQUIRED',
+        requiredLevel: minLevel,
+        currentLevel: user?.verificationLevel || 0
+      });
+    }
+    next();
+  };
+}
+
+// 사용 예시
+app.post('/api/experiences', requireVerificationLevel(2), createExperience);
+app.post('/api/bookings', requireVerificationLevel(2), createBooking);
+```
+
+---
+
+### 호스트 신청 플로우 변경 (25-1, 25-13)
+
+#### 현재 문제
+- 호스트 신청 버튼 클릭 → 즉시 인증됨 (심사 없음)
+
+#### 개선 방향
+```
+[호스트 되기 클릭]
+    ↓
+[hostEnabled = true, verificationLevel = 0]
+    ↓ "미검증 호스트" 배지로 목록 노출
+[연락처 인증 요청] → Level 1
+    ↓
+[결제/정산 연동 요청] → Level 2 ← MVP 핵심 허들
+    ↓
+[유료 서비스 등록 가능]
+```
+
+#### 수정 파일
+- `server/routes.ts` - POST /api/host/apply → hostEnabled = true, verificationLevel 유지
+- `client/src/pages/profile.tsx` - 호스트 프로필에 레벨별 UI 분기
+- `client/src/components/HostVerificationBadge.tsx` (신규) - 레벨별 배지 표시
+
+---
+
+### MVP 권장 전략 (강한 의견)
+
+> **핵심 인증축은 Level 2 (결제/정산 연동)**
+
+이유:
+1. 국가별 실명/휴대폰 제약 회피
+2. 결제 플랫폼(PortOne)이 이미 KYC/리스크 체크 수행
+3. 실제 사기/먹튀 사고 대부분 방지
+
+Level 3 (ID 검증)은 **고액/프리미엄 카테고리에만 요구** → 진입장벽 ↓
+
+---
+
 ## 비고
 
 - 이 문서는 25개 테스트 피드백을 기반으로 작성됨
 - 각 수정 사항은 해당 파일의 관련 함수/컴포넌트에서 수정
 - i18n 마이그레이션은 6개 언어 전부 포함하여 운영 배포 시 자동 적용
 - 실시간성은 SNS 플랫폼의 핵심이므로 최우선 수정
+- **Phase 2 항목**: 북마크, 피드 정렬, SNS 공유 (2025-12-28 추가)
+- **Phase 3 항목**: 호스트 인증 레벨 시스템 (2025-12-28 추가)

@@ -1,0 +1,164 @@
+1) 정답 구조: “호스트 = 역할(role)” + “인증 = 레벨(level)” 분리
+
+호스트/일반 유저를 나누는 게 아니라
+모든 유저가 기본 프로필을 갖고, “호스트 모드”를 켤 수 있게 하고,
+그 다음 Verification Level이 신뢰/권한을 결정하게.
+
+role_host = true/false : “호스트로 활동할 의사/프로필 존재”
+
+verification_level = 0~4 : “신뢰 레벨(전세계 공통)”
+
+기능/노출/정산은 level로만 제어 (이게 핵심)
+
+2) 글로벌 인증 레벨 설계 (전세계 공통으로 먹히는 형태)
+Level 0 — Basic (가입/기본 프로필)
+
+아무나 가능. 호스트 등록도 가능.
+
+이메일 인증(필수)
+
+닉네임/사진/언어/활동지역(도시 정도)
+
+호스트 프로필(서비스 카테고리, 소개, 가능 시간대)
+
+✅ 가능: 호스트 목록에 “노출은 가능”
+❌ 제한: 예약/정산/상위노출/고액 서비스 등록 불가
+
+Level 1 — Contact Verified (연락 가능 사용자)
+
+“연락 채널이 진짜다” 수준
+
+이메일 인증 + 휴대폰 OTP(가능한 국가만) 또는 대체 수단
+
+글로벌: SMS(가능한 국가), WhatsApp OTP, 이메일+2FA, 앱 내 푸시 2FA
+
+✅ 가능: DM/채팅, 기본 노출 상승
+❌ 제한: 결제/정산 연동은 아직
+
+중국처럼 SMS/WhatsApp 제약이 있는 나라가 있어서 “휴대폰=필수”로 고정하면 망해.
+그래서 Level1은 “연락 가능성”을 여러 방식으로 달성하게 설계해야 해.
+
+Level 2 — Payment Verified (결제/정산 가능 사용자)
+
+“돈이 오가는 신뢰”의 시작점 (가장 실용적)
+
+결제수단 등록(카드/지갑) 또는
+
+정산 수단 연결(payout onboarding)
+
+여기서 핵심은: 글로벌 결제/정산 플랫폼의 KYC를 ‘빌려’오는 것
+
+✅ 가능: 유료 서비스 등록, 예약받기, 결제/정산 시작
+✅ 신뢰도: “경제 활동 가능한 사용자” 뱃지
+❌ 제한: 고액/특정 카테고리는 추가 검증
+
+이 레벨이 MVP의 “주력 신뢰 레벨”이 되어야 해.
+왜냐면 전세계 공통으로 제일 구현이 쉽고, 법/세금/정산 요건이 이미 플랫폼에 녹아있거든.
+
+Level 3 — ID Verified (신분증 + 셀피)
+
+“실제 신원 확인” (고신뢰 호스트)
+
+정부 발행 ID(여권/운전면허/ID카드) + 셀피 라이브니스
+
+결과만 저장(원본 신분증 이미지 저장 X)
+
+✅ 가능: 상위 노출, 고액 상품, “Trusted” 뱃지
+✅ 분쟁 발생 시 중재에서 강력
+❌ 제한: 일부 국가/문서 미지원 시 대체 루트 필요
+
+Level 4 — Reputation Verified (평판 기반 신뢰)
+
+이건 “문서”보다 강력해지는 단계.
+
+거래 n회 이상 + 분쟁/취소율 낮음 + 후기 질(스팸 탐지)
+
+장기적으로는 이것이 가장 믿을 만한 신뢰 지표가 됨
+
+✅ 가능: “Top Host / Elite” 같은 최상위 뱃지 + 혜택
+
+3) 국가/지역 차이를 흡수하는 “인증 방법” 설계
+
+글로벌에서 망하는 패턴 1위가
+“휴대폰 실명인증” 같은 단일 방식 고정이야.
+
+그래서 레벨 달성 조건은 이렇게 “OR 조건”으로 설계해:
+
+Level1(Contact Verified) = Email verified AND (SMS OTP OR WhatsApp OTP OR App 2FA OR Email 2FA)
+
+Level2(Payment Verified) = Payment method added OR Payout onboarding completed
+
+Level3(ID Verified) = KYC vendor verification passed
+
+즉, 레벨은 동일하지만 달성 루트가 여러 개.
+
+4) 구현 관점에서 제일 중요한 포인트: “KYC를 네가 하지 마”
+
+전세계 대상으로 “신분 인증”을 직접 구현하면
+
+나라별 문서 유형 다름
+
+위조 탐지, 라이브니스, 규정, 저장 책임
+
+개인정보 사고 리스크
+
+그래서 답은:
+
+KYC 전문 서비스에 맡기고
+
+너는 결과(통과/실패/레벨/타임스탬프/벤더 레퍼런스)만 저장
+
+5) DB 필드 설계 (핵심만)
+users
+- id
+- email_verified_at
+- contact_verified_level (0/1)
+- verification_level (0~4)
+- country, region, city
+- languages[]
+- host_enabled (bool)
+
+host_profiles
+- user_id
+- categories[]
+- bio
+- base_location (lat,lng or city)
+- price_range
+- availability
+
+verifications
+- id
+- user_id
+- type: contact | payment | id | reputation
+- provider: twilio | persona | onfido | stripe | ...
+- status: pending | passed | failed
+- provider_ref_id
+- created_at, updated_at
+
+6) 기능 게이팅(권한 제어) — 레벨이 모든 걸 결정하게
+
+Level0: 호스트 프로필 작성 OK, “미검증 배지”
+
+Level1: DM/채팅 우선권, 검색 가중치 소폭 +
+
+Level2: 유료 서비스 등록/예약/결제/정산 가능
+
+Level3: 고액/프리미엄 카테고리 활성화 + 상위 노출
+
+Level4: 엘리트 혜택/수수료 할인/추천 우선
+
+이렇게 하면 “호스트 등록은 누구나” + “레벨이 신뢰”가 완벽히 맞아.
+
+7) 우서비 프로젝트에 딱 맞는 MVP 추천(강한 의견)
+
+전세계 대상으로 “간단/안전/확실”을 동시에 잡으려면
+MVP의 핵심 인증축은 Level2(결제/정산)로 잡는 게 정답이야.
+
+이유: 국가별 실명/휴대폰 제약을 피해가면서도
+
+“돈이 오가려면 최소 KYC/리스크 체크”가 자연스럽게 붙고
+
+실제 서비스 운영에서 가장 큰 사고(먹튀/사기)를 크게 줄여.
+
+그리고 Level3(ID)는 “고액/프리미엄”에만 요구하면
+진입장벽도 안 망가져.
