@@ -323,6 +323,54 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
     likeMutation.mutate(postId);
   };
 
+  // 포스트 저장(북마크) 핸들러
+  const handleSave = async (postId: number) => {
+    const isCurrentlySaved = savedPosts.has(postId);
+    
+    // 낙관적 업데이트
+    setSavedPosts((prev) => {
+      const newSet = new Set(prev);
+      if (isCurrentlySaved) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+    
+    try {
+      if (isCurrentlySaved) {
+        await api(`/api/posts/${postId}/save`, { method: 'DELETE' });
+        toast({
+          title: t('feedPage.unsaved'),
+          description: t('feedPage.unsavedDesc'),
+        });
+      } else {
+        await api(`/api/posts/${postId}/save`, { method: 'POST' });
+        toast({
+          title: t('feedPage.saved'),
+          description: t('feedPage.savedDesc'),
+        });
+      }
+    } catch (error) {
+      // 실패 시 롤백
+      setSavedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (isCurrentlySaved) {
+          newSet.add(postId);
+        } else {
+          newSet.delete(postId);
+        }
+        return newSet;
+      });
+      toast({
+        title: t('feedPage.saveFailed'),
+        description: t('feedPage.saveFailedDesc'),
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSharePost = (post: Post) => {
     if (navigator.share) {
       navigator.share({
@@ -865,6 +913,9 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
           onClose={() => setSelectedPost(null)}
           onLike={handleLike}
           isLiked={likedPosts.has(selectedPost.id)}
+          onSave={handleSave}
+          isSaved={savedPosts.has(selectedPost.id)}
+          onShare={handleSharePost}
         />
       )}
 

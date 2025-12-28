@@ -7,6 +7,8 @@ import {
   MessageCircle,
   MapPin,
   Calendar,
+  Bookmark,
+  Share2,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,12 @@ import CommentsSection from '@/components/post/CommentsSection';
 import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
 import { useTranslation } from 'react-i18next';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface PostDetailModalProps {
   post: Post;
@@ -23,6 +31,9 @@ interface PostDetailModalProps {
   onClose: () => void;
   onLike: (postId: number) => void;
   isLiked: boolean;
+  onSave?: (postId: number) => void;
+  isSaved?: boolean;
+  onShare?: (post: Post) => void;
 }
 
 export default function PostDetailModal({
@@ -31,7 +42,11 @@ export default function PostDetailModal({
   onClose,
   onLike,
   isLiked,
+  onSave,
+  isSaved = false,
+  onShare,
 }: PostDetailModalProps) {
+  const { t } = useTranslation();
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [failedMedia, setFailedMedia] = useState(new Set<string>());
 
@@ -229,22 +244,89 @@ export default function PostDetailModal({
         <div className="p-4 border-t bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => onLike(post.id)}
-                className={`flex items-center gap-2 transition-colors ${
-                  isLiked ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
-                }`}
-              >
-                <Heart size={20} className={isLiked ? 'fill-current' : ''} />
-                <span className="text-sm">{post.likesCount || 0}</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
-                <MessageCircle size={20} />
-                <span className="text-sm">{post.commentsCount || 0}</span>
-              </button>
+              {/* 좋아요 버튼 + 툴팁 */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => onLike(post.id)}
+                      className={`flex items-center gap-2 transition-colors ${
+                        isLiked ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
+                      }`}
+                      data-testid="btn-like"
+                    >
+                      <Heart size={20} className={isLiked ? 'fill-current' : ''} />
+                      <span className="text-sm">{post.likesCount || 0}</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isLiked ? t('ui.actions.liked') : t('ui.actions.like')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* 댓글 버튼 + 툴팁 */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button 
+                      className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors"
+                      data-testid="btn-comment"
+                    >
+                      <MessageCircle size={20} />
+                      <span className="text-sm">{post.commentsCount || 0}</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('ui.actions.comment')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* 저장(북마크) 버튼 + 툴팁 */}
+              {onSave && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onSave(post.id)}
+                        className={`flex items-center gap-2 transition-colors ${
+                          isSaved ? 'text-yellow-500' : 'text-gray-600 hover:text-yellow-500'
+                        }`}
+                        data-testid="btn-save"
+                      >
+                        <Bookmark size={20} className={isSaved ? 'fill-current' : ''} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{isSaved ? t('ui.actions.saved') : t('ui.actions.save')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+
+              {/* 공유 버튼 + 툴팁 */}
+              {onShare && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onShare(post)}
+                        className="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors"
+                        data-testid="btn-share"
+                      >
+                        <Share2 size={20} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('ui.actions.share')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
             <Button variant="outline" onClick={onClose}>
-              닫기
+              {t('common.app.cancel')}
             </Button>
           </div>
 

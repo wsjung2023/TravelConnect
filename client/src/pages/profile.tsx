@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';
-import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock, Home, CreditCard, Crown } from 'lucide-react';
+import { Settings, Edit3, Calendar, MapPin, Star, Heart, Users, Briefcase, HelpCircle, Sparkles, ShoppingBag, Clock, Home, CreditCard, Crown, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,135 @@ import type { Post, Trip, Experience } from '@shared/schema';
 import { Seo } from '@/components/Seo';
 import { useTranslation } from 'react-i18next';
 import PostDetailModal from '@/components/PostDetailModal';
+import { ImageFallback } from '@/components/ImageFallback';
+
+// 저장한 포스트 탭 컴포넌트
+function SavedPostsTab() {
+  const { t } = useTranslation('ui');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [savedPostIds, setSavedPostIds] = useState<Set<number>>(new Set());
+  
+  // 저장한 포스트 목록 쿼리
+  const { data: savedPosts, isLoading } = useQuery<Post[]>({
+    queryKey: ['/api/me/saved-posts'],
+  });
+
+  // savedPosts가 로드되면 savedPostIds 초기화
+  useEffect(() => {
+    if (savedPosts) {
+      setSavedPostIds(new Set(savedPosts.map(p => p.id)));
+    }
+  }, [savedPosts]);
+
+  // 북마크 토글 핸들러
+  const handleSave = async (postId: number) => {
+    const isSaved = savedPostIds.has(postId);
+    
+    // 낙관적 업데이트
+    if (isSaved) {
+      setSavedPostIds(prev => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    } else {
+      setSavedPostIds(prev => new Set(prev).add(postId));
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/posts/${postId}/save`, {
+        method: isSaved ? 'DELETE' : 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update bookmark');
+      }
+      
+      // 저장된 포스트 목록 갱신
+      queryClient.invalidateQueries({ queryKey: ['/api/me/saved-posts'] });
+      
+      toast({
+        title: isSaved ? t('post.unsaved') : t('post.saved'),
+        description: isSaved ? t('post.unsavedDesc') : t('post.savedDesc'),
+      });
+    } catch (error) {
+      // 실패 시 롤백
+      if (isSaved) {
+        setSavedPostIds(prev => new Set(prev).add(postId));
+      } else {
+        setSavedPostIds(prev => {
+          const next = new Set(prev);
+          next.delete(postId);
+          return next;
+        });
+      }
+      toast({
+        title: t('toast.error.generic'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (!savedPosts || savedPosts.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-4xl mb-3">🔖</div>
+        <p className="text-gray-500 text-sm">{t('profile.empty.noSavedPosts')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-1">
+        {savedPosts.map((post: Post) => (
+          <div
+            key={post.id}
+            className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setSelectedPost(post)}
+            data-testid={`saved-post-item-${post.id}`}
+          >
+            {post.images && post.images.length > 0 ? (
+              <ImageFallback
+                src={post.images[0]}
+                alt={post.title || ''}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-2xl">📝</div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {/* Post Detail Modal */}
+      {selectedPost && (
+        <PostDetailModal
+          post={selectedPost}
+          isOpen={!!selectedPost}
+          onClose={() => setSelectedPost(null)}
+          onLike={() => {}}
+          isLiked={false}
+          onSave={() => handleSave(selectedPost.id)}
+          isSaved={savedPostIds.has(selectedPost.id) || true}
+        />
+      )}
+    </>
+  );
+}
 
 export default function Profile() {
   const { user: currentUser } = useAuth();
@@ -649,6 +778,12 @@ export default function Profile() {
           <TabsTrigger value="bookings" className="text-xs">
             {t('profile.tabs.bookings')}
           </TabsTrigger>
+          <TabsTrigger value="saved" className="text-xs" data-testid="tab-saved">
+            <div className="flex items-center space-x-1">
+              <Bookmark className="w-3 h-3" />
+              <span>{t('profile.tabs.saved')}</span>
+            </div>
+          </TabsTrigger>
           {(user?.userType === 'local_guide' || user?.isHost) && (
             <TabsTrigger value="host-bookings" className="text-xs" data-testid="tab-host-bookings">
               <div className="flex items-center space-x-1">
@@ -799,6 +934,11 @@ export default function Profile() {
 
         <TabsContent value="bookings" className="mt-4 px-4" data-testid="tab-content-bookings">
           <BookingList role="guest" />
+        </TabsContent>
+
+        {/* 저장한 포스트 탭 */}
+        <TabsContent value="saved" className="mt-4 px-4" data-testid="tab-content-saved">
+          <SavedPostsTab />
         </TabsContent>
 
         {/* 호스트용 예약 관리 탭 */}
