@@ -1,4 +1,4 @@
-import { useRoute, Link } from 'wouter';
+import { useRoute, Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Star, Users, Clock, Heart, MessageCircle, Calendar } from 'lucide-react';
+import { ArrowLeft, MapPin, Star, Users, Clock, Heart, MessageCircle, Calendar } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface GuideData {
   id: string;
@@ -65,6 +67,51 @@ export default function GuideProfile() {
   const [, params] = useRoute('/guide/:id');
   const guideId = params?.id;
   const [activeTab, setActiveTab] = useState('experiences');
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+
+  const handleSendMessage = async () => {
+    if (!user) {
+      toast({
+        title: t('common.error'),
+        description: t('common.loginRequired'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!guideId) return;
+
+    setIsSendingMessage(true);
+    try {
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ participantId: guideId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create conversation');
+      }
+
+      const conversation = await response.json();
+      setLocation(`/chat?conversationId=${conversation.id}`);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      toast({
+        title: t('common.error'),
+        description: t('common.errorOccurred'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   // 가이드 기본 정보
   const { data: guide, isLoading: guideLoading } = useQuery<GuideData>({
@@ -164,6 +211,18 @@ export default function GuideProfile() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* 뒤로 가기 버튼 */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => window.history.back()}
+          className="mb-4"
+          data-testid="button-back"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {t('common.back')}
+        </Button>
+
         {/* 가이드 헤더 */}
         <Card className="mb-8">
           <CardContent className="p-8">
@@ -175,9 +234,14 @@ export default function GuideProfile() {
                     {guide.firstName?.[0]}{guide.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                <Button data-testid="button-contact-guide" className="w-full md:w-auto">
+                <Button 
+                  data-testid="button-contact-guide" 
+                  className="w-full md:w-auto"
+                  onClick={handleSendMessage}
+                  disabled={isSendingMessage}
+                >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  {t('guide.sendMessage')}
+                  {isSendingMessage ? t('common.loading') : t('guide.sendMessage')}
                 </Button>
               </div>
               
