@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { useAuth } from '@/hooks/useAuth';
 
 interface BottomNavigationProps {
   activeTab: 'map' | 'feed' | 'chat' | 'profile' | 'timeline';
@@ -23,6 +24,7 @@ export default function BottomNavigation({
   hidden,
 }: BottomNavigationProps) {
   const { t } = useTranslation('ui');
+  const { user } = useAuth();
   const tabs = [
     { id: 'map', icon: MapPin, label: t('navigation.map') },
     { id: 'feed', icon: Home, label: t('navigation.feed') },
@@ -51,7 +53,16 @@ export default function BottomNavigation({
                 onClick={() => onTabChange(tab.id as any)}
                 className={`nav-btn ${isActive ? 'active' : ''}`}
               >
-                <Icon size={20} />
+                {/* 프로필 탭이고 사용자 이미지가 있으면 이미지 표시 */}
+                {tab.id === 'profile' && user?.profileImageUrl ? (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt="profile" 
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <Icon size={20} />
+                )}
                 <span className="text-xs">{tab.label}</span>
               </button>
 

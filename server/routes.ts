@@ -1555,7 +1555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Like/Unlike post
+  // Like/Unlike post (실시간 알림 포함)
   app.post('/api/posts/:id/like', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user.id;  // JWT에서는 .id로 접근
@@ -1563,9 +1563,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('좋아요 요청:', { userId, postId });
 
+      // 포스트 정보 미리 조회 (알림 전송용)
+      const post = await storage.getPostById(postId);
+      
       const isLiked = await storage.toggleLike(userId, postId);
 
       console.log('좋아요 결과:', isLiked);
+
+      // 실시간 알림 전송 (좋아요 추가 시, 본인 포스트가 아닐 때)
+      if (isLiked && post && post.userId !== userId) {
+        const sendNotificationToUser = (app as any).sendNotificationToUser;
+        if (sendNotificationToUser) {
+          // 최신 알림 조회해서 WebSocket으로 전송
+          const notifications = await storage.getNotificationsByUser(post.userId);
+          const latestNotification = notifications.find(n => 
+            n.type === 'reaction' && n.relatedPostId === postId && n.relatedUserId === userId
+          );
+          if (latestNotification) {
+            sendNotificationToUser(post.userId, latestNotification);
+            console.log('실시간 좋아요 알림 전송:', post.userId);
+          }
+        }
+      }
 
       res.json({ isLiked, message: isLiked ? '좋아요!' : '좋아요 취소' });
     } catch (error) {
@@ -1722,11 +1741,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comments API
+  // Comments API (실시간 알림 포함)
   app.post('/api/posts/:id/comments', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user.id;  // JWT에서는 .id로 접근
       const postId = parseInt(req.params.id);
+      
+      // 포스트 정보 미리 조회 (알림 전송용)
+      const post = await storage.getPostById(postId);
+      
       const commentData = insertCommentSchema.parse({
         postId,
         userId,
@@ -1735,6 +1758,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newComment = await storage.createComment(commentData);
       console.log('댓글 생성 성공:', newComment);
+
+      // 실시간 알림 전송 (본인 포스트가 아닐 때)
+      if (post && post.userId !== userId) {
+        const sendNotificationToUser = (app as any).sendNotificationToUser;
+        if (sendNotificationToUser) {
+          // 최신 알림 조회해서 WebSocket으로 전송
+          const notifications = await storage.getNotificationsByUser(post.userId);
+          const latestNotification = notifications.find(n => 
+            n.type === 'comment' && n.relatedPostId === postId && n.relatedUserId === userId
+          );
+          if (latestNotification) {
+            sendNotificationToUser(post.userId, latestNotification);
+            console.log('실시간 댓글 알림 전송:', post.userId);
+          }
+        }
+      }
+
       res.json(newComment);
     } catch (error) {
       console.error('댓글 생성 실패:', error);
@@ -1902,6 +1942,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const guestId = req.user.id;
+      const { experienceId, slotId } = req.body;
+      
+      // 중복 예약 체크
+      const existingBooking = await storage.findExistingBooking(guestId, experienceId, slotId);
+      if (existingBooking) {
+        return res.status(400).json({ error: 'Already booked' });
+      }
       
       // 기존 experienceId 기반 데이터
       const basicBookingData = {
@@ -1916,6 +1963,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const booking = await storage.createBooking(basicBookingData);
+      
+      // 호스트에게 알림 생성 및 WebSocket 브로드캐스트
+      try {
+        let experience;
+        if (experienceId) {
+          experience = await storage.getExperienceById(experienceId);
+        }
+        
+        const hostId = booking.hostId;
+        if (hostId) {
+          const notification = await storage.createNotification({
+            userId: hostId,
+            type: 'booking',
+            title: '새 예약',
+            message: '새 예약이 있습니다',
+          });
+          
+          const sendNotificationToUser = (app as any).sendNotificationToUser;
+          if (sendNotificationToUser) {
+            sendNotificationToUser(hostId, notification);
+          }
+        }
+      } catch (notifError) {
+        console.error('Error sending booking notification:', notifError);
+      }
+      
       res.status(201).json(booking);
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -4103,12 +4176,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
+      const guestId = req.user.id;
+      const { experienceId, slotId } = req.body;
+      
+      // 중복 예약 체크
+      const existingBooking = await storage.findExistingBooking(guestId, experienceId, slotId);
+      if (existingBooking) {
+        return res.status(400).json({ error: 'Already booked' });
+      }
+
       const bookingData = {
         ...req.body,
-        guestId: req.user.id
+        guestId
       };
 
       const booking = await storage.createBooking(bookingData);
+      
+      // 호스트에게 알림 생성 및 WebSocket 브로드캐스트
+      try {
+        const hostId = booking.hostId;
+        if (hostId) {
+          const notification = await storage.createNotification({
+            userId: hostId,
+            type: 'booking',
+            title: '새 예약',
+            message: '새 예약이 있습니다',
+          });
+          
+          const sendNotificationToUser = (app as any).sendNotificationToUser;
+          if (sendNotificationToUser) {
+            sendNotificationToUser(hostId, notification);
+          }
+        }
+      } catch (notifError) {
+        console.error('Error sending booking notification:', notifError);
+      }
+      
       res.status(201).json(booking);
     } catch (error: any) {
       console.error('Error creating booking:', error);

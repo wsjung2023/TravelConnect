@@ -474,6 +474,7 @@ export default function CreatePostModal({
               <option value="party">{t('themes.party')}</option>
               <option value="healing">{t('themes.healing')}</option>
               <option value="hotplace">{t('themes.hotplace')}</option>
+              <option value="shopping">{t('themes.shopping')}</option>
             </select>
           </div>
 
@@ -496,7 +497,9 @@ export default function CreatePostModal({
               value={location}
               onChange={(value, placeData) => {
                 if (placeData && placeData.geometry && placeData.geometry.location) {
-                  setLocation(placeData.formatted_address || value);
+                  // 구체적인 장소명(name) 우선, 없으면 formatted_address 사용
+                  const locationName = placeData.name || placeData.formatted_address || value;
+                  setLocation(locationName);
                   setLocationCoords({
                     lat: placeData.geometry.location.lat(),
                     lng: placeData.geometry.location.lng(),

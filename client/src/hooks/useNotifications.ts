@@ -92,6 +92,17 @@ export function useNotifications() {
           console.log('실시간 알림 수신:', data.notification);
           // 알림 목록 새로고침
           queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+          
+          // 좋아요/댓글 알림 시 관련 포스트 쿼리도 무효화 (실시간 카운트 업데이트)
+          const notification = data.notification;
+          if (notification && (notification.type === 'reaction' || notification.type === 'comment')) {
+            // 피드 쿼리 무효화 (좋아요/댓글 수 업데이트)
+            queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+            // 개별 포스트 쿼리 무효화
+            if (notification.relatedPostId) {
+              queryClient.invalidateQueries({ queryKey: ['/api/posts', notification.relatedPostId] });
+            }
+          }
         }
       } catch (error) {
         console.error('WebSocket 메시지 파싱 오류:', error);

@@ -610,6 +610,30 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Quick Access Buttons - 마켓플레이스 및 호스트 대시보드 */}
+      <div className="flex gap-2 px-4 py-3">
+        <Button
+          variant="outline"
+          className="flex-1 flex items-center justify-center gap-2"
+          onClick={() => setLocation('/marketplace')}
+          data-testid="btn-marketplace"
+        >
+          <ShoppingBag className="w-4 h-4" />
+          {t('profile.marketplace')}
+        </Button>
+        {(user?.isHost || user?.userType === 'local_guide') && (
+          <Button
+            variant="outline"
+            className="flex-1 flex items-center justify-center gap-2"
+            onClick={() => setLocation('/host-dashboard')}
+            data-testid="btn-host-dashboard"
+          >
+            <Briefcase className="w-4 h-4" />
+            {t('profile.hostDashboard')}
+          </Button>
+        )}
+      </div>
+
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-8 bg-gray-50 p-1 mx-4 mt-4 rounded-lg">

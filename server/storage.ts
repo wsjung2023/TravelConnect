@@ -224,6 +224,7 @@ export interface IStorage {
   getBookingsByGuest(guestId: string): Promise<Booking[]>;
   getBookingsByHost(hostId: string): Promise<Booking[]>;
   updateBookingStatus(id: number, status: string, cancelReason?: string): Promise<Booking | undefined>;
+  findExistingBooking(guestId: string, experienceId?: number, slotId?: number): Promise<Booking | undefined>;
   
   // 자동화 비즈니스 로직 메서드들
   processExpiredBookings(): Promise<number>;
@@ -1122,6 +1123,33 @@ export class DatabaseStorage implements IStorage {
       .from(bookings)
       .where(eq(bookings.guestId, guestId))
       .orderBy(desc(bookings.createdAt));
+  }
+
+  async findExistingBooking(guestId: string, experienceId?: number, slotId?: number): Promise<Booking | undefined> {
+    const conditions = [
+      eq(bookings.guestId, guestId),
+      ne(bookings.status, 'cancelled'),
+      ne(bookings.status, 'declined'),
+    ];
+    
+    if (experienceId) {
+      conditions.push(eq(bookings.experienceId, experienceId));
+    }
+    if (slotId) {
+      conditions.push(eq(bookings.slotId, slotId));
+    }
+    
+    if (!experienceId && !slotId) {
+      return undefined;
+    }
+    
+    const [existing] = await db
+      .select()
+      .from(bookings)
+      .where(and(...conditions))
+      .limit(1);
+    
+    return existing;
   }
 
   async getBookingById(id: number): Promise<Booking | undefined> {

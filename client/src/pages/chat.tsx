@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useSearch } from 'wouter';
 import ChannelList from '@/components/ChannelList';
 import EnhancedChatWindow from '@/components/EnhancedChatWindow';
 import ThreadPanel from '@/components/ThreadPanel';
@@ -26,6 +27,32 @@ export default function Chat() {
   const { user } = useAuth();
   const { sendMessage, addMessageHandler, removeMessageHandler } = useWebSocket();
   const queryClient = useQueryClient();
+  
+  // URL 파라미터에서 conversationId 읽기
+  const searchString = useSearch();
+  const conversationIdFromUrl = useMemo(() => {
+    const params = new URLSearchParams(searchString);
+    const id = params.get('conversationId');
+    return id ? parseInt(id, 10) : null;
+  }, [searchString]);
+  
+  // 대화 목록 조회 (URL 파라미터 처리용 - queryKey 공유)
+  const { data: conversations = [] } = useQuery<Conversation[]>({
+    queryKey: ['/api/conversations'],
+  });
+  
+  // URL의 conversationId로 대화 자동 선택
+  useEffect(() => {
+    // conversationId가 변경될 때마다 선택 (selectedConversation 조건 제거)
+    if (conversationIdFromUrl && conversations.length > 0) {
+      const targetConversation = conversations.find(c => c.id === conversationIdFromUrl);
+      if (targetConversation && targetConversation.id !== selectedConversation?.id) {
+        setSelectedConversation(targetConversation);
+        setSelectedChannel(null);
+        setChatMode('chat');
+      }
+    }
+  }, [conversationIdFromUrl, conversations]);
 
   const currentUserId = user?.id || 'current-user';
 

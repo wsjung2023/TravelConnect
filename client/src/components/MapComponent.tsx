@@ -424,13 +424,16 @@ const MapComponent: React.FC<MapComponentProps> = ({
     if (nearbyFilter === 'posts') return nearbyPosts;
     if (nearbyFilter === 'experiences') return nearbyExperiences;
     if (nearbyFilter === 'open_users') {
-      return (openUsers || []).map((user: any) => ({
-        ...user,
-        type: 'open_user' as const,
-        distance: user.lastLatitude && user.lastLongitude 
-          ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(user.lastLatitude), parseFloat(user.lastLongitude))
-          : 999
-      })).sort((a: any, b: any) => a.distance - b.distance);
+      // 본인 제외
+      return (openUsers || [])
+        .filter((user: any) => user.id !== currentUser?.id)
+        .map((user: any) => ({
+          ...user,
+          type: 'open_user' as const,
+          distance: user.lastLatitude && user.lastLongitude 
+            ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(user.lastLatitude), parseFloat(user.lastLongitude))
+            : 999
+        })).sort((a: any, b: any) => a.distance - b.distance);
     }
     
     // Combine and sort by distance - 모든 아이템 표시 (제한 제거)
@@ -439,7 +442,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     
     console.log('✅ Nearby 결과:', combined.length, '개 아이템');
     return combined;
-  }, [nearbyPosts, nearbyExperiences, nearbyFilter, openUsers, mapCenter]);
+  }, [nearbyPosts, nearbyExperiences, nearbyFilter, openUsers, mapCenter, currentUser?.id]);
 
   // Determine clustering strategy based on marker count
   const shouldShowClusters = useMemo(() => {
@@ -737,12 +740,17 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }
   };
 
+  // 본인을 제외한 Open to Meet 사용자 목록
+  const filteredOpenUsers = useMemo(() => {
+    return (openUsers || []).filter((user: any) => user.id !== currentUser?.id);
+  }, [openUsers, currentUser?.id]);
+
   // 마커 관리 훅 (무한 루프 방지를 위해 useRef 기반)
   useMapMarkers({
     map,
     posts,
     experiences,
-    openUsers,
+    openUsers: filteredOpenUsers,
     currentZoom,
     onPostClick: setSelectedPost,
     onExperienceClick: (expId: number) => setLocation(`/experience/${expId}`),

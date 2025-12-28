@@ -523,6 +523,17 @@ VALUES
   ('ui', 'profile.hostDashboard', 'es', 'Panel de anfitrión', true, 1, NOW(), NOW())
 ON CONFLICT (namespace, key, locale) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
 
+-- profile.marketplace
+INSERT INTO translations (namespace, key, locale, value, is_reviewed, version, created_at, updated_at)
+VALUES 
+  ('ui', 'profile.marketplace', 'en', 'Marketplace', true, 1, NOW(), NOW()),
+  ('ui', 'profile.marketplace', 'ko', '마켓플레이스', true, 1, NOW(), NOW()),
+  ('ui', 'profile.marketplace', 'ja', 'マーケットプレイス', true, 1, NOW(), NOW()),
+  ('ui', 'profile.marketplace', 'zh', '市场', true, 1, NOW(), NOW()),
+  ('ui', 'profile.marketplace', 'fr', 'Marketplace', true, 1, NOW(), NOW()),
+  ('ui', 'profile.marketplace', 'es', 'Mercado', true, 1, NOW(), NOW())
+ON CONFLICT (namespace, key, locale) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
+
 -- profile.noBookmarks
 INSERT INTO translations (namespace, key, locale, value, is_reviewed, version, created_at, updated_at)
 VALUES 
