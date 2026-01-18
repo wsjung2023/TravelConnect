@@ -4,22 +4,72 @@
   <!-- 메인 페이지 (Landing) - Indexable -->
   <url>
     <loc>https://tourgether.io/</loc>
-    <lastmod>2025-12-19</lastmod>
+    <lastmod>2026-01-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+
+  <!-- SEO 랜딩페이지 - 핵심 마케팅 페이지 -->
+  <url>
+    <loc>https://tourgether.io/travel-itinerary</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/map-travel</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/travel-timeline</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/local-tips</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/travel-mate</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/safety</loc>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <!-- Legal Pages - Indexable -->
   <url>
     <loc>https://tourgether.io/legal/terms</loc>
-    <lastmod>2025-12-19</lastmod>
+    <lastmod>2026-01-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://tourgether.io/legal/privacy</loc>
-    <lastmod>2025-12-19</lastmod>
+    <lastmod>2026-01-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/legal/refund</loc>
+    <lastmod>2026-01-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -31,8 +81,6 @@
     - /features
     - /pricing  
     - /about
-    - /safety
-    - /faq
     - /destinations/*
     - /guides/*
     - /blog/*

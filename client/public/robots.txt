@@ -1,8 +1,18 @@
 # Tourgether robots.txt
 # SEO 문서 기준: Section 5.3
+# 업데이트: 2026-01-18
 
 User-agent: *
 Allow: /
+
+# SEO 랜딩페이지 (Indexable)
+Allow: /travel-itinerary
+Allow: /map-travel
+Allow: /travel-timeline
+Allow: /local-tips
+Allow: /travel-mate
+Allow: /safety
+Allow: /legal/
 
 # 비공개 경로 차단 (로그인 필요 페이지)
 Disallow: /feed
@@ -22,6 +32,7 @@ Disallow: /subscription
 Disallow: /video-test
 Disallow: /error-test
 Disallow: /conversations
+Disallow: /portfolio/
 
 # 파라미터화된 맵 상태 차단 (크롤 트랩 방지)
 Disallow: /*?lat=
