@@ -4,6 +4,7 @@ import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { HelmetProvider } from 'react-helmet-async';
 import * as Sentry from '@sentry/react';
 import ErrorBoundary from '@/ErrorBoundary';
 import NotFound from '@/pages/not-found';
@@ -14,6 +15,14 @@ import LegalPage from '@/pages/legal';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import InAppBrowserRedirect from '@/components/InAppBrowserRedirect';
 import { OnboardingModal } from '@/components/OnboardingModal';
+
+// SEO 랜딩페이지 (공개 - 로그인 불필요)
+const TravelItinerary = lazy(() => import('@/pages/seo/TravelItinerary'));
+const MapTravel = lazy(() => import('@/pages/seo/MapTravel'));
+const TravelTimeline = lazy(() => import('@/pages/seo/TravelTimeline'));
+const LocalTips = lazy(() => import('@/pages/seo/LocalTips'));
+const TravelMate = lazy(() => import('@/pages/seo/TravelMate'));
+const Safety = lazy(() => import('@/pages/seo/Safety'));
 
 // Initialize Sentry for error tracking
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -116,6 +125,38 @@ function Router() {
         
         {/* Legal pages accessible to everyone */}
         <Route path="/legal/:type?" component={LegalPage} />
+        
+        {/* SEO 랜딩페이지 - 공개 (로그인 불필요) */}
+        <Route path="/travel-itinerary" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <TravelItinerary />
+          </Suspense>
+        )} />
+        <Route path="/map-travel" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <MapTravel />
+          </Suspense>
+        )} />
+        <Route path="/travel-timeline" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <TravelTimeline />
+          </Suspense>
+        )} />
+        <Route path="/local-tips" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <LocalTips />
+          </Suspense>
+        )} />
+        <Route path="/travel-mate" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <TravelMate />
+          </Suspense>
+        )} />
+        <Route path="/safety" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Safety />
+          </Suspense>
+        )} />
         
         {/* Protected routes */}
         <Route path="/" component={() => (
@@ -309,15 +350,17 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <div className="mobile-container">
-            <InAppBrowserRedirect />
-            <Toaster />
-            <Router />
-          </div>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <div className="mobile-container">
+              <InAppBrowserRedirect />
+              <Toaster />
+              <Router />
+            </div>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }
