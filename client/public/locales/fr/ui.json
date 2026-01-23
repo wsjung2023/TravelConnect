@@ -430,6 +430,8 @@
       "seocho": "Seocho",
       "mapo": "Mapo"
     },
+    "marketplace": "Marketplace",
+    "hostDashboard": "Tableau de bord hôte",
     "portfolioMode": "Mode portfolio",
     "publicProfile": "Profil public",
     "portfolioModeDesc": "Présentez vos services et packages sur un profil public",

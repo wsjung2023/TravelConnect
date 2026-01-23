@@ -425,6 +425,8 @@
       "seocho": "서초구",
       "mapo": "마포구"
     },
+    "marketplace": "마켓플레이스",
+    "hostDashboard": "호스트 대시보드",
     "portfolioMode": "포트폴리오 모드",
     "publicProfile": "공개 프로필",
     "portfolioModeDesc": "당신의 서비스와 패키지를 공개 프로필로 showcase하세요",

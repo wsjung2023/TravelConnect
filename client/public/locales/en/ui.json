@@ -427,6 +427,8 @@
       "seocho": "Seocho",
       "mapo": "Mapo"
     },
+    "marketplace": "Marketplace",
+    "hostDashboard": "Host Dashboard",
     "portfolioMode": "Portfolio Mode",
     "publicProfile": "Public Profile",
     "portfolioModeDesc": "Showcase your services and packages on a public profile",
