@@ -1,14 +1,44 @@
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
+import { MapPin, Calendar, Compass, Star, Users, Shield } from 'lucide-react';
 
 // SEO 랜딩페이지용 공통 Footer
 export default function SeoFooter() {
   const { t } = useTranslation('ui');
   const currentYear = new Date().getFullYear();
 
+  const featureCards = [
+    { path: '/travel-itinerary', icon: Calendar, titleKey: 'seoLinks.travelItinerary', color: 'from-blue-500 to-blue-600' },
+    { path: '/map-travel', icon: MapPin, titleKey: 'seoLinks.mapTravel', color: 'from-green-500 to-green-600' },
+    { path: '/travel-timeline', icon: Compass, titleKey: 'seoLinks.travelTimeline', color: 'from-purple-500 to-purple-600' },
+    { path: '/local-tips', icon: Star, titleKey: 'seoLinks.localTips', color: 'from-yellow-500 to-yellow-600' },
+    { path: '/travel-mate', icon: Users, titleKey: 'seoLinks.travelMate', color: 'from-pink-500 to-pink-600' },
+    { path: '/safety', icon: Shield, titleKey: 'seoLinks.safety', color: 'from-red-500 to-red-600' },
+  ];
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* 6개 기능 카드 버튼 - 법적 고지 위 */}
+        <div className="mb-10">
+          <h3 className="text-white font-bold text-lg mb-4 text-center">{t('seoLinks.exploreFeatures')}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            {featureCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link key={card.path} href={card.path}>
+                  <div className="bg-gray-800 hover:bg-gray-700 rounded-xl p-4 text-center transition-all hover:scale-105 cursor-pointer group">
+                    <div className={`w-10 h-10 mx-auto mb-2 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-200">{t(card.titleKey)}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         {/* 상단 링크 영역 */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
           {/* 서비스 */}
