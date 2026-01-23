@@ -1,4 +1,4 @@
-import { MapPin, Users, MessageCircle, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar } from 'lucide-react';
+import { MapPin, Users, MessageCircle, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar, DollarSign, Camera } from 'lucide-react';
 import { Link } from 'wouter';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -551,11 +551,12 @@ export default function Landing() {
       {/* 플로팅 언어 선택 버튼 */}
       <LanguageSwitcher floating />
       
-      {/* SEO 페이지 6개 카드 버튼 - Footer 위 */}
+      {/* SEO 페이지 10개 카드 버튼 - Footer 위 */}
       <section className="py-12 px-4 bg-gray-100">
         <div className="max-w-4xl mx-auto">
+          {/* 서비스 소개 6개 */}
           <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">{t('ui:seoLinks.exploreFeatures')}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
             {[
               { path: '/travel-itinerary', icon: Calendar, titleKey: 'seoLinks.travelItinerary', color: 'from-blue-500 to-blue-600' },
               { path: '/map-travel', icon: MapPin, titleKey: 'seoLinks.mapTravel', color: 'from-green-500 to-green-600' },
@@ -563,6 +564,29 @@ export default function Landing() {
               { path: '/local-tips', icon: Star, titleKey: 'seoLinks.localTips', color: 'from-yellow-500 to-yellow-600' },
               { path: '/travel-mate', icon: Users, titleKey: 'seoLinks.travelMate', color: 'from-pink-500 to-pink-600' },
               { path: '/safety', icon: Shield, titleKey: 'seoLinks.safety', color: 'from-red-500 to-red-600' },
+            ].map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link key={card.path} href={card.path}>
+                  <div className="bg-white hover:bg-gray-50 rounded-xl p-4 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
+                    <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* 수익 창출 4개 */}
+          <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">{t('ui:seoFooter.earning')}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { path: '/become-guide', icon: Globe, titleKey: 'seoLinks.becomeGuide', color: 'from-teal-500 to-teal-600' },
+              { path: '/earn-travel', icon: DollarSign, titleKey: 'seoLinks.earnTravel', color: 'from-emerald-500 to-emerald-600' },
+              { path: '/travel-creator', icon: Camera, titleKey: 'seoLinks.travelCreator', color: 'from-indigo-500 to-indigo-600' },
+              { path: '/travel-friends', icon: Heart, titleKey: 'seoLinks.travelFriends', color: 'from-rose-500 to-rose-600' },
             ].map((card) => {
               const Icon = card.icon;
               return (
