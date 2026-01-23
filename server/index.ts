@@ -6,6 +6,7 @@ import { registerRoutes } from './routes';
 import { setupVite, serveStatic, log } from './vite';
 import { storage } from './storage';
 import { validateStartupEnv, logEnvStatus } from './middleware/envCheck';
+import { syncTranslations } from './syncTranslations';
 
 // 예약 시스템 자동화 스케줄러 (보안 강화 및 성능 개선)
 function startBookingScheduler(storageInstance: typeof storage) {
@@ -273,6 +274,9 @@ if (process.env.NODE_ENV === 'production') {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // 번역 데이터 동기화 (누락된 번역만 추가)
+  await syncTranslations();
 
   // 예약 시스템 자동화 스케줄러 시작
   startBookingScheduler(storage);
