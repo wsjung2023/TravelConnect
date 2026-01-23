@@ -448,12 +448,14 @@
       "helpRequests": "ヘルプリクエスト",
       "templates": "テンプレート",
       "packages": "パッケージ",
-      "slots": "スロット"
+      "slots": "スロット",
+      "saved": "保存済み"
     },
     "empty": {
       "noPosts": "まだ投稿がありません",
       "noTrips": "計画された旅行がありません",
-      "noExperiences": "登録された体験がありません"
+      "noExperiences": "登録された体験がありません",
+      "noSavedPosts": "保存された投稿がありません"
     },
     "planTrip": "旅行を計画",
     "createExperience": "体験を登録",

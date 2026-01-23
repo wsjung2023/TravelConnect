@@ -453,12 +453,14 @@
       "helpRequests": "도움요청",
       "templates": "템플릿",
       "packages": "패키지",
-      "slots": "슬롯"
+      "slots": "슬롯",
+      "saved": "저장됨"
     },
     "empty": {
       "noPosts": "아직 게시한 사진이 없어요",
       "noTrips": "계획된 여행이 없어요",
-      "noExperiences": "등록한 체험이 없어요"
+      "noExperiences": "등록한 체험이 없어요",
+      "noSavedPosts": "저장된 게시물이 없어요"
     },
     "planTrip": "여행 계획하기",
     "createExperience": "체험 등록하기",

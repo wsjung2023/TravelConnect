@@ -458,12 +458,14 @@
       "helpRequests": "Demandes d'aide",
       "templates": "Modèles",
       "packages": "Forfaits",
-      "slots": "Créneaux"
+      "slots": "Créneaux",
+      "saved": "Enregistré"
     },
     "empty": {
       "noPosts": "Pas encore de publications",
       "noTrips": "Pas encore de voyages planifiés",
-      "noExperiences": "Pas encore d'expériences enregistrées"
+      "noExperiences": "Pas encore d'expériences enregistrées",
+      "noSavedPosts": "Pas encore de publications enregistrées"
     },
     "planTrip": "Planifier un voyage",
     "createExperience": "Enregistrer une expérience",

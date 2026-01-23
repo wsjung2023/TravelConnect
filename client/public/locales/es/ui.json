@@ -448,12 +448,14 @@
       "helpRequests": "Solicitudes de ayuda",
       "templates": "Plantillas",
       "packages": "Paquetes",
-      "slots": "Horarios"
+      "slots": "Horarios",
+      "saved": "Guardado"
     },
     "empty": {
       "noPosts": "Aún no hay publicaciones",
       "noTrips": "Aún no hay viajes planificados",
-      "noExperiences": "Aún no hay experiencias registradas"
+      "noExperiences": "Aún no hay experiencias registradas",
+      "noSavedPosts": "Aún no hay publicaciones guardadas"
     },
     "planTrip": "Planificar un viaje",
     "createExperience": "Registrar experiencia",

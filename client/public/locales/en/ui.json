@@ -455,12 +455,14 @@
       "helpRequests": "Help Requests",
       "templates": "Templates",
       "packages": "Packages",
-      "slots": "Slots"
+      "slots": "Slots",
+      "saved": "Saved"
     },
     "empty": {
       "noPosts": "No posts yet",
       "noTrips": "No planned trips yet",
-      "noExperiences": "No registered experiences yet"
+      "noExperiences": "No registered experiences yet",
+      "noSavedPosts": "No saved posts yet"
     },
     "planTrip": "Plan a Trip",
     "createExperience": "Register Experience",

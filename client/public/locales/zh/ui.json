@@ -445,12 +445,14 @@
       "helpRequests": "帮助请求",
       "templates": "模板",
       "packages": "套餐",
-      "slots": "时段"
+      "slots": "时段",
+      "saved": "已保存"
     },
     "empty": {
       "noPosts": "还没有帖子",
       "noTrips": "还没有计划的旅行",
-      "noExperiences": "还没有注册的体验"
+      "noExperiences": "还没有注册的体验",
+      "noSavedPosts": "还没有保存的帖子"
     },
     "planTrip": "计划旅行",
     "createExperience": "注册体验",
