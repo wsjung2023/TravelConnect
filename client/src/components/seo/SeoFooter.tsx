@@ -8,7 +8,7 @@ export default function SeoFooter() {
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* 상단 링크 영역 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
           {/* 서비스 */}
           <div>
             <h3 className="text-white font-semibold mb-4">서비스</h3>
@@ -25,7 +25,18 @@ export default function SeoFooter() {
             <h3 className="text-white font-semibold mb-4">커뮤니티</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/travel-mate" className="hover:text-white transition">여행 동행</Link></li>
+              <li><Link href="/travel-friends" className="hover:text-white transition">여행 친구</Link></li>
               <li><Link href="/safety" className="hover:text-white transition">안전 가이드</Link></li>
+            </ul>
+          </div>
+
+          {/* 가이드 & 크리에이터 */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">수익 창출</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/become-guide" className="hover:text-white transition">가이드 되기</Link></li>
+              <li><Link href="/earn-travel" className="hover:text-white transition">여행 수익</Link></li>
+              <li><Link href="/travel-creator" className="hover:text-white transition">크리에이터</Link></li>
             </ul>
           </div>
 

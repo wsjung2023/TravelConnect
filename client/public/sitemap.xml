@@ -52,6 +52,35 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- 새 SEO 랜딩페이지 - 타겟 세그먼트별 -->
+  <url>
+    <loc>https://tourgether.io/become-guide</loc>
+    <lastmod>2026-01-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/earn-travel</loc>
+    <lastmod>2026-01-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/travel-creator</loc>
+    <lastmod>2026-01-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tourgether.io/travel-friends</loc>
+    <lastmod>2026-01-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- Legal Pages - Indexable -->
   <url>
     <loc>https://tourgether.io/legal/terms</loc>

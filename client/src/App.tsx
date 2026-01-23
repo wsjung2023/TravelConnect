@@ -23,6 +23,10 @@ const TravelTimeline = lazy(() => import('@/pages/seo/TravelTimeline'));
 const LocalTips = lazy(() => import('@/pages/seo/LocalTips'));
 const TravelMate = lazy(() => import('@/pages/seo/TravelMate'));
 const Safety = lazy(() => import('@/pages/seo/Safety'));
+const BecomeGuide = lazy(() => import('@/pages/seo/BecomeGuide'));
+const EarnTravel = lazy(() => import('@/pages/seo/EarnTravel'));
+const TravelCreator = lazy(() => import('@/pages/seo/TravelCreator'));
+const TravelFriends = lazy(() => import('@/pages/seo/TravelFriends'));
 
 // Initialize Sentry for error tracking
 if (import.meta.env.VITE_SENTRY_DSN) {
@@ -155,6 +159,26 @@ function Router() {
         <Route path="/safety" component={() => (
           <Suspense fallback={<LoadingSpinner />}>
             <Safety />
+          </Suspense>
+        )} />
+        <Route path="/become-guide" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <BecomeGuide />
+          </Suspense>
+        )} />
+        <Route path="/earn-travel" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <EarnTravel />
+          </Suspense>
+        )} />
+        <Route path="/travel-creator" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <TravelCreator />
+          </Suspense>
+        )} />
+        <Route path="/travel-friends" component={() => (
+          <Suspense fallback={<LoadingSpinner />}>
+            <TravelFriends />
           </Suspense>
         )} />
         
