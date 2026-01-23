@@ -612,6 +612,7 @@ export interface IStorage {
   
   // Translations (DB 기반 i18n)
   getTranslationsByNamespace(namespace: string, locale: string): Promise<Record<string, string>>;
+  getAllTranslationsForExport(): Promise<Array<{namespace: string; key: string; locale: string; value: string; is_reviewed: boolean; version: number}>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4739,6 +4740,29 @@ export class DatabaseStorage implements IStorage {
       acc[row.key] = row.value;
       return acc;
     }, {} as Record<string, string>);
+  }
+
+  async getAllTranslationsForExport(): Promise<Array<{namespace: string; key: string; locale: string; value: string; is_reviewed: boolean; version: number}>> {
+    const results = await db
+      .select({
+        namespace: translations.namespace,
+        key: translations.key,
+        locale: translations.locale,
+        value: translations.value,
+        is_reviewed: translations.isReviewed,
+        version: translations.version
+      })
+      .from(translations)
+      .orderBy(translations.namespace, translations.locale, translations.key);
+    
+    return results.map(r => ({
+      namespace: r.namespace,
+      key: r.key,
+      locale: r.locale,
+      value: r.value,
+      is_reviewed: r.is_reviewed ?? false,
+      version: r.version ?? 1
+    }));
   }
 }
 

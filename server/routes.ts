@@ -333,6 +333,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 번역 데이터 내보내기 API - 운영 DB 동기화용
+  app.get('/api/translations-export', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const format = (req.query.format as string) || 'sql';
+      
+      // 모든 번역 데이터 가져오기
+      const allTranslations = await storage.getAllTranslationsForExport();
+      
+      if (format === 'json') {
+        res.json({
+          count: allTranslations.length,
+          translations: allTranslations
+        });
+      } else {
+        // SQL INSERT 문 생성 (ON CONFLICT DO NOTHING)
+        const sqlStatements = allTranslations.map(t => {
+          const value = t.value.replace(/'/g, "''"); // SQL 이스케이프
+          return `INSERT INTO translations (namespace, key, locale, value, is_reviewed, version) VALUES ('${t.namespace}', '${t.key}', '${t.locale}', '${value}', ${t.is_reviewed || false}, ${t.version || 1}) ON CONFLICT (namespace, key, locale) DO NOTHING;`;
+        });
+        
+        const sql = `-- Tourgether Translation Export
+-- Total: ${allTranslations.length} translations
+-- Generated: ${new Date().toISOString()}
+-- Usage: Run this SQL in production database to sync missing translations
+
+BEGIN;
+
+${sqlStatements.join('\n')}
+
+COMMIT;
+`;
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', 'attachment; filename=translations_export.sql');
+        res.send(sql);
+      }
+    } catch (error) {
+      console.error('Translation export error:', error);
+      res.status(500).json({ error: 'Failed to export translations' });
+    }
+  });
+
   // 정적 파일 서빙 제거 - 보안상 이유로 직접 접근 차단
   // app.use('/uploads', express.static('uploads')); // 제거됨
   
