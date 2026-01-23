@@ -893,5 +893,34 @@
   },
   "common": {
     "back": "戻る"
+  },
+  "seoFooter": {
+    "service": "サービス",
+    "travelItinerary": "旅行日程表",
+    "mapTravel": "地図旅行コース",
+    "travelTimeline": "旅行記録",
+    "localTips": "ローカルヒント",
+    "community": "コミュニティ",
+    "travelMate": "旅行仲間",
+    "travelFriends": "旅行友達",
+    "safety": "安全ガイド",
+    "earning": "収益創出",
+    "becomeGuide": "ガイドになる",
+    "earnTravel": "旅行収益",
+    "travelCreator": "クリエイター",
+    "legal": "法的情報",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "refund": "返金ポリシー",
+    "goHome": "ホームへ",
+    "support": "カスタマーサポート",
+    "tagline": "旅を一緒に、より簡単に",
+    "startNow": "今すぐ始める"
+  },
+  "seoNav": {
+    "home": "ホーム",
+    "back": "戻る",
+    "login": "ログイン",
+    "start": "始める"
   }
 }

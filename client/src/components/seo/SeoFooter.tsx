@@ -1,7 +1,9 @@
 import { Link } from 'wouter';
+import { useTranslation } from 'react-i18next';
 
 // SEO 랜딩페이지용 공통 Footer
 export default function SeoFooter() {
+  const { t } = useTranslation('ui');
   const currentYear = new Date().getFullYear();
 
   return (
@@ -11,42 +13,42 @@ export default function SeoFooter() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
           {/* 서비스 */}
           <div>
-            <h3 className="text-white font-semibold mb-4">서비스</h3>
+            <h3 className="text-white font-semibold mb-4">{t('seoFooter.service', '서비스')}</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/travel-itinerary" className="hover:text-white transition">여행 일정표</Link></li>
-              <li><Link href="/map-travel" className="hover:text-white transition">지도 여행 코스</Link></li>
-              <li><Link href="/travel-timeline" className="hover:text-white transition">여행 기록</Link></li>
-              <li><Link href="/local-tips" className="hover:text-white transition">로컬 꿀팁</Link></li>
+              <li><Link href="/travel-itinerary" className="hover:text-white transition">{t('seoFooter.travelItinerary', '여행 일정표')}</Link></li>
+              <li><Link href="/map-travel" className="hover:text-white transition">{t('seoFooter.mapTravel', '지도 여행 코스')}</Link></li>
+              <li><Link href="/travel-timeline" className="hover:text-white transition">{t('seoFooter.travelTimeline', '여행 기록')}</Link></li>
+              <li><Link href="/local-tips" className="hover:text-white transition">{t('seoFooter.localTips', '로컬 꿀팁')}</Link></li>
             </ul>
           </div>
 
           {/* 커뮤니티 */}
           <div>
-            <h3 className="text-white font-semibold mb-4">커뮤니티</h3>
+            <h3 className="text-white font-semibold mb-4">{t('seoFooter.community', '커뮤니티')}</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/travel-mate" className="hover:text-white transition">여행 동행</Link></li>
-              <li><Link href="/travel-friends" className="hover:text-white transition">여행 친구</Link></li>
-              <li><Link href="/safety" className="hover:text-white transition">안전 가이드</Link></li>
+              <li><Link href="/travel-mate" className="hover:text-white transition">{t('seoFooter.travelMate', '여행 동행')}</Link></li>
+              <li><Link href="/travel-friends" className="hover:text-white transition">{t('seoFooter.travelFriends', '여행 친구')}</Link></li>
+              <li><Link href="/safety" className="hover:text-white transition">{t('seoFooter.safety', '안전 가이드')}</Link></li>
             </ul>
           </div>
 
           {/* 가이드 & 크리에이터 */}
           <div>
-            <h3 className="text-white font-semibold mb-4">수익 창출</h3>
+            <h3 className="text-white font-semibold mb-4">{t('seoFooter.earning', '수익 창출')}</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/become-guide" className="hover:text-white transition">가이드 되기</Link></li>
-              <li><Link href="/earn-travel" className="hover:text-white transition">여행 수익</Link></li>
-              <li><Link href="/travel-creator" className="hover:text-white transition">크리에이터</Link></li>
+              <li><Link href="/become-guide" className="hover:text-white transition">{t('seoFooter.becomeGuide', '가이드 되기')}</Link></li>
+              <li><Link href="/earn-travel" className="hover:text-white transition">{t('seoFooter.earnTravel', '여행 수익')}</Link></li>
+              <li><Link href="/travel-creator" className="hover:text-white transition">{t('seoFooter.travelCreator', '크리에이터')}</Link></li>
             </ul>
           </div>
 
           {/* 법적 정보 */}
           <div>
-            <h3 className="text-white font-semibold mb-4">법적 정보</h3>
+            <h3 className="text-white font-semibold mb-4">{t('seoFooter.legal', '법적 정보')}</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/legal/terms" className="hover:text-white transition">이용약관</Link></li>
-              <li><Link href="/legal/privacy" className="hover:text-white transition">개인정보처리방침</Link></li>
-              <li><Link href="/legal/refund" className="hover:text-white transition">환불정책</Link></li>
+              <li><Link href="/legal/terms" className="hover:text-white transition">{t('seoFooter.terms', '이용약관')}</Link></li>
+              <li><Link href="/legal/privacy" className="hover:text-white transition">{t('seoFooter.privacy', '개인정보처리방침')}</Link></li>
+              <li><Link href="/legal/refund" className="hover:text-white transition">{t('seoFooter.refund', '환불정책')}</Link></li>
             </ul>
           </div>
 
@@ -54,8 +56,8 @@ export default function SeoFooter() {
           <div>
             <h3 className="text-white font-semibold mb-4">Tourgether</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/" className="hover:text-white transition">홈으로 이동</Link></li>
-              <li><a href="mailto:support@tourgether.io" className="hover:text-white transition">고객 지원</a></li>
+              <li><Link href="/" className="hover:text-white transition">{t('seoFooter.goHome', '홈으로 이동')}</Link></li>
+              <li><a href="mailto:support@tourgether.io" className="hover:text-white transition">{t('seoFooter.support', '고객 지원')}</a></li>
             </ul>
           </div>
         </div>
@@ -68,13 +70,13 @@ export default function SeoFooter() {
               <Link href="/">
                 <span className="text-2xl font-bold text-white">Tourgether</span>
               </Link>
-              <span className="text-sm text-gray-400">여행을 함께, 더 쉽게</span>
+              <span className="text-sm text-gray-400">{t('seoFooter.tagline', '여행을 함께, 더 쉽게')}</span>
             </div>
 
             {/* CTA 버튼 */}
             <Link href="/">
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
-                지금 시작하기
+                {t('seoFooter.startNow', '지금 시작하기')}
               </button>
             </Link>
           </div>

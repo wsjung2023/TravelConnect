@@ -896,5 +896,34 @@
   },
   "common": {
     "back": "Volver"
+  },
+  "seoFooter": {
+    "service": "Servicios",
+    "travelItinerary": "Itinerario de viaje",
+    "mapTravel": "Rutas de viaje",
+    "travelTimeline": "Línea de tiempo",
+    "localTips": "Consejos locales",
+    "community": "Comunidad",
+    "travelMate": "Compañero de viaje",
+    "travelFriends": "Amigos de viaje",
+    "safety": "Guía de seguridad",
+    "earning": "Ganar dinero",
+    "becomeGuide": "Ser guía",
+    "earnTravel": "Ingresos de viaje",
+    "travelCreator": "Creador",
+    "legal": "Legal",
+    "terms": "Términos de servicio",
+    "privacy": "Política de privacidad",
+    "refund": "Política de reembolso",
+    "goHome": "Ir al inicio",
+    "support": "Soporte",
+    "tagline": "Viajar juntos, más fácil",
+    "startNow": "Comenzar ahora"
+  },
+  "seoNav": {
+    "home": "Inicio",
+    "back": "Volver",
+    "login": "Iniciar sesión",
+    "start": "Comenzar"
   }
 }

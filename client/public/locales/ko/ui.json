@@ -898,5 +898,34 @@
   },
   "common": {
     "back": "뒤로"
+  },
+  "seoFooter": {
+    "service": "서비스",
+    "travelItinerary": "여행 일정표",
+    "mapTravel": "지도 여행 코스",
+    "travelTimeline": "여행 기록",
+    "localTips": "로컬 꿀팁",
+    "community": "커뮤니티",
+    "travelMate": "여행 동행",
+    "travelFriends": "여행 친구",
+    "safety": "안전 가이드",
+    "earning": "수익 창출",
+    "becomeGuide": "가이드 되기",
+    "earnTravel": "여행 수익",
+    "travelCreator": "크리에이터",
+    "legal": "법적 정보",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "refund": "환불정책",
+    "goHome": "홈으로 이동",
+    "support": "고객 지원",
+    "tagline": "여행을 함께, 더 쉽게",
+    "startNow": "지금 시작하기"
+  },
+  "seoNav": {
+    "home": "홈",
+    "back": "뒤로가기",
+    "login": "로그인",
+    "start": "시작하기"
   }
 }

@@ -906,5 +906,34 @@
   },
   "common": {
     "back": "Retour"
+  },
+  "seoFooter": {
+    "service": "Services",
+    "travelItinerary": "Itinéraire de voyage",
+    "mapTravel": "Parcours de voyage",
+    "travelTimeline": "Chronologie de voyage",
+    "localTips": "Conseils locaux",
+    "community": "Communauté",
+    "travelMate": "Compagnon de voyage",
+    "travelFriends": "Amis de voyage",
+    "safety": "Guide de sécurité",
+    "earning": "Revenus",
+    "becomeGuide": "Devenir guide",
+    "earnTravel": "Revenus de voyage",
+    "travelCreator": "Créateur",
+    "legal": "Mentions légales",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "refund": "Politique de remboursement",
+    "goHome": "Retour à l'accueil",
+    "support": "Support",
+    "tagline": "Voyager ensemble, plus facilement",
+    "startNow": "Commencer maintenant"
+  },
+  "seoNav": {
+    "home": "Accueil",
+    "back": "Retour",
+    "login": "Connexion",
+    "start": "Commencer"
   }
 }

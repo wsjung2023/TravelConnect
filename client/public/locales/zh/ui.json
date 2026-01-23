@@ -890,5 +890,34 @@
   },
   "common": {
     "back": "返回"
+  },
+  "seoFooter": {
+    "service": "服务",
+    "travelItinerary": "旅行行程",
+    "mapTravel": "地图旅行路线",
+    "travelTimeline": "旅行时间线",
+    "localTips": "当地攻略",
+    "community": "社区",
+    "travelMate": "旅行伙伴",
+    "travelFriends": "旅行朋友",
+    "safety": "安全指南",
+    "earning": "赚取收入",
+    "becomeGuide": "成为导游",
+    "earnTravel": "旅行收入",
+    "travelCreator": "创作者",
+    "legal": "法律信息",
+    "terms": "服务条款",
+    "privacy": "隐私政策",
+    "refund": "退款政策",
+    "goHome": "返回首页",
+    "support": "客户支持",
+    "tagline": "一起旅行，更轻松",
+    "startNow": "立即开始"
+  },
+  "seoNav": {
+    "home": "首页",
+    "back": "返回",
+    "login": "登录",
+    "start": "开始"
   }
 }

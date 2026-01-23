@@ -936,5 +936,34 @@
   },
   "common": {
     "back": "Back"
+  },
+  "seoFooter": {
+    "service": "Services",
+    "travelItinerary": "Travel Itinerary",
+    "mapTravel": "Map Travel Routes",
+    "travelTimeline": "Travel Timeline",
+    "localTips": "Local Tips",
+    "community": "Community",
+    "travelMate": "Travel Mate",
+    "travelFriends": "Travel Friends",
+    "safety": "Safety Guide",
+    "earning": "Earn Money",
+    "becomeGuide": "Become a Guide",
+    "earnTravel": "Earn from Travel",
+    "travelCreator": "Creator",
+    "legal": "Legal",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "goHome": "Go to Home",
+    "support": "Support",
+    "tagline": "Travel together, easier",
+    "startNow": "Start Now"
+  },
+  "seoNav": {
+    "home": "Home",
+    "back": "Back",
+    "login": "Login",
+    "start": "Get Started"
   }
 }
