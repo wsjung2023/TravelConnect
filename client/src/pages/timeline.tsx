@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Calendar, MapPin, Plus, Film, Clock, Download, ChevronLeft, MapIcon } from 'lucide-react';
+import { Calendar, MapPin, Plus, Film, Clock, Download, ChevronLeft, MapIcon, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -411,14 +411,22 @@ export default function TimelinePage() {
             <Calendar className="w-6 h-6" />
             {t('ui:timeline.title')}
           </h1>
-        <Button
-          onClick={() => setLocation('/timeline/create')}
-          className="flex items-center gap-2"
-          data-testid="add-timeline-button"
-        >
-          <Plus className="w-4 h-4" />
-          {t('ui:timeline.create')}
-        </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/travel-timeline">
+              <button className="px-2 py-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-full transition-colors flex items-center gap-1">
+                <Compass size={14} />
+                <span>{t('ui:seoLinks.travelTimeline')}</span>
+              </button>
+            </Link>
+            <Button
+              onClick={() => setLocation('/timeline/create')}
+              className="flex items-center gap-2"
+              data-testid="add-timeline-button"
+            >
+              <Plus className="w-4 h-4" />
+              {t('ui:timeline.create')}
+            </Button>
+          </div>
       </div>
 
       <div className="grid gap-4">

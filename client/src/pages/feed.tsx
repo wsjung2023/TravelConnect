@@ -40,7 +40,6 @@ import { Seo } from '@/components/Seo';
 import FeedModeSelector, { type FeedMode } from '@/components/FeedModeSelector';
 import TrendingHashtags from '@/components/TrendingHashtags';
 import { useAuth } from '@/hooks/useAuth';
-import SeoLinkCards from '@/components/seo/SeoLinkCards';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -529,6 +528,12 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
             <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/travel-itinerary">
+              <button className="px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors flex items-center gap-1">
+                <Calendar size={14} />
+                <span>{t('seoLinks.travelItinerary')}</span>
+              </button>
+            </Link>
             <Link href="/timeline">
               <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
                 <Calendar size={20} className="text-purple-600" />
@@ -902,9 +907,6 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
         })}
         </div>
       )}
-
-      {/* SEO Link Cards - 피드 하단에 표시 */}
-      <SeoLinkCards variant="compact" maxItems={6} />
 
       {/* Post Detail Modal */}
       {selectedPost && (

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
+import { MapPin } from 'lucide-react';
 import SearchHeader from '@/components/SearchHeader';
 import NotificationBell from '@/components/NotificationBell';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -173,6 +174,12 @@ export default function Home() {
           </div>
         </button>
         <div className="flex items-center gap-1 sm:gap-2">
+          <Link href="/map-travel">
+            <button className="px-2 py-1 text-xs bg-green-50 hover:bg-green-100 text-green-600 rounded-full transition-colors flex items-center gap-1">
+              <MapPin size={12} />
+              <span className="hidden sm:inline">{t('ui:seoLinks.mapTravel')}</span>
+            </button>
+          </Link>
           <NotificationBell />
           <LanguageSwitcher />
 
