@@ -865,5 +865,36 @@
         "desc": "사진과 함께 여행의 순간을 피드에 공유하고, 지도 기반 타임라인으로 여정을 시각화하세요. AI 기반 CineMap 기능은 사진 위치 데이터를 분석해 영화 같은 여행 스토리보드를 자동 생성합니다. 여행 후에도 추억을 쉽게 돌아볼 수 있어요."
       }
     }
+  },
+  "marketplace": {
+    "title": "마켓플레이스",
+    "subtitle": "로컬 가이드가 제공하는 특별한 경험을 찾아보세요",
+    "searchPlaceholder": "검색...",
+    "category": "카테고리",
+    "categoryAll": "전체",
+    "categoryTour": "투어",
+    "categoryFood": "푸드",
+    "categoryActivity": "액티비티",
+    "categoryTip": "팁",
+    "priceRange": "가격대",
+    "priceAll": "전체",
+    "priceRange1": "$0-$50",
+    "priceRange2": "$50-$100",
+    "priceRange3": "$100-$200",
+    "priceRange4": "$200+",
+    "sortBy": "정렬",
+    "sortByRating": "평점순",
+    "sortByPrice": "가격순",
+    "sortByReviews": "리뷰순",
+    "sortByNewest": "최신순",
+    "totalExperiences": "{{count}}개 경험",
+    "viewDetails": "자세히 보기",
+    "hours": "시간",
+    "minutes": "분",
+    "maxParticipants": "최대 {{count}}명",
+    "perPerson": "/인"
+  },
+  "common": {
+    "back": "뒤로"
   }
 }

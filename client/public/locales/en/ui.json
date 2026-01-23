@@ -903,5 +903,36 @@
         "desc": "Share your travel moments with photos on the feed and visualize your journey on a map-based timeline. Our AI-powered CineMap feature analyzes photo location data to automatically create cinematic travel storyboards. Easily look back on your memories even after your trip."
       }
     }
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Discover unique experiences from local guides",
+    "searchPlaceholder": "Search...",
+    "category": "Category",
+    "categoryAll": "All",
+    "categoryTour": "Tour",
+    "categoryFood": "Food",
+    "categoryActivity": "Activity",
+    "categoryTip": "Tip",
+    "priceRange": "Price Range",
+    "priceAll": "All",
+    "priceRange1": "$0-$50",
+    "priceRange2": "$50-$100",
+    "priceRange3": "$100-$200",
+    "priceRange4": "$200+",
+    "sortBy": "Sort By",
+    "sortByRating": "Rating",
+    "sortByPrice": "Price",
+    "sortByReviews": "Reviews",
+    "sortByNewest": "Newest",
+    "totalExperiences": "{{count}} experiences",
+    "viewDetails": "View Details",
+    "hours": "hours",
+    "minutes": "minutes",
+    "maxParticipants": "Max {{count}}",
+    "perPerson": "/person"
+  },
+  "common": {
+    "back": "Back"
   }
 }

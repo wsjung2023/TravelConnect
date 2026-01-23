@@ -857,5 +857,36 @@
         "desc": "在动态中分享带照片的旅行瞬间，用地图时间线可视化您的旅程。AI驱动的CineMap功能分析照片位置数据，自动创建电影般的旅行故事板。旅行结束后也能轻松回顾美好回忆。"
       }
     }
+  },
+  "marketplace": {
+    "title": "市场",
+    "subtitle": "发现当地向导提供的独特体验",
+    "searchPlaceholder": "搜索...",
+    "category": "类别",
+    "categoryAll": "全部",
+    "categoryTour": "旅游",
+    "categoryFood": "美食",
+    "categoryActivity": "活动",
+    "categoryTip": "小贴士",
+    "priceRange": "价格范围",
+    "priceAll": "全部",
+    "priceRange1": "$0-$50",
+    "priceRange2": "$50-$100",
+    "priceRange3": "$100-$200",
+    "priceRange4": "$200+",
+    "sortBy": "排序",
+    "sortByRating": "评分",
+    "sortByPrice": "价格",
+    "sortByReviews": "评论",
+    "sortByNewest": "最新",
+    "totalExperiences": "{{count}}个体验",
+    "viewDetails": "查看详情",
+    "hours": "小时",
+    "minutes": "分钟",
+    "maxParticipants": "最多{{count}}人",
+    "perPerson": "/人"
+  },
+  "common": {
+    "back": "返回"
   }
 }

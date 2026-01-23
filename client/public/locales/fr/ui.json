@@ -873,5 +873,36 @@
         "desc": "Partagez vos moments de voyage avec des photos sur le fil et visualisez votre parcours sur une chronologie basée sur la carte. Notre fonction CineMap alimentée par l'IA analyse les données de localisation des photos pour créer automatiquement des storyboards de voyage cinématographiques."
       }
     }
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Découvrez des expériences uniques de guides locaux",
+    "searchPlaceholder": "Rechercher...",
+    "category": "Catégorie",
+    "categoryAll": "Tout",
+    "categoryTour": "Tour",
+    "categoryFood": "Nourriture",
+    "categoryActivity": "Activité",
+    "categoryTip": "Conseil",
+    "priceRange": "Gamme de prix",
+    "priceAll": "Tout",
+    "priceRange1": "$0-$50",
+    "priceRange2": "$50-$100",
+    "priceRange3": "$100-$200",
+    "priceRange4": "$200+",
+    "sortBy": "Trier par",
+    "sortByRating": "Note",
+    "sortByPrice": "Prix",
+    "sortByReviews": "Avis",
+    "sortByNewest": "Plus récent",
+    "totalExperiences": "{{count}} expériences",
+    "viewDetails": "Voir détails",
+    "hours": "heures",
+    "minutes": "minutes",
+    "maxParticipants": "Max {{count}}",
+    "perPerson": "/personne"
+  },
+  "common": {
+    "back": "Retour"
   }
 }

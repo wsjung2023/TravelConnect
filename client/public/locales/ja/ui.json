@@ -860,5 +860,36 @@
         "desc": "写真と一緒に旅の瞬間をフィードで共有し、地図ベースのタイムラインで旅程を可視化しましょう。AI基盤のCineMap機能は写真の位置情報を分析して、映画のような旅行ストーリーボードを自動生成します。旅行後も思い出を簡単に振り返ることができます。"
       }
     }
+  },
+  "marketplace": {
+    "title": "マーケットプレイス",
+    "subtitle": "ローカルガイドが提供するユニークな体験を見つけよう",
+    "searchPlaceholder": "検索...",
+    "category": "カテゴリー",
+    "categoryAll": "すべて",
+    "categoryTour": "ツアー",
+    "categoryFood": "フード",
+    "categoryActivity": "アクティビティ",
+    "categoryTip": "ヒント",
+    "priceRange": "価格帯",
+    "priceAll": "すべて",
+    "priceRange1": "$0-$50",
+    "priceRange2": "$50-$100",
+    "priceRange3": "$100-$200",
+    "priceRange4": "$200+",
+    "sortBy": "並び替え",
+    "sortByRating": "評価順",
+    "sortByPrice": "価格順",
+    "sortByReviews": "レビュー順",
+    "sortByNewest": "新しい順",
+    "totalExperiences": "{{count}}件の体験",
+    "viewDetails": "詳細を見る",
+    "hours": "時間",
+    "minutes": "分",
+    "maxParticipants": "最大{{count}}名",
+    "perPerson": "/人"
+  },
+  "common": {
+    "back": "戻る"
   }
 }
