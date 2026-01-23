@@ -922,5 +922,30 @@
     "back": "戻る",
     "login": "ログイン",
     "start": "始める"
+  },
+  "seoLinks": {
+    "exploreMore": "もっと見る",
+    "discoverMore": "Tourgetherを発見",
+    "exploreFeatures": "機能を探索",
+    "travelItinerary": "旅行プラン",
+    "travelItineraryDesc": "完璧な旅行を計画",
+    "mapTravel": "地図旅行",
+    "mapTravelDesc": "地図で目的地を探索",
+    "travelTimeline": "旅行タイムライン",
+    "travelTimelineDesc": "旅の瞬間を記録",
+    "localTips": "ローカルのヒント",
+    "localTipsDesc": "地元の人だけが知る情報",
+    "travelMate": "旅行仲間",
+    "travelMateDesc": "旅の仲間を見つける",
+    "safety": "安全ガイド",
+    "safetyDesc": "安全な旅行のために",
+    "becomeGuide": "ガイドになる",
+    "becomeGuideDesc": "ローカルガイドとして稼ぐ",
+    "earnTravel": "旅行で稼ぐ",
+    "earnTravelDesc": "旅行しながら収入を得る",
+    "travelCreator": "トラベルクリエイター",
+    "travelCreatorDesc": "旅行コンテンツで収益化",
+    "travelFriends": "旅行の友達",
+    "travelFriendsDesc": "世界中の旅行者とつながる"
   }
 }

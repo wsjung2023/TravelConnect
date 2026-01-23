@@ -935,5 +935,30 @@
     "back": "Retour",
     "login": "Connexion",
     "start": "Commencer"
+  },
+  "seoLinks": {
+    "exploreMore": "En savoir plus",
+    "discoverMore": "Découvrir Tourgether",
+    "exploreFeatures": "Explorer les fonctionnalités",
+    "travelItinerary": "Itinéraire de voyage",
+    "travelItineraryDesc": "Planifiez votre voyage parfait",
+    "mapTravel": "Voyage cartographique",
+    "mapTravelDesc": "Explorez les destinations sur la carte",
+    "travelTimeline": "Chronologie de voyage",
+    "travelTimelineDesc": "Enregistrez vos moments de voyage",
+    "localTips": "Conseils locaux",
+    "localTipsDesc": "Obtenez des conseils des locaux",
+    "travelMate": "Compagnon de voyage",
+    "travelMateDesc": "Trouvez des compagnons de voyage",
+    "safety": "Guide de sécurité",
+    "safetyDesc": "Voyagez en toute sécurité",
+    "becomeGuide": "Devenir guide",
+    "becomeGuideDesc": "Gagnez en tant que guide local",
+    "earnTravel": "Gagner en voyageant",
+    "earnTravelDesc": "Gagnez de l'argent en voyageant",
+    "travelCreator": "Créateur de voyage",
+    "travelCreatorDesc": "Monétisez votre contenu voyage",
+    "travelFriends": "Amis de voyage",
+    "travelFriendsDesc": "Connectez-vous avec des voyageurs"
   }
 }

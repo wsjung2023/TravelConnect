@@ -25,6 +25,7 @@ import { Seo } from '@/components/Seo';
 import { useTranslation } from 'react-i18next';
 import PostDetailModal from '@/components/PostDetailModal';
 import { ImageFallback } from '@/components/ImageFallback';
+import SeoLinkCards from '@/components/seo/SeoLinkCards';
 
 // 저장한 포스트 탭 컴포넌트
 function SavedPostsTab() {
@@ -1018,6 +1019,12 @@ export default function Profile() {
         />
       )}
       
+      {/* SEO Link Cards - 프로필 하단에 표시 */}
+      <SeoLinkCards 
+        variant="minimal" 
+        filterPaths={['/become-guide', '/earn-travel', '/travel-creator', '/travel-friends']} 
+      />
+
       {/* Post Detail Modal */}
       {selectedPost && (
         <PostDetailModal

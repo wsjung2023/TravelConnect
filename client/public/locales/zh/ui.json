@@ -919,5 +919,30 @@
     "back": "返回",
     "login": "登录",
     "start": "开始"
+  },
+  "seoLinks": {
+    "exploreMore": "了解更多",
+    "discoverMore": "探索Tourgether",
+    "exploreFeatures": "探索功能",
+    "travelItinerary": "旅行计划",
+    "travelItineraryDesc": "规划完美行程",
+    "mapTravel": "地图旅行",
+    "mapTravelDesc": "在地图上探索目的地",
+    "travelTimeline": "旅行时间线",
+    "travelTimelineDesc": "记录旅行时刻",
+    "localTips": "本地攻略",
+    "localTipsDesc": "获取当地人的独家建议",
+    "travelMate": "旅行伙伴",
+    "travelMateDesc": "寻找旅行同伴",
+    "safety": "安全指南",
+    "safetyDesc": "安全出行须知",
+    "becomeGuide": "成为向导",
+    "becomeGuideDesc": "作为本地向导赚取收入",
+    "earnTravel": "旅行赚钱",
+    "earnTravelDesc": "边旅行边赚钱",
+    "travelCreator": "旅行创作者",
+    "travelCreatorDesc": "通过旅行内容变现",
+    "travelFriends": "旅行朋友",
+    "travelFriendsDesc": "与全球旅行者交流"
   }
 }

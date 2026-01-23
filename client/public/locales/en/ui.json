@@ -965,5 +965,30 @@
     "back": "Back",
     "login": "Login",
     "start": "Get Started"
+  },
+  "seoLinks": {
+    "exploreMore": "Explore More",
+    "discoverMore": "Discover Tourgether",
+    "exploreFeatures": "Explore Tourgether Features",
+    "travelItinerary": "Travel Itinerary",
+    "travelItineraryDesc": "Plan your perfect trip",
+    "mapTravel": "Map Travel",
+    "mapTravelDesc": "Explore destinations on the map",
+    "travelTimeline": "Travel Timeline",
+    "travelTimelineDesc": "Record your travel moments",
+    "localTips": "Local Tips",
+    "localTipsDesc": "Get insider tips from locals",
+    "travelMate": "Travel Mate",
+    "travelMateDesc": "Find travel companions",
+    "safety": "Safety Guide",
+    "safetyDesc": "Stay safe while traveling",
+    "becomeGuide": "Become a Guide",
+    "becomeGuideDesc": "Earn as a local guide",
+    "earnTravel": "Earn While Traveling",
+    "earnTravelDesc": "Make money on your travels",
+    "travelCreator": "Travel Creator",
+    "travelCreatorDesc": "Monetize your travel content",
+    "travelFriends": "Travel Friends",
+    "travelFriendsDesc": "Connect with travelers worldwide"
   }
 }

@@ -40,6 +40,7 @@ import { Seo } from '@/components/Seo';
 import FeedModeSelector, { type FeedMode } from '@/components/FeedModeSelector';
 import TrendingHashtags from '@/components/TrendingHashtags';
 import { useAuth } from '@/hooks/useAuth';
+import SeoLinkCards from '@/components/seo/SeoLinkCards';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -901,6 +902,9 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
         })}
         </div>
       )}
+
+      {/* SEO Link Cards - 피드 하단에 표시 */}
+      <SeoLinkCards variant="compact" maxItems={6} />
 
       {/* Post Detail Modal */}
       {selectedPost && (
