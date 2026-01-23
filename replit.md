@@ -48,7 +48,10 @@ Translation data must be managed in the database (`translations` table), not har
 - **DM Translation**: Direct message translation with Google Translate API, caching, and language selection.
 - **Unified Content Display**: Feed page and Nearby panel displaying posts and experiences with filter toggles.
 - **Unified Map Experience**: All map functionality integrated into the home page MapComponent.
-- **SEO Enhancement**: Six public SEO landing pages (`/travel-itinerary`, `/map-travel`, `/travel-timeline`, `/local-tips`, `/travel-mate`, `/safety`) with `SeoHead` (react-helmet-async), `SeoFooter`, JSON-LD schemas (FAQPage), meta tags, Open Graph & Twitter Cards, sitemap, and robots.txt.
+- **SEO Enhancement**: Ten public SEO landing pages targeting specific user segments:
+  - Original 6: `/travel-itinerary`, `/map-travel`, `/travel-timeline`, `/local-tips`, `/travel-mate`, `/safety`
+  - Monetization 4: `/become-guide` (local guide signup), `/earn-travel` (travel income), `/travel-creator` (content creator), `/travel-friends` (travel connections)
+  - All pages include `SeoHead` (react-helmet-async), `SeoFooter`, JSON-LD schemas (FAQPage), meta tags, Open Graph & Twitter Cards, AI-generated hero images, i18n support, sitemap, and robots.txt.
 - **Profile Management**: Redesigned edit modal with multi-select for languages/interests, Google Places integration, and enhanced validation.
 - **Simplified Onboarding**: Action-based role system, skippable onboarding, and optional profile setup.
 - **Internationalization (i18n)**: All user-facing text is DB-driven using a `translations` table, supporting 6 languages (en, ko, ja, zh, fr, es) across 5 namespaces.
