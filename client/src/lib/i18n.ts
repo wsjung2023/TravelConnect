@@ -58,9 +58,9 @@ i18n
       caches: ['localStorage'],
     },
     
-    // Backend options for loading language files
+    // Backend options for loading language files from API
     backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
+      loadPath: '/api/translations/{{ns}}?locale={{lng}}',
       // Allow cross origin requests
       crossDomain: false,
       // Credentials

@@ -777,7 +777,7 @@ export default function Profile() {
           <Button
             variant="outline"
             className="flex-1 flex items-center justify-center gap-2"
-            onClick={() => setLocation('/host-dashboard')}
+            onClick={() => setLocation('/host')}
             data-testid="btn-host-dashboard"
           >
             <Briefcase className="w-4 h-4" />
