@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { Users, Shield, Calendar, ArrowRight } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export default function TravelMate() {
         keywords="여행 동행, 여행 메이트, 여행 친구 찾기, 동행 구하기, 여행 파트너"
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 */}
       <header className="bg-gradient-to-br from-pink-500 to-rose-600 text-white">

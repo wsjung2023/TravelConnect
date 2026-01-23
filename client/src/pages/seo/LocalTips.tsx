@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { Lightbulb, MapPin, Clock, ArrowRight } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export default function LocalTips() {
         keywords="로컬 추천, 현지인 추천, 여행 꿀팁, 맛집 추천, 현지 정보"
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 */}
       <header className="bg-gradient-to-br from-orange-500 to-red-600 text-white">

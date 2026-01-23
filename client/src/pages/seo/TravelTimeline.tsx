@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { Camera, BookOpen, Share2, ArrowRight } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export default function TravelTimeline() {
         keywords="여행 기록, 여행 타임라인, 여행 사진 정리, 여행 후기, 여행 일기"
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 */}
       <header className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white">

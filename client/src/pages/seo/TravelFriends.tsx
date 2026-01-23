@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import { Users, Heart, Shield, MessageCircle, ArrowRight, Camera, Coffee } from 'lucide-react';
@@ -42,6 +43,7 @@ export default function TravelFriends() {
         keywords={t('seo.travelFriends.keywords', '여행 친구, 여행 인연, 여행 만남, 동행 찾기, 여행 소모임')}
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 섹션 */}
       <header className="relative bg-gradient-to-br from-rose-500 to-pink-600 text-white overflow-hidden">

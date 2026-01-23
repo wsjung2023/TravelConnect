@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import { DollarSign, Laptop, Camera, Users, ArrowRight, TrendingUp, Globe } from 'lucide-react';
@@ -42,6 +43,7 @@ export default function EarnTravel() {
         keywords={t('seo.earnTravel.keywords', '여행 부업, 여행으로 돈벌기, 디지털 노마드, 여행 수익, 가이드 수익')}
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 섹션 */}
       <header className="relative bg-gradient-to-br from-amber-500 to-orange-600 text-white overflow-hidden">

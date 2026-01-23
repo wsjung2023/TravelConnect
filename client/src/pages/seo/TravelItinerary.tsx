@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { Calendar, MapPin, CheckSquare, ArrowRight } from 'lucide-react';
 
@@ -71,6 +72,7 @@ export default function TravelItinerary() {
         keywords="여행 일정표, 여행 플래너, 여행 계획, 여행 일정표 만들기, 2박3일 여행 일정표"
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 섹션 */}
       <header className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">

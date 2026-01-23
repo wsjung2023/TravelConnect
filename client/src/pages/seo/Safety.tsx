@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { Shield, UserCheck, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export default function Safety() {
         keywords="여행 안전, 동행 안전, 여행 만남 안전, 신뢰 시스템, 안전 가이드"
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 */}
       <header className="bg-gradient-to-br from-slate-700 to-slate-900 text-white">

@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { MapPin, Route, Clock, ArrowRight } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export default function MapTravel() {
         keywords="지도 여행, 여행 코스, 동선 최적화, 여행 지도, 여행 코스 짜기"
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 */}
       <header className="bg-gradient-to-br from-green-600 to-teal-700 text-white">

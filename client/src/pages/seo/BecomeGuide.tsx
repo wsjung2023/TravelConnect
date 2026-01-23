@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import { Users, DollarSign, Calendar, Star, ArrowRight, Shield, MapPin } from 'lucide-react';
@@ -50,6 +51,7 @@ export default function BecomeGuide() {
         keywords={t('seo.becomeGuide.keywords', '로컬 가이드, 여행 가이드 부업, 가이드 수익, 체험 호스트, 투어 가이드')}
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 섹션 */}
       <header className="relative bg-gradient-to-br from-emerald-600 to-teal-700 text-white overflow-hidden">

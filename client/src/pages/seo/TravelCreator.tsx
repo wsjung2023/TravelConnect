@@ -1,5 +1,6 @@
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
+import SeoNav from '@/components/seo/SeoNav';
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import { Video, Camera, Edit, Share2, ArrowRight, TrendingUp, Users } from 'lucide-react';
@@ -42,6 +43,7 @@ export default function TravelCreator() {
         keywords={t('seo.travelCreator.keywords', '여행 유튜버, 여행 브이로그, 여행 크리에이터, 여행 콘텐츠, 브이로그 시작')}
         jsonLd={faqJsonLd}
       />
+      <SeoNav />
 
       {/* 히어로 섹션 */}
       <header className="relative bg-gradient-to-br from-violet-600 to-purple-700 text-white overflow-hidden">
