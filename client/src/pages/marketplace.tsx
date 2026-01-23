@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Heart, MapPin, Star, Users, Clock } from 'lucide-react';
-import { Link } from 'wouter';
+import { Heart, MapPin, Star, Users, Clock, ArrowLeft } from 'lucide-react';
+import { Link, useLocation } from 'wouter';
 
 interface Experience {
   id: number;
@@ -38,6 +38,7 @@ interface Experience {
 
 export default function Marketplace() {
   const { t } = useTranslation('ui');
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [priceFilter, setPriceFilter] = useState('all');
@@ -126,6 +127,15 @@ export default function Marketplace() {
       {/* Header */}
       <div className="bg-white dark:bg-gray-900 border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setLocation('/')}
+            className="mb-2 -ml-2"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            {t('common.back', '뒤로가기')}
+          </Button>
           <h1 className="text-3xl font-bold text-foreground mb-2">🌟 {t('marketplace.title')}</h1>
           <p className="text-muted-foreground">{t('marketplace.subtitle')}</p>
         </div>

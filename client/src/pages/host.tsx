@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
+import { PlusCircle, Eye, Edit, Calendar, Users, MapPin, Star, MessageSquare, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
 import CreateExperienceModal from '@/components/CreateExperienceModal';
@@ -186,6 +186,15 @@ export default function HostDashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setLocation('/profile')}
+              className="mb-2 -ml-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              {t('common.back', '뒤로가기')}
+            </Button>
             <h1 className="text-3xl font-bold" data-testid="text-host-dashboard-title">
               {t('host.dashboard')}
             </h1>
