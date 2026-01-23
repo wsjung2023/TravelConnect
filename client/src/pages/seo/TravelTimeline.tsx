@@ -51,8 +51,12 @@ export default function TravelTimeline() {
       <SeoNav />
 
       {/* 히어로 */}
-      <header className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white">
-        <nav className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="relative bg-gradient-to-br from-purple-600 to-indigo-700 text-white overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-30 bg-cover bg-center"
+          style={{ backgroundImage: `url('/seo-hero/travel-timeline.png')` }}
+        />
+        <nav className="relative max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/">
             <span className="text-2xl font-bold">Tourgether</span>
           </Link>
@@ -63,7 +67,7 @@ export default function TravelTimeline() {
           </Link>
         </nav>
         
-        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 py-20 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
             여행이 끝나면 남는 건,<br />
             <span className="text-yellow-300">결국 기록이에요.</span>

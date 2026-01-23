@@ -51,8 +51,12 @@ export default function Safety() {
       <SeoNav />
 
       {/* 히어로 */}
-      <header className="bg-gradient-to-br from-slate-700 to-slate-900 text-white">
-        <nav className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="relative bg-gradient-to-br from-slate-700 to-slate-900 text-white overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-30 bg-cover bg-center"
+          style={{ backgroundImage: `url('/seo-hero/safety.png')` }}
+        />
+        <nav className="relative max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/">
             <span className="text-2xl font-bold">Tourgether</span>
           </Link>
@@ -63,7 +67,7 @@ export default function Safety() {
           </Link>
         </nav>
         
-        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 py-20 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
             안전이 있어야,<br />
             <span className="text-emerald-400">여행의 설렘이 '진짜'가 됩니다.</span>

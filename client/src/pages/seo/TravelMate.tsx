@@ -51,8 +51,12 @@ export default function TravelMate() {
       <SeoNav />
 
       {/* 히어로 */}
-      <header className="bg-gradient-to-br from-pink-500 to-rose-600 text-white">
-        <nav className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="relative bg-gradient-to-br from-pink-500 to-rose-600 text-white overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-30 bg-cover bg-center"
+          style={{ backgroundImage: `url('/seo-hero/travel-mate.png')` }}
+        />
+        <nav className="relative max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/">
             <span className="text-2xl font-bold">Tourgether</span>
           </Link>
@@ -63,7 +67,7 @@ export default function TravelMate() {
           </Link>
         </nav>
         
-        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 py-20 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
             혼자도 좋지만,<br />
             <span className="text-yellow-300">함께라서 더 빛나는 여행이 있어요.</span>
