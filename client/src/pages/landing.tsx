@@ -558,48 +558,46 @@ export default function Landing() {
           <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">{t('ui:seoLinks.exploreFeatures')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
             {[
-              { path: '/travel-itinerary', icon: Calendar, titleKey: 'seoLinks.travelItinerary', color: 'from-blue-500 to-blue-600' },
-              { path: '/map-travel', icon: MapPin, titleKey: 'seoLinks.mapTravel', color: 'from-green-500 to-green-600' },
-              { path: '/travel-timeline', icon: Compass, titleKey: 'seoLinks.travelTimeline', color: 'from-purple-500 to-purple-600' },
-              { path: '/local-tips', icon: Star, titleKey: 'seoLinks.localTips', color: 'from-yellow-500 to-yellow-600' },
-              { path: '/travel-mate', icon: Users, titleKey: 'seoLinks.travelMate', color: 'from-pink-500 to-pink-600' },
-              { path: '/safety', icon: Shield, titleKey: 'seoLinks.safety', color: 'from-red-500 to-red-600' },
-            ].map((card) => {
-              const Icon = card.icon;
-              return (
-                <Link key={card.path} href={card.path}>
-                  <div className="bg-white hover:bg-gray-50 rounded-xl p-4 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
-                    <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
-                  </div>
-                </Link>
-              );
-            })}
+              { path: '/travel-itinerary', image: '/seo-cards/travel-itinerary.png', titleKey: 'seoLinks.travelItinerary' },
+              { path: '/map-travel', image: '/seo-cards/map-travel.png', titleKey: 'seoLinks.mapTravel' },
+              { path: '/travel-timeline', image: '/seo-cards/travel-timeline.png', titleKey: 'seoLinks.travelTimeline' },
+              { path: '/local-tips', image: '/seo-cards/local-tips.png', titleKey: 'seoLinks.localTips' },
+              { path: '/travel-mate', image: '/seo-cards/travel-mate.png', titleKey: 'seoLinks.travelMate' },
+              { path: '/safety', image: '/seo-cards/safety.png', titleKey: 'seoLinks.safety' },
+            ].map((card) => (
+              <Link key={card.path} href={card.path}>
+                <div className="bg-white hover:bg-gray-50 rounded-xl p-3 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
+                  <img 
+                    src={card.image} 
+                    alt={t(`ui:${card.titleKey}`)} 
+                    className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover group-hover:scale-110 transition-transform"
+                  />
+                  <span className="text-xs font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
+                </div>
+              </Link>
+            ))}
           </div>
 
           {/* 수익 창출 4개 */}
           <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">{t('ui:seoFooter.earning')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { path: '/become-guide', icon: Globe, titleKey: 'seoLinks.becomeGuide', color: 'from-teal-500 to-teal-600' },
-              { path: '/earn-travel', icon: DollarSign, titleKey: 'seoLinks.earnTravel', color: 'from-emerald-500 to-emerald-600' },
-              { path: '/travel-creator', icon: Camera, titleKey: 'seoLinks.travelCreator', color: 'from-indigo-500 to-indigo-600' },
-              { path: '/travel-friends', icon: Heart, titleKey: 'seoLinks.travelFriends', color: 'from-rose-500 to-rose-600' },
-            ].map((card) => {
-              const Icon = card.icon;
-              return (
-                <Link key={card.path} href={card.path}>
-                  <div className="bg-white hover:bg-gray-50 rounded-xl p-4 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
-                    <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
-                  </div>
-                </Link>
-              );
-            })}
+              { path: '/become-guide', image: '/seo-cards/become-guide.png', titleKey: 'seoLinks.becomeGuide' },
+              { path: '/earn-travel', image: '/seo-cards/earn-travel.png', titleKey: 'seoLinks.earnTravel' },
+              { path: '/travel-creator', image: '/seo-cards/travel-creator.png', titleKey: 'seoLinks.travelCreator' },
+              { path: '/travel-friends', image: '/seo-cards/travel-friends.png', titleKey: 'seoLinks.travelFriends' },
+            ].map((card) => (
+              <Link key={card.path} href={card.path}>
+                <div className="bg-white hover:bg-gray-50 rounded-xl p-3 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
+                  <img 
+                    src={card.image} 
+                    alt={t(`ui:${card.titleKey}`)} 
+                    className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover group-hover:scale-110 transition-transform"
+                  />
+                  <span className="text-xs font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
