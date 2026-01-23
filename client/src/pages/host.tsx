@@ -116,7 +116,8 @@ export default function HostDashboard() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined | null) => {
+    if (!status) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     switch (status.toLowerCase()) {
       case 'confirmed':
       case 'completed':
