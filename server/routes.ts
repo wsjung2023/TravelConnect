@@ -317,14 +317,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // 번역 API - DB 기반 i18n 데이터 조회
   // ========================================
+  
+  // 플랫 키를 중첩 객체로 변환하는 헬퍼 함수
+  function unflattenTranslations(flat: Record<string, string>): Record<string, any> {
+    const result: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(flat)) {
+      const parts = key.split('.');
+      let current = result;
+      
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        if (!(part in current)) {
+          current[part] = {};
+        }
+        current = current[part];
+      }
+      
+      current[parts[parts.length - 1]] = value;
+    }
+    
+    return result;
+  }
+  
   app.get('/api/translations/:namespace', async (req: Request, res: Response) => {
     try {
       const namespace = req.params.namespace as string;
       const locale = (req.query.locale as string) || 'en';
       
       console.log(`[Translations API] Fetching namespace: ${namespace}, locale: ${locale}`);
-      const translations = await storage.getTranslationsByNamespace(namespace, locale);
-      console.log(`[Translations API] Found ${Object.keys(translations).length} translations`);
+      const flatTranslations = await storage.getTranslationsByNamespace(namespace, locale);
+      const translations = unflattenTranslations(flatTranslations);
+      console.log(`[Translations API] Found ${Object.keys(flatTranslations).length} translations`);
       
       res.json(translations);
     } catch (error) {
