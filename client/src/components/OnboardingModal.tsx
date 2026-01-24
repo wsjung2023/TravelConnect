@@ -94,24 +94,34 @@ export function OnboardingModal({ isOpen, onClose, onComplete }: OnboardingModal
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="text-center relative">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border-0 shadow-xl">
+        <div className="relative h-40 overflow-hidden rounded-t-2xl">
+          <img 
+            src="/seo-hero/travel-mate.png" 
+            alt="Welcome to Tourgether"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
           <Button
             variant="ghost"
             size="sm"
-            className="absolute right-2 top-2"
+            className="absolute right-3 top-3 bg-white/20 backdrop-blur hover:bg-white/30 text-white"
             onClick={handleSkip}
             data-testid="button-skip"
           >
             <X className="w-4 h-4 mr-1" />
             건너뛰기
           </Button>
-          <CardTitle className="text-2xl font-bold" data-testid="onboarding-title">
-            투어게더에 오신 것을 환영합니다!
-          </CardTitle>
-          <CardDescription>
-            관심사와 언어를 설정하면 더 맞춤화된 경험을 제공해드려요 (선택사항)
-          </CardDescription>
+          <div className="absolute bottom-4 left-6 right-6">
+            <h2 className="text-2xl font-bold text-white drop-shadow-lg" data-testid="onboarding-title">
+              투어게더에 오신 것을 환영합니다!
+            </h2>
+            <p className="text-white/90 text-sm mt-1">
+              관심사와 언어를 설정하면 더 맞춤화된 경험을 제공해드려요
+            </p>
+          </div>
+        </div>
+        <CardHeader className="text-center pt-4 pb-2">
         </CardHeader>
 
         <CardContent className="space-y-6">

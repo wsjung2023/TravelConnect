@@ -204,22 +204,33 @@ export default function Marketplace() {
 
         {/* Experience Grid */}
         {experiences.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-semibold mb-2">{t('marketplace.noResults')}</h3>
-            <p className="text-muted-foreground mb-4">{t('marketplace.tryDifferentFilters')}</p>
-            <Button 
-              data-testid="button-reset-filters"
-              variant="outline" 
-              onClick={() => {
-                setSearchQuery('');
-                setCategoryFilter('all');
-                setPriceFilter('all');
-                setSortBy('rating');
-              }}
-            >
-              {t('marketplace.resetFilters')}
-            </Button>
+          <div className="relative overflow-hidden rounded-2xl">
+            <img 
+              src="/seo-hero/local-tips.png" 
+              alt="Discover experiences"
+              className="w-full h-64 object-cover opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-neutral-900 dark:via-neutral-900/80" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+              <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center mb-4">
+                <MapPin className="w-8 h-8 text-violet-600 dark:text-violet-400" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-white">{t('marketplace.noResults')}</h3>
+              <p className="text-neutral-600 dark:text-neutral-400 mb-6 max-w-md">{t('marketplace.tryDifferentFilters')}</p>
+              <Button 
+                data-testid="button-reset-filters"
+                variant="outline" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setCategoryFilter('all');
+                  setPriceFilter('all');
+                  setSortBy('rating');
+                }}
+                className="rounded-full"
+              >
+                {t('marketplace.resetFilters')}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

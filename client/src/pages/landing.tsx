@@ -407,15 +407,38 @@ export default function Landing() {
           </div>
 
           <div className="space-y-8">
-            {[1, 2, 3, 4, 5].map((num) => (
-              <article key={num} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--landing-text-main)' }}>
-                  <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center text-white">{num}</span>
-                  {t(`ui:landingPage.seoSection.article${num}.title`)}
-                </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
-                  {t(`ui:landingPage.seoSection.article${num}.desc`)}
-                </p>
+            {[
+              { num: 1, image: '/seo-hero/local-tips.png', icon: MapPin },
+              { num: 2, image: '/seo-hero/travel-mate.png', icon: Users },
+              { num: 3, image: '/seo-hero/become-guide.png', icon: DollarSign },
+              { num: 4, image: '/seo-hero/safety.png', icon: Shield },
+              { num: 5, image: '/seo-hero/travel-timeline.png', icon: Calendar },
+            ].map(({ num, image, icon: Icon }) => (
+              <article key={num} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                <div className="relative h-48 md:h-64">
+                  <img 
+                    src={image} 
+                    alt={t(`ui:landingPage.seoSection.article${num}.title`)}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="flex items-center gap-3">
+                      <span className="w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-violet-600" />
+                      </span>
+                      <h3 className="text-xl font-bold text-white drop-shadow-lg">
+                        {t(`ui:landingPage.seoSection.article${num}.title`)}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <p className="leading-relaxed" style={{ color: 'var(--landing-text-muted)' }}>
+                    {t(`ui:landingPage.seoSection.article${num}.desc`)}
+                  </p>
+                </div>
               </article>
             ))}
           </div>
