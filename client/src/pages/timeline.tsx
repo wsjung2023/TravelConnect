@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Calendar, MapPin, Plus, Film, Clock, Download, ChevronLeft, MapIcon, Compass } from 'lucide-react';
+import { Calendar, MapPin, Plus, Film, Clock, Download, ChevronLeft, MapIcon, Compass, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -406,6 +406,16 @@ export default function TimelinePage() {
   return (
     <div className="mobile-content" style={{ height: '100vh', overflow: 'auto' }}>
       <div className="container mx-auto p-4">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setLocation('/')}
+          className="mb-4 -ml-2"
+          data-testid="back-to-home-button"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          {t('common:app.back')}
+        </Button>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Calendar className="w-6 h-6" />
