@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Hash, MessageCircle, Users, Plus, Search, Sparkles } from 'lucide-react';
+import { Hash, MessageCircle, Users, Plus, Search, Sparkles, ArrowLeft } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,6 +31,7 @@ export default function ChannelList({
   currentUserId,
 }: ChannelListProps) {
   const { t, i18n } = useTranslation(['common', 'ui']);
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'channels' | 'dms'>('all');
 
@@ -131,6 +133,16 @@ export default function ChannelList({
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setLocation('/')}
+          className="mb-2 -ml-2"
+          data-testid="back-to-home-button"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          {t('common:app.back')}
+        </Button>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">{t('common:navigation.chat')}</h2>
           <Button
