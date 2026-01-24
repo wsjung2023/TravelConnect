@@ -52,7 +52,7 @@ const extractYouTubeVideoId = (text: string): string | null => {
   
   for (const pattern of patterns) {
     const match = text.match(pattern);
-    if (match) return match[1];
+    if (match && match[1]) return match[1];
   }
   return null;
 };
@@ -104,7 +104,7 @@ type FilterType = 'all' | 'posts' | 'experiences';
 
 interface FeedProps {
   onBack?: () => void;
-  initialPostId?: number;
+  initialPostId?: number | undefined;
 }
 
 export default function Feed({ onBack, initialPostId }: FeedProps = {}) {

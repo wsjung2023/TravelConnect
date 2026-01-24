@@ -277,7 +277,7 @@ export default function Home() {
         <div className="fixed inset-0 z-40 bg-white" style={{ pointerEvents: 'auto' }}>
           <Suspense fallback={<TabLoadingSpinner />}>
             <Feed 
-              initialPostId={selectedPostId || undefined}
+              initialPostId={selectedPostId ?? undefined}
               onBack={() => {
                 setShowFeedDetail(false);
                 setSelectedPostId(null);
