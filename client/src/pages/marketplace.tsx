@@ -54,10 +54,10 @@ export default function Marketplace() {
 
   const PRICE_RANGES = [
     { value: 'all', label: t('marketplace.priceAll') },
-    { value: '0-50000', label: t('marketplace.priceRange1') },
-    { value: '50000-100000', label: t('marketplace.priceRange2') },
-    { value: '100000-200000', label: t('marketplace.priceRange3') },
-    { value: '200000+', label: t('marketplace.priceRange4') },
+    { value: '0-50', label: t('marketplace.priceRange1') },
+    { value: '50-100', label: t('marketplace.priceRange2') },
+    { value: '100-200', label: t('marketplace.priceRange3') },
+    { value: '200+', label: t('marketplace.priceRange4') },
   ];
 
   const { data: experiences = [], isLoading } = useQuery<Experience[]>({
@@ -123,21 +123,21 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+      {/* Header - Apple/SaaS clean style */}
+      <div className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => setLocation('/')}
-            className="mb-2 -ml-2"
+            className="mb-4 -ml-2 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            {t('common.back', '뒤로가기')}
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t('common.back', 'Back')}
           </Button>
-          <h1 className="text-3xl font-bold text-foreground mb-2">🌟 {t('marketplace.title')}</h1>
-          <p className="text-muted-foreground">{t('marketplace.subtitle')}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-2">{t('marketplace.title')}</h1>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{t('marketplace.subtitle')}</p>
         </div>
       </div>
 
@@ -226,7 +226,7 @@ export default function Marketplace() {
             {experiences.map((experience: Experience) => (
               <Card 
                 key={experience.id} 
-                className="overflow-hidden hover:shadow-lg transition-shadow group"
+                className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800 shadow-sm hover:shadow-md transition-shadow group"
                 data-testid={`card-experience-${experience.id}`}
               >
                 <div className="relative">
@@ -234,51 +234,45 @@ export default function Marketplace() {
                     <img
                       src={experience.images[0]}
                       alt={experience.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-44 object-cover"
                       data-testid={`img-experience-${experience.id}`}
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center">
-                      <MapPin className="w-12 h-12 text-muted-foreground" />
+                    <div className="w-full h-44 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-800 flex items-center justify-center">
+                      <MapPin className="w-10 h-10 text-neutral-400" />
                     </div>
                   )}
                   
                   <Button
                     data-testid={`button-like-${experience.id}`}
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
-                    className="absolute top-3 right-3 w-8 h-8 p-0 rounded-full bg-white/80 hover:bg-white"
+                    className="absolute top-3 right-3 w-8 h-8 p-0 rounded-full bg-white/90 hover:bg-white border border-neutral-200"
                   >
-                    <Heart className="w-4 h-4" />
+                    <Heart className="w-4 h-4 text-neutral-500" />
                   </Button>
 
                   <Badge 
-                    className={`absolute bottom-3 left-3 ${getCategoryColor(experience.category)}`}
+                    className={`absolute bottom-3 left-3 text-xs font-medium ${getCategoryColor(experience.category)}`}
                     data-testid={`badge-category-${experience.id}`}
                   >
                     {getCategoryLabel(experience.category)}
                   </Badge>
                 </div>
 
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <h3 className="font-semibold line-clamp-2 text-sm" data-testid={`text-title-${experience.id}`}>
-                      {experience.title}
-                    </h3>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <CardHeader className="pb-2 pt-4">
+                  <h3 className="font-semibold line-clamp-1 text-sm text-neutral-900 dark:text-white" data-testid={`text-title-${experience.id}`}>
+                    {experience.title}
+                  </h3>
+                  <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                     <MapPin className="w-3 h-3" />
-                    <span data-testid={`text-location-${experience.id}`}>{experience.location}</span>
+                    <span data-testid={`text-location-${experience.id}`} className="line-clamp-1">{experience.location}</span>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0 pb-3">
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3" data-testid={`text-description-${experience.id}`}>
-                    {experience.description}
-                  </p>
-
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                <CardContent className="pt-0 pb-4">
+                  {/* Compact info row */}
+                  <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3">
                     <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       <span data-testid={`text-duration-${experience.id}`}>
@@ -286,66 +280,32 @@ export default function Marketplace() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
-                      <span data-testid={`text-participants-${experience.id}`}>
-                        {t('marketplace.maxParticipants', { count: experience.maxParticipants })}
-                      </span>
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      <span data-testid={`text-rating-${experience.id}`}>{experience.rating}</span>
+                      <span className="text-neutral-400" data-testid={`text-review-count-${experience.id}`}>({experience.reviewCount})</span>
                     </div>
                   </div>
 
-                  {/* 호스트 정보 */}
-                  {experience.host && (
-                    <div className="mb-3 pb-3 border-b border-gray-100 dark:border-gray-800">
-                      <Link 
-                        to={`/guide/${experience.hostId}`}
-                        className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
-                        data-testid={`link-guide-${experience.hostId}`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
-                          {experience.host.firstName?.[0]}{experience.host.lastName?.[0]}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {experience.host.firstName} {experience.host.lastName}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('marketplace.viewGuideProfile')}</p>
-                        </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400">→</div>
-                      </Link>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium" data-testid={`text-rating-${experience.id}`}>
-                        {experience.rating}
-                      </span>
-                      <span className="text-xs text-muted-foreground" data-testid={`text-review-count-${experience.id}`}>
-                        ({experience.reviewCount})
-                      </span>
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary" data-testid={`text-price-${experience.id}`}>
+                  {/* Price and CTA */}
+                  <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-700">
+                    <div>
+                      <p className="text-lg font-semibold text-neutral-900 dark:text-white" data-testid={`text-price-${experience.id}`}>
                         {formatPrice(experience.price, experience.currency)}
                       </p>
-                      <p className="text-xs text-muted-foreground">{t('marketplace.perPerson')}</p>
+                      <p className="text-xs text-neutral-500">{t('marketplace.perPerson')}</p>
                     </div>
+                    <Link href={`/experience/${experience.id}`}>
+                      <Button 
+                        data-testid={`button-view-${experience.id}`}
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700"
+                      >
+                        {t('marketplace.viewDetails')}
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
-
-                <CardFooter className="pt-0">
-                  <Link href={`/experience/${experience.id}`} className="w-full">
-                    <Button 
-                      data-testid={`button-view-${experience.id}`}
-                      className="w-full" 
-                      size="sm"
-                    >
-                      {t('marketplace.viewDetails')}
-                    </Button>
-                  </Link>
-                </CardFooter>
               </Card>
             ))}
           </div>

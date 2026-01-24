@@ -37,8 +37,7 @@ import type { Post } from '@shared/schema';
 import { ImageFallback } from '@/components/ImageFallback';
 import SmartImage from '@/components/SmartImage';
 import { Seo } from '@/components/Seo';
-import FeedModeSelector, { type FeedMode } from '@/components/FeedModeSelector';
-import TrendingHashtags from '@/components/TrendingHashtags';
+import { type FeedMode } from '@/components/FeedModeSelector';
 import { useAuth } from '@/hooks/useAuth';
 
 // localStorage 키 상수
@@ -542,57 +541,46 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
           </div>
         </div>
         
-        {/* MoVi Description Banner */}
-        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-t">
-          <p className="text-xs font-semibold text-purple-600 mb-1">{t('feed.subtitle')}</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{t('feed.description')}</p>
-        </div>
-        
-        {/* Feed Mode Selector */}
-        <div className="px-4 pb-2">
-          <FeedModeSelector mode={feedMode} onModeChange={setFeedMode} />
-        </div>
-
-        {/* Trending Hashtags */}
-        <div className="px-4 pb-3">
-          <TrendingHashtags onHashtagClick={handleHashtagClick} />
-        </div>
-        
-        {/* Filter Buttons */}
-        <div className="flex gap-2 px-4 pb-3">
-          <button
-            onClick={() => setFilter('all')}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            data-testid="filter-all"
-          >
-            {t('filter.all')}
-          </button>
-          <button
-            onClick={() => setFilter('posts')}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'posts'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            data-testid="filter-posts"
-          >
-            {t('filter.posts')}
-          </button>
-          <button
-            onClick={() => setFilter('experiences')}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'experiences'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            data-testid="filter-experiences"
-          >
-            {t('filter.experiences')}
-          </button>
+        {/* Single-row filter - Apple/SaaS style */}
+        <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto">
+          {/* Feed Mode Pills */}
+          <div className="flex gap-1 shrink-0">
+            {(['smart', 'recent', 'nearby'] as FeedMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setFeedMode(mode)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
+                  feedMode === mode
+                    ? 'bg-violet-600 text-white'
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                }`}
+                data-testid={`mode-${mode}`}
+              >
+                {t(`feedMode.${mode}`)}
+              </button>
+            ))}
+          </div>
+          
+          {/* Divider */}
+          <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-700 shrink-0" />
+          
+          {/* Content Type Pills */}
+          <div className="flex gap-1 shrink-0">
+            {(['all', 'posts', 'experiences'] as FilterType[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilter(type)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
+                  filter === type
+                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                }`}
+                data-testid={`filter-${type}`}
+              >
+                {t(`filter.${type}`)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -895,7 +883,7 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
                         setSelectedPost(item);
                       }
                     }}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors"
+                    className="px-4 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-sm rounded-full transition-colors"
                     data-testid={`button-view-${item.id}`}
                   >
                     {isExperience ? t('feedPage.viewExperience') : t('feedPage.viewDetails')}
