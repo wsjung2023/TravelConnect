@@ -296,18 +296,48 @@ export default function HostDashboard() {
               </CardHeader>
               <CardContent>
                 {experiences.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">
+                  <div className="py-6">
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center mb-6">
                       {t('host.noExperiences')}
                     </p>
-                    <Button data-testid="button-create-first-experience">
-                      <PlusCircle className="w-4 h-4 mr-2" />
-                      {t('host.createFirstExperience')}
-                    </Button>
+                    {/* Next Steps Cards - Apple/SaaS style */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+                        <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-3">
+                          <PlusCircle className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                        </div>
+                        <h4 className="font-semibold text-sm text-neutral-900 dark:text-white mb-1">{t('host.step1Title')}</h4>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('host.step1Desc')}</p>
+                      </div>
+                      <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-3">
+                          <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <h4 className="font-semibold text-sm text-neutral-900 dark:text-white mb-1">{t('host.step2Title')}</h4>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('host.step2Desc')}</p>
+                      </div>
+                      <div className="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-3">
+                          <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <h4 className="font-semibold text-sm text-neutral-900 dark:text-white mb-1">{t('host.step3Title')}</h4>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('host.step3Desc')}</p>
+                      </div>
+                    </div>
+                    <div className="mt-6 text-center">
+                      <Button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="rounded-full bg-violet-600 hover:bg-violet-700 text-white px-6"
+                        data-testid="button-create-first-experience"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        {t('host.createFirstExperience')}
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
                       {t('host.viewDetails')}
                     </p>
                   </div>

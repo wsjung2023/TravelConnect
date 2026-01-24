@@ -1459,24 +1459,24 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* POI 필터링 토글 - DB 기반 그룹핑 UI */}
-      <div className="absolute top-4 left-4 bg-white rounded-xl shadow-lg z-10 max-w-xs">
+      {/* POI 필터링 토글 - Apple/SaaS style */}
+      <div className="absolute top-4 left-4 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm z-10 max-w-xs">
         <button
           onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-          className="flex items-center justify-between gap-2 w-full p-3 hover:bg-gray-50 rounded-xl transition-colors"
+          className="flex items-center justify-between gap-3 w-full px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-2xl transition-colors"
           data-testid="button-toggle-poi-filters"
         >
-          <span className="text-xs font-medium text-gray-600">{t('filters.poi')}</span>
-          <div className="flex items-center gap-1">
+          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('filters.poi')}</span>
+          <div className="flex items-center gap-2">
             {enabledPOITypes.length > 0 && (
-              <span className="text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">
-                {enabledPOITypes.length}
+              <span className="text-xs bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-medium">
+                {enabledPOITypes.length > 99 ? '99+' : enabledPOITypes.length}
               </span>
             )}
             {isFilterExpanded ? (
-              <ChevronUp className="w-4 h-4 text-gray-600" />
+              <ChevronUp className="w-4 h-4 text-neutral-500" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-gray-600" />
+              <ChevronDown className="w-4 h-4 text-neutral-500" />
             )}
           </div>
         </button>
