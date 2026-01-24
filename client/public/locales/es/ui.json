@@ -840,57 +840,6 @@
     "photos": "Photos",
     "route": "Route"
   },
-  "landingPage": {
-    "appName": "Tourgether",
-    "connectTravelers": "Conectando viajeros de todo el mundo",
-    "heroTitle": "Descubre experiencias de viaje auténticas",
-    "heroSubtitle": "Conéctate con guías locales, explora joyas ocultas y crea recuerdos inolvidables",
-    "getStarted": "Comenzar",
-    "learnMore": "Saber más",
-    "tryingDemo": "Conectando...",
-    "demoLoginSuccess": "Inicio de sesión demo exitoso",
-    "demoLoginSuccessDesc": "¡Bienvenido a Tourgether! Explora como usuario demo.",
-    "demoLoginFailed": "Falló el inicio de sesión demo",
-    "feature1Title": "Experiencias locales",
-    "feature2Title": "Comunidad confiable",
-    "experiencesCount": "5,000+",
-    "localExperiences": "Experiencias locales",
-    "hostsCount": "1,200+",
-    "verifiedHosts": "Anfitriones verificados",
-    "citiesCount": "150+",
-    "cities": "Ciudades en el mundo",
-    "reviews": "Lo que dicen nuestros usuarios",
-    "review1Name": "María",
-    "review1Text": "¡Experiencia increíble! Encontré los mejores lugares locales a través de Tourgether.",
-    "review2Name": "Carlos",
-    "review2Text": "Como guía local, he conocido a maravillosos viajeros de todo el mundo.",
-    "review3Name": "Ana",
-    "review3Text": "Perfecto para viajeros solitarios. ¡Hice grandes amigos en mi viaje!",
-    "seoSection": {
-      "title": "¿Por qué Tourgether?",
-      "subtitle": "Una nueva forma de redescubrir la esencia del viaje",
-      "article1": {
-        "title": "Di adiós a los tours prediseñados",
-        "desc": "¿Cansado de bajar del autobús turístico, tomar una foto y volver a subir? Tourgether te permite experimentar joyas ocultas que solo los locales conocen, restaurantes auténticos y el verdadero ambiente de cada ciudad. Conecta directamente con guías locales y planifica tu viaje personalizado."
-      },
-      "article2": {
-        "title": "Una plataforma de conexión para viajeros solitarios",
-        "desc": "¿Quieres viajar solo pero te preocupa comer solo o no tener quien te tome fotos? Usa nuestra función \"Abierto a conocer\" para encontrar otros viajeros en la misma zona. Comparte comidas, tours y actividades con personas afines."
-      },
-      "article3": {
-        "title": "Una economía compartida donde los locales pueden ganar",
-        "desc": "Nadie conoce tu ciudad mejor que tú. Conviértete en guía local en Tourgether, ofrece experiencias únicas a los viajeros y gana ingresos. Registra diversos servicios como tours gastronómicos, servicios de fotografía, acompañamiento de compras e interpretación."
-      },
-      "article4": {
-        "title": "Sistema de transacción P2P seguro",
-        "desc": "Opera con confianza usando nuestro sistema de pago basado en custodia. Los fondos se mantienen seguros hasta la finalización del servicio, y nuestro sistema de resolución de disputas protege a ambas partes. Encuentra socios confiables fácilmente a través de reseñas e insignias de anfitrión verificado."
-      },
-      "article5": {
-        "title": "Preserva hermosamente tus recuerdos de viaje",
-        "desc": "Comparte tus momentos de viaje con fotos en el feed y visualiza tu viaje en una línea de tiempo basada en mapas. Nuestra función CineMap impulsada por IA analiza los datos de ubicación de las fotos para crear automáticamente storyboards de viaje cinematográficos."
-      }
-    }
-  },
   "marketplace": {
     "title": "Mercado",
     "subtitle": "Descubre experiencias únicas de guías locales",
