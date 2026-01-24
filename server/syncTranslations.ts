@@ -14,17 +14,25 @@ export async function syncTranslations(): Promise<void> {
   console.log('[Translation Sync] Starting translation sync...');
   
   try {
-    const jsonPath = path.join(process.cwd(), 'server', 'translationData.json');
+    // 시드 파일 경로 (운영 배포 시 자동 마이그레이션용)
+    const seedPath = path.join(process.cwd(), 'db', 'seed-translations.json');
+    // 기존 경로 (하위 호환성)
+    const legacyPath = path.join(process.cwd(), 'server', 'translationData.json');
     
-    if (!fs.existsSync(jsonPath)) {
-      console.log('[Translation Sync] No translation data file found, skipping...');
+    let jsonPath = '';
+    if (fs.existsSync(seedPath)) {
+      jsonPath = seedPath;
+    } else if (fs.existsSync(legacyPath)) {
+      jsonPath = legacyPath;
+    } else {
+      console.log('[Translation Sync] No translation seed file found, skipping...');
       return;
     }
     
     const rawData = fs.readFileSync(jsonPath, 'utf-8');
     const translationData: TranslationEntry[] = JSON.parse(rawData);
     
-    console.log(`[Translation Sync] Found ${translationData.length} translations to sync`);
+    console.log(`[Translation Sync] Found ${translationData.length} translations to sync from ${path.basename(jsonPath)}`);
     
     let insertedCount = 0;
     let skippedCount = 0;
