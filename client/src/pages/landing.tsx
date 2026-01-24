@@ -1,16 +1,13 @@
-import { MapPin, Users, MessageCircle, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar, DollarSign, Camera } from 'lucide-react';
+import { MapPin, Users, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar, DollarSign, Camera } from 'lucide-react';
 import { Link } from 'wouter';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { LoginModal } from '@/components/LoginModal';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import Footer from '@/components/Footer';
 import heroImage from '@assets/stock_images/traveler_sunset_moun_6f45f15a.jpg';
-import meetingImage from '@assets/stock_images/people_meeting_trave_1a5f85aa.jpg';
-import exploringImage from '@assets/stock_images/backpacker_exploring_e1b0b730.jpg';
 
 export default function Landing() {
   const { toast } = useToast();
@@ -97,13 +94,6 @@ export default function Landing() {
     }
   }, []);
 
-  const pillTags = [
-    { icon: Map, label: 'Map-based travel timelines' },
-    { icon: Shield, label: 'Safety-first matching' },
-    { icon: Clock, label: 'Instant trip journaling' },
-    { icon: Users, label: 'Local concierge support' },
-  ];
-
   return (
     <div className="w-full bg-[var(--landing-bg-light)] min-h-screen">
       <Helmet>
@@ -165,176 +155,179 @@ export default function Landing() {
       </Helmet>
       
       {/* ========================================
-          HERO SECTION
+          HERO SECTION - Premium Design
           ======================================== */}
       <header className="relative min-h-[85vh] overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImage})` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-[var(--landing-bg-dark)]/95"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-[#f8f7f4]/100"></div>
         </div>
         
         <div className="relative h-full flex flex-col min-h-[85vh]">
-          <div className="flex-1 flex flex-col justify-center px-6 pt-16 pb-8 text-white">
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 w-fit mb-8 animate-fade-in">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium">{t('ui:landingPage.connectTravelers')}</span>
+          {/* Top Nav */}
+          <nav className="flex justify-between items-center px-6 py-4">
+            <span className="text-2xl font-bold text-white">{t('ui:landingPage.appName')}</span>
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="text-white/90 hover:text-white text-sm font-medium transition"
+            >
+              {t('ui:landingPage.signIn')}
+            </button>
+          </nav>
+
+          <div className="flex-1 flex flex-col justify-center px-6 pb-8 text-white">
+            {/* Pilot Badge */}
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 w-fit mb-6 animate-fade-in">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">{t('ui:landingPage.pilotBadge')}</span>
             </div>
             
-            <div className="space-y-5 animate-slide-up">
-              <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight">
-                {t('ui:landingPage.appName')}
+            <div className="space-y-5 animate-slide-up max-w-xl">
+              <h1 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
+                {t('ui:landingPage.heroTagline')}
               </h1>
               
-              <p className="text-xl md:text-2xl opacity-90 leading-relaxed max-w-lg">
-                Your journeys, written on the map.<br/>
-                Connect with trusted locals and turn every trip into a living timeline.
+              <p className="text-lg md:text-xl opacity-90 leading-relaxed">
+                {t('ui:landingPage.heroDesc')}
               </p>
               
-              <div className="flex flex-wrap items-center gap-4 pt-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Heart className="w-4 h-4 text-pink-400" />
-                  <span>Authentic Experiences</span>
+              <div className="flex flex-wrap items-center gap-4 pt-2 text-sm opacity-80">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-pink-300" />
+                  <span>{t('ui:landingPage.authenticExperiences')}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Globe className="w-4 h-4 text-blue-400" />
-                  <span>Global Community</span>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-blue-300" />
+                  <span>{t('ui:landingPage.globalCommunity')}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Shield className="w-4 h-4 text-green-400" />
-                  <span>Safety-first Travel</span>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-300" />
+                  <span>{t('ui:landingPage.safetyFirst')}</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="px-4 pb-6">
-            <div className="landing-glass-card p-6">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-white mb-1">Start your first trip</h2>
-                <p className="text-sm text-gray-300">
-                  Create a living travel timeline and meet trusted locals along the way.
-                </p>
-              </div>
-              <div className="flex gap-3">
+              {/* CTA Buttons */}
+              <div className="flex items-center gap-4 pt-4">
+                <Link href="/">
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="bg-white text-gray-900 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition flex items-center gap-2"
+                    data-testid="button-explore"
+                  >
+                    <Compass className="w-5 h-5" />
+                    {t('ui:landingPage.exploreMap')}
+                  </button>
+                </Link>
                 {import.meta.env.DEV && (
                   <button
                     onClick={handleDemoLogin}
                     disabled={isDemoLoading}
-                    className="landing-btn-primary flex-1 flex items-center justify-center gap-2"
+                    className="text-white/90 hover:text-white text-sm font-medium underline underline-offset-2"
                     data-testid="button-demo-login"
                   >
-                    <PlayCircle className="w-5 h-5" />
                     {isDemoLoading ? t('ui:landingPage.tryingDemo') : 'Try Demo'}
                   </button>
                 )}
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className={`landing-btn-secondary flex-1 ${import.meta.env.DEV ? '' : 'landing-btn-primary'}`}
-                  data-testid="button-login"
-                >
-                  Sign in
-                </button>
               </div>
             </div>
+          </div>
+
+          {/* Pilot Cities */}
+          <div className="px-6 pb-8">
+            <p className="text-white/60 text-sm text-center">{t('ui:landingPage.pilotCities')}</p>
           </div>
         </div>
       </header>
 
       {/* ========================================
-          FEATURES SECTION
+          WHY TOURGETHER SECTION - Premium Cards with Bullets
           ======================================== */}
-      <section className="landing-section px-4 py-16 md:py-20" style={{ background: 'var(--landing-bg-light)' }}>
+      <section className="px-4 py-16 md:py-20 bg-[#f8f7f4]">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--landing-text-main)' }}>
-              Discover your next journey
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-gray-900">
+              {t('ui:landingPage.whyTitle')}
             </h2>
-            <p className="text-lg" style={{ color: 'var(--landing-text-muted)' }}>
-              Find hidden spots, meet trusted locals, and capture every moment on your travel timeline.
+            <p className="text-lg text-gray-600">
+              {t('ui:landingPage.whyDesc')}
             </p>
           </div>
 
-          <div className="space-y-6">
-            <article className="landing-cinematic-card group">
-              <div className="aspect-[16/10] w-full overflow-hidden">
-                <img 
-                  src={exploringImage} 
-                  alt="Discover authentic experiences" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Card 1: Map Timeline */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                <Map className="w-6 h-6 text-blue-600" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10">
-                    <MapPin size={24} className="text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold">{t('ui:landingPage.feature1Title')}</h3>
-                </div>
-                <p className="text-base opacity-90 leading-relaxed max-w-md">
-                  Explore handpicked activities and local-only spots that guidebooks miss.
-                </p>
-              </div>
-            </article>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('ui:landingPage.why1Title')}</h3>
+              <ul className="space-y-2">
+                {t('ui:landingPage.why1Bullets').split('|').map((bullet: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                    <ChevronRight className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-            <article className="landing-cinematic-card group">
-              <div className="aspect-[16/10] w-full overflow-hidden">
-                <img 
-                  src={meetingImage} 
-                  alt="Meet trusted locals" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+            {/* Card 2: Local Network */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-emerald-600" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10">
-                    <Users size={24} className="text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold">{t('ui:landingPage.feature2Title')}</h3>
-                </div>
-                <p className="text-base opacity-90 leading-relaxed max-w-md">
-                  Connect with verified hosts and travelers who share your style of journey.
-                </p>
-              </div>
-            </article>
-          </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('ui:landingPage.why2Title')}</h3>
+              <ul className="space-y-2">
+                {t('ui:landingPage.why2Bullets').split('|').map((bullet: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                    <ChevronRight className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="landing-scroll-x mt-8 px-2 -mx-4 md:mx-0 md:flex md:flex-wrap md:gap-3 md:justify-center">
-            {pillTags.map((tag, index) => (
-              <div key={index} className="landing-pill flex-shrink-0">
-                <tag.icon className="w-4 h-4 mr-2" />
-                {tag.label}
+            {/* Card 3: P2P Transactions */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-purple-600" />
               </div>
-            ))}
+              <h3 className="text-lg font-bold text-gray-900 mb-3">{t('ui:landingPage.why3Title')}</h3>
+              <ul className="space-y-2">
+                {t('ui:landingPage.why3Bullets').split('|').map((bullet: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                    <ChevronRight className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ========================================
-          EXPERIENCES / TIMELINE SECTION
+          TIMELINE SECTION - Premium
           ======================================== */}
-      <section className="landing-section landing-section--dark px-4 py-16 md:py-20">
+      <section className="px-4 py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto">
           <div className="md:grid md:grid-cols-2 md:gap-12 md:items-center">
             <div className="mb-10 md:mb-0">
               <h2 className="text-3xl md:text-4xl font-bold mb-5">
-                Your trip becomes a<br/>living timeline
+                {t('ui:landingPage.timelineTitle')}
               </h2>
               <p className="text-lg text-gray-300 mb-6 leading-relaxed">
-                Every check-in, photo, and local meet-up is stitched into a beautiful travel story.
-                Relive your journeys day by day, pin by pin.
+                {t('ui:landingPage.timelineDesc')}
               </p>
               <ul className="space-y-3">
                 {[
-                  'Map-based view of your entire journey',
-                  'Safety check-ins and trusted contacts along the route',
-                  'Shareable highlights for friends and followers'
+                  t('ui:landingPage.timelineBullet1'),
+                  t('ui:landingPage.timelineBullet2'),
+                  t('ui:landingPage.timelineBullet3')
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-[var(--landing-primary)] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <ChevronRight className="w-3 h-3 text-white" />
                     </div>
                     <span className="text-gray-200">{item}</span>
@@ -343,14 +336,14 @@ export default function Landing() {
               </ul>
             </div>
 
-            <div className="landing-timeline-mock p-5 landing-float">
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--landing-primary)] to-[var(--landing-accent)] flex items-center justify-center">
+            <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-5 border border-gray-700">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-700">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                   <Map className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <div className="font-bold text-white">Tokyo · Spring Escape</div>
-                  <div className="text-xs text-gray-400">March 15-22, 2025</div>
+                  <div className="text-xs text-gray-400">March 15-22, 2026</div>
                 </div>
               </div>
               
@@ -361,8 +354,8 @@ export default function Landing() {
                   { day: 'Day 3', title: 'Hidden ramen spot!', icon: Heart },
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                      <item.icon className="w-4 h-4 text-[var(--landing-primary-soft)]" />
+                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-emerald-400" />
                     </div>
                     <div className="flex-1">
                       <div className="text-xs text-gray-500">{item.day}</div>
@@ -378,26 +371,24 @@ export default function Landing() {
       </section>
 
       {/* ========================================
-          METRICS SECTION
+          PILOT CITIES SECTION (replaces fake metrics)
           ======================================== */}
-      <section className="landing-section px-4 py-12 md:py-16" style={{ background: 'var(--landing-bg-light)' }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="landing-metrics-card p-8 md:p-10 text-white">
-            <div className="relative grid grid-cols-3 gap-4 md:gap-8 text-center">
-              <div className="space-y-1">
-                <div className="text-3xl md:text-4xl font-bold">{t('ui:landingPage.experiencesCount')}</div>
-                <div className="text-sm md:text-base opacity-80">{t('ui:landingPage.localExperiences')}</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl md:text-4xl font-bold">{t('ui:landingPage.hostsCount')}</div>
-                <div className="text-sm md:text-base opacity-80">{t('ui:landingPage.verifiedHosts')}</div>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl md:text-4xl font-bold">{t('ui:landingPage.citiesCount')}</div>
-                <div className="text-sm md:text-base opacity-80">{t('ui:landingPage.cities')}</div>
-              </div>
-            </div>
+      <section className="px-4 py-12 md:py-16 bg-[#f8f7f4]">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            {t('ui:landingPage.pilotBadge')}
           </div>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{t('ui:landingPage.pilotCities')}</h3>
+          <p className="text-gray-600 max-w-md mx-auto mb-6">
+            {t('ui:landingPage.discoverDesc')}
+          </p>
+          <button
+            onClick={() => setShowLoginModal(true)}
+            className="bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition"
+          >
+            {t('ui:landingPage.joinWaitlist')}
+          </button>
         </div>
       </section>
 
@@ -551,53 +542,55 @@ export default function Landing() {
       {/* 플로팅 언어 선택 버튼 */}
       <LanguageSwitcher floating />
       
-      {/* SEO 페이지 10개 카드 버튼 - Footer 위 */}
-      <section className="py-12 px-4 bg-gray-100">
+      {/* SEO 페이지 10개 카드 버튼 - Footer 위 (라인 아이콘) */}
+      <section className="py-12 px-4 bg-[#f8f7f4]">
         <div className="max-w-4xl mx-auto">
           {/* 서비스 소개 6개 */}
-          <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">{t('ui:seoLinks.exploreFeatures')}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
+          <h3 className="text-lg font-semibold text-gray-700 mb-6 text-center">{t('ui:seoLinks.exploreFeatures')}</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-8">
             {[
-              { path: '/travel-itinerary', image: '/seo-cards/travel-itinerary.png', titleKey: 'seoLinks.travelItinerary' },
-              { path: '/map-travel', image: '/seo-cards/map-travel.png', titleKey: 'seoLinks.mapTravel' },
-              { path: '/travel-timeline', image: '/seo-cards/travel-timeline.png', titleKey: 'seoLinks.travelTimeline' },
-              { path: '/local-tips', image: '/seo-cards/local-tips.png', titleKey: 'seoLinks.localTips' },
-              { path: '/travel-mate', image: '/seo-cards/travel-mate.png', titleKey: 'seoLinks.travelMate' },
-              { path: '/safety', image: '/seo-cards/safety.png', titleKey: 'seoLinks.safety' },
-            ].map((card) => (
-              <Link key={card.path} href={card.path}>
-                <div className="bg-white hover:bg-gray-50 rounded-xl p-3 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
-                  <img 
-                    src={card.image} 
-                    alt={t(`ui:${card.titleKey}`)} 
-                    className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover group-hover:scale-110 transition-transform"
-                  />
-                  <span className="text-xs font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
-                </div>
-              </Link>
-            ))}
+              { path: '/travel-itinerary', icon: Calendar, titleKey: 'seoLinks.travelItinerary', color: 'text-blue-600 bg-blue-50' },
+              { path: '/map-travel', icon: MapPin, titleKey: 'seoLinks.mapTravel', color: 'text-emerald-600 bg-emerald-50' },
+              { path: '/travel-timeline', icon: Clock, titleKey: 'seoLinks.travelTimeline', color: 'text-purple-600 bg-purple-50' },
+              { path: '/local-tips', icon: Star, titleKey: 'seoLinks.localTips', color: 'text-amber-600 bg-amber-50' },
+              { path: '/travel-mate', icon: Users, titleKey: 'seoLinks.travelMate', color: 'text-pink-600 bg-pink-50' },
+              { path: '/safety', icon: Shield, titleKey: 'seoLinks.safety', color: 'text-slate-600 bg-slate-50' },
+            ].map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link key={card.path} href={card.path}>
+                  <div className="bg-white hover:bg-gray-50 rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all cursor-pointer group border border-gray-100">
+                    <div className={`w-10 h-10 mx-auto mb-2 rounded-lg ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-600">{t(`ui:${card.titleKey}`)}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
 
           {/* 수익 창출 4개 */}
-          <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">{t('ui:seoFooter.earning')}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <h3 className="text-sm font-medium text-gray-500 mb-4 text-center">{t('ui:seoFooter.earning')}</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { path: '/become-guide', image: '/seo-cards/become-guide.png', titleKey: 'seoLinks.becomeGuide' },
-              { path: '/earn-travel', image: '/seo-cards/earn-travel.png', titleKey: 'seoLinks.earnTravel' },
-              { path: '/travel-creator', image: '/seo-cards/travel-creator.png', titleKey: 'seoLinks.travelCreator' },
-              { path: '/travel-friends', image: '/seo-cards/travel-friends.png', titleKey: 'seoLinks.travelFriends' },
-            ].map((card) => (
-              <Link key={card.path} href={card.path}>
-                <div className="bg-white hover:bg-gray-50 rounded-xl p-3 text-center shadow-sm hover:shadow-lg transition-all hover:scale-105 cursor-pointer group border">
-                  <img 
-                    src={card.image} 
-                    alt={t(`ui:${card.titleKey}`)} 
-                    className="w-16 h-16 mx-auto mb-2 rounded-lg object-cover group-hover:scale-110 transition-transform"
-                  />
-                  <span className="text-xs font-medium text-gray-700">{t(`ui:${card.titleKey}`)}</span>
-                </div>
-              </Link>
-            ))}
+              { path: '/become-guide', icon: Globe, titleKey: 'seoLinks.becomeGuide', color: 'text-teal-600 bg-teal-50' },
+              { path: '/earn-travel', icon: DollarSign, titleKey: 'seoLinks.earnTravel', color: 'text-green-600 bg-green-50' },
+              { path: '/travel-creator', icon: Camera, titleKey: 'seoLinks.travelCreator', color: 'text-indigo-600 bg-indigo-50' },
+              { path: '/travel-friends', icon: Heart, titleKey: 'seoLinks.travelFriends', color: 'text-rose-600 bg-rose-50' },
+            ].map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link key={card.path} href={card.path}>
+                  <div className="bg-white hover:bg-gray-50 rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all cursor-pointer group border border-gray-100">
+                    <div className={`w-10 h-10 mx-auto mb-2 rounded-lg ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-600">{t(`ui:${card.titleKey}`)}</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
