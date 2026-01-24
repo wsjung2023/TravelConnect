@@ -33124,5 +33124,221 @@
     "key": "review.rating",
     "locale": "es",
     "value": "Please select a rating"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Title",
+    "locale": "en",
+    "value": "Create Experience"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Title",
+    "locale": "ko",
+    "value": "체험 만들기"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Title",
+    "locale": "ja",
+    "value": "体験を作成"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Title",
+    "locale": "zh",
+    "value": "创建体验"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Title",
+    "locale": "fr",
+    "value": "Créer une expérience"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Title",
+    "locale": "es",
+    "value": "Crear experiencia"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Desc",
+    "locale": "en",
+    "value": "Share your local expertise with travelers looking for authentic experiences"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Desc",
+    "locale": "ko",
+    "value": "진정한 경험을 찾는 여행자들과 현지 전문 지식을 공유하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Desc",
+    "locale": "ja",
+    "value": "本格的な体験を求める旅行者にあなたの地元の専門知識を共有しましょう"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Desc",
+    "locale": "zh",
+    "value": "与寻找正宗体验的旅行者分享您的本地专业知识"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Desc",
+    "locale": "fr",
+    "value": "Partagez votre expertise locale avec les voyageurs recherchant des expériences authentiques"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step1Desc",
+    "locale": "es",
+    "value": "Comparte tu experiencia local con viajeros que buscan experiencias auténticas"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Title",
+    "locale": "en",
+    "value": "Set Your Schedule"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Title",
+    "locale": "ko",
+    "value": "일정 설정"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Title",
+    "locale": "ja",
+    "value": "スケジュールを設定"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Title",
+    "locale": "zh",
+    "value": "设置日程"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Title",
+    "locale": "fr",
+    "value": "Définir votre horaire"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Title",
+    "locale": "es",
+    "value": "Establecer tu horario"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Desc",
+    "locale": "en",
+    "value": "Choose available dates and times that work best for you"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Desc",
+    "locale": "ko",
+    "value": "가장 적합한 날짜와 시간을 선택하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Desc",
+    "locale": "ja",
+    "value": "最適な日時を選択してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Desc",
+    "locale": "zh",
+    "value": "选择最适合您的日期和时间"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Desc",
+    "locale": "fr",
+    "value": "Choisissez les dates et heures qui vous conviennent le mieux"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step2Desc",
+    "locale": "es",
+    "value": "Elige las fechas y horarios que mejor te funcionen"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Title",
+    "locale": "en",
+    "value": "Welcome Guests"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Title",
+    "locale": "ko",
+    "value": "게스트 맞이"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Title",
+    "locale": "ja",
+    "value": "ゲストを迎える"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Title",
+    "locale": "zh",
+    "value": "欢迎客人"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Title",
+    "locale": "fr",
+    "value": "Accueillir les invités"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Title",
+    "locale": "es",
+    "value": "Dar la bienvenida a los huéspedes"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Desc",
+    "locale": "en",
+    "value": "Connect with travelers, provide amazing experiences, and earn"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Desc",
+    "locale": "ko",
+    "value": "여행자와 연결하고, 놀라운 경험을 제공하며 수익을 올리세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Desc",
+    "locale": "ja",
+    "value": "旅行者とつながり、素晴らしい体験を提供して収益を得ましょう"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Desc",
+    "locale": "zh",
+    "value": "与旅行者联系，提供精彩体验并赚取收入"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Desc",
+    "locale": "fr",
+    "value": "Connectez-vous avec les voyageurs, offrez des expériences incroyables et gagnez"
+  },
+  {
+    "namespace": "ui",
+    "key": "host.step3Desc",
+    "locale": "es",
+    "value": "Conéctate con viajeros, brinda experiencias increíbles y gana"
   }
 ]
