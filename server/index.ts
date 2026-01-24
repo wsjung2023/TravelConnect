@@ -275,9 +275,6 @@ if (process.env.NODE_ENV === 'production') {
 (async () => {
   const server = await registerRoutes(app);
 
-  // 번역 데이터 동기화 (누락된 번역만 추가)
-  await syncTranslations();
-
   // 예약 시스템 자동화 스케줄러 시작
   startBookingScheduler(storage);
 
@@ -343,6 +340,11 @@ if (process.env.NODE_ENV === 'production') {
     },
     () => {
       log(`serving on port ${port}`);
+      
+      // 번역 데이터 동기화 (서버 시작 후 백그라운드에서 실행)
+      syncTranslations().catch((err) => {
+        console.error('Translation sync failed:', err);
+      });
     }
   );
 })();
