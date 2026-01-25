@@ -314,7 +314,7 @@ export interface IStorage {
     joinedAt: string;
   } | undefined>;
 
-  // System Settings operations
+  // System Settings operations (legacy)
   getSystemSetting(category: string, key: string): Promise<string | undefined>;
   setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting>;
   getAllSystemSettings(category?: string): Promise<SystemSetting[]>;
@@ -322,6 +322,11 @@ export interface IStorage {
     id: string,
     updates: Partial<InsertSystemSetting>
   ): Promise<SystemSetting | undefined>;
+  
+  // System Config operations (new)
+  getAllSystemConfigs(category?: string): Promise<SystemConfig[]>;
+  getSystemConfigByKey(key: string): Promise<SystemConfig | undefined>;
+  updateSystemConfig(id: number, updates: Partial<InsertSystemConfig>): Promise<SystemConfig | undefined>;
 
   // Notification operations
   createNotification(notification: InsertNotification): Promise<Notification>;
@@ -1725,6 +1730,28 @@ export class DatabaseStorage implements IStorage {
       .where(eq(systemSettings.id, id))
       .returning();
     return setting;
+  }
+
+  // System Config operations (new)
+  async getAllSystemConfigs(category?: string): Promise<SystemConfig[]> {
+    if (category) {
+      return await db.select().from(systemConfig).where(eq(systemConfig.category, category));
+    }
+    return await db.select().from(systemConfig);
+  }
+
+  async getSystemConfigByKey(key: string): Promise<SystemConfig | undefined> {
+    const [config] = await db.select().from(systemConfig).where(eq(systemConfig.key, key));
+    return config;
+  }
+
+  async updateSystemConfig(id: number, updates: Partial<InsertSystemConfig>): Promise<SystemConfig | undefined> {
+    const [config] = await db
+      .update(systemConfig)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(systemConfig.id, id))
+      .returning();
+    return config;
   }
 
   // SQL 실행 함수 (DB Admin용)

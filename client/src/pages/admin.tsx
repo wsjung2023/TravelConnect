@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import CommerceDashboard from '@/components/admin/CommerceDashboard';
+import SystemConfigManager from '@/components/admin/SystemConfigManager';
 
 interface DatabasePost {
   id: number;
@@ -387,6 +388,9 @@ export default function AdminPage() {
 
         {selectedTab === 'system' && (
           <div className="space-y-6">
+            {/* 시스템 설정 관리 */}
+            <SystemConfigManager />
+
             {/* 데이터베이스 관리 */}
             <Card>
               <CardHeader>

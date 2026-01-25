@@ -2085,13 +2085,14 @@ COMMIT;
     }
   });
 
-  // System Settings API - 관리자 전용
+  // System Settings API - 관리자 전용 (new system_config table)
   app.get('/api/system-settings', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
     try {
-      const settings = await storage.getAllSystemSettings();
-      res.json(settings);
+      const category = req.query.category as string | undefined;
+      const configs = await storage.getAllSystemConfigs(category);
+      res.json(configs);
     } catch (error) {
-      console.error('Error fetching system settings:', error);
+      console.error('Error fetching system configs:', error);
       res.status(500).json({ message: 'Failed to fetch system settings' });
     }
   });
@@ -2102,14 +2103,18 @@ COMMIT;
       if (!id) {
         return res.status(400).json({ message: 'Setting ID is required' });
       }
+      const numericId = parseInt(id, 10);
+      if (isNaN(numericId)) {
+        return res.status(400).json({ message: 'Invalid setting ID' });
+      }
       const updates = req.body;
-      const setting = await storage.updateSystemSetting(id, updates);
-      if (!setting) {
+      const config = await storage.updateSystemConfig(numericId, updates);
+      if (!config) {
         return res.status(404).json({ message: 'Setting not found' });
       }
-      res.json(setting);
+      res.json(config);
     } catch (error) {
-      console.error('Error updating system setting:', error);
+      console.error('Error updating system config:', error);
       res.status(500).json({ message: 'Failed to update system setting' });
     }
   });
