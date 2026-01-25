@@ -31,6 +31,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import CommerceDashboard from '@/components/admin/CommerceDashboard';
 import SystemConfigManager from '@/components/admin/SystemConfigManager';
+import { AiPromptTemplateManager } from '@/components/admin/AiPromptTemplateManager';
 
 interface DatabasePost {
   id: number;
@@ -390,6 +391,9 @@ export default function AdminPage() {
           <div className="space-y-6">
             {/* 시스템 설정 관리 */}
             <SystemConfigManager />
+
+            {/* AI 프롬프트 템플릿 관리 */}
+            <AiPromptTemplateManager />
 
             {/* 데이터베이스 관리 */}
             <Card>

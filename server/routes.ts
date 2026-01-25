@@ -2119,6 +2119,49 @@ COMMIT;
     }
   });
 
+  // AI Prompt Templates API - 관리자 전용
+  app.get('/api/ai-prompt-templates', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      if (category) {
+        const templates = await storage.getAiPromptTemplatesByCategory(category);
+        return res.json(templates);
+      }
+      const templates = await storage.getAllAiPromptTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching AI prompt templates:', error);
+      res.status(500).json({ message: 'Failed to fetch AI prompt templates' });
+    }
+  });
+
+  app.post('/api/ai-prompt-templates', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const template = await storage.createAiPromptTemplate({ ...req.body, createdBy: req.user?.id });
+      res.status(201).json(template);
+    } catch (error) {
+      console.error('Error creating AI prompt template:', error);
+      res.status(500).json({ message: 'Failed to create AI prompt template' });
+    }
+  });
+
+  app.put('/api/ai-prompt-templates/:id', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid template ID' });
+      }
+      const template = await storage.updateAiPromptTemplate(id, req.body, req.user?.id);
+      if (!template) {
+        return res.status(404).json({ message: 'Template not found' });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error('Error updating AI prompt template:', error);
+      res.status(500).json({ message: 'Failed to update AI prompt template' });
+    }
+  });
+
   // DEPRECATED: Old experienceId-based booking API (for backward compatibility)
   // TODO: Migrate frontend to use slot-based booking API at line 4004+
   app.post('/api/bookings', authenticateHybrid, async (req: AuthRequest, res) => {
