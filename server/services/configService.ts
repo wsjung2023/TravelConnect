@@ -129,10 +129,15 @@ export async function getConfig<T = any>(category: string, key: string, defaultV
     return extractValue(config) as T;
   }
   
-  // 기본값 폴백
+  // 기본값 폴백 (경고 로깅)
   const fallbackKey = `${category}.${key}`;
   if (defaultValue !== undefined) {
+    console.warn(`[ConfigService] Config not found in DB: ${fallbackKey}, using provided default`);
     return defaultValue;
+  }
+  
+  if (DEFAULT_VALUES[fallbackKey] !== undefined) {
+    console.warn(`[ConfigService] Config not found in DB: ${fallbackKey}, using hardcoded fallback (should be seeded)`);
   }
   
   return (DEFAULT_VALUES[fallbackKey] ?? null) as T;

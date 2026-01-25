@@ -61,6 +61,10 @@ Translation data must be managed in the database (`translations` table), not har
 - **Host Settlement Batch System**: Automated daily settlement for hosts using PortOne Transfer API, with KYC verification and minimum payout conditions, managed by a cron scheduler.
 - **Currency System**: Base currency USD, pricing tiers in USD, with PortOne/KG이니시스 V2 payment gateway integration. Frontend displays prices using `Intl.NumberFormat` with `en-US` locale and `USD` currency.
 - **Performance Optimization**: Database indexes (40+ across 10 tables), LRU caching for billing plans, Trip Pass, AI usage stats, feed scores, translations, and trending hashtags. Modular routers and repository sub-interfaces for better code organization. Batch processing for settlements, expired bookings, completed experiences, slot recalculation, and analytics ETL.
+- **DB-Driven System Configuration**: Zero hardcoded values - all configuration (98 entries across 11 categories: payment, ai, rate_limit, distance, cache, pagination, user_experience, file, i18n, comment, geo, host_plan) stored in `system_config` table with LRU caching (5min TTL) via `configService.ts`. Admin UI for CRUD operations with search, category filtering, and validation.
+- **AI Prompt Template Management**: `ai_prompt_templates` table for managing AI prompts (CineMap, Concierge, Mini Concierge, Translation) with version control, locale support (en/ko/ja/zh/fr/es/de), model configuration (temperature, max_tokens, top_p), and admin UI for template editing.
+- **Config Audit Logging**: `config_audit_logs` table tracks all system configuration changes with before/after values for compliance and debugging.
+- **User Analytics Schema**: `user_sessions`, `user_events`, `user_daily_metrics`, `platform_daily_metrics` tables for comprehensive user behavior tracking and analytics.
 
 ## External Dependencies
 

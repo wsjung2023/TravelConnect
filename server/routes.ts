@@ -2107,7 +2107,16 @@ COMMIT;
       if (isNaN(numericId)) {
         return res.status(400).json({ message: 'Invalid setting ID' });
       }
-      const updates = req.body;
+      const allowedFields = ['valueString', 'valueNumber', 'valueBoolean', 'valueJson', 'description', 'descriptionKo'];
+      const updates: Record<string, any> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: 'No valid fields to update' });
+      }
       const config = await storage.updateSystemConfig(numericId, updates);
       if (!config) {
         return res.status(404).json({ message: 'Setting not found' });
@@ -2137,7 +2146,20 @@ COMMIT;
 
   app.post('/api/ai-prompt-templates', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
     try {
-      const template = await storage.createAiPromptTemplate({ ...req.body, createdBy: req.user?.id });
+      const requiredFields = ['templateKey', 'name', 'category'];
+      for (const field of requiredFields) {
+        if (!req.body[field]) {
+          return res.status(400).json({ message: `${field} is required` });
+        }
+      }
+      const allowedFields = ['templateKey', 'name', 'nameKo', 'description', 'aiProvider', 'aiModel', 'maxTokens', 'temperature', 'topP', 'frequencyPenalty', 'presencePenalty', 'systemPrompt', 'userPromptTemplate', 'locale', 'responseFormat', 'responseSchema', 'isActive', 'isDefault', 'category', 'tags'];
+      const templateData: Record<string, any> = { createdBy: req.user?.id };
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          templateData[field] = req.body[field];
+        }
+      }
+      const template = await storage.createAiPromptTemplate(templateData as any);
       res.status(201).json(template);
     } catch (error) {
       console.error('Error creating AI prompt template:', error);
@@ -2151,7 +2173,17 @@ COMMIT;
       if (isNaN(id)) {
         return res.status(400).json({ message: 'Invalid template ID' });
       }
-      const template = await storage.updateAiPromptTemplate(id, req.body, req.user?.id);
+      const allowedFields = ['name', 'nameKo', 'description', 'aiProvider', 'aiModel', 'maxTokens', 'temperature', 'topP', 'frequencyPenalty', 'presencePenalty', 'systemPrompt', 'userPromptTemplate', 'locale', 'responseFormat', 'responseSchema', 'isActive', 'isDefault', 'tags'];
+      const updates: Record<string, any> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: 'No valid fields to update' });
+      }
+      const template = await storage.updateAiPromptTemplate(id, updates, req.user?.id);
       if (!template) {
         return res.status(404).json({ message: 'Template not found' });
       }
