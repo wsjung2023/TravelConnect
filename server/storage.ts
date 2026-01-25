@@ -218,6 +218,8 @@ export interface IStorage {
   // Comment operations
   createComment(comment: InsertComment): Promise<Comment>;
   getCommentsByPost(postId: number): Promise<Comment[]>;
+  getCommentReplies(parentId: number): Promise<Comment[]>;
+  updateOfferStatus(commentId: number, status: string): Promise<Comment | undefined>;
   deleteComment(commentId: number, userId: string): Promise<boolean>;
 
   // Booking operations
@@ -1115,17 +1117,53 @@ export class DatabaseStorage implements IStorage {
 
   async getCommentsByPost(postId: number): Promise<Comment[]> {
     try {
-      // Raw SQL을 사용하여 Drizzle ORM 오류 회피
       const result = await db.execute(sql`
-        SELECT id, post_id as "postId", user_id as "userId", content, created_at as "createdAt"
+        SELECT id, post_id as "postId", user_id as "userId", content, 
+               parent_id as "parentId", is_offer as "isOffer", 
+               offer_price as "offerPrice", offer_description as "offerDescription",
+               offer_duration as "offerDuration", offer_status as "offerStatus",
+               created_at as "createdAt"
         FROM comments 
         WHERE post_id = ${postId} 
-        ORDER BY created_at DESC
+        ORDER BY created_at ASC
       `);
       return result.rows as any[];
     } catch (error) {
       console.error('댓글 조회 오류:', error);
       return [];
+    }
+  }
+
+  async getCommentReplies(parentId: number): Promise<Comment[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT id, post_id as "postId", user_id as "userId", content, 
+               parent_id as "parentId", is_offer as "isOffer", 
+               offer_price as "offerPrice", offer_description as "offerDescription",
+               offer_duration as "offerDuration", offer_status as "offerStatus",
+               created_at as "createdAt"
+        FROM comments 
+        WHERE parent_id = ${parentId} 
+        ORDER BY created_at ASC
+      `);
+      return result.rows as any[];
+    } catch (error) {
+      console.error('답글 조회 오류:', error);
+      return [];
+    }
+  }
+
+  async updateOfferStatus(commentId: number, status: string): Promise<Comment | undefined> {
+    try {
+      const [updated] = await db
+        .update(comments)
+        .set({ offerStatus: status })
+        .where(eq(comments.id, commentId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('오퍼 상태 업데이트 오류:', error);
+      return undefined;
     }
   }
 

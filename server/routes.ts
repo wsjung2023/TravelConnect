@@ -1898,16 +1898,21 @@ COMMIT;
   // Comments API (실시간 알림 포함)
   app.post('/api/posts/:id/comments', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.id;  // JWT에서는 .id로 접근
+      const userId = req.user.id;
       const postId = parseInt(req.params.id);
       
-      // 포스트 정보 미리 조회 (알림 전송용)
       const post = await storage.getPostById(postId);
       
       const commentData = insertCommentSchema.parse({
         postId,
         userId,
         content: req.body.content,
+        parentId: req.body.parentId || null,
+        isOffer: req.body.isOffer || false,
+        offerPrice: req.body.offerPrice || null,
+        offerDescription: req.body.offerDescription || null,
+        offerDuration: req.body.offerDuration || null,
+        offerStatus: req.body.isOffer ? 'pending' : null,
       });
 
       const newComment = await storage.createComment(commentData);
@@ -1917,14 +1922,14 @@ COMMIT;
       if (post && post.userId !== userId) {
         const sendNotificationToUser = (app as any).sendNotificationToUser;
         if (sendNotificationToUser) {
-          // 최신 알림 조회해서 WebSocket으로 전송
           const notifications = await storage.getNotificationsByUser(post.userId);
+          const notificationType = req.body.isOffer ? 'offer' : (req.body.parentId ? 'reply' : 'comment');
           const latestNotification = notifications.find(n => 
-            n.type === 'comment' && n.relatedPostId === postId && n.relatedUserId === userId
+            n.type === notificationType && n.relatedPostId === postId && n.relatedUserId === userId
           );
           if (latestNotification) {
             sendNotificationToUser(post.userId, latestNotification);
-            console.log('실시간 댓글 알림 전송:', post.userId);
+            console.log('실시간 알림 전송:', post.userId, notificationType);
           }
         }
       }
@@ -1962,6 +1967,28 @@ COMMIT;
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
       res.status(500).json({ message: '댓글 삭제에 실패했습니다.' });
+    }
+  });
+
+  // Offer status update
+  app.patch('/api/comments/:id/offer-status', authenticateToken, async (req: any, res) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!['pending', 'accepted', 'declined'].includes(status)) {
+        return res.status(400).json({ message: '잘못된 상태입니다.' });
+      }
+      
+      const updated = await storage.updateOfferStatus(commentId, status);
+      if (updated) {
+        res.json(updated);
+      } else {
+        res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+      }
+    } catch (error) {
+      console.error('오퍼 상태 업데이트 실패:', error);
+      res.status(500).json({ message: '오퍼 상태 업데이트에 실패했습니다.' });
     }
   });
 
