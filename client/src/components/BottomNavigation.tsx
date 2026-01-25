@@ -71,6 +71,8 @@ export default function BottomNavigation({
                 <button
                   onClick={onCreatePost}
                   className="flex flex-col items-center gap-1 p-2 mx-2"
+                  data-testid="create-post-fab"
+                  aria-label="Create new post"
                 >
                   <div className="w-12 h-12 travel-gradient rounded-full flex items-center justify-center shadow-lg">
                     <Plus size={24} className="text-white" />
