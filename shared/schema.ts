@@ -472,6 +472,12 @@ export const comments = pgTable('comments', {
     .notNull()
     .references(() => users.id),
   content: text('content').notNull(),
+  parentId: integer('parent_id'),
+  isOffer: boolean('is_offer').default(false),
+  offerPrice: integer('offer_price'),
+  offerDescription: text('offer_description'),
+  offerDuration: varchar('offer_duration', { length: 50 }),
+  offerStatus: varchar('offer_status', { length: 20 }).default('pending'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => [
   // 포스트별 댓글 조회 최적화
@@ -480,6 +486,8 @@ export const comments = pgTable('comments', {
   index('IDX_comments_user_id').on(table.userId),
   // 시간순 정렬 최적화
   index('IDX_comments_created_at').on(table.createdAt),
+  // 답글 조회 최적화
+  index('IDX_comments_parent_id').on(table.parentId),
 ]);
 
 // 좋아요 테이블: 좋아요 확인 및 카운트에 자주 사용됨
