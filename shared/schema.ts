@@ -5,6 +5,7 @@ import {
   timestamp,
   jsonb,
   index,
+  uniqueIndex,
   serial,
   decimal,
   integer,
@@ -2322,6 +2323,7 @@ export const translations = pgTable('translations', {
 }, (table) => [
   index('idx_translations_namespace_locale').on(table.namespace, table.locale),
   index('idx_translations_key').on(table.key),
+  uniqueIndex('idx_translations_unique').on(table.namespace, table.key, table.locale),
 ]);
 
 // 지원 언어 목록

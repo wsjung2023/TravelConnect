@@ -1,5 +1,6 @@
 import { db } from './db';
 import { translations } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
 
@@ -50,22 +51,36 @@ export async function syncTranslations(): Promise<void> {
       
       for (const t of batch) {
         try {
-          await db.insert(translations).values({
-            namespace: t.namespace,
-            key: t.key,
-            locale: t.locale,
-            value: t.value,
-            isReviewed: false,
-            version: 1
-          }).onConflictDoNothing();
-          insertedCount++;
+          // 먼저 존재 여부 확인
+          const existing = await db.select({ id: translations.id })
+            .from(translations)
+            .where(and(
+              eq(translations.namespace, t.namespace),
+              eq(translations.key, t.key),
+              eq(translations.locale, t.locale)
+            ))
+            .limit(1);
+          
+          if (existing.length === 0) {
+            await db.insert(translations).values({
+              namespace: t.namespace,
+              key: t.key,
+              locale: t.locale,
+              value: t.value,
+              isReviewed: false,
+              version: 1
+            });
+            insertedCount++;
+          } else {
+            skippedCount++;
+          }
         } catch (err) {
           skippedCount++;
         }
       }
     }
     
-    console.log(`[Translation Sync] Completed: ${insertedCount} processed, ${skippedCount} skipped`);
+    console.log(`[Translation Sync] Completed: ${insertedCount} inserted, ${skippedCount} skipped`);
   } catch (error) {
     console.error('[Translation Sync] Error:', error);
   }
