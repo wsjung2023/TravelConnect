@@ -1,6 +1,6 @@
 import { storage } from '../storage';
 import type { SystemConfig } from '@shared/schema';
-import { LRUCache } from 'lru-cache';
+import LRUCache from 'lru-cache';
 
 // 설정값 캐시 (TTL: 5분)
 const configCache = new LRUCache<string, SystemConfig>({

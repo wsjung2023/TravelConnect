@@ -1,8 +1,12 @@
 import type { Request, Response } from 'express';
+import { getAiMaxTokens } from '../services/configService';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const AI_MODEL = process.env.CONCIERGE_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest';
-const MAX_TOKENS = 500;
+
+async function getMaxTokens(): Promise<number> {
+  return await getAiMaxTokens('concierge');
+}
 
 console.log(`[AI Concierge] Using model: ${AI_MODEL} (CONCIERGE_AI_MODEL=${process.env.CONCIERGE_AI_MODEL}, AI_MODEL=${process.env.AI_MODEL})`);
 
@@ -134,7 +138,7 @@ export async function generateConciergeResponse(
       body: JSON.stringify({
         model: AI_MODEL,
         messages: messages,
-        max_completion_tokens: MAX_TOKENS,
+        max_completion_tokens: await getMaxTokens(),
       }),
     });
 
@@ -189,7 +193,7 @@ export async function generateConciergeResponseStream(
       body: JSON.stringify({
         model: AI_MODEL,
         messages: messages,
-        max_completion_tokens: MAX_TOKENS,
+        max_completion_tokens: await getMaxTokens(),
         stream: true,
       }),
     });

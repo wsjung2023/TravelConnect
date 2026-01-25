@@ -1,6 +1,11 @@
+import { getAiMaxTokens } from '../services/configService';
+
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const AI_MODEL = process.env.CINEMAP_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest';
-const MAX_TOKENS = 2000;
+
+async function getMaxTokens(): Promise<number> {
+  return await getAiMaxTokens('cinemap');
+}
 
 console.log(`[CineMap AI] Using model: ${AI_MODEL} (CINEMAP_AI_MODEL=${process.env.CINEMAP_AI_MODEL}, AI_MODEL=${process.env.AI_MODEL})`);
 
@@ -216,7 +221,7 @@ export async function generateStoryboard(
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_completion_tokens: MAX_TOKENS,
+        max_completion_tokens: await getMaxTokens(),
         response_format: { type: 'json_object' },
       }),
     });
