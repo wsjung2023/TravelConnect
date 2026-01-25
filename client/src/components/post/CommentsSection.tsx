@@ -181,7 +181,8 @@ function CommentItem({
             <p className="text-xs text-gray-500">
               {comment?.createdAt ? new Date(comment.createdAt).toLocaleString('ko-KR') : '방금 전'}
             </p>
-            {onReply && typeof comment.id === 'number' && (
+            {/* 인스타그램처럼 1단계 답글만 허용 (depth 0인 루트 댓글에만 답글 버튼 표시) */}
+            {onReply && typeof comment.id === 'number' && depth === 0 && (
               <button 
                 onClick={() => onReply(comment.id as number)}
                 className="text-xs text-gray-500 hover:text-violet-600 flex items-center gap-1"
@@ -222,9 +223,10 @@ export default function CommentsSection({ postId, postOwnerId, currentUserId, on
   
   const rootComments = safeComments.filter((c: Comment) => !c.parentId);
   const repliesMap = safeComments.reduce((acc: Record<number, Comment[]>, c: Comment) => {
-    if (c.parentId) {
-      if (!acc[c.parentId]) acc[c.parentId] = [];
-      acc[c.parentId].push(c);
+    if (c.parentId != null) {
+      const parentKey = c.parentId;
+      if (!acc[parentKey]) acc[parentKey] = [];
+      acc[parentKey].push(c);
     }
     return acc;
   }, {});
