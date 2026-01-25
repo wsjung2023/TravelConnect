@@ -614,6 +614,7 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
             <div 
               key={`${item.type}-${item.id}`} 
               className="travel-card p-4"
+              data-testid={`post-card-${item.id}`}
               onClick={() => {
                 if (isExperience) {
                   setLocation(`/experience/${item.id}`);
