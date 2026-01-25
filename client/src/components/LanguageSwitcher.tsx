@@ -47,7 +47,8 @@ export function LanguageSwitcher({ floating = false }: LanguageSwitcherProps) {
     }
   };
 
-  const currentLanguage: Language = languages.find(lang => lang.code === i18n.language) ?? languages[0];
+  const defaultLanguage: Language = { code: 'en', name: 'English', flag: '🇺🇸' };
+  const currentLanguage: Language = languages.find(lang => lang.code === i18n.language) ?? defaultLanguage;
 
   // 플로팅 스타일 (화면 우측 하단 고정)
   if (floating) {

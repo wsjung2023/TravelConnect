@@ -154,9 +154,9 @@ export default function Marketplace() {
             />
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger data-testid="select-category" className="w-32">
+              <SelectTrigger data-testid="select-category" className="w-full sm:w-[140px] text-sm">
                 <SelectValue placeholder={t('marketplace.category')} />
               </SelectTrigger>
               <SelectContent>
@@ -169,7 +169,7 @@ export default function Marketplace() {
             </Select>
 
             <Select value={priceFilter} onValueChange={setPriceFilter}>
-              <SelectTrigger data-testid="select-price" className="w-32">
+              <SelectTrigger data-testid="select-price" className="w-full sm:w-[140px] text-sm">
                 <SelectValue placeholder={t('marketplace.priceRange')} />
               </SelectTrigger>
               <SelectContent>
@@ -182,7 +182,7 @@ export default function Marketplace() {
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger data-testid="select-sort" className="w-32">
+              <SelectTrigger data-testid="select-sort" className="w-full sm:w-[140px] text-sm">
                 <SelectValue placeholder={t('marketplace.sortBy')} />
               </SelectTrigger>
               <SelectContent>

@@ -193,31 +193,31 @@ export default function Landing() {
                 {t('ui:landingPage.heroDesc')}
               </p>
               
-              <div className="flex flex-wrap items-center gap-4 pt-2 text-sm opacity-80">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-pink-300" />
-                  <span>{t('ui:landingPage.authenticExperiences')}</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 text-xs sm:text-sm opacity-80">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-300 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{t('ui:landingPage.authenticExperiences')}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-blue-300" />
-                  <span>{t('ui:landingPage.globalCommunity')}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{t('ui:landingPage.globalCommunity')}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-emerald-300" />
-                  <span>{t('ui:landingPage.safetyFirst')}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{t('ui:landingPage.safetyFirst')}</span>
                 </div>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex items-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 pt-4">
                 <Link href="/">
                   <button
                     onClick={() => setShowLoginModal(true)}
-                    className="bg-white text-gray-900 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition flex items-center gap-2"
+                    className="bg-white text-gray-900 px-5 sm:px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition flex items-center justify-center gap-2 w-full sm:w-auto min-w-0 text-sm sm:text-base"
                     data-testid="button-explore"
                   >
-                    <Compass className="w-5 h-5" />
-                    {t('ui:landingPage.exploreMap')}
+                    <Compass className="w-5 h-5 flex-shrink-0" />
+                    <span className="truncate">{t('ui:landingPage.exploreMap')}</span>
                   </button>
                 </Link>
                 {import.meta.env.DEV && (
