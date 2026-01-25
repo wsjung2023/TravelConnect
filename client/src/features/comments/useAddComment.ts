@@ -1,37 +1,51 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
+interface CommentData {
+  content: string;
+  parentId?: number | null;
+  isOffer?: boolean;
+  offerPrice?: number | null;
+  offerDescription?: string | null;
+  offerDuration?: string | null;
+}
+
 export function useAddComment(postId: number) {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (data: CommentData) => {
       return api(`/api/posts/${postId}/comments`, {
         method: "POST",
-        body: { content },
+        body: data,
         auth: true,
       });
     },
-    onMutate: async (content) => {
+    onMutate: async (data) => {
       await qc.cancelQueries({ queryKey: ["comments", postId] });
       const prev = qc.getQueryData<any[]>(["comments", postId]) || [];
       const temp = {
         id: `temp-${Date.now()}`,
-        content,
+        content: data.content,
+        parentId: data.parentId || null,
+        isOffer: data.isOffer || false,
+        offerPrice: data.offerPrice || null,
+        offerDescription: data.offerDescription || null,
+        offerDuration: data.offerDuration || null,
+        offerStatus: data.isOffer ? 'pending' : null,
         createdAt: new Date().toISOString(),
-        userId: "현재사용자", // 임시 사용자 ID
+        userId: "현재사용자",
         author: { nickname: "나" },
         _optimistic: true,
       };
-      qc.setQueryData(["comments", postId], [temp, ...prev]);
+      qc.setQueryData(["comments", postId], [...prev, temp]);
       return { prev };
     },
-    onError: (err, _vars, ctx) => {
+    onError: (err: any, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(["comments", postId], ctx.prev);
       
-      if (err.message.includes("401")) {
+      if (err.message?.includes("401")) {
         alert("댓글을 작성하려면 먼저 로그인해주세요!");
-        // 로그인 페이지로 리다이렉트
         window.location.href = "/";
       } else {
         alert("댓글 전송 실패: 네트워크를 확인하세요.");
@@ -39,12 +53,10 @@ export function useAddComment(postId: number) {
     },
     onSuccess: (newComment) => {
       qc.setQueryData<any[]>(["comments", postId], (old = []) => {
-        // temp 제거 + 서버 응답으로 치환
         const noTemps = old.filter((c: any) => !c._optimistic);
-        return [newComment, ...noTemps];
+        return [...noTemps, newComment];
       });
       
-      // 메인 피드의 포스트 데이터도 업데이트 (댓글 개수 증가)
       qc.setQueryData<any[]>(['/api/posts'], (oldPosts = []) => {
         return oldPosts.map((post: any) => {
           if (post.id === postId) {
@@ -56,6 +68,23 @@ export function useAddComment(postId: number) {
           return post;
         });
       });
+    },
+  });
+}
+
+export function useUpdateOfferStatus() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commentId, status }: { commentId: number; status: string }) => {
+      return api(`/api/comments/${commentId}/offer-status`, {
+        method: "PATCH",
+        body: { status },
+        auth: true,
+      });
+    },
+    onSuccess: (updated, { commentId }) => {
+      qc.invalidateQueries({ queryKey: ["comments"] });
     },
   });
 }
