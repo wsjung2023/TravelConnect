@@ -7,6 +7,7 @@ import { setupVite, serveStatic, log } from './vite';
 import { storage } from './storage';
 import { validateStartupEnv, logEnvStatus } from './middleware/envCheck';
 import { syncTranslations } from './syncTranslations';
+import { seedSystemConfig } from './seeds/systemConfigSeed';
 
 // 예약 시스템 자동화 스케줄러 (보안 강화 및 성능 개선)
 function startBookingScheduler(storageInstance: typeof storage) {
@@ -344,6 +345,13 @@ if (process.env.NODE_ENV === 'production') {
       // 번역 데이터 동기화 (서버 시작 후 백그라운드에서 실행)
       syncTranslations().catch((err) => {
         console.error('Translation sync failed:', err);
+      });
+      
+      // 시스템 설정 시드 (DB 기반 설정값 초기화)
+      seedSystemConfig().then((result) => {
+        console.log(`[SystemConfig Seed] Result: ${result.created} created, ${result.skipped} skipped`);
+      }).catch((err) => {
+        console.error('SystemConfig seed failed:', err);
       });
     }
   );

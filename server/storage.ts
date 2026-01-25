@@ -30,6 +30,15 @@ import {
   servicePackages,
   packageItems,
   slots,
+  systemConfig,
+  configAuditLogs,
+  aiPromptTemplates,
+  userSessions,
+  userEvents,
+  userDailyMetrics,
+  platformDailyMetrics,
+  funnelDefinitions,
+  funnelSteps,
   type User,
   type UpsertUser,
   type InsertExperience,
@@ -87,6 +96,15 @@ import {
   type InsertSlot,
   type PackageItem,
   type InsertPackageItem,
+  type SystemConfig,
+  type InsertSystemConfig,
+  type ConfigAuditLog,
+  type AiPromptTemplate,
+  type InsertAiPromptTemplate,
+  type UserSession,
+  type UserEvent,
+  type InsertUserEvent,
+  type UserDailyMetric,
   miniPlans,
   miniPlanSpots,
   miniPlanCheckins,
@@ -615,6 +633,38 @@ export interface IStorage {
   // Translations (DB 기반 i18n)
   getTranslationsByNamespace(namespace: string, locale: string): Promise<Record<string, string>>;
   getAllTranslationsForExport(): Promise<Array<{namespace: string; key: string; locale: string; value: string; is_reviewed: boolean; version: number}>>;
+
+  // System Config (시스템 설정)
+  getSystemConfigByKey(category: string, key: string): Promise<SystemConfig | undefined>;
+  getSystemConfigsByCategory(category: string): Promise<SystemConfig[]>;
+  getAllSystemConfigs(): Promise<SystemConfig[]>;
+  createSystemConfig(config: InsertSystemConfig): Promise<SystemConfig>;
+  updateSystemConfig(id: number, updates: Partial<InsertSystemConfig>, updatedBy?: string): Promise<SystemConfig | undefined>;
+  deleteSystemConfig(id: number): Promise<boolean>;
+  
+  // Config Audit Logs (설정 변경 감사 로그)
+  createConfigAuditLog(log: { configId: number; configKey: string; configCategory: string; action: string; previousValue?: string; newValue?: string; changedBy: string; changedByIp?: string; changeReason?: string }): Promise<ConfigAuditLog>;
+  getConfigAuditLogs(configId?: number, limit?: number): Promise<ConfigAuditLog[]>;
+  
+  // AI Prompt Templates (AI 프롬프트 템플릿)
+  getAiPromptTemplate(templateKey: string, locale?: string): Promise<AiPromptTemplate | undefined>;
+  getAiPromptTemplatesByCategory(category: string): Promise<AiPromptTemplate[]>;
+  getAllAiPromptTemplates(): Promise<AiPromptTemplate[]>;
+  createAiPromptTemplate(template: InsertAiPromptTemplate): Promise<AiPromptTemplate>;
+  updateAiPromptTemplate(id: number, updates: Partial<InsertAiPromptTemplate>, updatedBy?: string): Promise<AiPromptTemplate | undefined>;
+  
+  // User Sessions (유저 세션)
+  createUserSession(session: Partial<UserSession>): Promise<UserSession>;
+  updateUserSession(sessionId: string, updates: Partial<UserSession>): Promise<UserSession | undefined>;
+  getUserSession(sessionId: string): Promise<UserSession | undefined>;
+  
+  // User Events (유저 이벤트)
+  createUserEvent(event: InsertUserEvent): Promise<UserEvent>;
+  getUserEventsBySession(sessionId: string, limit?: number): Promise<UserEvent[]>;
+  
+  // User Daily Metrics (유저 일별 메트릭)
+  getUserDailyMetrics(userId: string, startDate: Date, endDate: Date): Promise<UserDailyMetric[]>;
+  upsertUserDailyMetric(userId: string, date: Date, updates: Partial<UserDailyMetric>): Promise<UserDailyMetric>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4801,6 +4851,259 @@ export class DatabaseStorage implements IStorage {
       is_reviewed: r.is_reviewed ?? false,
       version: r.version ?? 1
     }));
+  }
+
+  // =====================================================
+  // System Config (시스템 설정)
+  // =====================================================
+  
+  async getSystemConfigByKey(category: string, key: string): Promise<SystemConfig | undefined> {
+    const [config] = await db
+      .select()
+      .from(systemConfig)
+      .where(and(
+        eq(systemConfig.category, category),
+        eq(systemConfig.key, key),
+        eq(systemConfig.isActive, true)
+      ));
+    return config;
+  }
+
+  async getSystemConfigsByCategory(category: string): Promise<SystemConfig[]> {
+    return await db
+      .select()
+      .from(systemConfig)
+      .where(and(
+        eq(systemConfig.category, category),
+        eq(systemConfig.isActive, true)
+      ))
+      .orderBy(asc(systemConfig.sortOrder), asc(systemConfig.key));
+  }
+
+  async getAllSystemConfigs(): Promise<SystemConfig[]> {
+    return await db
+      .select()
+      .from(systemConfig)
+      .where(eq(systemConfig.isActive, true))
+      .orderBy(asc(systemConfig.category), asc(systemConfig.sortOrder), asc(systemConfig.key));
+  }
+
+  async createSystemConfig(config: InsertSystemConfig): Promise<SystemConfig> {
+    const [created] = await db
+      .insert(systemConfig)
+      .values(config)
+      .returning();
+    return created;
+  }
+
+  async updateSystemConfig(id: number, updates: Partial<InsertSystemConfig>, updatedBy?: string): Promise<SystemConfig | undefined> {
+    const [updated] = await db
+      .update(systemConfig)
+      .set({ ...updates, updatedAt: new Date(), updatedBy })
+      .where(eq(systemConfig.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSystemConfig(id: number): Promise<boolean> {
+    const result = await db
+      .update(systemConfig)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(systemConfig.id, id));
+    return true;
+  }
+
+  // =====================================================
+  // Config Audit Logs (설정 변경 감사 로그)
+  // =====================================================
+
+  async createConfigAuditLog(log: { configId: number; configKey: string; configCategory: string; action: string; previousValue?: string; newValue?: string; changedBy: string; changedByIp?: string; changeReason?: string }): Promise<ConfigAuditLog> {
+    const [created] = await db
+      .insert(configAuditLogs)
+      .values(log)
+      .returning();
+    return created;
+  }
+
+  async getConfigAuditLogs(configId?: number, limit: number = 100): Promise<ConfigAuditLog[]> {
+    if (configId) {
+      return await db
+        .select()
+        .from(configAuditLogs)
+        .where(eq(configAuditLogs.configId, configId))
+        .orderBy(desc(configAuditLogs.createdAt))
+        .limit(limit);
+    }
+    return await db
+      .select()
+      .from(configAuditLogs)
+      .orderBy(desc(configAuditLogs.createdAt))
+      .limit(limit);
+  }
+
+  // =====================================================
+  // AI Prompt Templates (AI 프롬프트 템플릿)
+  // =====================================================
+
+  async getAiPromptTemplate(templateKey: string, locale: string = 'en'): Promise<AiPromptTemplate | undefined> {
+    // 먼저 해당 로케일로 검색
+    let [template] = await db
+      .select()
+      .from(aiPromptTemplates)
+      .where(and(
+        eq(aiPromptTemplates.templateKey, templateKey),
+        eq(aiPromptTemplates.locale, locale),
+        eq(aiPromptTemplates.isActive, true)
+      ))
+      .orderBy(desc(aiPromptTemplates.version))
+      .limit(1);
+    
+    // 없으면 영어로 폴백
+    if (!template && locale !== 'en') {
+      [template] = await db
+        .select()
+        .from(aiPromptTemplates)
+        .where(and(
+          eq(aiPromptTemplates.templateKey, templateKey),
+          eq(aiPromptTemplates.locale, 'en'),
+          eq(aiPromptTemplates.isActive, true)
+        ))
+        .orderBy(desc(aiPromptTemplates.version))
+        .limit(1);
+    }
+    
+    return template;
+  }
+
+  async getAiPromptTemplatesByCategory(category: string): Promise<AiPromptTemplate[]> {
+    return await db
+      .select()
+      .from(aiPromptTemplates)
+      .where(and(
+        eq(aiPromptTemplates.category, category),
+        eq(aiPromptTemplates.isActive, true)
+      ))
+      .orderBy(asc(aiPromptTemplates.templateKey), desc(aiPromptTemplates.version));
+  }
+
+  async getAllAiPromptTemplates(): Promise<AiPromptTemplate[]> {
+    return await db
+      .select()
+      .from(aiPromptTemplates)
+      .where(eq(aiPromptTemplates.isActive, true))
+      .orderBy(asc(aiPromptTemplates.category), asc(aiPromptTemplates.templateKey));
+  }
+
+  async createAiPromptTemplate(template: InsertAiPromptTemplate): Promise<AiPromptTemplate> {
+    const [created] = await db
+      .insert(aiPromptTemplates)
+      .values(template)
+      .returning();
+    return created;
+  }
+
+  async updateAiPromptTemplate(id: number, updates: Partial<InsertAiPromptTemplate>, updatedBy?: string): Promise<AiPromptTemplate | undefined> {
+    const [updated] = await db
+      .update(aiPromptTemplates)
+      .set({ ...updates, updatedAt: new Date(), updatedBy })
+      .where(eq(aiPromptTemplates.id, id))
+      .returning();
+    return updated;
+  }
+
+  // =====================================================
+  // User Sessions (유저 세션)
+  // =====================================================
+
+  async createUserSession(session: Partial<UserSession>): Promise<UserSession> {
+    const [created] = await db
+      .insert(userSessions)
+      .values(session as any)
+      .returning();
+    return created;
+  }
+
+  async updateUserSession(sessionId: string, updates: Partial<UserSession>): Promise<UserSession | undefined> {
+    const [updated] = await db
+      .update(userSessions)
+      .set(updates)
+      .where(eq(userSessions.id, sessionId))
+      .returning();
+    return updated;
+  }
+
+  async getUserSession(sessionId: string): Promise<UserSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.id, sessionId));
+    return session;
+  }
+
+  // =====================================================
+  // User Events (유저 이벤트)
+  // =====================================================
+
+  async createUserEvent(event: InsertUserEvent): Promise<UserEvent> {
+    const [created] = await db
+      .insert(userEvents)
+      .values(event)
+      .returning();
+    return created;
+  }
+
+  async getUserEventsBySession(sessionId: string, limit: number = 100): Promise<UserEvent[]> {
+    return await db
+      .select()
+      .from(userEvents)
+      .where(eq(userEvents.sessionId, sessionId))
+      .orderBy(asc(userEvents.sequenceNumber))
+      .limit(limit);
+  }
+
+  // =====================================================
+  // User Daily Metrics (유저 일별 메트릭)
+  // =====================================================
+
+  async getUserDailyMetrics(userId: string, startDate: Date, endDate: Date): Promise<UserDailyMetric[]> {
+    return await db
+      .select()
+      .from(userDailyMetrics)
+      .where(and(
+        eq(userDailyMetrics.userId, userId),
+        gte(userDailyMetrics.metricDate, startDate),
+        lte(userDailyMetrics.metricDate, endDate)
+      ))
+      .orderBy(asc(userDailyMetrics.metricDate));
+  }
+
+  async upsertUserDailyMetric(userId: string, date: Date, updates: Partial<UserDailyMetric>): Promise<UserDailyMetric> {
+    // 먼저 기존 레코드 확인
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const [existing] = await db
+      .select()
+      .from(userDailyMetrics)
+      .where(and(
+        eq(userDailyMetrics.userId, userId),
+        eq(userDailyMetrics.metricDate, startOfDay)
+      ));
+    
+    if (existing) {
+      const [updated] = await db
+        .update(userDailyMetrics)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(userDailyMetrics.id, existing.id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db
+      .insert(userDailyMetrics)
+      .values({ userId, metricDate: startOfDay, ...updates } as any)
+      .returning();
+    return created;
   }
 }
 

@@ -3442,3 +3442,356 @@ export type FactUserActivity = typeof factUserActivities.$inferSelect;
 export type FactBooking = typeof factBookings.$inferSelect;
 export type FactDailyMetric = typeof factDailyMetrics.$inferSelect;
 export type FactDispute = typeof factDisputes.$inferSelect;
+
+// =====================================================
+// 시스템 설정 관리 (System Configuration)
+// =====================================================
+
+// 시스템 설정 - 모든 하드코딩된 값을 DB에서 관리
+export const systemConfig = pgTable('system_config', {
+  id: serial('id').primaryKey(),
+  // 카테고리 및 키
+  category: varchar('category', { length: 50 }).notNull(), // payment, ai, rate_limit, distance, cache, pagination, user_experience, file, i18n, comment
+  subcategory: varchar('subcategory', { length: 50 }), // 세부 분류
+  key: varchar('key', { length: 100 }).notNull(), // 설정 키
+  // 값 (타입별 컬럼)
+  valueType: varchar('value_type', { length: 20 }).notNull(), // string, number, boolean, json, array
+  valueString: text('value_string'),
+  valueNumber: decimal('value_number', { precision: 15, scale: 4 }),
+  valueBoolean: boolean('value_boolean'),
+  valueJson: jsonb('value_json'),
+  // 메타데이터
+  displayName: varchar('display_name', { length: 200 }),
+  displayNameKo: varchar('display_name_ko', { length: 200 }),
+  description: text('description'),
+  descriptionKo: text('description_ko'),
+  // 검증 규칙
+  validationMin: decimal('validation_min', { precision: 15, scale: 4 }),
+  validationMax: decimal('validation_max', { precision: 15, scale: 4 }),
+  validationPattern: varchar('validation_pattern', { length: 500 }), // regex
+  validationOptions: jsonb('validation_options'), // enum 옵션 목록
+  // 환경 및 범위
+  environment: varchar('environment', { length: 20 }).default('all'), // development, production, all
+  scope: varchar('scope', { length: 20 }).default('global'), // global, user, tenant
+  // 상태
+  isActive: boolean('is_active').default(true),
+  isEditable: boolean('is_editable').default(true), // UI에서 편집 가능 여부
+  isSecret: boolean('is_secret').default(false), // 민감 정보 여부
+  sortOrder: integer('sort_order').default(0),
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  updatedBy: varchar('updated_by', { length: 255 }),
+}, (table) => [
+  index('idx_system_config_category').on(table.category),
+  index('idx_system_config_key').on(table.key),
+  index('idx_system_config_active').on(table.isActive),
+]);
+
+export const insertSystemConfigSchema = createInsertSchema(systemConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SystemConfig = typeof systemConfig.$inferSelect;
+export type InsertSystemConfig = z.infer<typeof insertSystemConfigSchema>;
+
+// 설정 변경 감사 로그
+export const configAuditLogs = pgTable('config_audit_logs', {
+  id: serial('id').primaryKey(),
+  configId: integer('config_id').notNull(),
+  configKey: varchar('config_key', { length: 100 }).notNull(),
+  configCategory: varchar('config_category', { length: 50 }).notNull(),
+  // 변경 내용
+  action: varchar('action', { length: 20 }).notNull(), // create, update, delete
+  previousValue: text('previous_value'),
+  newValue: text('new_value'),
+  // 변경자 정보
+  changedBy: varchar('changed_by', { length: 255 }).notNull(),
+  changedByIp: varchar('changed_by_ip', { length: 45 }),
+  changeReason: text('change_reason'),
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_config_audit_config_id').on(table.configId),
+  index('idx_config_audit_changed_by').on(table.changedBy),
+  index('idx_config_audit_created_at').on(table.createdAt),
+]);
+
+export type ConfigAuditLog = typeof configAuditLogs.$inferSelect;
+
+// =====================================================
+// AI 프롬프트 템플릿 관리
+// =====================================================
+
+export const aiPromptTemplates = pgTable('ai_prompt_templates', {
+  id: serial('id').primaryKey(),
+  // 식별
+  templateKey: varchar('template_key', { length: 100 }).notNull(), // concierge_system, mini_concierge_ko, cinemap_storyboard
+  version: integer('version').default(1),
+  // 기본 정보
+  name: varchar('name', { length: 200 }).notNull(),
+  nameKo: varchar('name_ko', { length: 200 }),
+  description: text('description'),
+  // AI 설정
+  aiProvider: varchar('ai_provider', { length: 50 }).default('openai'), // openai, anthropic, google
+  aiModel: varchar('ai_model', { length: 100 }).default('gpt-5.1-chat-latest'),
+  maxTokens: integer('max_tokens').default(500),
+  temperature: decimal('temperature', { precision: 3, scale: 2 }).default('0.7'),
+  topP: decimal('top_p', { precision: 3, scale: 2 }),
+  frequencyPenalty: decimal('frequency_penalty', { precision: 3, scale: 2 }),
+  presencePenalty: decimal('presence_penalty', { precision: 3, scale: 2 }),
+  // 프롬프트 내용
+  systemPrompt: text('system_prompt'),
+  userPromptTemplate: text('user_prompt_template'), // 변수 치환 가능 {{variable}}
+  // 언어별 프롬프트
+  locale: varchar('locale', { length: 10 }).default('en'), // en, ko, ja, zh, fr, es
+  // 출력 형식
+  responseFormat: varchar('response_format', { length: 20 }).default('text'), // text, json, markdown
+  responseSchema: jsonb('response_schema'), // JSON 스키마 (JSON 응답시)
+  // 상태
+  isActive: boolean('is_active').default(true),
+  isDefault: boolean('is_default').default(false),
+  // 카테고리
+  category: varchar('category', { length: 50 }).notNull(), // concierge, mini_concierge, cinemap, translation
+  tags: text('tags').array(),
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  createdBy: varchar('created_by', { length: 255 }),
+  updatedBy: varchar('updated_by', { length: 255 }),
+}, (table) => [
+  index('idx_ai_prompt_template_key').on(table.templateKey),
+  index('idx_ai_prompt_category').on(table.category),
+  index('idx_ai_prompt_locale').on(table.locale),
+  index('idx_ai_prompt_active').on(table.isActive),
+]);
+
+export const insertAiPromptTemplateSchema = createInsertSchema(aiPromptTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AiPromptTemplate = typeof aiPromptTemplates.$inferSelect;
+export type InsertAiPromptTemplate = z.infer<typeof insertAiPromptTemplateSchema>;
+
+// AI 프롬프트 실험 (A/B 테스트)
+export const aiPromptExperiments = pgTable('ai_prompt_experiments', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  description: text('description'),
+  // 실험 설정
+  baseTemplateId: integer('base_template_id').notNull(),
+  variantTemplateId: integer('variant_template_id').notNull(),
+  trafficPercent: integer('traffic_percent').default(50), // 변형 버전 트래픽 %
+  // 상태
+  status: varchar('status', { length: 20 }).default('draft'), // draft, running, completed, cancelled
+  // 기간
+  startDate: timestamp('start_date'),
+  endDate: timestamp('end_date'),
+  // 결과
+  baseImpressions: integer('base_impressions').default(0),
+  variantImpressions: integer('variant_impressions').default(0),
+  baseSuccessRate: decimal('base_success_rate', { precision: 5, scale: 2 }),
+  variantSuccessRate: decimal('variant_success_rate', { precision: 5, scale: 2 }),
+  winner: varchar('winner', { length: 20 }), // base, variant, inconclusive
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_ai_experiment_status').on(table.status),
+]);
+
+export type AiPromptExperiment = typeof aiPromptExperiments.$inferSelect;
+
+// =====================================================
+// 유저 행동 분석 (User Behavior Analytics)
+// =====================================================
+
+// 유저 세션
+export const userSessions = pgTable('user_sessions', {
+  id: varchar('id', { length: 64 }).primaryKey(), // session_id
+  userId: varchar('user_id', { length: 255 }),
+  // 디바이스 정보
+  deviceType: varchar('device_type', { length: 20 }), // mobile, tablet, desktop
+  deviceOs: varchar('device_os', { length: 50 }),
+  browser: varchar('browser', { length: 50 }),
+  browserVersion: varchar('browser_version', { length: 20 }),
+  // 위치 (익명화)
+  countryCode: varchar('country_code', { length: 3 }),
+  regionCode: varchar('region_code', { length: 10 }),
+  cityName: varchar('city_name', { length: 100 }),
+  ipHash: varchar('ip_hash', { length: 64 }), // IP 해시 (개인정보 보호)
+  // 유입 경로
+  referrer: text('referrer'),
+  utmSource: varchar('utm_source', { length: 100 }),
+  utmMedium: varchar('utm_medium', { length: 100 }),
+  utmCampaign: varchar('utm_campaign', { length: 100 }),
+  utmContent: varchar('utm_content', { length: 100 }),
+  utmTerm: varchar('utm_term', { length: 100 }),
+  // 세션 정보
+  landingPage: text('landing_page'),
+  exitPage: text('exit_page'),
+  pageViewCount: integer('page_view_count').default(0),
+  eventCount: integer('event_count').default(0),
+  // 시간
+  startedAt: timestamp('started_at').defaultNow(),
+  endedAt: timestamp('ended_at'),
+  durationSeconds: integer('duration_seconds'),
+  // 상태
+  isActive: boolean('is_active').default(true),
+  isBounce: boolean('is_bounce').default(false),
+}, (table) => [
+  index('idx_user_sessions_user_id').on(table.userId),
+  index('idx_user_sessions_started_at').on(table.startedAt),
+  index('idx_user_sessions_device').on(table.deviceType),
+]);
+
+export type UserSession = typeof userSessions.$inferSelect;
+
+// 유저 이벤트
+export const userEvents = pgTable('user_events', {
+  id: serial('id').primaryKey(),
+  sessionId: varchar('session_id', { length: 64 }).notNull(),
+  userId: varchar('user_id', { length: 255 }),
+  // 이벤트 정보
+  eventName: varchar('event_name', { length: 100 }).notNull(), // page_view, button_click, form_submit, search, purchase
+  eventCategory: varchar('event_category', { length: 50 }).notNull(), // navigation, engagement, conversion, system
+  eventAction: varchar('event_action', { length: 100 }), // 상세 액션
+  eventLabel: varchar('event_label', { length: 200 }), // 라벨
+  eventValue: decimal('event_value', { precision: 15, scale: 2 }), // 수치 값
+  // 대상 객체
+  objectType: varchar('object_type', { length: 50 }), // post, experience, user, contract, message
+  objectId: varchar('object_id', { length: 255 }),
+  // 페이지 정보
+  pagePath: text('page_path'),
+  pageTitle: varchar('page_title', { length: 500 }),
+  // 추가 속성
+  properties: jsonb('properties'), // 이벤트별 추가 데이터
+  // 시간
+  occurredAt: timestamp('occurred_at').defaultNow(),
+  // 시퀀스
+  sequenceNumber: integer('sequence_number'), // 세션 내 이벤트 순서
+}, (table) => [
+  index('idx_user_events_session_id').on(table.sessionId),
+  index('idx_user_events_user_id').on(table.userId),
+  index('idx_user_events_name').on(table.eventName),
+  index('idx_user_events_category').on(table.eventCategory),
+  index('idx_user_events_occurred_at').on(table.occurredAt),
+  index('idx_user_events_object').on(table.objectType, table.objectId),
+]);
+
+export const insertUserEventSchema = createInsertSchema(userEvents).omit({
+  id: true,
+  occurredAt: true,
+});
+
+export type UserEvent = typeof userEvents.$inferSelect;
+export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
+
+// 일별 사용자 메트릭 (집계 테이블)
+export const userDailyMetrics = pgTable('user_daily_metrics', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  metricDate: timestamp('metric_date').notNull(),
+  // 활동 지표
+  sessionCount: integer('session_count').default(0),
+  pageViewCount: integer('page_view_count').default(0),
+  totalDurationSeconds: integer('total_duration_seconds').default(0),
+  // 참여 지표
+  postsCreated: integer('posts_created').default(0),
+  postsLiked: integer('posts_liked').default(0),
+  commentsCreated: integer('comments_created').default(0),
+  messagessSent: integer('messages_sent').default(0),
+  searchCount: integer('search_count').default(0),
+  // 전환 지표
+  experiencesViewed: integer('experiences_viewed').default(0),
+  experiencesBooked: integer('experiences_booked').default(0),
+  offersCreated: integer('offers_created').default(0),
+  offersAccepted: integer('offers_accepted').default(0),
+  contractsCreated: integer('contracts_created').default(0),
+  // 수익 지표
+  revenueGenerated: decimal('revenue_generated', { precision: 15, scale: 2 }).default('0'),
+  commissionsEarned: decimal('commissions_earned', { precision: 15, scale: 2 }).default('0'),
+  // AI 사용량
+  aiMessagesUsed: integer('ai_messages_used').default(0),
+  translationsUsed: integer('translations_used').default(0),
+  conciergeCallsUsed: integer('concierge_calls_used').default(0),
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_user_daily_metrics_user_date').on(table.userId, table.metricDate),
+  index('idx_user_daily_metrics_date').on(table.metricDate),
+]);
+
+export type UserDailyMetric = typeof userDailyMetrics.$inferSelect;
+
+// 퍼널 정의
+export const funnelDefinitions = pgTable('funnel_definitions', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  nameKo: varchar('name_ko', { length: 200 }),
+  description: text('description'),
+  // 퍼널 설정
+  category: varchar('category', { length: 50 }).notNull(), // onboarding, booking, payment, engagement
+  isActive: boolean('is_active').default(true),
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export type FunnelDefinition = typeof funnelDefinitions.$inferSelect;
+
+// 퍼널 단계
+export const funnelSteps = pgTable('funnel_steps', {
+  id: serial('id').primaryKey(),
+  funnelId: integer('funnel_id').notNull(),
+  stepOrder: integer('step_order').notNull(),
+  stepName: varchar('step_name', { length: 100 }).notNull(),
+  stepNameKo: varchar('step_name_ko', { length: 100 }),
+  // 매칭 조건
+  eventName: varchar('event_name', { length: 100 }).notNull(),
+  eventConditions: jsonb('event_conditions'), // 추가 조건 (properties 매칭)
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_funnel_steps_funnel_id').on(table.funnelId),
+]);
+
+export type FunnelStep = typeof funnelSteps.$inferSelect;
+
+// 플랫폼 일별 메트릭 (전체 집계)
+export const platformDailyMetrics = pgTable('platform_daily_metrics', {
+  id: serial('id').primaryKey(),
+  metricDate: timestamp('metric_date').notNull().unique(),
+  // DAU/WAU/MAU
+  dau: integer('dau').default(0), // 일간 활성 사용자
+  newUsers: integer('new_users').default(0), // 신규 가입자
+  returningUsers: integer('returning_users').default(0), // 복귀 사용자
+  // 세션
+  totalSessions: integer('total_sessions').default(0),
+  avgSessionDuration: integer('avg_session_duration').default(0),
+  bounceRate: decimal('bounce_rate', { precision: 5, scale: 2 }),
+  // 참여
+  totalPageViews: integer('total_page_views').default(0),
+  totalPosts: integer('total_posts').default(0),
+  totalComments: integer('total_comments').default(0),
+  totalMessages: integer('total_messages').default(0),
+  // 전환
+  totalBookings: integer('total_bookings').default(0),
+  totalContracts: integer('total_contracts').default(0),
+  // 수익
+  totalRevenue: decimal('total_revenue', { precision: 15, scale: 2 }).default('0'),
+  totalCommissions: decimal('total_commissions', { precision: 15, scale: 2 }).default('0'),
+  // AI
+  totalAiMessages: integer('total_ai_messages').default(0),
+  totalTranslations: integer('total_translations').default(0),
+  // 시간
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_platform_daily_metrics_date').on(table.metricDate),
+]);
