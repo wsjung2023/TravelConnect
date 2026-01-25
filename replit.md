@@ -40,6 +40,7 @@ Translation data must be managed in the database (`translations` table), not har
 
 ### Core Features
 - **SNS Core**: Feed-based travel post sharing, likes/comments, location tagging, timeline, trip planning.
+- **Nested Comments & Offer System**: Threaded reply comments with `parentId` for conversation flow. Offer comments allow verified guides to propose services (price, description, duration) directly on posts, with visual card distinction and DM/contract integration upon acceptance.
 - **Sharing Economy Flow**: Request posting, custom plan proposals, DM negotiation, secure escrow contracts, and settlement.
 - **Real-time Communication**: 3-panel chat with threaded messaging, WebSocket updates, and optimistic UI.
 - **Mobile Experience**: PWA with responsive design and touch navigation.
