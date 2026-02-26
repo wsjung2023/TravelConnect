@@ -276,8 +276,12 @@ if (process.env.NODE_ENV === 'production') {
 (async () => {
   const server = await registerRoutes(app);
 
-  // 예약 시스템 자동화 스케줄러 시작
-  startBookingScheduler(storage);
+  // 예약 시스템 자동화 스케줄러 시작 (프로덕션 환경에서만)
+  if (process.env.NODE_ENV === 'production') {
+    startBookingScheduler(storage);
+  } else {
+    console.log('⏸️ Booking scheduler disabled in development (saves DB compute)');
+  }
 
   // Global error handler with Sentry integration
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

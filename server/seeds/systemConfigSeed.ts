@@ -1381,10 +1381,18 @@ export async function seedSystemConfig(): Promise<{ created: number; skipped: nu
   let skipped = 0;
   let updated = 0;
 
+  const allConfigs = await storage.getAllSystemConfigs();
+  const existingCount = allConfigs.length;
+
+  if (existingCount >= SYSTEM_CONFIG_SEEDS.length) {
+    console.log(`[SystemConfig Seed] DB already has ${existingCount} configs (seed: ${SYSTEM_CONFIG_SEEDS.length}), skipping.`);
+    return { created: 0, skipped: existingCount, updated: 0 };
+  }
+
+  const existingKeys = new Set(allConfigs.map((c: any) => `${c.category}::${c.key}`));
+
   for (const config of SYSTEM_CONFIG_SEEDS) {
-    const existing = await storage.getSystemConfigByKey(config.category, config.key);
-    
-    if (existing) {
+    if (existingKeys.has(`${config.category}::${config.key}`)) {
       skipped++;
       continue;
     }
