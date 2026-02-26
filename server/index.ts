@@ -8,104 +8,149 @@ import { storage } from './storage';
 import { validateStartupEnv, logEnvStatus } from './middleware/envCheck';
 import { syncTranslations } from './syncTranslations';
 import { seedSystemConfig } from './seeds/systemConfigSeed';
+import { getBooleanConfig, getNumberConfig } from './services/configService';
 
-// 예약 시스템 자동화 스케줄러 (보안 강화 및 성능 개선)
-function startBookingScheduler(storageInstance: typeof storage) {
-  console.log('🔄 Starting booking system scheduler...');
-  
-  // 중복 실행 방지 플래그
-  let isProcessingExpired = false;
-  let isProcessingCompleted = false;
-  let isProcessingRecalculation = false;
-  
-  // 결제 만료 처리 - 5분마다 실행
-  setInterval(async () => {
-    if (isProcessingExpired) return;
-    isProcessingExpired = true;
-    
-    try {
-      console.log('⏰ Processing expired bookings...');
-      const processedCount = await storageInstance.processExpiredBookings();
-      if (processedCount > 0) {
-        console.log(`✅ Processed ${processedCount} expired bookings`);
+interface SchedulerHandle {
+  name: string;
+  intervalId: NodeJS.Timeout | null;
+  isProcessing: boolean;
+  enabled: boolean;
+  intervalMinutes: number;
+}
+
+const schedulerHandles: Record<string, SchedulerHandle> = {
+  expired_bookings: { name: 'Expired Bookings', intervalId: null, isProcessing: false, enabled: false, intervalMinutes: 5 },
+  completed_experiences: { name: 'Completed Experiences', intervalId: null, isProcessing: false, enabled: false, intervalMinutes: 60 },
+  slot_recalculation: { name: 'Slot Recalculation', intervalId: null, isProcessing: false, enabled: false, intervalMinutes: 1440 },
+  settlement_batch: { name: 'Settlement Batch', intervalId: null, isProcessing: false, enabled: false, intervalMinutes: 1 },
+};
+
+function stopScheduler(key: string) {
+  const handle = schedulerHandles[key];
+  if (handle?.intervalId) {
+    clearInterval(handle.intervalId);
+    handle.intervalId = null;
+    handle.enabled = false;
+    console.log(`⏹️ Scheduler stopped: ${handle.name}`);
+  }
+}
+
+function stopAllSchedulers() {
+  for (const key of Object.keys(schedulerHandles)) {
+    stopScheduler(key);
+  }
+}
+
+async function startBookingScheduler(storageInstance: typeof storage) {
+  console.log('🔄 Checking scheduler configurations from DB...');
+
+  const expiredEnabled = await getBooleanConfig('scheduler', 'expired_bookings_enabled', false);
+  const expiredInterval = await getNumberConfig('scheduler', 'expired_bookings_interval_minutes', 5);
+  const completedEnabled = await getBooleanConfig('scheduler', 'completed_experiences_enabled', false);
+  const completedInterval = await getNumberConfig('scheduler', 'completed_experiences_interval_minutes', 60);
+  const slotEnabled = await getBooleanConfig('scheduler', 'slot_recalculation_enabled', false);
+  const slotHour = await getNumberConfig('scheduler', 'slot_recalculation_hour', 3);
+  const settlementEnabled = await getBooleanConfig('scheduler', 'settlement_batch_enabled', false);
+
+  if (expiredEnabled) {
+    const handle = schedulerHandles.expired_bookings;
+    handle.enabled = true;
+    handle.intervalMinutes = expiredInterval;
+    handle.intervalId = setInterval(async () => {
+      if (handle.isProcessing) return;
+      handle.isProcessing = true;
+      try {
+        const count = await storageInstance.processExpiredBookings();
+        if (count > 0) console.log(`✅ Processed ${count} expired bookings`);
+      } catch (error) {
+        console.error('❌ Error processing expired bookings:', error);
+      } finally {
+        handle.isProcessing = false;
       }
-    } catch (error) {
-      console.error('❌ Error processing expired bookings:', error);
-    } finally {
-      isProcessingExpired = false;
-    }
-  }, 5 * 60 * 1000); // 5분
+    }, expiredInterval * 60 * 1000);
+    console.log(`▶️ Expired Bookings scheduler: ON (every ${expiredInterval}min)`);
+  } else {
+    console.log('⏸️ Expired Bookings scheduler: OFF');
+  }
 
-  // 체험 완료 처리 - 1시간마다 실행
-  setInterval(async () => {
-    if (isProcessingCompleted) return;
-    isProcessingCompleted = true;
-    
-    try {
-      console.log('⏰ Processing completed experiences...');
-      const processedCount = await storageInstance.processCompletedExperiences();
-      if (processedCount > 0) {
-        console.log(`✅ Processed ${processedCount} completed experiences`);
+  if (completedEnabled) {
+    const handle = schedulerHandles.completed_experiences;
+    handle.enabled = true;
+    handle.intervalMinutes = completedInterval;
+    handle.intervalId = setInterval(async () => {
+      if (handle.isProcessing) return;
+      handle.isProcessing = true;
+      try {
+        const count = await storageInstance.processCompletedExperiences();
+        if (count > 0) console.log(`✅ Processed ${count} completed experiences`);
+      } catch (error) {
+        console.error('❌ Error processing completed experiences:', error);
+      } finally {
+        handle.isProcessing = false;
       }
-    } catch (error) {
-      console.error('❌ Error processing completed experiences:', error);
-    } finally {
-      isProcessingCompleted = false;
-    }
-  }, 60 * 60 * 1000); // 1시간
+    }, completedInterval * 60 * 1000);
+    console.log(`▶️ Completed Experiences scheduler: ON (every ${completedInterval}min)`);
+  } else {
+    console.log('⏸️ Completed Experiences scheduler: OFF');
+  }
 
-  // 슬롯 가용성 재계산 - 매일 새벽 3시 (수정된 로직)
-  const scheduleDaily = () => {
+  if (slotEnabled) {
+    const handle = schedulerHandles.slot_recalculation;
+    handle.enabled = true;
     const now = new Date();
-    const next3AM = new Date();
-    
-    // 오늘 새벽 3시
-    next3AM.setHours(3, 0, 0, 0);
-    
-    // 현재 시간이 새벽 3시를 지났다면 내일 새벽 3시로 설정
-    if (now >= next3AM) {
-      next3AM.setDate(next3AM.getDate() + 1);
-    }
-    
-    const timeUntil3AM = next3AM.getTime() - now.getTime();
-    console.log(`📅 Next slot availability recalculation scheduled at: ${next3AM.toISOString()}`);
-    
+    const nextRun = new Date();
+    nextRun.setHours(slotHour, 0, 0, 0);
+    if (now >= nextRun) nextRun.setDate(nextRun.getDate() + 1);
+    const delay = nextRun.getTime() - now.getTime();
+    console.log(`▶️ Slot Recalculation scheduler: ON (daily at ${slotHour}:00, next: ${nextRun.toISOString()})`);
     setTimeout(async () => {
-      const dailyRecalculation = async () => {
-        if (isProcessingRecalculation) return;
-        isProcessingRecalculation = true;
-        
+      const run = async () => {
+        if (handle.isProcessing) return;
+        handle.isProcessing = true;
         try {
-          console.log('⏰ Daily recalculating slot availability...');
           await storageInstance.recalculateSlotAvailability();
           console.log('✅ Daily slot availability recalculated');
         } catch (error) {
-          console.error('❌ Error in daily slot availability recalculation:', error);
+          console.error('❌ Error in slot recalculation:', error);
         } finally {
-          isProcessingRecalculation = false;
+          handle.isProcessing = false;
         }
       };
-      
-      // 첫 실행
-      await dailyRecalculation();
-      
-      // 24시간마다 반복
-      setInterval(dailyRecalculation, 24 * 60 * 60 * 1000);
-    }, timeUntil3AM);
-  };
-  
-  scheduleDaily();
-  console.log('✅ Booking system scheduler started successfully');
-  
-  // 정산 스케줄러 시작 (동적 임포트)
-  import('./jobs/settlementBatch')
-    .then(({ startSettlementScheduler }) => {
+      await run();
+      handle.intervalId = setInterval(run, 24 * 60 * 60 * 1000);
+    }, delay);
+  } else {
+    console.log('⏸️ Slot Recalculation scheduler: OFF');
+  }
+
+  if (settlementEnabled) {
+    const handle = schedulerHandles.settlement_batch;
+    handle.enabled = true;
+    try {
+      const { startSettlementScheduler } = await import('./jobs/settlementBatch');
       startSettlementScheduler();
-    })
-    .catch((error) => {
+      console.log('▶️ Settlement Batch scheduler: ON');
+    } catch (error) {
       console.error('❌ Settlement scheduler failed to start:', error);
-    });
+    }
+  } else {
+    console.log('⏸️ Settlement Batch scheduler: OFF');
+  }
+
+  console.log('✅ Scheduler initialization complete');
 }
+
+export function getSchedulerHandles() {
+  return Object.entries(schedulerHandles).map(([key, h]) => ({
+    key,
+    name: h.name,
+    enabled: h.enabled,
+    intervalMinutes: h.intervalMinutes,
+    isProcessing: h.isProcessing,
+  }));
+}
+
+export { stopScheduler, stopAllSchedulers, schedulerHandles };
 
 // 글로벌 변수 초기화 (로그아웃 추적용)
 global.loggedOutSessions = new Set<string>();
@@ -276,12 +321,8 @@ if (process.env.NODE_ENV === 'production') {
 (async () => {
   const server = await registerRoutes(app);
 
-  // 예약 시스템 자동화 스케줄러 시작 (프로덕션 환경에서만)
-  if (process.env.NODE_ENV === 'production') {
-    startBookingScheduler(storage);
-  } else {
-    console.log('⏸️ Booking scheduler disabled in development (saves DB compute)');
-  }
+  // 스케줄러 시작 (DB system_config 기반으로 ON/OFF 판단)
+  startBookingScheduler(storage);
 
   // Global error handler with Sentry integration
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

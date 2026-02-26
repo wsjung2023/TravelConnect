@@ -6631,6 +6631,30 @@ COMMIT;
   });
 
   // ============================================
+  // 배치 스케줄러 관리 API (관리자 전용)
+  // ============================================
+
+  app.get('/api/admin/schedulers', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const { getSchedulerHandles } = await import('./index');
+      const { getConfigsByCategory } = await import('./services/configService');
+      const handles = getSchedulerHandles();
+      const dbConfigs = await getConfigsByCategory('scheduler');
+
+      res.json({
+        schedulers: handles.map((h: any) => ({
+          ...h,
+          dbEnabled: dbConfigs[`${h.key}_enabled`] ?? false,
+          dbIntervalMinutes: dbConfigs[`${h.key}_interval_minutes`] ?? h.intervalMinutes,
+        })),
+      });
+    } catch (error) {
+      console.error('Error fetching scheduler status:', error);
+      res.status(500).json({ message: 'Failed to fetch scheduler status' });
+    }
+  });
+
+  // ============================================
   // 구독 스케줄러 API (관리자 전용)
   // ============================================
   
