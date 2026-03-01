@@ -16,12 +16,13 @@ import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/queryClient';
 import type { Conversation, Message, Channel } from '@shared/schema';
 
+type ConvWithUser = Conversation & { otherUser?: { id: string; firstName?: string | null; lastName?: string | null; profileImageUrl?: string | null } };
 type ChatMode = 'list' | 'chat' | 'thread';
 
 export default function Chat() {
   const { t } = useTranslation('ui');
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<ConvWithUser | null>(null);
   const [selectedThreadMessage, setSelectedThreadMessage] = useState<Message | null>(null);
   const [chatMode, setChatMode] = useState<ChatMode>('list');
   
@@ -38,7 +39,7 @@ export default function Chat() {
   }, [searchString]);
   
   // 대화 목록 조회 (URL 파라미터 처리용 - queryKey 공유)
-  const { data: conversations = [] } = useQuery<Conversation[]>({
+  const { data: conversations = [] } = useQuery<ConvWithUser[]>({
     queryKey: ['/api/conversations'],
   });
   
@@ -211,7 +212,7 @@ export default function Chat() {
     setChatMode('chat');
   };
 
-  const handleConversationSelect = (conversation: Conversation) => {
+  const handleConversationSelect = (conversation: ConvWithUser) => {
     setSelectedConversation(conversation);
     setSelectedChannel(null);
     setSelectedThreadMessage(null);

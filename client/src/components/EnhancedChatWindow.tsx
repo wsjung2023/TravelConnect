@@ -15,10 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Message, Conversation, Channel } from '@shared/schema';
 
+type ConvWithUser = Conversation & { otherUser?: { id: string; firstName?: string | null; lastName?: string | null; profileImageUrl?: string | null } };
+
 interface EnhancedChatWindowProps {
   // 채널 또는 대화방 정보
   channel?: Channel | undefined;
-  conversation?: Conversation | undefined;
+  conversation?: ConvWithUser | undefined;
   messages: Message[];
   messagesLoading?: boolean;
   messagesError?: Error | null;
@@ -156,14 +158,16 @@ export default function EnhancedChatWindow({
         isChannel: true,
       };
     } else if (conversation) {
-      const otherParticipant =
-        conversation.participant1Id === currentUserId
-          ? conversation.participant2Id
-          : conversation.participant1Id;
+      const ou = conversation.otherUser;
+      const title = ou
+        ? (`${ou.firstName ?? ''} ${ou.lastName ?? ''}`.trim() || ou.id)
+        : (conversation.participant1Id === currentUserId ? conversation.participant2Id : conversation.participant1Id);
       return {
-        title: otherParticipant,
+        title,
         subtitle: t('chat.online'),
         isChannel: false,
+        avatarUrl: ou?.profileImageUrl ?? undefined,
+        avatarInitials: title.slice(0, 2).toUpperCase(),
       };
     }
     return { title: t('chat.chat'), subtitle: '', isChannel: false };
@@ -218,9 +222,9 @@ export default function EnhancedChatWindow({
               </div>
             ) : (
               <Avatar className="w-10 h-10">
-                <AvatarImage src="" />
+                {(headerInfo as any).avatarUrl && <AvatarImage src={(headerInfo as any).avatarUrl} alt={headerInfo.title} />}
                 <AvatarFallback>
-                  {headerInfo.title.charAt(0).toUpperCase()}
+                  {((headerInfo as any).avatarInitials) || headerInfo.title.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             )}

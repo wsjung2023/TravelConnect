@@ -17,7 +17,7 @@ interface ChannelListProps {
   selectedChannelId?: number | undefined;
   selectedConversationId?: number | undefined;
   onChannelSelect: (channel: Channel) => void;
-  onConversationSelect: (conversation: Conversation) => void;
+  onConversationSelect: (conversation: ConversationWithUser) => void;
   onCreateChannel: () => void;
   currentUserId: string;
 }
