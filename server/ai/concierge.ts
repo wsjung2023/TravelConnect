@@ -1,3 +1,4 @@
+// AI Concierge 모듈 — 여행자 컨텍스트(위치·일정·선호도)를 기반으로 GPT가 맞춤형 여행 조언을 대화 형태로 제공한다.
 import type { Request, Response } from 'express';
 import { getAiMaxTokens } from '../services/configService';
 

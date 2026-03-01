@@ -1,3 +1,4 @@
+// CineMap AI 모듈 — 사진 EXIF 정보와 위치 데이터를 분석해 영화 같은 여행 스토리보드를 GPT로 생성한다.
 import { getAiMaxTokens } from '../services/configService';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';

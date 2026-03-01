@@ -1,3 +1,4 @@
+// 인증 미들웨어 — JWT·세션 기반 인증(authenticateToken, authenticateHybrid), AuthRequest 타입, requireAdmin을 정의한다.
 /**
  * ============================================
  * 인증 모듈 (Authentication Module)

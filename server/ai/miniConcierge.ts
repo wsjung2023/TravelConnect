@@ -1,3 +1,4 @@
+// Mini Concierge AI 모듈 — 현재 위치와 남은 시간을 기반으로 GPT가 1시간짜리 즉흥 액티비티 플랜을 생성한다.
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const AI_MODEL = process.env.MINI_CONCIERGE_AI_MODEL || process.env.AI_MODEL || 'gpt-5.1-chat-latest';
 const MAX_TOKENS = 1500;

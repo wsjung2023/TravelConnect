@@ -1,3 +1,4 @@
+// POI 마커 훅 — POI(관심장소) 데이터를 Google Maps 마커로 변환하고, 줌 레벨 기반 필터링을 관리한다.
 /**
  * usePOIMarkers - POI(관심지점) 마커 관리 훅
  * 

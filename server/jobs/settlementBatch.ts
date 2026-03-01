@@ -1,3 +1,4 @@
+// 호스트 정산 배치 작업 — 매일 02:00 KST에 실행되어 호스트 수익을 PortOne Transfer API로 정산한다.
 /**
  * 호스트 정산 배치 작업 - Tourgether P2P 공유경제 플랫폼
  * 

@@ -1,3 +1,4 @@
+// 서버 진입점 — Express 앱 초기화, 미들웨어·라우터 등록, WebSocket·스케줄러 설정, HTTP 서버 시작을 담당한다.
 import express, { type Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';

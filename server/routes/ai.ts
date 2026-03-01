@@ -1,3 +1,4 @@
+// AI 기능 라우터 — AI Concierge, CineMap, AI 모델 설정 테스트 API. server/ai/ 모듈을 호출한다.
 /**
  * ============================================
  * AI 라우터 (AI Router)

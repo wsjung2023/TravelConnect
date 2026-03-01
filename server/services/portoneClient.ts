@@ -1,3 +1,4 @@
+// PortOne V2 결제 클라이언트 — 결제 승인·취소·빌링키·웹훅 검증 등 PortOne REST API 호출을 래핑한다.
 /**
  * PortOne V2 결제 클라이언트 서비스
  * 

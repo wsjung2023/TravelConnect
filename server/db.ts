@@ -1,3 +1,4 @@
+// DB 연결 — Neon 서버리스 PostgreSQL에 Drizzle ORM으로 연결하고, db 인스턴스를 export한다.
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from 'ws';

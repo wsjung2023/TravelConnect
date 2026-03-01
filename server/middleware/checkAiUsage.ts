@@ -1,3 +1,4 @@
+// AI 사용량 제한 미들웨어 — 유저의 Trip Pass 잔액과 구독 플랜 AI 할당량을 확인해 초과 시 요청을 차단한다.
 import { Response, NextFunction } from 'express';
 import { db } from '../db';
 import { userTripPasses, userUsage, userSubscriptions, billingPlans } from '@shared/schema';
