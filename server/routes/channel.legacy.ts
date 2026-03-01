@@ -3,9 +3,9 @@ import type { Express } from 'express';
 
 export function registerLegacyChannelRoutes(
   app: Express,
-  deps: { storage: any; authenticateToken: any }
+  deps: { storage: any; authenticateToken: any; authenticateHybrid?: any }
 ) {
-  const { storage, authenticateToken } = deps;
+  const { storage, authenticateToken, authenticateHybrid = authenticateToken } = deps;
 
   // =================== 채널 시스템 API 엔드포인트 ===================
   
@@ -39,7 +39,7 @@ export function registerLegacyChannelRoutes(
   });
 
   // 사용자의 채널 목록 조회
-  app.get('/api/channels', authenticateToken, async (req: AuthRequest, res) => {
+  app.get('/api/channels', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -59,7 +59,7 @@ export function registerLegacyChannelRoutes(
   });
 
   // 특정 채널 정보 조회
-  app.get('/api/channels/:id', authenticateToken, async (req: AuthRequest, res) => {
+  app.get('/api/channels/:id', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       const userId = req.user?.id;
       const channelId = parseInt(req.params.id!);
@@ -158,7 +158,7 @@ export function registerLegacyChannelRoutes(
   });
 
   // 채널 메시지 목록 조회
-  app.get('/api/channels/:id/messages', authenticateToken, async (req: AuthRequest, res) => {
+  app.get('/api/channels/:id/messages', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       const userId = req.user?.id;
       const channelId = parseInt(req.params.id!);
@@ -241,7 +241,7 @@ export function registerLegacyChannelRoutes(
   });
 
   // 스레드 메시지 조회
-  app.get('/api/messages/:id/thread', authenticateToken, async (req: AuthRequest, res) => {
+  app.get('/api/messages/:id/thread', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       const userId = req.user?.id;
       const parentMessageId = parseInt(req.params.id!);

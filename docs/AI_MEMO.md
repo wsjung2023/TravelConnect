@@ -201,3 +201,40 @@
 - **2,576줄** (원본 8,857줄 대비 **71% 감소**)
 - 가드레일 스크립트가 400줄 초과를 정상 감지·차단 중
 - `server/routes/auth.ts`: 389줄 (250줄 초과 경고 발생 → 분리 검토 대상)
+
+---
+
+### 세션 5 — 채팅 페이지 401 버그 수정 (2026-03-01)
+
+#### 문제
+채팅 페이지 접속 시 `/api/conversations`, `/api/channels` 등 GET 엔드포인트가 401 반환
+
+#### 원인
+- `server/routes.ts`: `GET /api/conversations` → `authenticateToken` (엄격 JWT 전용) 사용
+- `server/routes/channel.legacy.ts`: `GET /api/channels`, `GET /api/channels/:id`, `GET /api/channels/:id/messages`, `GET /api/messages/:id/thread` → `authenticateToken` 사용
+- `server/routes.ts`: `GET /api/conversations/:id/messages` → `authenticateToken` 사용
+- 개발 모드 폴백 없는 `authenticateToken`은 토큰 없는 요청에 즉시 401 반환
+
+#### 수정
+| 파일 | 변경 내용 |
+|------|-----------|
+| `server/routes.ts:2009` | `GET /api/conversations` → `authenticateHybrid` |
+| `server/routes.ts:2022` | `GET /api/conversations/:id/messages` → `authenticateHybrid` |
+| `server/routes/channel.legacy.ts` | `GET /api/channels`, `GET /api/channels/:id`, `GET /api/channels/:id/messages`, `GET /api/messages/:id/thread` → `authenticateHybrid` (deps에 `authenticateHybrid?` 추가) |
+| `server/routes.ts:2553` | `registerLegacyChannelRoutes()` 호출에 `authenticateHybrid` 추가 전달 |
+
+#### 원칙
+- **읽기(GET)** → `authenticateHybrid` (개발 모드 폴백 + 세션/JWT 모두 지원)
+- **쓰기(POST/DELETE)** → `authenticateToken` 유지 (보안)
+
+#### 검증 결과
+```
+GET /api/conversations:          200 ✅
+GET /api/channels:               200 ✅
+GET /api/conversations/5/messages: 200 ✅
+```
+
+#### 참고: chatRouter 미마운트
+- `server/routes/chat.ts`와 `server/routes/index.ts`의 `chatRouter`/`mountRouters`는 `registerRoutes()`에서 호출되지 않음
+- 실제 활성 라우트: `server/routes.ts` 인라인 + `channel.legacy.ts`
+- `server/routes/chat.ts`의 GET 수정도 병행했으나 실제 동작에는 미영향 (미마운트)

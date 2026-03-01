@@ -74,7 +74,7 @@ function validateSchema(schema: any) {
 // ============================================
 // GET /api/conversations
 // 현재 사용자의 모든 1:1 대화를 조회합니다.
-router.get('/conversations', authenticateToken, apiLimiter, async (req: any, res: Response) => {
+router.get('/conversations', authenticateHybrid, apiLimiter, async (req: any, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -94,7 +94,7 @@ router.get('/conversations', authenticateToken, apiLimiter, async (req: any, res
 // ============================================
 // GET /api/conversations/:id
 // 특정 대화의 상세 정보와 메시지를 조회합니다.
-router.get('/conversations/:id', authenticateToken, async (req: any, res: Response) => {
+router.get('/conversations/:id', authenticateHybrid, async (req: any, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -153,7 +153,7 @@ router.post('/conversations', authenticateToken, apiLimiter, validateSchema(Crea
 // ============================================
 // GET /api/channels
 // 현재 사용자가 참여한 모든 채널을 조회합니다.
-router.get('/channels', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/channels', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -173,7 +173,7 @@ router.get('/channels', authenticateToken, async (req: AuthRequest, res: Respons
 // ============================================
 // GET /api/channels/:id
 // 특정 채널의 상세 정보를 조회합니다.
-router.get('/channels/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/channels/:id', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -313,7 +313,7 @@ router.delete('/channels/:id/members/:userId', authenticateToken, async (req: Au
 // GET /api/channels/:id/messages
 // 채널의 메시지 목록을 조회합니다.
 // 페이지네이션: before, limit 파라미터 지원
-router.get('/channels/:id/messages', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/channels/:id/messages', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -382,7 +382,7 @@ router.post('/channels/:id/messages', authenticateToken, async (req: AuthRequest
 // ============================================
 // GET /api/messages/:id/thread
 // 특정 메시지의 스레드(답글)를 조회합니다.
-router.get('/messages/:id/thread', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/messages/:id/thread', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Unauthorized' });

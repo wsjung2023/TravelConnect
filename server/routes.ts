@@ -2003,7 +2003,7 @@ COMMIT;
   });
 
   // Chat routes
-  app.get('/api/conversations', authenticateToken, apiLimiter, async (req: any, res) => {
+  app.get('/api/conversations', authenticateHybrid, apiLimiter, async (req: any, res) => {
     try {
       const userId = req.user!.id;
       const conversations = await storage.getConversationsByUser(userId);
@@ -2016,7 +2016,7 @@ COMMIT;
 
   app.get(
     '/api/conversations/:id/messages',
-    authenticateToken,
+    authenticateHybrid,
     apiLimiter,
     async (req, res) => {
       try {
@@ -2547,7 +2547,7 @@ COMMIT;
 
   registerLegacyTripLegalRoutes(app, { storage, authenticateToken, apiLimiter, requireAdmin });
 
-  registerLegacyChannelRoutes(app, { storage, authenticateToken });
+  registerLegacyChannelRoutes(app, { storage, authenticateToken, authenticateHybrid });
 
   registerLegacyHostReviewsRoutes(app, { storage, authenticateHybrid, requireAdmin });
 
