@@ -121,7 +121,57 @@
 
 ---
 
+---
+
+### 세션 3 — SEO 검증 + html lang 버그 수정 (2026-03-01)
+
+#### SEO 문서 대조 검증 결과
+
+두 문서(`tourgether_SEO_public_pack.md`, `tourgether_SEO_upgrade.md`) 대비 구현 현황:
+
+| 항목 | 상태 |
+|------|------|
+| 6개 원본 SEO 랜딩 페이지 | ✅ 전체 구현 + App.tsx 라우트 등록 |
+| 추가 4개 랜딩 페이지 (become-guide 등) | ✅ 전체 구현 |
+| SeoHead 컴포넌트 (canonical/OG/Twitter Card) | ✅ 10개 전 페이지 적용 |
+| FAQ JSON-LD (FAQPage + mainEntity) | ✅ 전 페이지 구현 |
+| Title/Meta description — 문서 스펙 일치 | ✅ 정확히 일치 (예: `여행 일정표 만들기 \| 투어게더`) |
+| sitemap.xml | ✅ 10개 랜딩 + legal, lastmod/priority 포함 |
+| robots.txt | ✅ 사이트맵 링크, 파라미터 맵 상태 차단 |
+| index.html meta 업데이트 | ✅ TravelConnect → 투어게더/Tourgether 완전 교체 |
+| /features, /pricing, /about | ⏳ 향후 구현 (sitemap 주석에도 명시) |
+| /destinations/{city} | ⏳ 장기 로드맵 |
+
+#### `<html lang>` 동적 변경 버그 수정 ✅
+
+- **문제**: 언어 전환 시 `<html lang="">` 속성이 바뀌지 않아 검색엔진이 다국어를 잘못 인식
+- **원인**: `i18n.changeLanguage()`를 호출해도 `document.documentElement.lang` 업데이트 코드가 없었음
+- **수정**: `client/src/lib/i18n.ts` 하단에 `i18n.on('languageChanged', syncHtmlLang)` 이벤트 리스너 추가
+- **효과**: 초기 로드 시 + 언어 변경 시 모두 `<html lang="ko">` 등 자동 반영
+- **파일**: `client/src/lib/i18n.ts`
+
+---
+
+### T011 — 완료 확인 (세션 3)
+
+| Task | 상태 |
+|------|------|
+| T1 레포 위생 | ✅ |
+| T2 가드레일 문서 | ✅ |
+| T3 커밋 차단 스크립트 | ✅ |
+| T4 폴더별 GUIDE.md 6개 | ✅ |
+| T5 Auth 1차 교체 | ✅ |
+| T6 Auth 완전 통합 | ✅ |
+| T7 Smoke Test | ✅ |
+| T8 Notifications 추출 | ✅ |
+| T9 Follow 추출 | ✅ |
+| T10 Playwright (Replit 환경 제한으로 smoke 대체) | ⚠️ |
+| T11 AI_MEMO 최종 업데이트 | ✅ |
+
+---
+
 ### 다음 액션
 - 각 `*.legacy.ts` → 정식 `*.ts`로 리팩토링 (타입 정비, 의존성 명시화)
 - Admin 라우터 분리 검토
 - routes.ts 2,575줄 중 남은 인라인 블록 추가 분리 가능 여부 검토
+- /features, /pricing, /about 페이지 구현 (SEO 문서 스펙 참고)

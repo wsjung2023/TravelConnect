@@ -108,8 +108,19 @@ export async function initializeLanguage(): Promise<void> {
   }
 }
 
-// 브라우저 환경에서만 초기화 실행
+// 언어 변경 시 <html lang=""> 속성 동기화 (검색엔진 다국어 인식)
 if (typeof window !== 'undefined') {
+  const syncHtmlLang = (lng: string) => {
+    const primary = lng.split('-')[0]; // 'ko-KR' → 'ko'
+    document.documentElement.lang = primary;
+  };
+
+  // 초기값 적용
+  syncHtmlLang(i18n.language || 'en');
+
+  // 언어 변경될 때마다 자동 반영
+  i18n.on('languageChanged', syncHtmlLang);
+
   initializeLanguage().catch(console.error);
 }
 
