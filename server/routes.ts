@@ -2006,8 +2006,21 @@ COMMIT;
   app.get('/api/conversations', authenticateHybrid, apiLimiter, async (req: any, res) => {
     try {
       const userId = req.user!.id;
-      const conversations = await storage.getConversationsByUser(userId);
-      res.json(conversations);
+      const convList = await storage.getConversationsByUser(userId);
+      const otherIds = convList.map(c =>
+        c.participant1Id === userId ? c.participant2Id : c.participant1Id
+      );
+      const uniqueIds = [...new Set(otherIds)];
+      const userMap: Record<string, { firstName: string | null; lastName: string | null; profileImageUrl: string | null }> = {};
+      await Promise.all(uniqueIds.map(async (id) => {
+        const u = await storage.getUser(id);
+        if (u) userMap[id] = { firstName: u.firstName ?? null, lastName: u.lastName ?? null, profileImageUrl: u.profileImageUrl ?? null };
+      }));
+      const result = convList.map(c => {
+        const otherId = c.participant1Id === userId ? c.participant2Id : c.participant1Id;
+        return { ...c, otherUser: userMap[otherId] ? { id: otherId, ...userMap[otherId] } : { id: otherId, firstName: null, lastName: null, profileImageUrl: null } };
+      });
+      res.json(result);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       res.status(500).json({ message: 'Failed to fetch conversations' });

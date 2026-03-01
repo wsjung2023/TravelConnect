@@ -10,6 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { Channel, ChannelMember, Conversation } from '@shared/schema';
 
+type OtherUser = { id: string; firstName: string | null; lastName: string | null; profileImageUrl: string | null };
+type ConversationWithUser = Conversation & { otherUser?: OtherUser; unreadCount?: number };
+
 interface ChannelListProps {
   selectedChannelId?: number | undefined;
   selectedConversationId?: number | undefined;
@@ -21,7 +24,7 @@ interface ChannelListProps {
 
 type ChatItem = 
   | { type: 'channel'; data: Channel & { memberCount?: number; unreadCount?: number } }
-  | { type: 'conversation'; data: Conversation & { unreadCount?: number } };
+  | { type: 'conversation'; data: ConversationWithUser };
 
 export default function ChannelList({
   selectedChannelId,
@@ -50,7 +53,7 @@ export default function ChannelList({
     data: conversations = [], 
     isLoading: conversationsLoading, 
     error: conversationsError 
-  } = useQuery<Conversation[]>({
+  } = useQuery<ConversationWithUser[]>({
     queryKey: ['/api/conversations'],
   });
 
@@ -94,11 +97,11 @@ export default function ChannelList({
     if (item.type === 'channel') {
       return item.data.name?.toLowerCase().includes(searchQuery.toLowerCase());
     } else {
-      const otherParticipant = 
-        item.data.participant1Id === currentUserId
-          ? item.data.participant2Id
-          : item.data.participant1Id;
-      return otherParticipant.toLowerCase().includes(searchQuery.toLowerCase());
+      const u = item.data.otherUser;
+      const displayName = u
+        ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.id
+        : (item.data.participant1Id === currentUserId ? item.data.participant2Id : item.data.participant1Id);
+      return displayName.toLowerCase().includes(searchQuery.toLowerCase());
     }
   });
 
@@ -313,10 +316,11 @@ export default function ChannelList({
               } else {
                 const conversation = item.data;
                 const isSelected = selectedConversationId === conversation.id;
-                const otherParticipant =
-                  conversation.participant1Id === currentUserId
-                    ? conversation.participant2Id
-                    : conversation.participant1Id;
+                const ou = conversation.otherUser;
+                const displayName = ou
+                  ? (`${ou.firstName ?? ''} ${ou.lastName ?? ''}`.trim() || ou.id)
+                  : (conversation.participant1Id === currentUserId ? conversation.participant2Id : conversation.participant1Id);
+                const initials = displayName.slice(0, 2).toUpperCase();
 
                 return (
                   <div
@@ -331,8 +335,9 @@ export default function ChannelList({
                   >
                     <div className="relative">
                       <Avatar className="w-8 h-8">
+                        {ou?.profileImageUrl && <AvatarImage src={ou.profileImageUrl} alt={displayName} />}
                         <AvatarFallback className="text-xs">
-                          {otherParticipant.charAt(0).toUpperCase()}
+                          {initials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border border-white rounded-full"></div>
@@ -341,7 +346,7 @@ export default function ChannelList({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="font-medium text-sm truncate">
-                          {otherParticipant}
+                          {displayName}
                         </h4>
                         {conversation.lastMessageAt && (
                           <span className="text-xs text-gray-500">
