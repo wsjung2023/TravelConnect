@@ -33,14 +33,10 @@ import {
   authenticateHybrid,
   requireAdmin,
   generateToken,
-  hashPassword,
-  comparePassword,
-  isValidEmail,
-  isValidPassword,
-  generateUserId,
   verifyToken,
   AuthRequest,
 } from './auth';
+import { authRouter } from './routes/auth';
 import { checkAiUsage, getUserAiUsageStats } from './middleware/checkAiUsage';
 import { requirePaymentEnv, requireAiEnv, getEnvStatus } from './middleware/envCheck';
 import {
@@ -66,8 +62,6 @@ import {
   insertMiniPlanCheckinSchema,
 } from '@shared/schema';
 import {
-  LoginSchema,
-  RegisterSchema,
   OnboardingSchema,
   CreatePostSchema,
   CreateTimelineSchema,
@@ -91,18 +85,6 @@ import {
   CheckSlotAvailabilitySchema,
 } from '@shared/api/schema';
 
-// Rate Limit 설정
-const authLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1분
-  max: 20, // 분당 최대 20회
-  message: {
-    error: 'Too many authentication attempts',
-    code: 'RATE_LIMIT_EXCEEDED',
-    retryAfter: 60
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 const uploadLimiter = rateLimit({
   windowMs: 60 * 1000, // 1분
@@ -642,197 +624,8 @@ COMMIT;
   // Google OAuth 설정
   setupGoogleAuth(app);
 
-  // 이메일/비밀번호 회원가입
-  app.post('/api/auth/register', authLimiter, validateSchema(RegisterSchema), async (req: any, res) => {
-    try {
-      const { email, password, firstName, lastName } = req.validatedData;
-
-      // 입력 검증
-      if (!email || !password) {
-        return res
-          .status(400)
-          .json({ message: '이메일과 비밀번호는 필수입니다' });
-      }
-
-      if (!isValidEmail(email)) {
-        return res
-          .status(400)
-          .json({ message: '유효하지 않은 이메일 형식입니다' });
-      }
-
-      const passwordValidation = isValidPassword(password);
-      if (!passwordValidation.valid) {
-        return res.status(400).json({ message: passwordValidation.message });
-      }
-
-      // 기존 사용자 확인
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: '이미 존재하는 이메일입니다' });
-      }
-
-      // 비밀번호 해싱
-      const hashedPassword = await hashPassword(password);
-
-      // 사용자 생성
-      const user = await storage.createUser({
-        id: generateUserId(),
-        email,
-        password: hashedPassword,
-        firstName: firstName || '',
-        lastName: lastName || '',
-        authProvider: 'email',
-        isEmailVerified: true, // 실제 프로덕션에서는 이메일 인증 구현
-      });
-
-      // JWT 토큰 생성
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role || 'user',
-      });
-
-      res.status(201).json({
-        message: '회원가입이 완료되었습니다',
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-        },
-      });
-    } catch (error) {
-      console.error('회원가입 오류:', error);
-      res.status(500).json({ message: '회원가입 중 오류가 발생했습니다' });
-    }
-  });
-
-  // 이메일/비밀번호 로그인
-  app.post('/api/auth/login', authLimiter, validateSchema(LoginSchema), async (req: any, res) => {
-    try {
-      const { email, password } = req.validatedData;
-
-      if (!email || !password) {
-        return res
-          .status(400)
-          .json({ message: '이메일과 비밀번호를 입력해주세요' });
-      }
-
-      // 사용자 조회
-      const user = await storage.getUserByEmail(email);
-      if (!user || !user.password) {
-        return res
-          .status(401)
-          .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다' });
-      }
-
-      // 비밀번호 확인
-      const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid) {
-        return res
-          .status(401)
-          .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다' });
-      }
-
-      // JWT 토큰 생성
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role || 'user',
-      });
-
-      res.json({
-        message: '로그인 성공',
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-        },
-      });
-    } catch (error) {
-      console.error('로그인 오류:', error);
-      res.status(500).json({ message: '로그인 중 오류가 발생했습니다' });
-    }
-  });
-
-  // 데모 로그인 - TEST 계정으로 비밀번호 없이 로그인
-  // 현재 사용자 정보 조회 (하이브리드 인증)
-  app.get('/api/auth/me', authenticateHybrid, async (req: AuthRequest, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'Not authenticated' });
-      }
-
-      // 사용자 정보 조회
-      const user = await storage.getUser(req.user.id);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      res.json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        bio: user.bio,
-        location: user.location,
-        role: user.role,
-        isHost: user.isHost || false,
-        profileImageUrl: user.profileImageUrl,
-        userType: user.userType || 'traveler',
-        onboardingCompleted: user.onboardingCompleted || false,
-        interests: user.interests || [],
-        languages: user.languages || [],
-        timezone: user.timezone || 'Asia/Seoul',
-        portfolioMode: user.portfolioMode || false,
-        publicProfileUrl: user.publicProfileUrl,
-        serendipityEnabled: user.serendipityEnabled ?? false,
-      });
-    } catch (error) {
-      console.error('사용자 정보 조회 오류:', error);
-      res.status(500).json({ message: '사용자 정보 조회 중 오류가 발생했습니다' });
-    }
-  });
-
-  app.post('/api/auth/demo-login', authLimiter, async (req, res) => {
-    try {
-      // TEST 사용자 조회
-      const user = await storage.getUser('TEST');
-      if (!user) {
-        return res
-          .status(404)
-          .json({ message: '데모 계정을 찾을 수 없습니다' });
-      }
-
-      // JWT 토큰 생성
-      const token = generateToken({
-        id: user.id,
-        email: user.email || 'test@demo.com',
-        role: user.role || 'user',
-      });
-
-      res.json({
-        message: '데모 로그인 성공',
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-        },
-      });
-    } catch (error) {
-      console.error('데모 로그인 오류:', error);
-      res.status(500).json({ message: '데모 로그인 중 오류가 발생했습니다' });
-    }
-  });
-
+  // Auth routes moved to server/routes/auth.ts
+  app.use('/api/auth', authRouter);
   // 프로필 만남 상태 업데이트
   app.patch('/api/profile/open', authenticateHybrid, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: AuthRequest, res) => {
     try {
