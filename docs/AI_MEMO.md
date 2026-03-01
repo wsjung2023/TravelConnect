@@ -274,3 +274,39 @@ GET /api/conversations/5/messages: 200 ✅
 - **현재 2,576줄** (원본 8,857줄 대비 **71% 감소**)
 - 17개 legacy 파일로 분리 완료
 - 가드레일: `.lintstagedrc.json`에 `check-lines.mjs` + `check-header.mjs` 연결
+
+---
+
+## P2P 거래 흐름 전체 테스트 (2026-03-01)
+
+### 테스트 스크립트
+`scripts/smoke/smoke-transaction.mjs`
+
+### 시나리오
+경복궁 투어 $90 / Min-ji Kim(여행자) ↔ Guide Park(가이드), 계약금 $27(30%) + 잔금 $63(70%)
+
+### 결과: ✅ 20/20 PASS
+
+| 단계 | 내용 | 방법 | 결과 |
+|------|------|------|------|
+| 0 | 초기 상태 확인 | DB 조회 | ✅ pending |
+| 1 | 토큰 발급 | API `POST /api/auth/dev-token` | ✅ |
+| 2 | 계약 조회 | API `GET /api/contracts/13` | ✅ 200 |
+| 3 | 계약금 결제 시작 | API `POST /api/contracts/13/initiate-payment` | ✅ paymentId 발급 |
+| 4 | 계약금 결제 완료 | DB 직접 (PortOne 웹훅 역할) | ✅ in_progress |
+| 5 | 잔금 결제 | API + DB 직접 | ✅ 총 $90 funded |
+| 6 | 서비스 완료 | API `POST /api/contracts/13/complete` | ✅ completed |
+| 7 | 에스크로 정산 | DB 직접 (API 버그) | ✅ $80 지급 |
+| 8 | 최종 상태 확인 | DB 조회 | ✅ released |
+
+### 발견된 버그
+**`escrowService.releaseEscrow()` payouts INSERT 컬럼 불일치**
+- 서비스 코드: `amount`, `platformFee`, `paymentMethod`, `contractId` 컬럼으로 INSERT 시도
+- 실제 DB: `gross_amount`, `total_fees`, `net_amount`, `period_start`, `period_end`, `transaction_count` 구조 (NOT NULL 많음)
+- 영향: `POST /api/contracts/:id/release` 항상 500 실패
+- 위치: `server/services/escrowService.ts` `releaseEscrow()` 함수 약 803줄 부근
+- 해결: `escrowService.releaseEscrow()`의 payouts INSERT를 실제 DB 컬럼에 맞게 수정 필요
+
+### 실제 API 호출 vs DB 직접 처리 구분
+- **실제 API**: initiate-payment(계약금/잔금), GET 계약 조회, POST complete
+- **DB 직접**: 결제 완료(PortOne 없음), 에스크로 정산(API 버그)
