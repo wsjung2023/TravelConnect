@@ -1,3 +1,4 @@
+// 가이드 공개 프로필 페이지 — 가이드의 공개 프로필, 리뷰, 서비스 패키지를 외부에 보여주는 화면.
 import { useRoute, Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';

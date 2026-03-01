@@ -1,3 +1,4 @@
+// 사이트 푸터 — 페이지 하단에 표시되는 서비스 정보·링크·저작권 표시 컴포넌트.
 import { Link } from 'wouter';
 
 export default function Footer() {

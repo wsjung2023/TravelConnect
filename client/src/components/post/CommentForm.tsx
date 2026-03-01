@@ -1,3 +1,4 @@
+// 댓글 입력 폼 — 게시글에 댓글 또는 대댓글을 입력하고 제출하는 폼 컴포넌트.
 import { useState } from "react";
 import { useAddComment } from "@/features/comments/useAddComment";
 import { Button } from "@/components/ui/button";

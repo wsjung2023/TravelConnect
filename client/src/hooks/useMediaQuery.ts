@@ -1,3 +1,4 @@
+// 미디어 쿼리 훅 — CSS 미디어 쿼리를 React 상태로 구독해 반응형 레이아웃 분기에 사용한다.
 import { useState, useEffect } from 'react';
 
 /**

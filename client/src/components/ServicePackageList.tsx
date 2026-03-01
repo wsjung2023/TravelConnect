@@ -1,3 +1,4 @@
+// 서비스 패키지 목록 — 등록된 서비스 패키지 목록을 표시하는 컴포넌트.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, Plus, Edit, Trash2, Eye, Users, Clock, ShoppingBag, Sparkles, MapPin } from 'lucide-react';

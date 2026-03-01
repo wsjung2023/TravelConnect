@@ -1,3 +1,4 @@
+// SEO 설정 — 각 SEO 랜딩 페이지의 메타 태그, OG, JSON-LD 스키마 기본값을 정의한다.
 /**
  * SEO 설정 파일 - tourgether_SEO_upgrade.md 문서 기반
  * Single Source of Truth for SEO meta data

@@ -1,3 +1,4 @@
+// 댓글 추가 훅 — 게시글에 댓글 또는 대댓글을 추가하는 뮤테이션과 캐시 무효화 로직을 제공한다.
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 

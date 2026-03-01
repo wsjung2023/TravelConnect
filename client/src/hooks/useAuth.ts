@@ -1,3 +1,4 @@
+// 인증 훅 — 로그인 유저 정보(me), 로그인/로그아웃/회원가입 뮤테이션, 인증 상태를 제공하는 전역 훅.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 

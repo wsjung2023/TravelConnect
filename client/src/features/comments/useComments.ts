@@ -1,3 +1,4 @@
+// 댓글 조회 훅 — 특정 게시글의 댓글 목록(중첩 구조 포함)을 조회하는 쿼리 훅.
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 

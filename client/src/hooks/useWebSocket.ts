@@ -1,3 +1,4 @@
+// WebSocket 훅 — 서버와의 실시간 WebSocket 연결을 관리하고, 메시지 수신 핸들러를 등록한다.
 import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './useAuth';
 

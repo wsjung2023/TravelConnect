@@ -1,3 +1,4 @@
+// 온보딩 모달 — 신규 가입 유저의 역할 선택, 관심사·언어 설정, 위치 입력을 단계별로 안내하는 모달.
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';

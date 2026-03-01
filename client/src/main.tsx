@@ -1,3 +1,4 @@
+// 클라이언트 진입점 — React 앱을 DOM에 마운트하고 i18n, QueryClient 등 전역 설정을 초기화한다.
 import '@/lib/disableConsoleInProd';   // 가장 위에 추가
 import React from 'react';
 import { createRoot } from 'react-dom/client';

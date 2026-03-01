@@ -1,3 +1,4 @@
+// API 클라이언트 유틸 — fetch 기반 공통 API 요청 함수와 인증 헤더 처리를 제공한다.
 export async function api(url: string, opts: { method?: string; body?: any; auth?: boolean } = {}) {
   const { method = "GET", body, auth = true } = opts;
   const token = localStorage.getItem('token');

@@ -1,3 +1,4 @@
+// 서비스 템플릿 폼 — 가이드가 서비스 템플릿(제목·설명·카테고리·가격)을 등록하는 폼.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

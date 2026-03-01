@@ -1,3 +1,4 @@
+// 예약 모달 — 예약 생성·상태 변경·취소를 처리하는 모달.
 import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar, Users, CreditCard } from 'lucide-react';

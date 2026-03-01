@@ -1,3 +1,4 @@
+// 트렌딩 해시태그 — 현재 인기 해시태그 목록을 보여주고 클릭 시 피드를 필터링한다.
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, Hash, Plus, Check } from 'lucide-react';

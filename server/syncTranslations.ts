@@ -1,3 +1,4 @@
+// 번역 데이터 동기화 스크립트 — translations 테이블의 번역 데이터를 외부 소스 또는 하드코딩된 기본값으로 동기화한다.
 import { db } from './db';
 import { translations } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';

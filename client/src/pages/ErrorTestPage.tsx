@@ -1,3 +1,4 @@
+// 에러 테스트 페이지 — 에러 바운더리 동작을 테스트하기 위한 개발용 페이지.
 import React from 'react';
 
 const ErrorTestPage = () => {

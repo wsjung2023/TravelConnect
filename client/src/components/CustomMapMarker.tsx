@@ -1,3 +1,4 @@
+// 커스텀 지도 마커 — 게시글·POI 유형에 따라 다른 스타일의 SVG 마커를 Google Maps에 렌더링한다.
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

@@ -1,3 +1,4 @@
+// 피드 점수 산정 서비스 — 게시글의 좋아요·댓글·저장·거리·시간 등을 종합해 스마트 피드 노출 점수를 계산한다.
 import { cacheService } from './cache';
 
 export interface FeedWeights {

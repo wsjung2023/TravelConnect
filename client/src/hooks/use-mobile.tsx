@@ -1,3 +1,4 @@
+// 모바일 감지 훅 — 화면 폭 기준으로 모바일 여부를 반환하는 훅.
 import * as React from 'react';
 
 const MOBILE_BREAKPOINT = 768;

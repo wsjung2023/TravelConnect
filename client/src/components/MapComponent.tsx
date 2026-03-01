@@ -1,3 +1,4 @@
+// 지도 메인 컴포넌트 — Google Maps 기반 인터랙티브 지도. 게시글·POI·MiniMeet 마커 표시, 클러스터링, 줌 이벤트, POI 필터링, 지도 클릭으로 게시글 작성을 지원한다.
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';

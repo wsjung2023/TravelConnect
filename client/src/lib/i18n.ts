@@ -1,3 +1,4 @@
+// i18n 설정 — i18next를 초기화하고, DB-driven translations 테이블 기반 다국어(6개 언어) 백엔드를 연결한다.
  import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';

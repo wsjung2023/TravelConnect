@@ -1,3 +1,4 @@
+// 슬롯 예약 모달 — 선택한 슬롯의 상세 정보를 보고 예약을 진행하는 모달.
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar, Users, Clock, MapPin, AlertCircle, CreditCard } from 'lucide-react';

@@ -1,3 +1,4 @@
+// 시스템 설정 관리자 — system_config 테이블의 설정값을 카테고리별로 CRUD하는 관리자 UI.
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

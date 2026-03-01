@@ -1,3 +1,4 @@
+// 공개 포트폴리오 페이지 — 호스트의 공개 포트폴리오 모드에서 서비스·리뷰를 보여주는 화면.
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { ArrowLeft, ExternalLink, MapPin, Star, Sparkles, Package, Heart } from 'lucide-react';

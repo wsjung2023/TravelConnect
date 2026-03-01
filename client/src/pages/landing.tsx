@@ -1,3 +1,4 @@
+// 랜딩 페이지 — 비로그인 유저 대상의 서비스 소개, 주요 기능 설명, CTA(회원가입/로그인) 화면.
 import { MapPin, Users, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar, DollarSign, Camera } from 'lucide-react';
 import { Link } from 'wouter';
 import { useState, useEffect } from 'react';

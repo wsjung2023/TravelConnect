@@ -1,3 +1,4 @@
+// 미니 플랜 옵션 모달 — Mini Concierge 플랜 생성 전 위치·테마·시간 옵션을 설정하는 모달.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {

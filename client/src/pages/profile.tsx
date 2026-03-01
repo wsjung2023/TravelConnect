@@ -1,3 +1,4 @@
+// 프로필 페이지 — 로그인 유저 또는 다른 유저의 프로필, 게시글, 팔로워/팔로잉, 서비스 정보를 보여준다.
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';

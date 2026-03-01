@@ -1,3 +1,4 @@
+// 향상된 채팅 창 — ChatWindow의 확장 버전으로 스레드 패널, 리액션, 파일 첨부 등 고급 채팅 기능을 추가한 컴포넌트.
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, Phone, Video, MoreVertical, ArrowLeft, MessageSquare, Reply, Loader2, UserPlus, Settings, LogOut, Languages, Sparkles } from 'lucide-react';

@@ -1,3 +1,4 @@
+// 에러 바운더리 — React 트리에서 발생한 런타임 에러를 잡아 사용자에게 에러 화면을 보여주고, 콘솔에 에러를 기록한다.
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import * as Sentry from '@sentry/react';
 

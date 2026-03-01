@@ -1,3 +1,4 @@
+// 앱 루트 컴포넌트 — Wouter 라우터로 모든 페이지를 연결하고, QueryClientProvider·AuthProvider 등 전역 프로바이더를 감싼다.
 import { Switch, Route } from 'wouter';
 import { Suspense, lazy, useState } from 'react';
 import { queryClient } from './lib/queryClient';

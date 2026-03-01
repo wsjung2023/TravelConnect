@@ -1,3 +1,4 @@
+// 결제 훅 — PortOne V2 SDK를 사용해 카드 등록·정기결제·일회성 결제 흐름을 처리하는 훅.
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';

@@ -1,3 +1,4 @@
+// 체험 카드 — 체험 상품의 썸네일·제목·가격·평점을 카드 형태로 표시하는 컴포넌트.
 import { Star, MapPin, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

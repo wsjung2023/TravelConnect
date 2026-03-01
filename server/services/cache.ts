@@ -1,3 +1,4 @@
+// LRU 캐시 유틸리티 — 빌링 플랜, Trip Pass, AI 사용량, 피드 점수, 번역, 트렌딩 해시태그 등 자주 조회되는 데이터를 메모리에 캐싱한다.
 import memoizee from 'memoizee';
 
 interface CacheOptions {

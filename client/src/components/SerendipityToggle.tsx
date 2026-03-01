@@ -1,3 +1,4 @@
+// 세렌디피티 토글 — 무작위 여행자 발견 기능(Serendipity Mode) ON/OFF를 전환하는 토글 컴포넌트.
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sparkles } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';

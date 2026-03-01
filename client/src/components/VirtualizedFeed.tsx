@@ -1,3 +1,4 @@
+// 가상화 피드 — react-virtual 기반으로 대량 피드 게시글을 DOM 가상화해 성능을 최적화하는 컴포넌트.
 import React, { useMemo, useCallback } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Post } from '@shared/schema';

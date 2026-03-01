@@ -1,3 +1,4 @@
+// 관리자 페이지 — 시스템 설정(system_config), AI 프롬프트 템플릿, 정산·분쟁·구독 현황을 관리하는 어드민 대시보드.
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

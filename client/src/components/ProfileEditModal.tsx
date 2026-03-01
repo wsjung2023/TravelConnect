@@ -1,3 +1,4 @@
+// 프로필 수정 모달 — 닉네임·소개·위치·언어·관심사·프로필 이미지 등을 수정하는 모달.
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -1,3 +1,4 @@
+// 법적 문서 페이지 — 이용약관, 개인정보처리방침 등 법적 문서를 표시하는 페이지.
 import { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import ReactMarkdown from 'react-markdown';

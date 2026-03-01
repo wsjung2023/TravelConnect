@@ -1,3 +1,4 @@
+// 비디오 테스트 페이지 — 비디오 재생 컴포넌트를 테스트하는 개발용 페이지.
 import React, { useState } from 'react';
 import VideoShape, { ImageShape } from '@/components/VideoShape';
 import { Button } from '@/components/ui/button';

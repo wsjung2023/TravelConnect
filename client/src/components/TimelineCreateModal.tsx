@@ -1,3 +1,4 @@
+// 타임라인 생성 모달 — 새 타임라인 항목(날짜·제목·내용·위치)을 작성하는 모달.
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Calendar, MapPin, FileText } from 'lucide-react';

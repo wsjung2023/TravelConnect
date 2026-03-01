@@ -1,3 +1,4 @@
+// 인앱 브라우저 리다이렉트 — 카카오·인스타 등 인앱 브라우저에서 외부 브라우저로 열기를 유도하는 컴포넌트.
 import { useEffect, useState } from 'react';
 import { ExternalLink, Copy, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

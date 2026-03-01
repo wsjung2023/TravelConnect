@@ -1,3 +1,4 @@
+// 로그인 모달 — 이메일/비밀번호 로그인, Replit OAuth, Google OAuth, 회원가입 탭을 제공하는 인증 모달.
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

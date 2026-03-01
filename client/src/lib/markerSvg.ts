@@ -1,4 +1,4 @@
-// client/src/lib/markerSvg.ts
+// 지도 마커 SVG — 게시글·POI 유형별 지도 마커 SVG 아이콘을 생성하는 함수 모음.
 export function makePinSVG({
   text,
   fill = '#2563eb', // 파랑

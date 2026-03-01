@@ -1,3 +1,4 @@
+// 가상화 타임라인 — react-virtual 기반으로 타임라인 카드 목록을 DOM 가상화하는 컴포넌트.
 import React, { useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Post } from '@shared/schema';

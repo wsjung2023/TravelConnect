@@ -1,3 +1,4 @@
+// AI 프롬프트 템플릿 관리자 — CineMap·Concierge·Mini Concierge 프롬프트를 DB에서 관리하는 관리자 UI.
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';

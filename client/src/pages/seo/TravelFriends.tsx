@@ -1,3 +1,4 @@
+// SEO 랜딩 — 여행 친구 매칭 소개 페이지. JSON-LD·OG 태그·i18n 포함.
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
 import SeoNav from '@/components/seo/SeoNav';

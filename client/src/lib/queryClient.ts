@@ -1,3 +1,4 @@
+// TanStack Query 클라이언트 설정 — QueryClient 인스턴스와 기본 fetch 함수(apiRequest)를 설정한다.
 import { QueryClient, QueryFunction } from '@tanstack/react-query';
 
 async function throwIfResNotOk(res: Response) {

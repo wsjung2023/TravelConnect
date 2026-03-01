@@ -1,3 +1,4 @@
+// 피드 모드 선택기 — 스마트 피드·최신순·팔로잉 피드 모드를 전환하는 UI 컴포넌트.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkles, Clock, MapPin, TrendingUp, Hash } from 'lucide-react';

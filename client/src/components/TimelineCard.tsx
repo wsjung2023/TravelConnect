@@ -1,3 +1,4 @@
+// 타임라인 카드 — 여행 타임라인의 각 항목을 카드 형태로 표시하는 컴포넌트.
 import { useState } from 'react';
 import { Calendar, Camera, MapPin, Heart, Cloud, Edit3, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';

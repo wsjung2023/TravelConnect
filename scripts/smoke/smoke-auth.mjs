@@ -1,4 +1,4 @@
-// Smoke test: verify auth endpoints (demo-login -> me) while server is running.
+// Smoke 테스트 — 서버 실행 후 demo-login → /me 흐름을 검증하는 최소 통합 테스트 스크립트.
 const BASE = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:5000';
 
 async function post(path, body, headers = {}) {

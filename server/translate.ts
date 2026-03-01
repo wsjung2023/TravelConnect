@@ -1,3 +1,4 @@
+// 번역 유틸리티 — Google Translate API를 래핑해 텍스트를 지정 언어로 번역하는 함수를 제공한다. DM 번역 기능에서 사용한다.
 import type { Request, Response } from 'express';
 
 const GOOGLE_TRANSLATE_API_URL = 'https://translation.googleapis.com/language/translate/v2';

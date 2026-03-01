@@ -1,3 +1,4 @@
+// 분쟁 처리 서비스 — P2P 거래 분쟁 생성·조회·상태 전환·증거 제출·에스컬레이션·SLA 관리 등 분쟁 해결 비즈니스 로직을 담당한다.
 import { db } from '../db';
 import {
   disputeCases,

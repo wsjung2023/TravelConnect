@@ -1,3 +1,4 @@
+// 호스트 페이지 — 가이드/호스트가 슬롯 일정 관리, 서비스 템플릿·패키지, 예약 현황, 수익 정산을 관리하는 화면.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

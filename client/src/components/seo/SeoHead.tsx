@@ -1,3 +1,4 @@
+// SEO 헤드 — SEO 랜딩 페이지의 title·description·OG·Twitter 카드·JSON-LD를 설정하는 공통 헤드 컴포넌트.
 import { Helmet } from 'react-helmet-async';
 
 interface SeoHeadProps {

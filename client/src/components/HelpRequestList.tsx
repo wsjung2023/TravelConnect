@@ -1,3 +1,4 @@
+// 도움 요청 목록 — 도움 요청 목록을 상태별로 표시하는 컴포넌트.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

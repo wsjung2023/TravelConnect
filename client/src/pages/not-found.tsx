@@ -1,3 +1,4 @@
+// 404 페이지 — 존재하지 않는 경로 접근 시 보여주는 페이지.
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 

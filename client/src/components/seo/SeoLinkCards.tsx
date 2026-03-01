@@ -1,3 +1,4 @@
+// SEO 링크 카드 — SEO 랜딩 페이지 간 이동을 위한 카드형 내부 링크 컴포넌트.
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import {

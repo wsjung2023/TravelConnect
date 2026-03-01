@@ -1,3 +1,4 @@
+// 타임라인 페이지 — 사용자의 여행 기록을 시간순으로 카드 형태로 보여준다.
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';

@@ -1,3 +1,4 @@
+// SEO 헬퍼 — react-helmet-async로 페이지별 title·description·OG 태그를 동적으로 설정하는 컴포넌트.
 import { Helmet } from 'react-helmet-async';
 
 interface SeoProps {

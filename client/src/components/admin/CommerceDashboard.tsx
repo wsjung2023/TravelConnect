@@ -1,3 +1,4 @@
+// 커머스 대시보드 — 결제·구독·정산·분쟁 현황을 한눈에 볼 수 있는 관리자 대시보드 컴포넌트.
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

@@ -1,3 +1,4 @@
+// 미니 플랜 실행 뷰 — 선택한 미니 플랜을 실제로 실행하며 체크인·완료를 관리하는 뷰.
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';

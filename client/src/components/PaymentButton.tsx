@@ -1,3 +1,4 @@
+// 결제 버튼 — PortOne 결제 SDK를 호출해 결제 창을 여는 버튼 컴포넌트.
 import { useState } from 'react';
 import { CreditCard, Loader2, Wallet } from 'lucide-react';
 import { SiKakaotalk, SiPaypal } from 'react-icons/si';

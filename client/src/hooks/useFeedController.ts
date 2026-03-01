@@ -1,3 +1,4 @@
+// 피드 컨트롤러 훅 — 피드 모드(스마트/최신/팔로잉), 필터, 게시글 목록 조회·무한스크롤 로직을 캡슐화한 훅.
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';

@@ -1,3 +1,4 @@
+// SEO 내비게이션 — SEO 랜딩 페이지 상단 공통 내비게이션 바.
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Home } from 'lucide-react';

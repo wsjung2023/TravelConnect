@@ -1,3 +1,4 @@
+// 슬롯 관리 UI — 호스트가 가용 슬롯을 생성·수정·삭제·일괄 생성하는 달력 기반 관리 화면.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';

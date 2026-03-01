@@ -1,3 +1,4 @@
+// 이미지 폴백 — 이미지 로드 실패 시 대체 이미지나 플레이스홀더를 보여주는 컴포넌트.
 import React from 'react';
 
 interface ImageFallbackProps {

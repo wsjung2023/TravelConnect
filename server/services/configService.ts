@@ -1,3 +1,4 @@
+// DB-driven 설정 서비스 — system_config 테이블에서 설정값을 읽고 LRU 캐시(5분 TTL)로 관리한다. 하드코딩 없이 모든 시스템 설정을 DB로 제어한다.
 import { storage } from '../storage';
 import type { SystemConfig } from '@shared/schema';
 import LRUCache from 'lru-cache';

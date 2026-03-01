@@ -1,3 +1,4 @@
+// 언어 전환기 — 6개 언어(한/영/일/중/프/스) 중 하나를 선택하고 i18n 언어를 변경하는 컴포넌트.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';

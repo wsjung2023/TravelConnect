@@ -1,3 +1,4 @@
+// 빌링 플랜 기능 상수 — Free·Starter·Pro 각 구독 플랜의 포함 기능 목록을 정의한다.
 import { Sparkles, MessageCircle, Film, Compass, Globe, Percent, Star, Zap, Crown, CheckCircle } from 'lucide-react';
 
 export interface FeatureConfig {

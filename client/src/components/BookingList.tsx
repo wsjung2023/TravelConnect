@@ -1,3 +1,4 @@
+// 예약 목록 — 호스트 또는 여행자의 예약 내역을 상태별로 보여주는 리스트 컴포넌트.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, Clock, MapPin, Users, CreditCard, AlertCircle, CheckCircle, XCircle, MessageCircle } from 'lucide-react';

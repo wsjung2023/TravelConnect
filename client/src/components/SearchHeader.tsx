@@ -1,3 +1,4 @@
+// 검색 헤더 — 위치·키워드로 콘텐츠를 검색하고 필터를 적용하는 상단 검색바 컴포넌트.
 import { useState, useRef } from 'react';
 import { Search, MapPin, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

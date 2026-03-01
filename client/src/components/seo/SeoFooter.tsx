@@ -1,3 +1,4 @@
+// SEO 푸터 — SEO 랜딩 페이지 공통 푸터. 사이트맵 링크와 서비스 정보를 포함한다.
 import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 

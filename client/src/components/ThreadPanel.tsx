@@ -1,3 +1,4 @@
+// 스레드 패널 — 채팅 메시지의 답글 스레드를 우측 패널에 표시하는 컴포넌트.
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

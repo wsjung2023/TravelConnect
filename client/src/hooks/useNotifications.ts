@@ -1,3 +1,4 @@
+// 알림 훅 — 알림 목록 조회, 읽음 처리, 삭제 뮤테이션을 제공하는 훅.
 import { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';

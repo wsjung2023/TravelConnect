@@ -1,3 +1,4 @@
+// 게시글 상세 모달 — 게시글 내용, 이미지, 댓글(중첩), 좋아요·저장·공유 기능을 보여주는 상세 모달.
 import React, { useState } from 'react';
 import {
   X,

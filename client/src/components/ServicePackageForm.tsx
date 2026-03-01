@@ -1,3 +1,4 @@
+// 서비스 패키지 폼 — 가이드가 복수 서비스를 묶은 패키지를 등록하는 폼.
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

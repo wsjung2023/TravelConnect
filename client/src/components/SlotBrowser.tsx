@@ -1,3 +1,4 @@
+// 슬롯 탐색 UI — 여행자가 날짜·위치·서비스 유형으로 슬롯을 검색하고 예약 가능 여부를 확인하는 컴포넌트.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Slot } from '@shared/schema';

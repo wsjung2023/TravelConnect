@@ -1,3 +1,4 @@
+// 지도 테스트 페이지 — 지도 컴포넌트 및 마커 동작을 테스트하는 개발용 페이지.
 import { useEffect, useRef } from 'react';
 
 export default function MapTest() {

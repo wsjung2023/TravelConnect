@@ -1,3 +1,4 @@
+// 홈 페이지 — 지도(MapComponent)와 피드·Nearby 패널을 통합한 메인 화면. 지도 클릭으로 게시글 작성, POI 조회, MiniMeet 등을 지원한다.
 import { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, Link } from 'wouter';

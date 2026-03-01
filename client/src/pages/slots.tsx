@@ -1,3 +1,4 @@
+// 슬롯 관리 페이지 — 호스트가 가용 슬롯을 생성·수정·삭제하고, 여행자가 슬롯을 검색·예약하는 화면.
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';

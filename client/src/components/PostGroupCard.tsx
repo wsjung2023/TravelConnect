@@ -1,3 +1,4 @@
+// 게시글 그룹 카드 — 지도 클러스터에서 여러 게시글을 묶어 보여주는 카드 컴포넌트.
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PostGroup } from '@/utils/postGrouping';

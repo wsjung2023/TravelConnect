@@ -1,3 +1,4 @@
+// 만남 수락 토글 — 다른 여행자와의 만남 요청 수락 여부를 ON/OFF하는 토글 컴포넌트.
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Clock } from 'lucide-react';

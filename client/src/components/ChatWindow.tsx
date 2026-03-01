@@ -1,3 +1,4 @@
+// 채팅 창 — 채널 내 메시지 목록, 메시지 전송, 읽음 처리, DM 번역 버튼을 포함하는 채팅 UI.
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, Phone, Video, MoreVertical } from 'lucide-react';

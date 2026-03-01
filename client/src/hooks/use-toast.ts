@@ -1,3 +1,4 @@
+// Toast 훅 — shadcn/ui 기반 토스트 알림을 전역으로 띄우는 훅.
 import { useState, useEffect } from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';

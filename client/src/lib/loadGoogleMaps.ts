@@ -1,3 +1,4 @@
+// Google Maps 로더 — Google Maps JavaScript API를 동적으로 로드하고 중복 로드를 방지한다.
 import i18n from './i18n';
 
 let promise: Promise<any> | null = null;

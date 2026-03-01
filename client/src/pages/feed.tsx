@@ -1,3 +1,4 @@
+// 피드 페이지 — 여행 게시글 스마트 피드를 스크롤 형태로 보여주고, 게시글 작성·좋아요·댓글·저장 기능을 제공한다.
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

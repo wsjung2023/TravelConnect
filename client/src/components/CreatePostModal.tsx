@@ -1,3 +1,4 @@
+// 게시글 작성 모달 — 텍스트·이미지·위치·태그·테마를 입력해 여행 게시글을 작성하는 모달.
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Camera, MapPin, Image, Video, Smartphone } from 'lucide-react';

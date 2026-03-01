@@ -1,3 +1,4 @@
+// 공통 유틸리티 함수 — 날짜 포맷, 문자열 처리, 거리 계산 등 프론트·백 양쪽에서 사용하는 순수 함수 모음이다.
 export function calculateDistance(
   lat1: number,
   lng1: number,

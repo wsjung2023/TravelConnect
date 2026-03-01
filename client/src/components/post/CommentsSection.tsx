@@ -1,3 +1,4 @@
+// 댓글 섹션 — 게시글의 전체 댓글 목록(중첩 구조)을 렌더링하는 컴포넌트.
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

@@ -1,3 +1,4 @@
+// 결제 동의 — 결제 진행 전 이용약관 동의를 받는 컴포넌트.
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'wouter';

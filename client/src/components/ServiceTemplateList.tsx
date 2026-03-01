@@ -1,3 +1,4 @@
+// 서비스 템플릿 목록 — 가이드의 서비스 템플릿 목록을 보여주고 편집·삭제 기능을 제공한다.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ServiceTemplate } from '@shared/schema';

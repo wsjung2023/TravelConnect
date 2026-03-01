@@ -1,3 +1,4 @@
+// Vite 개발 서버 통합 — Express와 Vite를 연결해 개발 환경에서 HMR(핫 모듈 교체)과 프론트엔드 빌드 서빙을 담당한다.
 import express, { type Express } from 'express';
 import fs from 'fs';
 import path from 'path';

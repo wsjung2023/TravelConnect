@@ -1,3 +1,4 @@
+// 데이터베이스 접근 레이어 — Drizzle ORM을 사용해 모든 DB 테이블의 CRUD 로직을 담당한다. IStorage 인터페이스를 구현하며, 서버의 모든 라우터가 이 레이어를 통해 DB에 접근한다.
 import {
   users,
   experiences,

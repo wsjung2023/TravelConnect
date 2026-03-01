@@ -1,3 +1,4 @@
+// 미니 플랜 카드 뷰 — Mini Concierge가 생성한 액티비티 플랜 목록을 카드로 보여주는 뷰.
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

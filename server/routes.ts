@@ -1,3 +1,4 @@
+// 메인 라우트 진입점 — 모든 API 엔드포인트를 등록하는 Express 라우터. 대형 레거시 파일로, 각 기능별 legacy 라우터를 호출한다. 새 엔드포인트는 반드시 server/routes/ 하위 모듈에 추가할 것.
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 
 // Add Express session type declarations

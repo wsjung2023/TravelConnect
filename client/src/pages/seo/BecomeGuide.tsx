@@ -1,3 +1,4 @@
+// SEO 랜딩 — 로컬 가이드 신청 유도 페이지. JSON-LD·OG 태그·i18n 포함.
 import SeoHead from '@/components/seo/SeoHead';
 import SeoFooter from '@/components/seo/SeoFooter';
 import SeoNav from '@/components/seo/SeoNav';

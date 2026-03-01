@@ -1,3 +1,4 @@
+// 비디오 쉐이프 — CineMap 스토리보드용 비디오 클립을 다양한 쉐이프(원형·정사각형 등)로 렌더링하는 컴포넌트.
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface VideoShapeProps {

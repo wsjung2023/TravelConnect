@@ -1,3 +1,4 @@
+// 타임라인 생성 페이지 — 여행 타임라인 항목을 작성·편집하는 화면.
 import { useState, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';

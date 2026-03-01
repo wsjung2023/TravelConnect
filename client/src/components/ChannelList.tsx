@@ -1,3 +1,4 @@
+// 채널 목록 — DM·그룹 채널 목록을 표시하고, 새 채널 생성·검색 기능을 제공한다.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

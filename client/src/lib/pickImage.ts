@@ -1,4 +1,4 @@
-// client/src/lib/pickImage.ts
+// 이미지 선택 유틸 — 파일 선택 다이얼로그를 열고, 선택된 이미지를 Base64 또는 File 객체로 반환한다.
 
 export type ImageVariants = {
   thumb?: string;   // 320px 정도

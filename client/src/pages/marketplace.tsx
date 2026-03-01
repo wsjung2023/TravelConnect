@@ -1,3 +1,4 @@
+// 마켓플레이스 페이지 — 가이드 서비스 템플릿·패키지를 검색하고 구매 요청을 할 수 있는 화면.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

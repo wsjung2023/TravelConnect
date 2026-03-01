@@ -1,3 +1,4 @@
+// 미니 컨시어지 버튼 — AI 기반 1시간 액티비티 플래너(Mini Concierge) 실행 버튼 컴포넌트.
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';

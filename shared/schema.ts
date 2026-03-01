@@ -1,3 +1,4 @@
+// DB 스키마 정의 — Drizzle ORM으로 모든 테이블 구조, 인덱스, insert 스키마(drizzle-zod), 타입을 정의한다. 프론트엔드·백엔드 공통으로 사용한다.
 import {
   pgTable,
   text,

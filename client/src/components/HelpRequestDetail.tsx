@@ -1,3 +1,4 @@
+// 도움 요청 상세 — 도움 요청의 상세 내용, 답변, 상태 변경을 보여주는 컴포넌트.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

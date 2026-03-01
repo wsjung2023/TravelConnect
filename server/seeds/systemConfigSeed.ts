@@ -1,3 +1,4 @@
+// 시스템 설정 시드 — system_config 테이블에 초기 설정값(결제, AI, 캐시, 스케줄러 등 106개 항목)을 삽입한다.
 import { storage } from '../storage';
 import type { InsertSystemConfig } from '@shared/schema';
 

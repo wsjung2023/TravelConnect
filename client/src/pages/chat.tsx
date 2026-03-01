@@ -1,3 +1,4 @@
+// 채팅 페이지 — 3패널(채널 목록·채팅창·스레드) 구조의 실시간 메시지 화면. WebSocket 기반 실시간 업데이트와 DM 번역을 지원한다.
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';

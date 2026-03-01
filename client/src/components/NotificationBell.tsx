@@ -1,3 +1,4 @@
+// 알림 벨 — 읽지 않은 알림 수를 뱃지로 표시하고, 클릭 시 알림 목록을 드롭다운으로 보여준다.
 import { useState, useEffect } from 'react';
 import {
   Bell,

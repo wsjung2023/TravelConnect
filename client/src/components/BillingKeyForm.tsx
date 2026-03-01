@@ -1,3 +1,4 @@
+// 빌링키 등록 폼 — PortOne을 통해 카드 정보를 입력하고 빌링키를 발급받는 폼.
 import { useState } from 'react';
 import { CreditCard, Loader2, Plus, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';

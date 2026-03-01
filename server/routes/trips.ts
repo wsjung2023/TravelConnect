@@ -1,3 +1,4 @@
+// 여행 관련 라우터 — 여행 계획(Trip) 생성·조회·수정·삭제 엔드포인트를 담당한다.
 import express from 'express';
 import multer from 'multer';
 import path from 'path';

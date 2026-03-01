@@ -1,3 +1,4 @@
+// 결제 서비스 — Billing Plans 시딩, 구독 플랜 CRUD, PortOne 빌링키 기반 정기결제 처리 로직을 담당한다.
 import { storage } from '../storage';
 import type { InsertBillingPlan } from '@shared/schema';
 
