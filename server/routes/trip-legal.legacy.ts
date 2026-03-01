@@ -1,4 +1,4 @@
-// Legacy TripLegal routes extracted from server/routes.ts to reduce file size.
+// 여행 일정·법무 라우터 — 여행 플랜(TripPlan) 생성·조회·수정·삭제, 타임라인 항목 관리, 여행 관련 법적 문서(TripLegal) 조회 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
 export function registerLegacyTripLegalRoutes(

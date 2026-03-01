@@ -1,4 +1,4 @@
-// Legacy POISmartFeed routes extracted from server/routes.ts to reduce file size.
+// POI·스마트피드 라우터 — POI(관심장소) 카테고리/타입 조회·시딩, 해시태그 팔로우/언팔로우·내 해시태그 목록, 게시글 저장/해제/목록, 스마트 피드 조회·점수 갱신, 트렌딩 해시태그 엔드포인트를 담당한다.
 import type { Express } from 'express';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../auth';

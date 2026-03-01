@@ -1,4 +1,4 @@
-// Legacy MiniMeet routes extracted from server/routes.ts to reduce file size.
+// MiniMeet 라우터 — 짧은 만남 요청(MiniMeet) 생성·조회·참가·취소, 근처 MiniMeet 목록 조회 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
 export function registerLegacyMiniMeetRoutes(

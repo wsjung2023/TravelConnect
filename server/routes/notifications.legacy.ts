@@ -1,4 +1,4 @@
-// Legacy notification routes extracted from server/routes.ts to reduce file size.
+// 알림 라우터 — 로그인 유저의 알림 목록 조회, 단건/전체 읽음 처리, 알림 삭제 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
 export function registerLegacyNotificationRoutes(

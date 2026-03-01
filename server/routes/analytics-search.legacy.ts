@@ -1,4 +1,4 @@
-// Legacy AnalyticsSearch routes extracted from server/routes.ts to reduce file size.
+// 분석·검색 라우터 — 관리자용 Analytics Data Warehouse ETL(전체/일별), 일별·거래·예약·대시보드 지표 조회, 차원 동기화, 그리고 콘텐츠/위치 검색 API를 담당한다.
 import type { Express } from 'express';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../auth';

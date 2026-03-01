@@ -1,4 +1,4 @@
-// Legacy follow/following routes extracted from server/routes.ts to reduce file size.
+// 팔로우 라우터 — 유저 팔로우/언팔로우, 팔로워·팔로잉 목록 조회, 팔로우 수 카운트, 팔로우 상태 확인 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
 export function registerLegacyFollowRoutes(

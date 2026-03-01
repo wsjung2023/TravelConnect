@@ -1,4 +1,4 @@
-// Legacy WebhookSettlement routes extracted from server/routes.ts to reduce file size.
+// 웹훅·정산 라우터 — PortOne V2 결제 완료/취소/빌링키 웹훅 처리, 관리자용 결제 내역 조회·환불, 호스트 정산 상태·실행·목록·재시도 엔드포인트를 담당한다.
 import type { Express } from 'express';
 import express, { type Request, type Response } from 'express';
 import type { AuthRequest } from '../auth';

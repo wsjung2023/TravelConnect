@@ -1,4 +1,4 @@
-// Legacy AIFeatures routes extracted from server/routes.ts to reduce file size.
+// AI 기능 라우터 — AI Concierge(대화형 여행 도우미), Mini Concierge(1시간 액티비티 플래너), CineMap(사진 기반 여행 스토리보드 생성) 엔드포인트 및 AI 모델 설정 테스트 API를 담당한다.
 import type { Express } from 'express';
 import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } from '../ai/concierge';
 import { generateMiniPlans, isMiniConciergeEnabled, type MiniPlanContext } from '../ai/miniConcierge';

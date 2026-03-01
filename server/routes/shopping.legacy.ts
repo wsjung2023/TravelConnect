@@ -1,4 +1,4 @@
-// Legacy Shopping routes extracted from server/routes.ts to reduce file size.
+// 쇼핑 대리구매 라우터 — 구매 대행 주문(PurchaseOrder) 생성·목록·상세·상태변경·취소 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
 export function registerLegacyShoppingRoutes(

@@ -1,4 +1,4 @@
-// Legacy SlotsBookings routes extracted from server/routes.ts to reduce file size.
+// 슬롯·예약 라우터 — 호스트 가용 슬롯 생성(단건/일괄)/조회/수정/삭제/가용성 변경, 슬롯 검색·가용성 확인, 예약 생성·목록·상태변경 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
 export function registerLegacySlotsBookingsRoutes(

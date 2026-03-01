@@ -1,4 +1,4 @@
-// Legacy Contract routes extracted from server/routes.ts to reduce file size.
+// 계약·에스크로 라우터 — P2P 서비스 계약 생성/조회, PortOne 기반 결제 시작·확인, 계약 완료/취소, 분할결제(할부·마일스톤) 플랜 관리 엔드포인트를 담당한다.
 import type { Express } from 'express';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../auth';

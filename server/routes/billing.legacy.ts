@@ -1,4 +1,4 @@
-// Legacy Billing routes extracted from server/routes.ts to reduce file size.
+// 결제·구독 라우터 — Billing Plans 시딩, 구독 조회/생성/해지, AI 사용량 조회, Trip Pass(AI 크레딧) 잔액·구매·내역, 스케줄러 관리(관리자) 엔드포인트를 담당한다.
 import type { Express } from 'express';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../auth';
