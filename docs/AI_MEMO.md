@@ -238,3 +238,39 @@ GET /api/conversations/5/messages: 200 ✅
 - `server/routes/chat.ts`와 `server/routes/index.ts`의 `chatRouter`/`mountRouters`는 `registerRoutes()`에서 호출되지 않음
 - 실제 활성 라우트: `server/routes.ts` 인라인 + `channel.legacy.ts`
 - `server/routes/chat.ts`의 GET 수정도 병행했으나 실제 동작에는 미영향 (미마운트)
+
+---
+
+### 세션 6 — T1~T11 최종 완료 검증 (2026-03-01)
+
+#### T1~T11 최종 상태 점검
+
+| 태스크 | 내용 | 상태 |
+|--------|------|------|
+| T1 | `.gitignore` + `.gitkeep` | ✅ |
+| T2 | `GUARDRAILS.md` + `docs/AI_MEMO.md` | ✅ |
+| T3 | `check-lines.mjs` + `check-header.mjs` + `.lintstagedrc.json` | ✅ |
+| T4 | 폴더별 `GUIDE.md` 6개 | ✅ |
+| T5 | Auth 라우트 1차 교체 (register/login/demo-login) | ✅ |
+| T6 | Auth 라우트 완전 통합 (/me, /user, /onboarding) | ✅ |
+| T7 | `scripts/smoke/smoke-auth.mjs` 생성 | ✅ |
+| T8 | Notifications 블록 추출 (`notifications.legacy.ts`) | ✅ |
+| T9 | Follow 블록 추출 (`follow.legacy.ts`) | ✅ |
+| T10 | Playwright config 생성, Chromium 미설치 → smoke 대체 | ⚠️ (config만, 실행 불가) |
+| T11 | AI_MEMO.md 최종 업데이트 | ✅ |
+
+#### smoke:auth 최종 검증
+```
+🧪 Smoke auth against http://127.0.0.1:5000
+✅ SMOKE PASS: demo-login -> me works
+```
+
+#### package.json 스크립트 추가 불가
+- Replit 환경 제약으로 `package.json` 직접 수정 불가
+- `smoke:auth` 실행: `node scripts/smoke/smoke-auth.mjs` 로 직접 실행
+- `test:e2e` 실행: playwright 미설치 상태 (Chromium 없음) → smoke로 대체
+
+#### routes.ts 최종 상태
+- **현재 2,576줄** (원본 8,857줄 대비 **71% 감소**)
+- 17개 legacy 파일로 분리 완료
+- 가드레일: `.lintstagedrc.json`에 `check-lines.mjs` + `check-header.mjs` 연결
