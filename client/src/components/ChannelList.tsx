@@ -57,11 +57,14 @@ export default function ChannelList({
   const aiConciergeChannel = channels.find(ch => ch.name === 'AI Concierge');
   const otherChannels = channels.filter(ch => ch.name !== 'AI Concierge');
 
-  const chatItems: ChatItem[] = [
-    ...(aiConciergeChannel ? [{ 
-      type: 'channel' as const, 
-      data: { ...aiConciergeChannel, memberCount: 0, unreadCount: 0 } 
-    }] : []),
+  const getLastAt = (item: ChatItem): number => {
+    const d = item.type === 'channel'
+      ? item.data.lastMessageAt
+      : item.data.lastMessageAt;
+    return d ? new Date(d).getTime() : 0;
+  };
+
+  const sortedRest: ChatItem[] = [
     ...otherChannels.map(channel => ({ 
       type: 'channel' as const, 
       data: { ...channel, memberCount: 0, unreadCount: 0 } 
@@ -70,6 +73,14 @@ export default function ChannelList({
       type: 'conversation' as const, 
       data: { ...conversation, unreadCount: 0 } 
     })),
+  ].sort((a, b) => getLastAt(b) - getLastAt(a));
+
+  const chatItems: ChatItem[] = [
+    ...(aiConciergeChannel ? [{ 
+      type: 'channel' as const, 
+      data: { ...aiConciergeChannel, memberCount: 0, unreadCount: 0 } 
+    }] : []),
+    ...sortedRest,
   ];
 
   const filteredItems = chatItems.filter(item => {
