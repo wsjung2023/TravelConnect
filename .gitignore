@@ -15,3 +15,7 @@ vite.config.ts.*
 **/googleAuth.ts
 **/*secret*
 **/*key*
+
+# Runtime uploads / attachments (DO NOT COMMIT)
+uploads/
+attached_assets/

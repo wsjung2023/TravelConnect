@@ -1,5 +1,7 @@
 {
   "**/*.{ts,tsx,js,jsx,json,css,md}": [
+    "node scripts/guardrails/check-lines.mjs",
+    "node scripts/guardrails/check-header.mjs",
     "eslint --fix",
     "prettier --write"
   ]
