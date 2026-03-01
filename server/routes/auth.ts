@@ -238,6 +238,7 @@ router.get('/me', authenticateHybrid, async (req: AuthRequest, res: Response) =>
       timezone: user.timezone || 'Asia/Seoul',
       portfolioMode: user.portfolioMode || false,
       publicProfileUrl: user.publicProfileUrl,
+      serendipityEnabled: user.serendipityEnabled ?? false,
     });
   } catch (error) {
     console.error('사용자 정보 조회 오류:', error);
@@ -296,15 +297,19 @@ router.post('/onboarding', authenticateHybrid, validateSchema(OnboardingSchema),
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { userType, interests, languages, location, bio } = req.validatedData as any;
+    const { userType, interests, languages, timezone } = req.validatedData as {
+      userType?: 'traveler' | 'influencer' | 'host';
+      interests: string[];
+      languages: string[];
+      timezone: string;
+    };
 
-    // 사용자 정보 업데이트 (updateUser 메서드 사용)
+    // 사용자 정보 업데이트 (location/bio는 덮어쓰지 않음)
     const updatedUser = await storage.updateUser(userId, {
       userType: userType || 'traveler',
       interests: interests || [],
       languages: languages || [],
-      location: location || null,
-      bio: bio || null,
+      timezone: timezone || 'Asia/Seoul',
       onboardingCompleted: true,
     });
 
@@ -321,6 +326,7 @@ router.post('/onboarding', authenticateHybrid, validateSchema(OnboardingSchema),
         lastName: updatedUser.lastName,
         userType: updatedUser.userType,
         onboardingCompleted: updatedUser.onboardingCompleted,
+        timezone: updatedUser.timezone,
       },
     });
   } catch (error) {

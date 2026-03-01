@@ -62,7 +62,6 @@ import {
   insertMiniPlanCheckinSchema,
 } from '@shared/schema';
 import {
-  OnboardingSchema,
   CreatePostSchema,
   CreateTimelineSchema,
   CreateEventSchema,
@@ -786,18 +785,6 @@ COMMIT;
   });
 
 
-  // 사용자 조회
-  app.get('/api/auth/user', authenticateToken, async (req: any, res) => {
-    try {
-      const userId = req.user!.id;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ message: 'Failed to fetch user' });
-    }
-  });
-
   // 구글 로그인 시작 엔드포인트
   app.get('/api/login', (req, res) => {
     console.log(`[LOGIN] Google OAuth login initiated`);
@@ -845,74 +832,6 @@ COMMIT;
       global.lastLogoutTime = Date.now();
       console.log(`[LOGOUT] Updated lastLogoutTime: ${global.lastLogoutTime}`);
       res.redirect('/');
-    }
-  });
-
-  // JWT 토큰 생성 엔드포인트 (세션 인증된 사용자용)
-  app.post('/api/auth/generate-token', authenticateHybrid, async (req: AuthRequest, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'User not authenticated' });
-      }
-
-      // JWT 토큰 생성
-      const token = generateToken({
-        id: req.user.id,
-        email: req.user.email,
-        role: req.user.role || 'user'
-      });
-
-      console.log(`[TOKEN-GEN] JWT 토큰 생성: ${req.user.email}`);
-      res.json({ token });
-    } catch (error) {
-      console.error('토큰 생성 오류:', error);
-      res.status(500).json({ message: 'Failed to generate token' });
-    }
-  });
-
-  // 온보딩 완료
-  app.post('/api/auth/onboarding', authenticateHybrid, validateSchema(OnboardingSchema), async (req: AuthRequest, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'User not authenticated' });
-      }
-
-      const { userType, interests, languages, timezone } = req.validatedData as {
-        userType?: 'traveler' | 'influencer' | 'host';
-        interests: string[];
-        languages: string[];
-        timezone: string;
-      };
-
-      // userType이 없으면 기본값 'traveler' 사용
-      const finalUserType = userType || 'traveler';
-
-      // 사용자 정보 업데이트
-      const updatedUser = await storage.updateUser(req.user.id, {
-        userType: finalUserType,
-        interests,
-        languages,
-        timezone,
-        onboardingCompleted: true
-      });
-
-      console.log(`[ONBOARDING] 사용자 ${req.user.email} 온보딩 완료: ${finalUserType}`);
-      
-      res.json({
-        message: '온보딩이 완료되었습니다',
-        user: {
-          id: updatedUser.id,
-          email: updatedUser.email,
-          userType: updatedUser.userType,
-          interests: updatedUser.interests,
-          languages: updatedUser.languages,
-          timezone: updatedUser.timezone,
-          onboardingCompleted: updatedUser.onboardingCompleted
-        }
-      });
-    } catch (error) {
-      console.error('온보딩 오류:', error);
-      res.status(500).json({ message: '온보딩 중 오류가 발생했습니다' });
     }
   });
 
