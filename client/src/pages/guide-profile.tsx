@@ -91,9 +91,10 @@ export default function GuideProfile() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         credentials: 'include',
-        body: JSON.stringify({ participantId: guideId }),
+        body: JSON.stringify({ participant2Id: guideId }),
       });
 
       if (!response.ok) {

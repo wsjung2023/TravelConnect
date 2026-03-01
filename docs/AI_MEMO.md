@@ -175,3 +175,29 @@
 - Admin 라우터 분리 검토
 - routes.ts 2,575줄 중 남은 인라인 블록 추가 분리 가능 여부 검토
 - /features, /pricing, /about 페이지 구현 (SEO 문서 스펙 참고)
+
+---
+
+### 세션 4 — T1~T11 전체 검증 완료 (2026-03-01)
+
+#### 검증 결과 요약
+
+| 항목 | 결과 |
+|------|------|
+| `node scripts/smoke/smoke-auth.mjs` | ✅ SMOKE PASS |
+| `node scripts/guardrails/check-lines.mjs server/routes.ts` | ✅ 2,577줄 감지·차단 (정상) |
+| `node scripts/guardrails/check-header.mjs` | ✅ 동작 확인 |
+| WebSocket 다중 사용자 DM 테스트 (3명) | ✅ 실시간 전달 + DB 저장 모두 정상 |
+| `/api/auth/me` serendipityEnabled 필드 | ✅ 응답 포함 확인 |
+| 전체 파일 구조 체크 (GUIDE.md 6개, .gitkeep, GUARDRAILS.md 등) | ✅ 모두 존재 |
+
+#### 발견 사항 — WebSocket DM 인증 타입
+- 서버는 `type: 'auth'` 를 기대 (프론트엔드도 동일)
+- 이전 테스트 스크립트는 `type: 'authenticate'` 사용 → 오류 원인이었음
+- WS 메시지 타입: auth → `auth_success`, DM → `type: 'chat_message'` + `recipientId` 필수
+- 수신 이벤트: 발신자는 `message_sent`, 수신자는 `chat_message`
+
+#### routes.ts 현재 상태
+- **2,576줄** (원본 8,857줄 대비 **71% 감소**)
+- 가드레일 스크립트가 400줄 초과를 정상 감지·차단 중
+- `server/routes/auth.ts`: 389줄 (250줄 초과 경고 발생 → 분리 검토 대상)
