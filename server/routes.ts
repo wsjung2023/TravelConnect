@@ -37,6 +37,8 @@ import {
   AuthRequest,
 } from './auth';
 import { authRouter } from './routes/auth';
+import { registerLegacyNotificationRoutes } from './routes/notifications.legacy';
+import { registerLegacyFollowRoutes } from './routes/follow.legacy';
 import { checkAiUsage, getUserAiUsageStats } from './middleware/checkAiUsage';
 import { requirePaymentEnv, requireAiEnv, getEnvStatus } from './middleware/envCheck';
 import {
@@ -2162,71 +2164,7 @@ COMMIT;
     }
   });
 
-  // Notification routes
-  app.get('/api/notifications', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
-      const notifications = await storage.getNotificationsByUser(userId);
-      res.json(notifications);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      res.status(500).json({ message: 'Failed to fetch notifications' });
-    }
-  });
-
-  app.post('/api/notifications', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const notificationData = insertNotificationSchema.parse(req.body);
-      const notification = await storage.createNotification(notificationData);
-      res.status(201).json(notification);
-    } catch (error) {
-      console.error('Error creating notification:', error);
-      res.status(500).json({ message: 'Failed to create notification' });
-    }
-  });
-
-  app.patch('/api/notifications/:id/read', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const notificationId = parseInt(req.params.id!);
-      await storage.markNotificationAsRead(notificationId);
-      res.json({ message: 'Notification marked as read' });
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-      res.status(500).json({ message: 'Failed to mark notification as read' });
-    }
-  });
-
-  app.patch('/api/notifications/read-all', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
-      await storage.markAllNotificationsAsRead(userId);
-      res.json({ message: 'All notifications marked as read' });
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-      res.status(500).json({ message: 'Failed to mark all notifications as read' });
-    }
-  });
-
-  app.delete('/api/notifications/:id', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const notificationId = parseInt(req.params.id!);
-      const success = await storage.deleteNotification(notificationId);
-      if (success) {
-        res.json({ message: 'Notification deleted' });
-      } else {
-        res.status(404).json({ message: 'Notification not found' });
-      }
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-      res.status(500).json({ message: 'Failed to delete notification' });
-    }
-  });
+  registerLegacyNotificationRoutes(app, { storage, authenticateToken, insertNotificationSchema });
 
   // Portfolio 공개 API 엔드포인트
   
@@ -2587,119 +2525,7 @@ COMMIT;
     });
   });
 
-  // Follow/Following API
-  app.post('/api/users/:id/follow', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const followingId = req.params.id;
-      const followerId = req.user?.id;
-
-      if (!followerId || !followingId) {
-        return res.status(400).json({ message: '잘못된 요청입니다' });
-      }
-
-      if (followerId === followingId) {
-        return res.status(400).json({ message: '자기 자신을 팔로우할 수 없습니다' });
-      }
-
-      // 이미 팔로우 중인지 확인
-      const isAlreadyFollowing = await storage.isFollowing(followerId, followingId);
-      if (isAlreadyFollowing) {
-        return res.status(400).json({ message: '이미 팔로우 중입니다' });
-      }
-
-      await storage.followUser(followerId, followingId);
-
-      // 팔로우 알림 생성
-      const follower = await storage.getUser(followerId);
-      if (follower) {
-        const notification = await storage.createNotification({
-          userId: followingId,
-          type: 'follow',
-          title: '새로운 팔로워',
-          message: `${follower.firstName || follower.email}님이 회원님을 팔로우하기 시작했습니다.`,
-          relatedUserId: followerId,
-        });
-
-        // 실시간 알림 전송
-        const sendNotificationToUser = (app as any).sendNotificationToUser;
-        if (sendNotificationToUser) {
-          sendNotificationToUser(followingId, notification);
-        }
-      }
-
-      res.status(200).json({ message: '팔로우 완료' });
-    } catch (error) {
-      console.error('Follow error:', error);
-      res.status(500).json({ message: '팔로우 중 오류가 발생했습니다' });
-    }
-  });
-
-  app.delete('/api/users/:id/follow', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const followingId = req.params.id;
-      const followerId = req.user?.id;
-
-      if (!followerId || !followingId) {
-        return res.status(400).json({ message: '잘못된 요청입니다' });
-      }
-
-      await storage.unfollowUser(followerId, followingId);
-      res.status(200).json({ message: '언팔로우 완료' });
-    } catch (error) {
-      console.error('Unfollow error:', error);
-      res.status(500).json({ message: '언팔로우 중 오류가 발생했습니다' });
-    }
-  });
-
-  app.get('/api/users/:id/following-status', authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const targetUserId = req.params.id;
-      const currentUserId = req.user?.id;
-
-      if (!currentUserId || !targetUserId) {
-        return res.status(400).json({ message: '잘못된 요청입니다' });
-      }
-
-      const isFollowing = await storage.isFollowing(currentUserId, targetUserId);
-      res.json({ isFollowing });
-    } catch (error) {
-      console.error('Following status error:', error);
-      res.status(500).json({ message: '팔로우 상태 조회 중 오류가 발생했습니다' });
-    }
-  });
-
-  app.get('/api/users/:id/followers', async (req, res) => {
-    try {
-      const userId = req.params.id;
-      const followers = await storage.getFollowers(userId);
-      res.json(followers);
-    } catch (error) {
-      console.error('Get followers error:', error);
-      res.status(500).json({ message: '팔로워 조회 중 오류가 발생했습니다' });
-    }
-  });
-
-  app.get('/api/users/:id/following', async (req, res) => {
-    try {
-      const userId = req.params.id;
-      const following = await storage.getFollowing(userId);
-      res.json(following);
-    } catch (error) {
-      console.error('Get following error:', error);
-      res.status(500).json({ message: '팔로잉 조회 중 오류가 발생했습니다' });
-    }
-  });
-
-  app.get('/api/users/:id/follow-counts', async (req, res) => {
-    try {
-      const userId = req.params.id;
-      const counts = await storage.getFollowCounts(userId);
-      res.json(counts);
-    } catch (error) {
-      console.error('Get follow counts error:', error);
-      res.status(500).json({ message: '팔로우 개수 조회 중 오류가 발생했습니다' });
-    }
-  });
+  registerLegacyFollowRoutes(app, { storage, authenticateToken });
 
   // MiniMeet 관련 API
   // 모임 생성 (별칭: /api/meets)
