@@ -14,6 +14,15 @@ All text (buttons, labels, messages) must be implemented using i18n from the `tr
 Master data must be stored in the database, not hardcoded.
 Translation data must be managed in the database (`translations` table), not hardcoded in the frontend.
 
+## Guardrails (AI Agent 강제 규칙 — 매 세션 반드시 준수)
+- **파일 크기**: 파일이 250줄 초과 시 분리 검토, 400줄 초과 시 반드시 분리. `server/routes.ts`는 현재 레거시 거대 파일이므로 새 엔드포인트는 절대 추가하지 말고 `server/routes/` 하위 모듈로 만든다.
+- **신규 파일**: 모든 새 파일 상단에 1줄 설명 주석 필수 (`// 이 파일의 역할`).
+- **검증 필수**: 코드 변경 후 반드시 서버 실행 확인. 실행하지 않은 코드를 "완료"라고 보고 금지.
+- **범위 최소화**: 허용된 파일 외 수정 금지. 포맷팅/리팩토링 등 요청 외 작업 금지.
+- **추측 금지**: 로그 확인 없이 원인 단정 금지. 불확실하면 수정하지 말고 질문한다.
+- **대규모 변경 금지**: 사용자 확인 없이 파일 대량 생성/삭제 금지. 기존 구조 무시한 리팩토링 금지.
+- **메모 유지**: 중요한 결정/발견은 `docs/AI_MEMO.md`에 즉시 기록.
+
 ## System Architecture
 
 ### Frontend
