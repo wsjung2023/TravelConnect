@@ -385,4 +385,34 @@ router.post('/generate-token', authenticateHybrid, async (req: AuthRequest, res:
   }
 });
 
+// ============================================
+// 개발 전용: 특정 사용자 JWT 토큰 발급
+// ============================================
+// POST /api/auth/dev-token
+// 개발 환경에서만 동작. userId를 받아 해당 사용자의 JWT 발급.
+router.post('/dev-token', async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(403).json({ message: 'Dev only endpoint' });
+  }
+  const { userId } = req.body as { userId?: string };
+  if (!userId) {
+    return res.status(400).json({ message: 'userId required' });
+  }
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: `User not found: ${userId}` });
+    }
+    const token = generateToken({
+      id: user.id,
+      email: user.email || '',
+      role: user.role || 'user',
+    });
+    res.json({ token, userId: user.id, email: user.email });
+  } catch (error) {
+    console.error('dev-token 오류:', error);
+    res.status(500).json({ message: '토큰 생성 중 오류' });
+  }
+});
+
 export const authRouter = router;
