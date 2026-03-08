@@ -324,11 +324,6 @@ export interface IStorage {
     updates: Partial<InsertSystemSetting>
   ): Promise<SystemSetting | undefined>;
   
-  // System Config operations (new)
-  getAllSystemConfigs(category?: string): Promise<SystemConfig[]>;
-  getSystemConfigByKey(key: string): Promise<SystemConfig | undefined>;
-  updateSystemConfig(id: number, updates: Partial<InsertSystemConfig>): Promise<SystemConfig | undefined>;
-
   // Notification operations
   createNotification(notification: InsertNotification): Promise<Notification>;
   getNotificationsByUser(userId: string): Promise<Notification[]>;
@@ -1743,15 +1738,6 @@ export class DatabaseStorage implements IStorage {
 
   async getSystemConfigByKey(key: string): Promise<SystemConfig | undefined> {
     const [config] = await db.select().from(systemConfig).where(eq(systemConfig.key, key));
-    return config;
-  }
-
-  async updateSystemConfig(id: number, updates: Partial<InsertSystemConfig>): Promise<SystemConfig | undefined> {
-    const [config] = await db
-      .update(systemConfig)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(systemConfig.id, id))
-      .returning();
     return config;
   }
 
