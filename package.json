@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.19.0",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
@@ -53,6 +54,10 @@
     "@types/passport-google-oauth20": "^2.0.16",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "@uppy/aws-s3": "^5.1.0",
+    "@uppy/core": "^5.2.0",
+    "@uppy/dashboard": "^5.1.1",
+    "@uppy/react": "^5.2.0",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -70,6 +75,7 @@
     "express-rate-limit": "^8.1.0",
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
+    "google-auth-library": "^10.6.1",
     "helmet": "^8.1.0",
     "husky": "^9.1.7",
     "i18next": "^25.5.2",

@@ -310,3 +310,49 @@ GET /api/conversations/5/messages: 200 ✅
 ### 실제 API 호출 vs DB 직접 처리 구분
 - **실제 API**: initiate-payment(계약금/잔금), GET 계약 조회, POST complete
 - **DB 직접**: 결제 완료(PortOne 없음), 에스크로 정산(API 버그)
+
+---
+
+## [세션 3] Object Storage 마이그레이션 (2026-03-08)
+
+### 배경
+- 기존: multer.diskStorage → `uploads/` 로컬 디스크 저장
+- 문제: 재배포 시 운영 유저 업로드 파일 유실 위험
+- 해결: Replit Object Storage(GCS) 마이그레이션
+
+### 변경 내용
+| 파일 | 변경 내용 |
+|------|-----------|
+| `server/routes.ts` | multer.diskStorage → memoryStorage, /api/files/:filename → GCS 서명 URL redirect, /uploads/:fileName 제거, fs import 제거 |
+| `server/services/objectStorageService.ts` | 신규: uploadFile, getSignedReadUrl, fileExists, deleteFile |
+| `server/replit_integrations/object_storage/` | Object Storage blueprint 파일 4개 (objectStorage.ts, objectAcl.ts, routes.ts, index.ts) |
+| `scripts/migrate-uploads.mjs` | 신규: 로컬 uploads/ → Object Storage 일괄 마이그레이션 |
+| `scripts/smoke/smoke-upload.mjs` | 신규: Object Storage 동작 검증 smoke test |
+
+### 마이그레이션 결과
+- **업로드 파일**: 108개 → Object Storage 업로드 성공 ✅
+- **실패**: 0개
+- **uploads/ 폴더**: .gitkeep만 남기고 전체 삭제 ✅
+
+### smoke test 결과 (4/4 PASS)
+1. ✅ 기존 파일 /api/files/:filename → 302 redirect → storage.googleapis.com
+2. ✅ redirect 따라가서 실제 파일 수신 (200 OK, image/jpeg)
+3. ✅ 신규 업로드 → Object Storage 저장 성공
+4. ✅ 신규 업로드 파일 /api/files/:filename → GCS redirect 확인
+
+### 업로드 흐름 (신규)
+1. 클라이언트 → `POST /api/upload` (multipart/form-data)
+2. multer memoryStorage → file.buffer 메모리에 보관
+3. `objectStorageService.uploadFile(filename, buffer, mimetype)` → GCS `public/uploads/{filename}`
+4. 응답: `{ url: '/api/files/{filename}' }` (프론트엔드 변경 불필요)
+5. 파일 접근: `GET /api/files/{filename}` → `getSignedReadUrl(filename)` → `302 → GCS 서명 URL`
+
+### DB URL 형태
+- 기존: `/api/files/{uuid}.jpg` (로컬 디스크 참조)
+- 현재: `/api/files/{uuid}.jpg` (동일 — 엔드포인트가 Object Storage redirect 처리)
+- 변경 불필요: DB 마이그레이션 없이 투명하게 Object Storage로 전환
+
+### 환경 변수
+- `DEFAULT_OBJECT_STORAGE_BUCKET_ID`: replit-objstore-484c828a-735c-4b18-90ff-46167029bbf3
+- `PUBLIC_OBJECT_SEARCH_PATHS`: /{bucket}/public 형태
+- `PRIVATE_OBJECT_DIR`: /{bucket}/.private 형태

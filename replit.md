@@ -45,6 +45,7 @@ Translation data must be managed in the database (`translations` table), not har
 - **Primary Database**: PostgreSQL (Neon serverless hosting)
 - **ORM**: Drizzle ORM
 - **Schema Management**: Drizzle Kit for migrations
+- **File Storage**: Replit Object Storage (GCS) via `server/services/objectStorageService.ts`. All user file uploads go to `public/uploads/{uuid}.ext` in the Object Storage bucket. The `POST /api/upload` endpoint uses multer memoryStorage + Object Storage PUT. The `GET /api/files/:filename` endpoint generates a signed URL and redirects (302) to GCS. The `uploads/` local folder is empty and gitignored. Migration script: `scripts/migrate-uploads.mjs`.
 - **Connection Pooling**: Neon serverless connection pooling
 
 ### Core Features

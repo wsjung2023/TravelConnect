@@ -1,4 +1,8 @@
 // 메인 라우트 진입점 — 모든 API 엔드포인트를 등록하는 Express 라우터. 대형 레거시 파일로, 각 기능별 legacy 라우터를 호출한다. 새 엔드포인트는 반드시 server/routes/ 하위 모듈에 추가할 것.
+// [2026-03-08] 파일 업로드를 로컬 디스크(uploads/)에서 Object Storage(GCS)로 마이그레이션.
+//   - multer.diskStorage → multer.memoryStorage (파일을 메모리에서 바로 Object Storage로 PUT)
+//   - /api/files/:filename → Object Storage 서명 URL로 redirect
+//   - fs 모듈 의존성 제거 (uploads/ 디렉터리 불필요)
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 
 // Add Express session type declarations
@@ -12,7 +16,7 @@ import { createServer, type Server } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
+import * as objectStorageService from './services/objectStorageService';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import rateLimit from 'express-rate-limit';
@@ -163,26 +167,10 @@ const ALLOWED_MIME_TYPES = [
   'video/quicktime'
 ];
 
-// Multer 설정 - 보안 강화된 파일 업로드 처리
-const uploadStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // uploads 디렉터리가 없으면 생성
-    const uploadDir = 'uploads';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // UUID + 원본 확장자로 파일명 생성
-    const ext = path.extname(file.originalname).toLowerCase();
-    const filename = `${randomUUID()}${ext}`;
-    cb(null, filename);
-  },
-});
-
+// Multer 설정 - memoryStorage: 파일을 메모리(buffer)에서 바로 Object Storage로 업로드
+// [2026-03-08] diskStorage → memoryStorage 교체 (Object Storage 마이그레이션)
 const upload = multer({
-  storage: uploadStorage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 15 * 1024 * 1024, // 15MB 제한
   },
@@ -400,7 +388,8 @@ COMMIT;
   // 정적 파일 서빙 제거 - 보안상 이유로 직접 접근 차단
   // app.use('/uploads', express.static('uploads')); // 제거됨
   
-  // 보안이 강화된 파일 접근 엔드포인트
+  // 파일 접근 엔드포인트 — Object Storage 서명 URL로 redirect
+  // [2026-03-08] 로컬 디스크 sendFile → Object Storage 서명 URL redirect 교체
   app.get('/api/files/:filename', async (req, res) => {
     try {
       const { filename } = req.params;
@@ -409,19 +398,13 @@ COMMIT;
       if (!filename || !/^[a-f0-9-]+\.[a-z0-9]+$/i.test(filename)) {
         return res.status(400).json({ message: '잘못된 파일명입니다.' });
       }
-      
-      const filePath = path.join(process.cwd(), 'uploads', filename);
-      
-      // 파일 존재 확인
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ message: '파일을 찾을 수 없습니다.' });
-      }
-      
-      // 파일 전송
-      res.sendFile(filePath);
+
+      // Object Storage에서 서명 URL 생성 후 redirect
+      const signedUrl = await objectStorageService.getSignedReadUrl(filename);
+      return res.redirect(302, signedUrl);
     } catch (error) {
       console.error('파일 접근 오류:', error);
-      res.status(500).json({ message: '파일 접근에 실패했습니다.' });
+      res.status(404).json({ message: '파일을 찾을 수 없습니다.' });
     }
   });
 
@@ -1323,19 +1306,26 @@ COMMIT;
           });
         }
 
+        // [2026-03-08] Object Storage 업로드: file.buffer → GCS, URL은 /api/files/{filename} 유지
         const uploadedFiles = await Promise.all(req.files.map(async (file: any) => {
+          const ext = path.extname(file.originalname).toLowerCase();
+          const filename = `${randomUUID()}${ext}`;
+
+          // Object Storage에 업로드
+          await objectStorageService.uploadFile(filename, file.buffer, file.mimetype);
+
           const fileInfo: any = {
-            filename: file.filename,
+            filename,
             originalName: file.originalname,
             mimetype: file.mimetype,
             size: file.size,
-            url: `/api/files/${file.filename}`,
+            url: `/api/files/${filename}`,
           };
 
+          // EXIF: 버퍼에서 직접 파싱 (로컬 파일 경로 불필요)
           if (file.mimetype.startsWith('image/')) {
             try {
-              const filePath = path.join(process.cwd(), 'uploads', file.filename);
-              const exifData = await exifr.parse(filePath, {
+              const exifData = await exifr.parse(file.buffer, {
                 gps: true,
                 exif: true,
                 iptc: true,
@@ -1356,7 +1346,7 @@ COMMIT;
                 };
               }
             } catch (exifError) {
-              console.log(`EXIF extraction skipped for ${file.filename}:`, exifError);
+              console.log(`EXIF extraction skipped for ${filename}:`, exifError);
             }
           }
 
@@ -1415,10 +1405,14 @@ COMMIT;
           });
         }
 
-        const imageUrl = `/api/files/${req.file.filename}`;
+        // [2026-03-08] Object Storage 업로드
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const filename = `${randomUUID()}${ext}`;
+        await objectStorageService.uploadFile(filename, req.file.buffer, req.file.mimetype);
+        const imageUrl = `/api/files/${filename}`;
         
-        console.log('[Upload Image] 이미지 업로드 성공:', {
-          filename: req.file.filename,
+        console.log('[Upload Image] 이미지 업로드 성공 (Object Storage):', {
+          filename,
           size: req.file.size,
           mimetype: req.file.mimetype,
           url: imageUrl
@@ -1427,7 +1421,7 @@ COMMIT;
         res.json({ 
           success: true,
           imageUrl: imageUrl,
-          filename: req.file.filename
+          filename
         });
       } catch (error) {
         console.error('[Upload Image] 이미지 업로드 오류:', error);
@@ -2371,36 +2365,8 @@ COMMIT;
   // Trips 라우터 추가
   app.use('/api/trips', tripsRouter);
   
-  // 업로드된 파일 접근 - 환경별 처리
-  if (process.env.NODE_ENV === 'production') {
-    // 프로덕션: 인증된 사용자만 파일 접근 가능
-    app.get('/uploads/:fileName', authenticateToken, async (req: any, res) => {
-      try {
-        const { fileName } = req.params;
-        
-        // 파일명 보안 검증 (directory traversal 공격 방지)
-        if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
-          return res.status(400).json({ error: '잘못된 파일명입니다.' });
-        }
-        
-        const filePath = path.join(process.cwd(), 'uploads', fileName);
-        
-        // 파일 존재 확인
-        if (!fs.existsSync(filePath)) {
-          return res.status(404).json({ error: '파일을 찾을 수 없습니다.' });
-        }
-        
-        // 파일 전송
-        res.sendFile(filePath);
-      } catch (error) {
-        console.error('파일 접근 오류:', error);
-        res.status(500).json({ error: '파일 접근 중 오류가 발생했습니다.' });
-      }
-    });
-  } else {
-    // 개발 환경: 기존 정적 서빙 유지
-    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-  }
+  // [2026-03-08] /uploads/:fileName 엔드포인트 제거 — Object Storage 마이그레이션으로 불필요
+  // 파일 접근은 /api/files/:filename 엔드포인트(Object Storage redirect)를 사용
 
   const httpServer = createServer(app);
 
