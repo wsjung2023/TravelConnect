@@ -262,63 +262,37 @@ async function step6_completeService() {
 }
 
 // ============================================================
-// STEP 7: 에스크로 정산 (DB 직접 — releaseEscrow API는 payouts 컬럼 불일치 버그)
+// STEP 7: 에스크로 정산 (API — 버그 수정 후 실제 API 검증)
 // ============================================================
 async function step7_releaseEscrow() {
   console.log('\n══════════════════════════════════');
-  console.log('💸 STEP 7: 에스크로 정산 (가이드에게 지급 승인)');
-  console.log('   [API 버그: escrowService.releaseEscrow의 payouts INSERT 컬럼 불일치]');
-  console.log('   [→ DB 직접 처리: 실제 정산 배치가 하는 것과 동일]');
+  console.log('💸 STEP 7: 에스크로 정산 (API — 가이드에게 지급 승인)');
+  console.log('   [2026-03-08 버그 수정 완료 → 실제 API 호출]');
   console.log('══════════════════════════════════');
 
-  // 에스크로 released 상태 확인 (step 6 /complete가 이미 released로 변경)
-  const txsBefore = await dbExec(
-    'SELECT milestone_type, amount, status FROM escrow_transactions WHERE contract_id = $1',
-    [CONTRACT_ID]
-  );
-  log('📊', '현재 에스크로 상태', txsBefore.map(t => `${t.milestone_type}=$${t.amount}[${t.status}]`).join(', '));
-
-  // 아직 released가 아닌 경우 released로 변경
+  // step 6의 /complete가 released로 바꿨으므로 frozen으로 되돌려 release API 조건 충족
   await dbExec(`
     UPDATE escrow_transactions
-    SET status = 'released', updated_at = NOW()
-    WHERE contract_id = $1 AND status NOT IN ('released')
+    SET status = 'frozen', updated_at = NOW()
+    WHERE contract_id = $1 AND status IN ('released', 'completed')
   `, [CONTRACT_ID]);
-  log('💾', '에스크로 트랜잭션 → released', '전체 정산 처리');
+  log('💾', '에스크로 트랜잭션', '→ frozen (release API 조건 충족)');
 
-  // 플랫폼 수수료 12% 계산 (escrowService.PLATFORM_FEE_RATE = 0.12)
-  const total       = 90;
-  const platformFee = Math.floor(total * 0.12);
-  const guideAmount = total - platformFee;
-  const today       = new Date().toISOString().slice(0, 10);
+  // 실제 API 호출
+  const r = await api('POST', `/api/contracts/${CONTRACT_ID}/release`, {}, travelerToken);
+  log('📡', `정산 응답 status=${r.status}`, JSON.stringify(r.data).slice(0, 200));
+  assert('POST /release → 200 (버그 수정 검증)', r.status === 200, `status=${r.status}`);
 
-  // payouts 레코드 생성 (실제 컬럼 구조에 맞게)
-  const [payout] = await dbExec(`
-    INSERT INTO payouts
-      (host_id, period_start, period_end, gross_amount, total_fees, net_amount,
-       currency, transaction_count, status, metadata, created_at, updated_at)
-    VALUES
-      ($1, $2, $2, $3, $4, $5, 'USD', 2, 'pending',
-       $6::jsonb, NOW(), NOW())
-    RETURNING id, gross_amount, net_amount, total_fees, status
-  `, [
-    GUIDE_ID,
-    today,
-    total.toString(),
-    platformFee.toString(),
-    guideAmount.toString(),
-    JSON.stringify({ contract_id: CONTRACT_ID, note: 'smoke-test-simulation' }),
-  ]);
-
-  log('💸', `정산 레코드 생성 #${payout.id}`, `gross=$${payout.gross_amount} fee=$${payout.total_fees} net=$${payout.net_amount}`);
-  log('💵', '가이드 수령액',  `$${guideAmount}`);
-  log('🏢', '플랫폼 수수료', `$${platformFee} (12%)`);
-  log('🎯', '정산 비율', `가이드 ${((guideAmount / total) * 100).toFixed(0)}% / 플랫폼 ${((platformFee / total) * 100).toFixed(0)}%`);
-
-  assert('정산 레코드 생성됨',   !!payout.id);
-  assert('가이드 수령액 > 0',    guideAmount > 0);
-  assert('플랫폼 수수료 정확 12%', platformFee === 10);
-  log('⚠️ ', '[알려진 버그]', 'escrowService.releaseEscrow → payouts INSERT 컬럼 불일치 (gross_amount/net_amount vs amount)');
+  if (r.status === 200) {
+    const fee   = r.data.platformFee;
+    const guide = r.data.guideAmount;
+    log('💵', '가이드 수령액',  `$${guide}`);
+    log('🏢', '플랫폼 수수료', `$${fee} (12%)`);
+    log('🎯', '정산 비율',     `가이드 ${((guide / 90) * 100).toFixed(0)}% / 플랫폼 ${((fee / 90) * 100).toFixed(0)}%`);
+    log('📋', '정산 ID',       `payout#${r.data.payoutId}`);
+    assert('가이드 수령액 $80',  guide === 80);  // floor(90*0.12)=10 → 90-10=80
+    assert('플랫폼 수수료 $10',  fee   === 10);
+  }
 }
 
 // ============================================================

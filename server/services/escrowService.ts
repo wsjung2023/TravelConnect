@@ -1,14 +1,48 @@
 // 에스크로 서비스 — P2P 계약 결제를 에스크로로 관리하고, 완료·취소·환불 처리 비즈니스 로직을 담당한다.
 /**
  * 에스크로 서비스 - Tourgether P2P 공유경제 결제 관리
- * 
+ *
  * 핵심 개념:
  * - 여행자 → 에스크로 계좌 → 가이드 자금 흐름
  * - 계약 단계별 분할 결제 (계약금 → 중도금 → 잔금)
  * - 플랫폼 수수료 자동 징수 (12%)
  * - 분쟁 발생 시 자금 동결 및 중재
- * 
+ *
  * 참고: docs/SHARING_ECONOMY_FLOW.md
+ *
+ * ────────────────────────────────────────────────────────────
+ * [버그 수정 이력]
+ *
+ * 버그: releaseEscrow() payouts INSERT 컬럼 불일치 (2026-03-08 수정)
+ *
+ * 원인:
+ *   이전 코드가 payouts 테이블에 INSERT 시 존재하지 않는 컬럼명을 사용함.
+ *   - `amount`        → 실제 컬럼: `gross_amount` (Drizzle: grossAmount)
+ *   - `platformFee`   → 실제 컬럼: `total_fees`   (Drizzle: totalFees)
+ *   - `contractId`    → payouts 테이블에 없음, metadata jsonb에 기록으로 대체
+ *   - `paymentMethod` → payouts 테이블에 없음, 제거
+ *   필수 NOT NULL 컬럼 누락:
+ *   - `period_start`, `period_end` (정산 기간 — 오늘 날짜로 설정)
+ *   - `net_amount` (가이드 순 수령액)
+ *   - `transaction_count` (이번 정산에 포함된 에스크로 트랜잭션 수)
+ *
+ * 수정 내용 (releaseEscrow 함수 약 803줄):
+ *   db.insert(payouts).values({
+ *     hostId, periodStart, periodEnd,
+ *     grossAmount (총액), totalFees (수수료),
+ *     netAmount (가이드 수령액), currency,
+ *     transactionCount, status, metadata: { contractId }
+ *   })
+ *
+ * 버그 2: this.PLATFORM_FEE_RATE → undefined (2026-03-08 수정)
+ *
+ * 원인:
+ *   822번 줄에서 `this.PLATFORM_FEE_RATE`를 사용했으나,
+ *   PLATFORM_FEE_RATE는 클래스 프로퍼티가 아닌 모듈 레벨 const임.
+ *   결과: `undefined * 90 = NaN` → JSON 직렬화 시 null로 출력됨.
+ *
+ * 수정: `this.PLATFORM_FEE_RATE` → `PLATFORM_FEE_RATE` (모듈 상수 직접 참조)
+ * ────────────────────────────────────────────────────────────
  */
 
 import { eq, and, sql } from 'drizzle-orm';
@@ -794,7 +828,7 @@ class EscrowService {
         0
       );
 
-      const platformFee = Math.floor(totalFrozen * this.PLATFORM_FEE_RATE);
+      const platformFee = Math.floor(totalFrozen * PLATFORM_FEE_RATE);
       const guideAmount = totalFrozen - platformFee;
 
       await db
@@ -809,14 +843,18 @@ class EscrowService {
           eq(escrowTransactions.status, 'frozen')
         ));
 
+      const today = new Date().toISOString().slice(0, 10);
       const [payout] = await db.insert(payouts).values({
         hostId: contract.guideId,
-        contractId: contractId,
-        amount: guideAmount.toString(),
+        periodStart: today,
+        periodEnd: today,
+        grossAmount: totalFrozen.toString(),
+        totalFees: platformFee.toString(),
+        netAmount: guideAmount.toString(),
         currency: 'USD',
-        platformFee: platformFee.toString(),
+        transactionCount: frozenTransactions.length,
         status: 'pending',
-        payoutMethod: 'bank_transfer',
+        metadata: { contractId },
       }).returning();
 
       const guideAccount = await this.getOrCreateEscrowAccount(contract.guideId, 'host');
