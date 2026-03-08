@@ -33340,5 +33340,41 @@
     "key": "host.step3Desc",
     "locale": "es",
     "value": "Conéctate con viajeros, brinda experiencias increíbles y gana"
+  },
+  {
+    "namespace": "ui",
+    "key": "post.photos",
+    "locale": "en",
+    "value": "Photos"
+  },
+  {
+    "namespace": "ui",
+    "key": "post.photos",
+    "locale": "ko",
+    "value": "사진"
+  },
+  {
+    "namespace": "ui",
+    "key": "post.photos",
+    "locale": "ja",
+    "value": "写真"
+  },
+  {
+    "namespace": "ui",
+    "key": "post.photos",
+    "locale": "zh",
+    "value": "照片"
+  },
+  {
+    "namespace": "ui",
+    "key": "post.photos",
+    "locale": "fr",
+    "value": "Photos"
+  },
+  {
+    "namespace": "ui",
+    "key": "post.photos",
+    "locale": "es",
+    "value": "Fotos"
   }
 ]
