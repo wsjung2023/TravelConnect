@@ -205,7 +205,7 @@ export function registerLegacyBillingRoutes(
 
   app.get('/api/admin/schedulers', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
-      const { getSchedulerHandles } = await import('./index');
+      const { getSchedulerHandles } = await import('../scheduler');
       const { getConfigsByCategory } = await import('../services/configService');
       const handles = getSchedulerHandles();
       const dbConfigs = await getConfigsByCategory('scheduler');

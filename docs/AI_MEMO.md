@@ -441,3 +441,41 @@ COUNT(DB행) >= COUNT(시드항목) → 즉시 return
 - 기존 번역 데이터 값 수정 금지 (ON CONFLICT DO UPDATE 사용 안 함)
 - systemConfigSeed의 실제 설정값 변경 금지
 - 스케줄러 동작 로직 변경 금지 (코드 이동만)
+
+---
+
+## [세션 N] 모듈화 리팩토링 완료 (T001~T004)
+
+- **날짜**: 2026-03-08
+- **결과**: T001~T004 전부 PASS, Playwright e2e 테스트 성공
+
+### T001 — syncTranslations 수정 + 이동 ✅
+- `server/syncTranslations.ts` → `server/seeds/syncTranslations.ts` (deprecated stub 유지)
+- COUNT 비교 로직 제거 → `INSERT ON CONFLICT DO NOTHING` 배치(100개) 방식으로 교체
+- 운영 배포 시 `post.photos` 6개 키 자동 삽입됨
+
+### T002 — systemConfigSeed.ts 데이터·로직 분리 ✅
+- `server/seeds/systemConfigSeed.ts` (1,528줄) → 두 파일로 분리:
+  - `server/seeds/data/systemConfigData.ts` (1,497줄): 데이터 배열만
+  - `server/seeds/systemConfigSeed.ts` (35줄): seedSystemConfig() 로직만
+- 버그 수정: `SYSTEM_CONFIG_SEEDS`에 `export` 키워드 누락 → 추가
+
+### T003 — index.ts 스케줄러 코드 → scheduler.ts 분리 ✅
+- `server/index.ts` 스케줄러 코드(~130줄) → `server/scheduler.ts` (143줄)로 이동
+- `server/routes/billing.legacy.ts`: import `'./index'` → `'../scheduler'`로 수정
+- `server/index.ts`는 이제 scheduler를 re-export만 함
+
+### T004 — Playwright e2e 테스트 ✅
+- 번역 API /api/translations/ui?locale=ko — 200, post.photos 키 확인
+- 피드/홈 페이지 렌더링 정상
+- JWT dev-token 인증 + /api/posts 200 확인
+- 콘솔에 raw translation key 없음, JS 에러 없음
+
+### 최종 파일 크기 (모듈화 후)
+| 파일 | 전 | 후 |
+|---|---|---|
+| server/seeds/systemConfigSeed.ts | 1,528줄 | 35줄 |
+| server/seeds/data/systemConfigData.ts | (신규) | 1,497줄 |
+| server/index.ts | ~270줄 | ~270줄 (스케줄러 코드 제거) |
+| server/scheduler.ts | (신규) | 143줄 |
+| server/seeds/syncTranslations.ts | (이동) | 76줄 |
