@@ -1286,15 +1286,6 @@ export class DatabaseStorage implements IStorage {
     return existing;
   }
 
-  async getBookingById(id: number): Promise<Booking | undefined> {
-    const [booking] = await db
-      .select()
-      .from(bookings)
-      .where(eq(bookings.id, id))
-      .limit(1);
-    return booking;
-  }
-
   async getBookingsByHost(hostId: string): Promise<Booking[]> {
     return await db
       .select({
@@ -1313,18 +1304,6 @@ export class DatabaseStorage implements IStorage {
       .from(bookings)
       .where(eq(bookings.hostId, hostId))
       .orderBy(desc(bookings.createdAt));
-  }
-
-  async updateBookingStatus(
-    id: number,
-    status: string
-  ): Promise<Booking | undefined> {
-    const [booking] = await db
-      .update(bookings)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(bookings.id, id))
-      .returning();
-    return booking;
   }
 
   // Chat operations
@@ -1726,19 +1705,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(systemSettings.id, id))
       .returning();
     return setting;
-  }
-
-  // System Config operations (new)
-  async getAllSystemConfigs(category?: string): Promise<SystemConfig[]> {
-    if (category) {
-      return await db.select().from(systemConfig).where(eq(systemConfig.category, category));
-    }
-    return await db.select().from(systemConfig);
-  }
-
-  async getSystemConfigByKey(key: string): Promise<SystemConfig | undefined> {
-    const [config] = await db.select().from(systemConfig).where(eq(systemConfig.key, key));
-    return config;
   }
 
   // SQL 실행 함수 (DB Admin용)

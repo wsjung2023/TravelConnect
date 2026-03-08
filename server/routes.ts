@@ -1813,7 +1813,9 @@ COMMIT;
   app.get('/api/system-settings', authenticateHybrid, requireAdmin, async (req: AuthRequest, res) => {
     try {
       const category = req.query.category as string | undefined;
-      const configs = await storage.getAllSystemConfigs(category);
+      const configs = category
+        ? await storage.getSystemConfigsByCategory(category)
+        : await storage.getAllSystemConfigs();
       res.json(configs);
     } catch (error) {
       console.error('Error fetching system configs:', error);
