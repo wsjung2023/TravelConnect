@@ -356,3 +356,88 @@ GET /api/conversations/5/messages: 200 ✅
 - `DEFAULT_OBJECT_STORAGE_BUCKET_ID`: replit-objstore-484c828a-735c-4b18-90ff-46167029bbf3
 - `PUBLIC_OBJECT_SEARCH_PATHS`: /{bucket}/public 형태
 - `PRIVATE_OBJECT_DIR`: /{bucket}/.private 형태
+
+---
+
+## [세션 6] syncTranslations 리팩토링 계획
+
+- **날짜**: 2026-03-08
+- **상태**: 계획 수립 완료, 구현 대기 (사용자 승인 필요)
+
+---
+
+### 배경 / 원인 분석
+
+**운영 DB (6,363행) vs 시드 파일 (5,563개) 불일치 이유:**
+
+| 네임스페이스 | 시드파일 | 개발DB | 운영DB | 비고 |
+|---|---|---|---|---|
+| billing | 456 | 456 | 456 | ✅ 동일 |
+| common | 188 | 188 | 188 | ✅ 동일 |
+| interests | 없음 | 72 | 72 | ⚠️ 시드 생성 후 추가 |
+| notification | 없음 | 12 | 12 | ⚠️ 시드 생성 후 추가 |
+| seo | 없음 | 338 | 338 | ⚠️ 시드 생성 후 추가 |
+| toast | 114 | 114 | 114 | ✅ 동일 |
+| ui | 4,733 | 5,117 | 5,111 | ⚠️ 시드 이후 앱/배포로 누적 |
+| validation | 72 | 72 | 72 | ✅ 동일 |
+
+- 개발 vs 운영 실질 차이: **`post.photos` 1개 키 (6개 행)** — 오늘 개발 DB에만 직접 INSERT
+- 시드 파일은 과거 특정 시점 스냅샷이며 이후 계속 이탈됨
+
+**현재 `syncTranslations.ts`의 버그:**
+```
+COUNT(DB행) >= COUNT(시드항목) → 즉시 return
+```
+→ DB가 시드보다 많으면 영원히 skip, 특정 키가 누락돼도 감지 불가
+
+---
+
+### 현재 파일 구조 문제점
+
+| 파일 | 줄 수 | 문제 |
+|---|---|---|
+| `server/syncTranslations.ts` | 93줄 | 위치 부적절 — seeds/ 아래로 이동해야 함 |
+| `server/seeds/systemConfigSeed.ts` | 1,528줄 | 데이터(106개 항목) + 로직 혼재, 분리 필요 |
+| `server/index.ts` | 405줄 | 스케줄러 로직(22~154줄) 내장 — 별도 모듈로 분리 필요 |
+
+---
+
+### 변경 계획 (3개 작업)
+
+#### 작업 A — `syncTranslations` 로직 수정 + 파일 이동
+- **현재**: `server/syncTranslations.ts`
+- **이후**: `server/seeds/syncTranslations.ts`
+- **핵심 변경**: COUNT 비교 제거 → `INSERT ON CONFLICT DO NOTHING` 배치 처리
+  - 배치 크기 100개, 시드 파일 항목을 DB에 없는 것만 추가
+  - 이미 있는 항목은 ON CONFLICT로 무시 (기존 번역 덮어쓰기 안 함)
+  - 운영 배포 시 `post.photos` 6개 행 자동 추가됨
+- **영향 범위**: `server/index.ts` import 경로 1곳 변경만 필요
+
+#### 작업 B — `systemConfigSeed.ts` 데이터·로직 분리
+- **현재**: 데이터 106개 + `seedSystemConfig()` 함수 1,528줄 1파일
+- **이후**:
+  - `server/seeds/data/systemConfigData.ts` — 106개 설정값 배열만 보관
+  - `server/seeds/systemConfigSeed.ts` — `seedSystemConfig()` 함수만 보관 (50줄 이하)
+- **영향 범위**: `server/index.ts` import 경로 변경 없음 (함수명 동일)
+
+#### 작업 C — `index.ts` 스케줄러 코드 분리
+- **현재**: `server/index.ts` 22~154줄에 스케줄러 정의·실행 코드 내장
+- **이후**: `server/scheduler.ts` 새 파일로 분리
+  - `schedulerHandles`, `stopScheduler`, `stopAllSchedulers`, `startBookingScheduler` 이동
+  - `getSchedulerHandles()` export 유지
+- **영향 범위**:
+  - `server/index.ts` import 추가, 관련 코드 제거
+  - `server/routes/` 에서 `schedulerHandles` 참조하는 곳 import 경로 수정
+
+---
+
+### 실행 순서
+
+1. 작업 A (syncTranslations 수정) — 운영 DB post.photos 누락 즉시 해결
+2. 작업 B (systemConfigSeed 분리) — 독립 작업, A와 무관
+3. 작업 C (scheduler 분리) — index.ts 정리
+
+### 금지 사항
+- 기존 번역 데이터 값 수정 금지 (ON CONFLICT DO UPDATE 사용 안 함)
+- systemConfigSeed의 실제 설정값 변경 금지
+- 스케줄러 동작 로직 변경 금지 (코드 이동만)
