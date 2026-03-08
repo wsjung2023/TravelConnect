@@ -2,6 +2,37 @@
 
 ---
 
+## [세션 N] storage.ts 도메인 분리 완료 (2026-03-08)
+
+### 작업 결과
+- **server/storage.ts** 5,091줄 → **690줄** thin composer로 교체 완료
+- **11개 도메인 repository 파일** 생성 (`server/repositories/` 하위):
+  - `userRepository.ts` (207줄) — 유저/팔로우
+  - `notificationRepository.ts` (42줄) — 알림
+  - `socialRepository.ts` (407줄) — 포스트/댓글/좋아요
+  - `chatRepository.ts` (378줄) — 대화/메시지/채널
+  - `contentRepository.ts` (505줄) — 타임라인/트립/리뷰/미니밋/CineMap
+  - `bookingRepository.ts` (649줄) — 예약/체험/슬롯
+  - `feedRepository.ts` (733줄) — 해시태그/스마트피드/저장
+  - `aiRepository.ts` (502줄) — AI Concierge/Mini/Serendipity/프롬프트
+  - `billingRepository.ts` (443줄) — 빌링/구독/에스크로/결제
+  - `commerceRepository.ts` (521줄) — 구매대행/도움요청/서비스패키지
+  - `adminRepository.ts` (398줄) — 시스템설정/POI/번역/SystemConfig/Analytics
+
+### 핵심 결정
+- **thin composer 방식**: `export const storage: IStorage = { ...userRepo, ...notificationRepo, ... }`
+- **기존 callers 무수정**: `storage.method()` 호출 방식 100% 유지
+- **중복 해결**: feedRepository가 Post/Timeline/Trip 함수 중복 포함 → thin composer에서 socialRepo/contentRepo 먼저 spread하여 덮어씌움 (spread 순서로 충돌 처리)
+- **import 오류 수정**: aiRepository.ts가 drizzle-orm 함수(`and`, `eq` 등)를 `@shared/schema`에서 잘못 import → `drizzle-orm`으로 분리 수정
+- **서버 정상 기동**: /api/posts, /api/experiences 200 응답 확인
+
+### 주의사항
+- feedRepository.ts에 socialRepository/contentRepository 함수가 중복 존재 (subagent가 추가)
+- 실제로는 spread 순서(socialRepo가 먼저)로 인해 socialRepository 구현체가 우선 적용됨
+- 향후 feedRepository 리팩토링 시 중복 함수 제거 권장
+
+---
+
 ## [세션 1] T1~T11 Guardrails 작업 요약
 
 - **날짜**: 2026-03-01
