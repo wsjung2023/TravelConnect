@@ -405,7 +405,7 @@ export function registerLegacyContractRoutes(
 
   // 헬퍼 함수: 에스크로 트랜잭션 소유자 검증
   async function verifyEscrowTransactionOwnership(transactionId: number, userId: string): Promise<{ authorized: boolean; transaction?: any; contract?: any; role?: 'traveler' | 'guide' }> {
-    const { db } = await import('./db');
+    const { db } = await import('../db');
     const { escrowTransactions, contracts } = await import('@shared/schema');
     const { eq } = await import('drizzle-orm');
     

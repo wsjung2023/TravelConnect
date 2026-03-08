@@ -54,7 +54,7 @@ export function registerLegacyAnalyticsSearchRoutes(
   app.get('/api/admin/analytics/daily-metrics', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
       const { factDailyMetrics } = await import('@shared/schema');
-      const { db } = await import('./db');
+      const { db } = await import('../db');
       const { desc } = await import('drizzle-orm');
       
       const limit = parseInt(req.query.limit as string) || 30;
@@ -75,7 +75,7 @@ export function registerLegacyAnalyticsSearchRoutes(
   app.get('/api/admin/analytics/transactions', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
       const { factTransactions } = await import('@shared/schema');
-      const { db } = await import('./db');
+      const { db } = await import('../db');
       const { desc, eq, gte, lte, and } = await import('drizzle-orm');
       
       const limit = parseInt(req.query.limit as string) || 100;
@@ -115,7 +115,7 @@ export function registerLegacyAnalyticsSearchRoutes(
   app.get('/api/admin/analytics/bookings', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
       const { factBookings } = await import('@shared/schema');
-      const { db } = await import('./db');
+      const { db } = await import('../db');
       const { desc, eq, gte, lte, and } = await import('drizzle-orm');
       
       const limit = parseInt(req.query.limit as string) || 100;
@@ -155,7 +155,7 @@ export function registerLegacyAnalyticsSearchRoutes(
   app.get('/api/admin/analytics/dashboard', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
       const { factDailyMetrics, dimUsers, factTransactions, factBookings } = await import('@shared/schema');
-      const { db } = await import('./db');
+      const { db } = await import('../db');
       const { desc, sql, count, sum, eq, gte } = await import('drizzle-orm');
       
       const last7Days = await db.select()
@@ -233,7 +233,7 @@ export function registerLegacyAnalyticsSearchRoutes(
   app.get('/api/admin/analytics/disputes', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
       const { factDisputes } = await import('@shared/schema');
-      const { db } = await import('./db');
+      const { db } = await import('../db');
       const { desc, eq, sql } = await import('drizzle-orm');
       
       const limit = parseInt(req.query.limit as string) || 100;
