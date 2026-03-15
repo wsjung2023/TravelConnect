@@ -43,6 +43,7 @@ import {
 } from './auth';
 import { authRouter } from './routes/auth';
 import { registerLegacyModules } from './routes/legacyRegistrations';
+import { registerLegacyNotificationRoutes } from './routes/notifications.legacy';
 import { checkAiUsage, getUserAiUsageStats } from './middleware/checkAiUsage';
 import { requirePaymentEnv, requireAiEnv, getEnvStatus } from './middleware/envCheck';
 import {
@@ -64,6 +65,7 @@ import {
   insertMiniPlanSchema,
   insertMiniPlanSpotSchema,
   insertMiniPlanCheckinSchema,
+  insertNotificationSchema,
 } from '@shared/schema';
 import {
   CreatePostSchema,
