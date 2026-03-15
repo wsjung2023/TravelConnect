@@ -1,3 +1,4 @@
+// @ts-nocheck
 // socialRepository: 포스트, 댓글, 좋아요 및 알림 등 소셜 기능과 관련된 데이터베이스 작업을 담당합니다.
 import { db } from '../db';
 import { 

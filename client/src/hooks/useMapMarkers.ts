@@ -11,6 +11,8 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react';
+import { createProfileBubbleMarker } from '@/components/map/ProfileBubbleMarker';
+import { createStoryClusterMarker } from '@/components/map/StoryClusterMarker';
 
 // 마커 타입 정의
 interface MarkerRefs {
@@ -94,48 +96,19 @@ export function useMapMarkers({
 
   const createFeedClusterMarker = useCallback((count: number) => {
     if (!window.google) return null;
-    const color = count > 20 ? '#FF6B9D' : count > 10 ? '#4ECDC4' : count > 5 ? '#FFA726' : '#66BB6A';
-
     return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="36" height="48" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="pin-shadow">
-              <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <path d="M18 0C10 0 4 6 4 14c0 16 14 34 14 34s14-18 14-34c0-8-6-14-14-14z" 
-                fill="${color}" stroke="white" stroke-width="2" filter="url(#pin-shadow)"/>
-          <circle cx="18" cy="14" r="10" fill="white"/>
-          <text x="18" y="19" text-anchor="middle" fill="${color}" 
-                font-size="12" font-weight="bold" font-family="Arial">${count}</text>
-        </svg>
-      `)}`,
-      scaledSize: new window.google.maps.Size(36, 48),
-      anchor: new window.google.maps.Point(18, 48),
+      url: createStoryClusterMarker(count),
+      scaledSize: new window.google.maps.Size(40, 40),
+      anchor: new window.google.maps.Point(20, 20),
     };
   }, []);
 
   const createSmallClusterMarker = useCallback((count: number) => {
     if (!window.google) return null;
-    const color = count > 20 ? '#FF6B9D' : count > 10 ? '#4ECDC4' : count > 5 ? '#FFA726' : '#66BB6A';
-
     return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="cluster-shadow">
-              <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <circle cx="16" cy="16" r="15" fill="${color}" filter="url(#cluster-shadow)"/>
-          <circle cx="16" cy="16" r="11" fill="white"/>
-          <text x="16" y="20" text-anchor="middle" fill="${color}" 
-                font-size="11" font-weight="bold" font-family="Arial">${count}</text>
-        </svg>
-      `)}`,
-      scaledSize: new window.google.maps.Size(32, 32),
-      anchor: new window.google.maps.Point(16, 16),
+      url: createStoryClusterMarker(count),
+      scaledSize: new window.google.maps.Size(34, 34),
+      anchor: new window.google.maps.Point(17, 17),
     };
   }, []);
 
@@ -171,27 +144,13 @@ export function useMapMarkers({
     };
   }, []);
 
-  const createOpenUserMarker = useCallback(() => {
+  const createOpenUserMarker = useCallback((profileImageUrl?: string | null, name?: string) => {
     if (!window.google) return null;
+    const initials = name?.trim()?.slice(0, 2) || 'TG';
     return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="open-user-shadow">
-              <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <circle cx="20" cy="20" r="18" fill="#10B981" filter="url(#open-user-shadow)">
-            <animate attributeName="r" values="18;20;18" dur="2s" repeatCount="indefinite"/>
-          </circle>
-          <circle cx="20" cy="20" r="14" fill="white"/>
-          <foreignObject x="10" y="10" width="20" height="20">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;font-size:16px;">👋</div>
-          </foreignObject>
-        </svg>
-      `)}`,
-      scaledSize: new window.google.maps.Size(40, 40),
-      anchor: new window.google.maps.Point(20, 20),
+      url: createProfileBubbleMarker(profileImageUrl, initials),
+      scaledSize: new window.google.maps.Size(48, 48),
+      anchor: new window.google.maps.Point(24, 24),
     };
   }, []);
 
@@ -244,6 +203,7 @@ export function useMapMarkers({
           map: map,
           icon: icon,
           title: count > 1 ? `${count}개의 포스트` : post.title,
+          zIndex: 1300,
         });
 
         marker.addListener('click', () => {
@@ -289,6 +249,7 @@ export function useMapMarkers({
           map: map,
           icon: icon,
           title: `${count}개의 포스트`,
+          zIndex: 1250,
         });
 
         marker.addListener('click', () => {
@@ -357,7 +318,7 @@ export function useMapMarkers({
       const lng = parseFloat(user.lastLongitude);
       if (isNaN(lat) || isNaN(lng)) return;
 
-      const icon = createOpenUserMarker();
+      const icon = createOpenUserMarker(user.profileImageUrl, user.firstName || user.nickname || user.email || 'TG');
       if (!icon) return;
 
       const marker = new window.google.maps.Marker({
@@ -365,7 +326,7 @@ export function useMapMarkers({
         position: { lat, lng },
         icon: icon,
         title: `${user.firstName || 'User'} - Open to Meet`,
-        zIndex: 1200,
+        zIndex: 1400,
       });
 
       marker.addListener('click', () => {

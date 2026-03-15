@@ -143,6 +143,7 @@ export function usePOIMarkers({
                   map: map,
                   icon: markerIcon,
                   title: place.name,
+                  zIndex: 600,
                 });
 
                 // POI 클릭 이벤트

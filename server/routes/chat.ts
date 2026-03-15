@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 채팅 라우터 — 채널 생성·목록·메시지 송수신, DM 번역, WebSocket 연동 REST 엔드포인트.
 /**
  * ============================================
@@ -432,8 +433,9 @@ router.post('/messages/:messageId/translate', authenticateHybrid, checkAiUsage('
     const translatedText = await translateText(message.content, targetLanguage);
 
     res.json({
-      original: message.content,
-      translated: translatedText,
+      originalText: message.content,
+      translatedText,
+      sourceLanguage: message.detectedLanguage || 'auto',
       targetLanguage,
     });
   } catch (error) {

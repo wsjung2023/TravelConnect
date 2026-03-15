@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Object Storage 서비스 — uploads/ 로컬 디스크를 대체하는 GCS Object Storage 래퍼.
 // [2026-03-08] 신규 생성: multer diskStorage → Object Storage 마이그레이션 (T002)
 

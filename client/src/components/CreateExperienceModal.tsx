@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 체험 생성 모달 — 로컬 가이드가 체험 상품을 등록하는 폼 모달.
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

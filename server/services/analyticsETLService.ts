@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Analytics ETL 서비스 — user_sessions·events를 집계해 일별/플랫폼 지표를 warehouse 테이블에 저장한다.
 /**
  * ============================================

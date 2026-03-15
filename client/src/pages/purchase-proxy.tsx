@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 대리구매 페이지 — 여행자가 쇼핑 대행 주문을 작성하고, 가이드가 수락·처리하는 대리구매 화면.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

@@ -5,19 +5,24 @@ import { makePinSVG } from '@/lib/markerSvg';
 
 type Pt = { id: string; lat: number; lng: number };
 type Props = {
-  map: google.maps.Map | null;        // 부모 Map 컴포넌트에서 넘겨줌
-  points: Pt[];                       // 서버/캐시에서 받은 POI/피드 좌표들
+  map: google.maps.Map | null;
+  points: Pt[];
   zoom: number;
   bounds: google.maps.LatLngBounds | null;
   onClusterClick?: (ids: string[]) => void;
   onPointClick?: (id: string) => void;
 };
 
+type ClusterOrPoint =
+  | Supercluster.PointFeature<Supercluster.AnyProps>
+  | Supercluster.ClusterFeature<Supercluster.AnyProps>;
+
+
 export default function MapCluster({ map, points, zoom, bounds, onClusterClick, onPointClick }: Props) {
   const markersRef = useRef<google.maps.Marker[]>([]);
 
   // 1) GeoJSON 포맷으로 변환
-  const features = useMemo(() => points.map(p => ({
+  const features = useMemo<Supercluster.PointFeature<Supercluster.AnyProps>[]>(() => points.map((p) => ({
     type: 'Feature',
     properties: { pointId: p.id },
     geometry: { type: 'Point', coordinates: [p.lng, p.lat] }
@@ -30,12 +35,12 @@ export default function MapCluster({ map, points, zoom, bounds, onClusterClick, 
       maxZoom: 20,
       minPoints: 3       // 클러스터 최소 포인트 수
     });
-    sc.load(features as any);
+    sc.load(features);
     return sc;
   }, [features]);
 
   // 3) 현재 뷰포트(BBOX)에서 클러스터 가져오기
-  const clusters = useMemo(() => {
+  const clusters = useMemo<ClusterOrPoint[]>(() => {
     if (!bounds) return [];
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
@@ -51,16 +56,17 @@ export default function MapCluster({ map, points, zoom, bounds, onClusterClick, 
     markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
 
-    clusters.forEach((c: any) => {
-      const [lng, lat] = c.geometry.coordinates;
-      const isCluster = !!c.properties.cluster;
+    clusters.forEach((c) => {
+      const [lngRaw, latRaw] = c.geometry.coordinates as [number, number];
+      const lng = typeof lngRaw === "number" ? lngRaw : 0;
+      const lat = typeof latRaw === "number" ? latRaw : 0;
+      const props = (c.properties ?? {}) as Supercluster.AnyProps;
+      const isCluster = Boolean(props.cluster);
       const pos = new google.maps.LatLng(lat, lng);
 
-      // 스타일: 클러스터는 수량, 포인트는 점
-      const label = isCluster ? String(c.properties.point_count) : undefined;
       const icon = makePinSVG({
-        text: label,
-        fill: isCluster ? '#0ea5e9' : '#2563eb', // 클러스터: 하늘색, 단일: 파랑
+        ...(isCluster && props.point_count !== undefined ? { text: String(props.point_count) } : {}),
+        fill: isCluster ? "#0ea5e9" : "#2563eb",
       });
 
       const marker = new google.maps.Marker({
@@ -73,21 +79,21 @@ export default function MapCluster({ map, points, zoom, bounds, onClusterClick, 
       // 클릭 동작
       if (isCluster) {
         marker.addListener('click', () => {
-          const expansionZoom = Math.min(
-            index.getClusterExpansionZoom(c.properties.cluster_id),
-            20
-          );
+          const clusterId = Number(props.cluster_id);
+          if (!Number.isFinite(clusterId)) return;
+          const expansionZoom = Math.min(index.getClusterExpansionZoom(clusterId), 20);
           map.setZoom(expansionZoom);
           map.panTo(pos);
           if (onClusterClick) {
             // 클러스터 내 개별 포인트 id들 모으기 (원하면 사용)
-            const leaves = index.getLeaves(c.properties.cluster_id, Infinity);
-            onClusterClick(leaves.map((l: any) => l.properties.pointId));
+            const leaves = index.getLeaves(clusterId, Infinity);
+            onClusterClick(leaves.map((l) => String((l.properties as Supercluster.AnyProps).pointId || "")));
           }
         });
       } else {
         marker.addListener('click', () => {
-          onPointClick?.(c.properties.pointId);
+          const pointId = String(props.pointId || "");
+          if (pointId) onPointClick?.(pointId);
         });
       }
 

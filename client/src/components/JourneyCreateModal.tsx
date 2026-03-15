@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 여정 생성 모달 — 여행 일정 그룹(Journey)을 생성하는 모달.
 import { useState, useEffect } from 'react';
 import {

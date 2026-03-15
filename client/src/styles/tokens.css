@@ -1,0 +1,17 @@
+:root {
+  --primary: #7b5ea7;
+  --primary-foreground: #ffffff;
+  --accent: #ff6b6b;
+  --accent-foreground: #1a1a2e;
+  --background: #0b1020;
+  --foreground: #f5f7ff;
+  --surface: #1a1a2e;
+  --card: #171b30;
+  --card-foreground: #eef0ff;
+  --muted: #232845;
+  --muted-foreground: #aab1d5;
+  --border: #2d355d;
+  --input: #2d355d;
+  --ring: #7b5ea7;
+  --radius: 1rem;
+}

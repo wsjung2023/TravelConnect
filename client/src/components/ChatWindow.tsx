@@ -90,7 +90,8 @@ export default function ChatWindow({
           </div>
         ) : (
           messages.map((message) => {
-            const isOwn = message.senderId === currentUserId;
+            const senderId = message.senderId ?? "";
+            const isOwn = senderId === currentUserId;
             return (
               <div
                 key={message.id}
@@ -101,11 +102,11 @@ export default function ChatWindow({
                     <div className="flex items-center gap-2 mb-1">
                       <Avatar className="w-6 h-6">
                         <AvatarFallback className="text-xs">
-                          {message.senderId.charAt(0).toUpperCase()}
+                          {senderId.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-xs text-gray-500">
-                        {message.senderId}
+                        {senderId}
                       </span>
                     </div>
                   )}

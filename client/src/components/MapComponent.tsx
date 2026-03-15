@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useMapMarkers } from '@/hooks/useMapMarkers';
 import { usePOIMarkers } from '@/hooks/usePOIMarkers';
+import { GOOGLE_MAP_DARK_STYLE } from '@/constants/mapStyles';
 
 // Custom debounce hook for performance optimization
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -826,103 +827,32 @@ const MapComponent: React.FC<MapComponentProps> = ({
       const newMap = new window.google.maps.Map(mapRef.current, {
         center: { lat, lng },
         zoom: 13,
-        styles: [
-          {
-            featureType: 'water',
-            elementType: 'geometry',
-            stylers: [{ color: '#4ECDC4' }],
-          },
-          {
-            featureType: 'landscape.natural',
-            elementType: 'geometry',
-            stylers: [{ color: '#F5F5DC' }],
-          },
-          {
-            featureType: 'landscape.man_made',
-            elementType: 'geometry',
-            stylers: [{ color: '#FDF6E3' }],
-          },
-          {
-            featureType: 'poi.park',
-            elementType: 'geometry',
-            stylers: [{ color: '#C8E6C9' }],
-          },
-          {
-            featureType: 'poi.park',
-            elementType: 'labels',
-            stylers: [{ visibility: 'on' }],
-          },
-          {
-            featureType: 'poi.park',
-            elementType: 'labels.text.fill',
-            stylers: [{ color: '#4A7C59' }],
-          },
-          {
-            featureType: 'landscape.natural.landcover',
-            elementType: 'geometry',
-            stylers: [{ color: '#A8D5A8' }],
-          },
-          {
-            featureType: 'landscape.natural.terrain',
-            elementType: 'geometry',
-            stylers: [{ color: '#B8E6B8' }],
-          },
-          {
-            featureType: 'road.highway',
-            elementType: 'geometry',
-            stylers: [{ color: '#E8E8E8' }, { weight: 1.2 }],
-          },
-          {
-            featureType: 'road.arterial',
-            elementType: 'geometry',
-            stylers: [{ color: '#F0F0F0' }, { weight: 1.0 }],
-          },
-          {
-            featureType: 'road.local',
-            elementType: 'geometry',
-            stylers: [{ color: '#FAFAFA' }, { weight: 0.6 }],
-          },
-          {
-            featureType: 'road',
-            elementType: 'labels',
-            stylers: [{ visibility: 'simplified' }],
-          },
-          {
-            featureType: 'poi',
-            elementType: 'all',
-            stylers: [{ visibility: 'off' }],
-          },
-          {
-            featureType: 'poi.medical',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }],
-          },
-          {
-            featureType: 'poi.school',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }],
-          },
-          {
-            featureType: 'transit',
-            stylers: [{ visibility: 'off' }],
-          },
-          {
-            featureType: 'administrative',
-            elementType: 'labels',
-            stylers: [{ visibility: 'simplified' }],
-          },
-          {
-            featureType: 'road',
-            elementType: 'labels',
-            stylers: [{ visibility: 'simplified' }],
-          },
-        ],
+        styles: GOOGLE_MAP_DARK_STYLE,
         disableDefaultUI: true,
         zoomControl: true,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
         clickableIcons: false, // 기본 POI 클릭 비활성화
+      });
+
+      // 현재 위치 pulse 마커 (T6)
+      new window.google.maps.Marker({
+        position: { lat, lng },
+        map: newMap,
+        zIndex: 2000,
+        icon: {
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg width="34" height="34" viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="17" cy="17" r="12" fill="#7B5EA7" fill-opacity="0.25">
+                <animate attributeName="r" values="11;14;11" dur="1.6s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="17" cy="17" r="7" fill="#7B5EA7" stroke="#ffffff" stroke-width="2"/>
+            </svg>
+          `)}`,
+          scaledSize: new window.google.maps.Size(34, 34),
+          anchor: new window.google.maps.Point(17, 17),
+        },
       });
 
       // 줌 변경 이벤트 리스너

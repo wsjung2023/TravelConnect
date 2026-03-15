@@ -40,6 +40,10 @@ import SmartImage from '@/components/SmartImage';
 import { Seo } from '@/components/Seo';
 import { type FeedMode } from '@/components/FeedModeSelector';
 import { useAuth } from '@/hooks/useAuth';
+import ExploreHeader from '@/components/explore/ExploreHeader';
+import ExploreReels from '@/components/explore/ExploreReels';
+import ExploreCardFeed from '@/components/explore/ExploreCardFeed';
+import ExploreReelsViewer from '@/components/explore/ExploreReelsViewer';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -118,6 +122,8 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
   const [failedImages, setFailedImages] = useState(new Set<number>());
   const [filter, setFilter] = useState<FilterType>('all');
   const [feedMode, setFeedMode] = useState<FeedMode>('smart');
+  const [exploreMode, setExploreMode] = useState<'stories' | 'reels' | 'nearby'>('stories');
+  const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -516,6 +522,17 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
       />
       {/* Header */}
       <div className="border-b bg-white sticky top-0 z-10">
+        <div className="px-4 pt-3">
+          <ExploreHeader mode={exploreMode} onChange={setExploreMode} />
+          {exploreMode === 'reels' ? (
+            <div className="space-y-2">
+              <ExploreReels />
+              <button className="app-chip" onClick={() => setShowReelsViewer(true)}>릴스 전체 보기</button>
+            </div>
+          ) : (
+            <ExploreCardFeed mode={exploreMode === 'nearby' ? 'nearby' : 'stories'} />
+          )}
+        </div>
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-3">
             <button
@@ -525,7 +542,7 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
             >
               <ArrowLeft size={20} className="text-gray-600" />
             </button>
-            <h1 className="text-xl font-bold text-gray-800">{t('feedPage.title')}</h1>
+            <h1 className="text-xl font-bold text-gray-800">{t('navigation.explore')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/travel-itinerary">
@@ -899,6 +916,13 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
       )}
 
       {/* Post Detail Modal */}
+      {showReelsViewer && (
+        <ExploreReelsViewer
+          posts={smartFeedPosts as any}
+          onClose={() => setShowReelsViewer(false)}
+        />
+      )}
+
       {selectedPost && (
         <PostDetailModal
           post={

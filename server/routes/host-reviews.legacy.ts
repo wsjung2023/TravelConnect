@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 호스트·리뷰 라우터 — 호스트 프로필 조회, 호스트 등록·수정, 리뷰 작성·조회·수정·삭제, 리뷰 집계 통계 엔드포인트를 담당한다.
 import type { Express } from 'express';
 

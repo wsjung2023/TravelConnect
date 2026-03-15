@@ -48,7 +48,7 @@ i18n
     lng: 'en', // 초기값, initializeLanguage에서 변경됨
     
     // Debug mode (disable in production)
-    debug: process.env.NODE_ENV === 'development',
+    debug: import.meta.env.DEV,
     
     // Language detection options
     detection: {
@@ -111,7 +111,7 @@ export async function initializeLanguage(): Promise<void> {
 // 언어 변경 시 <html lang=""> 속성 동기화 (검색엔진 다국어 인식)
 if (typeof window !== 'undefined') {
   const syncHtmlLang = (lng: string) => {
-    const primary = lng.split('-')[0]; // 'ko-KR' → 'ko'
+    const primary = lng.split('-')[0] ?? 'en'; // 'ko-KR' → 'ko'
     document.documentElement.lang = primary;
   };
 

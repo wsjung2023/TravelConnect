@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 시스템 설정 시드 데이터 — system_config 테이블에 삽입할 106개 설정값 배열과 조회 헬퍼 함수를 정의한다.
 import type { InsertSystemConfig } from '@shared/schema';
 

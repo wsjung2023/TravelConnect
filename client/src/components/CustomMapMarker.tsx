@@ -16,7 +16,7 @@ export const CustomMapMarker: React.FC<CustomMapMarkerProps> = ({
 }) => {
   const { t } = useTranslation();
   // DB에서 테마 색상 설정 가져오기
-  const { data: themeColorsData } = useQuery({
+  const { data: themeColorsData } = useQuery<{ value?: string }>({
     queryKey: ['/api/public/settings/ui/theme_colors'],
     enabled: true,
     staleTime: 5 * 60 * 1000, // 5분간 캐시

@@ -45,6 +45,9 @@ interface PublicUser {
   userType: 'influencer';
   portfolioMode: boolean;
   publicProfileUrl: string;
+  openToMeet?: boolean;
+  languages?: string[];
+  interests?: string[];
 }
 
 export default function PublicPortfolio({ publicProfileUrl }: PublicPortfolioProps) {
@@ -83,7 +86,7 @@ export default function PublicPortfolio({ publicProfileUrl }: PublicPortfolioPro
 
   if (userError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔍</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">포트폴리오를 찾을 수 없습니다</h1>
@@ -99,7 +102,7 @@ export default function PublicPortfolio({ publicProfileUrl }: PublicPortfolioPro
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin text-4xl mb-4">⭐</div>
           <p className="text-purple-600 font-medium">포트폴리오 로딩중...</p>
@@ -109,21 +112,21 @@ export default function PublicPortfolio({ publicProfileUrl }: PublicPortfolioPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
+      <div className="sticky top-0 z-10 border-b bg-white/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Button 
             variant="ghost" 
             onClick={() => setLocation('/')}
-            className="hover:bg-purple-100"
+            className="hover:bg-primary/10"
           >
             <ArrowLeft size={16} className="mr-2" />
             Tourgether로 돌아가기
           </Button>
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-purple-600" />
-            <span className="text-sm font-medium text-purple-600">공개 포트폴리오</span>
+            <span className="text-sm font-medium text-primary">공개 포트폴리오</span>
           </div>
         </div>
       </div>
@@ -165,6 +168,33 @@ export default function PublicPortfolio({ publicProfileUrl }: PublicPortfolioPro
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mb-8 grid gap-3 md:grid-cols-4">
+          <Card className="border-primary/20">
+            <CardContent className="pt-5">
+              <p className="text-xs text-muted-foreground">Profile mode</p>
+              <p className="text-lg font-semibold">Portfolio</p>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/20">
+            <CardContent className="pt-5">
+              <p className="text-xs text-muted-foreground">Open to Meet</p>
+              <p className="text-lg font-semibold">{user?.openToMeet ? 'ON' : 'OFF'}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/20">
+            <CardContent className="pt-5">
+              <p className="text-xs text-muted-foreground">Languages</p>
+              <p className="text-lg font-semibold">{user?.languages?.slice(0, 2).join(', ') || '-'}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/20">
+            <CardContent className="pt-5">
+              <p className="text-xs text-muted-foreground">Interests</p>
+              <p className="text-lg font-semibold">{user?.interests?.slice(0, 2).join(', ') || '-'}</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Services Section */}

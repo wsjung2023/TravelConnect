@@ -55,8 +55,8 @@ export interface PageSeoConfig {
 export const pageSeoConfigs: Record<string, PageSeoConfig> = {
   // 4.1 Home — `/` - 한글/영어 브랜드명 병기
   home: {
-    title: '투어게더(Tourgether) - 지도 기반 여행 SNS | 로컬과 함께하는 여행',
-    description: '투어게더(Tourgether)는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에 경험하세요. Travel SNS connecting travelers with locals.',
+    title: '투어게더(Tourgether) - 지도·Meet·CineMap 여행 SNS | 로컬과 함께하는 여행',
+    description: '투어게더(Tourgether)는 지도 탐색, Meet, Mini Concierge, CineMap을 연결한 여행 SNS입니다. 웹에서 본 기대감을 앱 첫 화면 경험으로 이어보세요. Travel SNS connecting travelers with locals.',
     h1: '지도 위에서 연결되는 여행 경험',
     canonical: `${SITE_URL}/`,
     ogType: 'website',
@@ -68,8 +68,8 @@ export const pageSeoConfigs: Record<string, PageSeoConfig> = {
 
   // 4.2 Features — `/features`
   features: {
-    title: '투어게더 기능 소개 - 여행 타임라인 · 로컬 매칭 · 지도 기반 탐색 | Tourgether',
-    description: '투어게더(Tourgether)는 여행 타임라인 기록, 지도 기반 탐색, 로컬 매칭, 여행 일정 공유 기능으로 여행 경험을 연결합니다. 핵심 기능을 한눈에 확인하세요.',
+    title: '투어게더 기능 소개 - CineMap · Meet · Mini Concierge · 지도 탐색 | Tourgether',
+    description: '투어게더(Tourgether)의 핵심 기능(CineMap, Meet, Mini Concierge, 지도 기반 탐색)을 한눈에 확인하세요. 랜딩의 핵심 가치와 앱 UX를 같은 톤으로 제공합니다.',
     h1: '여행의 모든 순간을 기록하고 연결하는 기능',
     canonical: `${SITE_URL}/features`,
     ogType: 'website',
@@ -78,7 +78,7 @@ export const pageSeoConfigs: Record<string, PageSeoConfig> = {
   // 4.3 Timeline — `/timeline` (public marketing page)
   timeline: {
     title: '여행 타임라인 기록 - 지도 기반 여행 콘텐츠 SNS | 투어게더 Tourgether',
-    description: '투어게더의 지도 기반 여행 타임라인으로 여행 일정을 시각화하고 공유하세요. 여행 동선과 순간이 하나의 이야기로 이어집니다.',
+    description: '투어게더의 타임라인과 CineMap으로 여행 동선을 영화처럼 기록하세요. 지도 기반 여정을 스토리로 시각화해 공유할 수 있습니다.',
     h1: '여행 타임라인, 진짜 여행 기록',
     canonical: `${SITE_URL}/timeline`,
     ogType: 'website',
@@ -176,6 +176,16 @@ export const pageSeoConfigs: Record<string, PageSeoConfig> = {
     canonical: `${SITE_URL}/marketplace`,
     ogType: 'website',
     noindex: true, // 로그인 필요
+  },
+
+
+  // Meet
+  meet: {
+    title: 'Meet - 주변 여행자 연결 | 투어게더 Tourgether',
+    description: '주변 여행자와 안전하게 연결하고, 첫 인사에서 대화까지 자연스럽게 이어지는 Meet 경험을 제공합니다.',
+    canonical: `${SITE_URL}/meet`,
+    ogType: 'website',
+    noindex: true,
   },
 
   // Feed

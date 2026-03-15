@@ -189,6 +189,8 @@
   "navigation": {
     "map": "地图",
     "feed": "MoVi",
+    "explore": "探索",
+    "meet": "遇见",
     "timeline": "时间线",
     "chat": "收件箱",
     "profile": "我的"

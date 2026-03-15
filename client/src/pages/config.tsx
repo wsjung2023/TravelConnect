@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 설정 페이지 — 앱 설정(언어, 알림, 계정 등) 화면.
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

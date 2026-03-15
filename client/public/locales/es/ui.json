@@ -201,6 +201,8 @@
   "navigation": {
     "map": "Mapa",
     "feed": "MoVi",
+    "explore": "Explorar",
+    "meet": "Encuentro",
     "timeline": "Cronología",
     "chat": "Bandeja de entrada",
     "profile": "Yo"

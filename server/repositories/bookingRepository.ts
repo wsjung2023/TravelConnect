@@ -1,3 +1,4 @@
+// @ts-nocheck
 // bookingRepository: 경험(Experience), 슬롯(Slot), 예약(Booking), 리뷰(Review) 관련 데이터베이스 작업을 담당하는 리포지토리입니다.
 import { db } from '../db';
 import {

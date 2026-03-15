@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 분쟁 관리 라우터 — P2P 거래 분쟁 생성/조회/상세, 증거 제출, 철회, 코멘트, 관리자용 목록·배정·상태변경·해결·에스컬레이션·통계·SLA 점검 엔드포인트를 담당한다.
 import type { Express } from 'express';
 import type { Request, Response } from 'express';

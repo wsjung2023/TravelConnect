@@ -10,7 +10,7 @@ import * as Sentry from '@sentry/react';
 import ErrorBoundary from '@/ErrorBoundary';
 import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
-import Home from '@/pages/home';
+import AppShell from '@/components/AppShell';
 import Config from '@/pages/config';
 import LegalPage from '@/pages/legal';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
@@ -48,9 +48,6 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 
 // Lazy load heavy components
 const MapTest = lazy(() => import('@/pages/map-test'));
-const Feed = lazy(() => import('@/pages/feed'));
-const Chat = lazy(() => import('@/pages/chat'));
-const Profile = lazy(() => import('@/pages/profile'));
 const TimelinePage = lazy(() => import('@/pages/timeline'));
 const TimelineCreatePage = lazy(() => import('@/pages/TimelineCreate'));
 const VideoTestPage = lazy(() => import('@/pages/video-test'));
@@ -186,7 +183,7 @@ function Router() {
         {/* Protected routes */}
         <Route path="/" component={() => (
           <AuthGate>
-            <Home />
+            <AppShell />
           </AuthGate>
         )} />
         <Route
@@ -203,9 +200,15 @@ function Router() {
           path="/feed"
           component={() => (
             <AuthGate>
-              <Suspense fallback={<LoadingSpinner />}>
-                <Feed />
-              </Suspense>
+              <AppShell />
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/meet"
+          component={() => (
+            <AuthGate>
+              <AppShell />
             </AuthGate>
           )}
         />
@@ -243,9 +246,7 @@ function Router() {
           path="/chat"
           component={() => (
             <AuthGate>
-              <Suspense fallback={<LoadingSpinner />}>
-                <Chat />
-              </Suspense>
+              <AppShell />
             </AuthGate>
           )}
         />
@@ -265,9 +266,7 @@ function Router() {
           path="/profile"
           component={() => (
             <AuthGate>
-              <Suspense fallback={<LoadingSpinner />}>
-                <Profile />
-              </Suspense>
+              <AppShell />
             </AuthGate>
           )}
         />

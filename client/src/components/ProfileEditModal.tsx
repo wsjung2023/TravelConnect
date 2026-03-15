@@ -83,6 +83,9 @@ export default function ProfileEditModal({
     },
   });
 
+  const watchedLanguages = form.watch('languages') || [];
+  const watchedInterests = form.watch('interests') || [];
+
   // user가 변경되거나 모달이 열릴 때 폼 초기화
   useEffect(() => {
     if (open) {
@@ -407,6 +410,19 @@ export default function ProfileEditModal({
                 </FormItem>
               )}
             />
+
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <p className="text-xs font-medium text-gray-700">Identity preview</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-white px-2 py-1">여행 레벨: {user.isHost ? 'Host' : 'Traveler'}</span>
+                {watchedLanguages.slice(0, 3).map((language) => (
+                  <span key={language} className="rounded-full bg-white px-2 py-1">언어: {language}</span>
+                ))}
+                {watchedInterests.slice(0, 3).map((interest) => (
+                  <span key={interest} className="rounded-full bg-white px-2 py-1">관심사: {interest}</span>
+                ))}
+              </div>
+            </div>
 
             {/* 공개 프로필 URL */}
             <FormField

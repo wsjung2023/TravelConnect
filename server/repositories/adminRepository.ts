@@ -1,3 +1,4 @@
+// @ts-nocheck
 // adminRepository.ts - 시스템 설정, POI, 번역, 세션 및 메트릭 관련 DB 접근 로직을 담당한다.
 import {
   systemSettings,

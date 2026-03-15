@@ -199,6 +199,8 @@
   "navigation": {
     "map": "Map",
     "feed": "MoVi",
+    "explore": "Explore",
+    "meet": "Meet",
     "timeline": "Trips",
     "chat": "Inbox",
     "profile": "Me"
