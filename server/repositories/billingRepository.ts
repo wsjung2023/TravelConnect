@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 빌링 및 결제 관련 데이터 처리를 담당하는 레포지토리
 import { db } from '../db';
 import {

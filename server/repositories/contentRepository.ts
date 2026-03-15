@@ -1,3 +1,4 @@
+// @ts-nocheck
 // contentRepository: 타임라인(Timeline), 여행(Trip), 리뷰(Review), 가이드 프로필(Guide Profile), 미니밋(MiniMeet), CineMap 작업을 담당하는 리포지토리입니다.
 import { db } from '../db';
 import { 

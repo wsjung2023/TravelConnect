@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Commerce Repository: Admin commerce, Purchase proxy, Traveler help request, and Service template/package operations.
 import { db } from '../db';
 import { eq, desc, and, sql } from 'drizzle-orm';

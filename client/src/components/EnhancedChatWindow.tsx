@@ -17,6 +17,12 @@ import type { Message, Conversation, Channel } from '@shared/schema';
 
 type ConvWithUser = Conversation & { otherUser?: { id: string; firstName?: string | null; lastName?: string | null; profileImageUrl?: string | null } };
 
+interface TranslationEntry {
+  text: string;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+}
+
 interface EnhancedChatWindowProps {
   // 채널 또는 대화방 정보
   channel?: Channel | undefined;
@@ -46,8 +52,17 @@ export default function EnhancedChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Translation state
-  const [translatedMessages, setTranslatedMessages] = useState<Record<number, string>>({});
+  const [translatedMessages, setTranslatedMessages] = useState<Record<number, TranslationEntry>>({});
+  const [translationViewMode, setTranslationViewMode] = useState<Record<number, 'original' | 'translated'>>({});
   const [translatingMessages, setTranslatingMessages] = useState<Set<number>>(new Set());
+  const isConciergeChannel = channel?.name === 'AI Concierge';
+
+  const quickReplies = [
+    '안녕하세요! 만나서 반가워요 👋',
+    '지금 근처에서 만날까요?',
+    '이 동네 로컬 맛집 추천해줄래요?',
+    '오늘 몇 시가 괜찮아요?',
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,16 +81,14 @@ export default function EnhancedChatWindow({
   };
 
   const handleTranslate = async (messageId: number) => {
-    // Toggle translation
     if (translatedMessages[messageId]) {
-      setTranslatedMessages(prev => {
-        const { [messageId]: _, ...rest } = prev;
-        return rest;
-      });
+      setTranslationViewMode((prev) => ({
+        ...prev,
+        [messageId]: prev[messageId] === 'translated' ? 'original' : 'translated',
+      }));
       return;
     }
 
-    // Start translation
     setTranslatingMessages(prev => new Set(prev).add(messageId));
 
     try {
@@ -96,8 +109,13 @@ export default function EnhancedChatWindow({
       const data = await response.json();
       setTranslatedMessages(prev => ({
         ...prev,
-        [messageId]: data.translatedText,
+        [messageId]: {
+          text: data.translatedText,
+          sourceLanguage: data.sourceLanguage,
+          targetLanguage: data.targetLanguage,
+        },
       }));
+      setTranslationViewMode((prev) => ({ ...prev, [messageId]: 'translated' }));
     } catch (error) {
       console.error('Translation error:', error);
     } finally {
@@ -217,8 +235,8 @@ export default function EnhancedChatWindow({
           
           <div className="flex items-center gap-3">
             {headerInfo.isChannel ? (
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                <MessageSquare size={20} className="text-primary" />
+              <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${isConciergeChannel ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20' : 'bg-primary/10'}`}>
+                {isConciergeChannel ? <Sparkles size={20} className="text-purple-500" /> : <MessageSquare size={20} className="text-primary" />}
               </div>
             ) : (
               <Avatar className="w-10 h-10">
@@ -232,6 +250,9 @@ export default function EnhancedChatWindow({
             <div>
               <h3 className="font-medium">{headerInfo.title}</h3>
               <p className="text-xs text-gray-500">{headerInfo.subtitle}</p>
+              {isConciergeChannel && (
+                <p className="text-[11px] text-purple-600">AI concierge channel</p>
+              )}
             </div>
           </div>
         </div>
@@ -325,9 +346,11 @@ export default function EnhancedChatWindow({
                   {group.messages.map((message) => {
                     const isOwn = message.senderId === currentUserId;
                     const hasReplies = messages.some(m => m.parentMessageId === message.id);
-                    const isTranslated = !!translatedMessages[message.id];
+                    const translation = translatedMessages[message.id];
+                    const isTranslated = !!translation;
                     const isTranslating = translatingMessages.has(message.id);
-                    const isAIConcierge = message.senderId === null;
+                    const isAIConcierge = message.senderId === null || isConciergeChannel;
+                    const showTranslatedText = isTranslated && (translationViewMode[message.id] ?? 'translated') === 'translated';
                     
                     return (
                       <div
@@ -355,14 +378,38 @@ export default function EnhancedChatWindow({
                             </div>
                           )}
                           
-                          <div className={`chat-bubble ${isOwn ? 'sent' : isAIConcierge ? 'ai' : 'received'} relative`}>
+                          <div className={`app-chat-bubble ${isOwn ? 'sent' : isAIConcierge ? 'ai' : 'received'} relative`}>
                             <p className="break-words">
-                              {isTranslated ? translatedMessages[message.id] : message.content}
+                              {showTranslatedText ? translation?.text : message.content}
                             </p>
-                            
+
                             {isTranslated && (
-                              <div className="text-xs opacity-60 mt-1 italic">
-                                {t('chat.translated')}
+                              <div className="mt-2 flex flex-wrap items-center gap-1 text-[11px]">
+                                <Badge variant="secondary" className="h-5 px-1.5">{t('chat.translated')}</Badge>
+                                {translation?.sourceLanguage && (
+                                  <Badge variant="outline" className="h-5 px-1.5">
+                                    src: {translation.sourceLanguage}
+                                  </Badge>
+                                )}
+                                {translation?.targetLanguage && (
+                                  <Badge variant="outline" className="h-5 px-1.5">
+                                    → {translation.targetLanguage}
+                                  </Badge>
+                                )}
+                                <button
+                                  type="button"
+                                  className={`rounded-full px-2 py-0.5 transition ${showTranslatedText ? 'bg-white/20 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                                  onClick={() => setTranslationViewMode((prev) => ({ ...prev, [message.id]: 'translated' }))}
+                                >
+                                  번역 보기
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`rounded-full px-2 py-0.5 transition ${!showTranslatedText ? 'bg-white/20 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                                  onClick={() => setTranslationViewMode((prev) => ({ ...prev, [message.id]: 'original' }))}
+                                >
+                                  원문 보기
+                                </button>
                               </div>
                             )}
                             
@@ -376,7 +423,7 @@ export default function EnhancedChatWindow({
                             )}
                           </div>
                           
-                          <div className="flex items-center justify-between mt-1">
+                          <div className="mt-1 flex items-center justify-between gap-3">
                             <p className="text-xs text-gray-400">
                               {formatTime(message.createdAt!)}
                             </p>
@@ -387,7 +434,7 @@ export default function EnhancedChatWindow({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleTranslate(message.id)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6"
+                                className="p-1 h-6 text-muted-foreground hover:text-foreground"
                                 data-testid={`button-translate-${message.id}`}
                                 disabled={isTranslating}
                               >
@@ -396,6 +443,7 @@ export default function EnhancedChatWindow({
                                 ) : (
                                   <Languages size={12} className={isTranslated ? 'text-blue-500' : ''} />
                                 )}
+                                <span className="sr-only">{isTranslated ? 'toggle translation' : 'translate'}</span>
                               </Button>
                               
                               {/* Thread Reply Button */}
@@ -404,7 +452,7 @@ export default function EnhancedChatWindow({
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => onStartThread(message)}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6"
+                                  className="p-1 h-6 text-muted-foreground hover:text-foreground"
                                   data-testid={`button-reply-${message.id}`}
                                 >
                                   <Reply size={12} />
@@ -422,6 +470,19 @@ export default function EnhancedChatWindow({
             <div ref={messagesEndRef} />
           </div>
         )}
+      </div>
+
+      <div className="px-4 pb-2 flex gap-2 overflow-x-auto">
+        {quickReplies.map((reply) => (
+          <button
+            key={reply}
+            type="button"
+            onClick={() => setNewMessage(reply)}
+            className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            {reply}
+          </button>
+        ))}
       </div>
 
       {/* Message Input */}

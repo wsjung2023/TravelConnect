@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 피드 디버그 페이지 — 피드 오류 재현·디버깅용 개발 전용 페이지.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

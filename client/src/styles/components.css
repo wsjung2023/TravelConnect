@@ -1,0 +1,68 @@
+.app-tabbar {
+  background: rgba(10, 14, 30, 0.88);
+  backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-btn {
+  color: rgba(233, 236, 255, 0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.nav-btn.active,
+.nav-btn:hover {
+  color: #fff;
+}
+
+.nav-btn.meet {
+  background: linear-gradient(135deg, #7b5ea7, #ff6b6b);
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 999px;
+  margin-top: -1.75rem;
+  box-shadow: 0 8px 22px rgba(123, 94, 167, 0.45);
+}
+
+.map-bottom-sheet {
+  background: linear-gradient(180deg, rgba(26, 26, 46, 0.95), rgba(11, 16, 32, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.app-chat-bubble {
+  border-radius: 1rem;
+  padding: 0.75rem;
+}
+
+.app-chat-bubble.sent {
+  background: linear-gradient(135deg, var(--primary), #9b75cf);
+  color: #fff;
+}
+
+.app-chat-bubble.received {
+  background: #1f2742;
+  color: #edf1ff;
+}
+
+.app-chip {
+  border-radius: 999px;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  background: #273055;
+  color: #dce3ff;
+}
+
+.app-chat-bubble.ai {
+  background: linear-gradient(135deg, #322756, #2d3a64);
+  color: #f2f5ff;
+}

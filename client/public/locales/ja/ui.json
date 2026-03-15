@@ -189,6 +189,8 @@
   "navigation": {
     "map": "マップ",
     "feed": "モヴィ",
+    "explore": "探索",
+    "meet": "出会い",
     "timeline": "タイムライン",
     "chat": "インボックス",
     "profile": "マイ"

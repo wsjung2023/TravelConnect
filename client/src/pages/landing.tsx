@@ -1,5 +1,5 @@
 // 랜딩 페이지 — 비로그인 유저 대상의 서비스 소개, 주요 기능 설명, CTA(회원가입/로그인) 화면.
-import { MapPin, Users, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar, DollarSign, Camera } from 'lucide-react';
+import { MapPin, Users, Star, PlayCircle, Compass, Heart, Globe, Map, Shield, Clock, ChevronRight, Calendar, DollarSign, Camera, Bot } from 'lucide-react';
 import { Link } from 'wouter';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -221,6 +221,13 @@ export default function Landing() {
                     <span className="truncate">{t('ui:landingPage.exploreMap')}</span>
                   </button>
                 </Link>
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="border border-white/30 bg-white/10 px-5 sm:px-6 py-3 rounded-xl font-semibold backdrop-blur hover:bg-white/15 transition w-full sm:w-auto text-sm sm:text-base"
+                  data-testid="button-download-notify"
+                >
+                  앱 다운로드 알림받기
+                </button>
                 {import.meta.env.DEV && (
                   <button
                     onClick={handleDemoLogin}
@@ -393,6 +400,34 @@ export default function Landing() {
         </div>
       </section>
 
+
+
+      {/* Core Product Pillars */}
+      <section className="px-4 py-10 bg-[#0f172a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">Core experiences inside Tourgether</h3>
+            <p className="text-slate-300 mt-2">CineMap · Meet · Mini Concierge</p>
+          </div>
+          <p className="mb-4 text-center text-sm text-slate-400">앱 첫 화면에서 바로 보이는 핵심 흐름: 지도 탐색 → Meet 연결 → CineMap 기록</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { title: 'CineMap', desc: 'Turn your timeline into a cinematic travel story.', icon: PlayCircle },
+              { title: 'Meet', desc: 'Find nearby travelers and start serendipitous conversations.', icon: Users },
+              { title: 'Mini Concierge', desc: 'Get instant “What should I do in 1 hour?” plans.', icon: Bot },
+            ].map((item) => (
+              <article key={item.title} className="rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+                <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20 text-violet-300">
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <h4 className="text-lg font-semibold text-white">{item.title}</h4>
+                <p className="mt-1 text-sm text-slate-300">{item.desc}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ========================================
           SEO CONTENT SECTION - 검색엔진 최적화용 텍스트 (i18n 기반)
           ======================================== */}
@@ -527,12 +562,29 @@ export default function Landing() {
             </div>
             
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Ready to explore?
+              웹에서 본 기대감을 앱에서 바로 이어보세요
             </h2>
             <p className="text-gray-400 mb-8 leading-relaxed">
-              Join thousands of travelers discovering authentic experiences with trusted locals.
+              CineMap · Meet · Mini Concierge 중심의 리뉴얼 경험을 모바일 앱에서 먼저 받아보세요.
             </p>
             
+            <div className="mb-4 flex flex-col sm:flex-row gap-2 justify-center">
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="landing-btn-secondary"
+                data-testid="button-download-ios"
+              >
+                iOS 다운로드 알림
+              </button>
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="landing-btn-secondary"
+                data-testid="button-download-android"
+              >
+                Android 다운로드 알림
+              </button>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {import.meta.env.DEV && (
                 <button

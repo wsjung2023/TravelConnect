@@ -94,3 +94,24 @@
 AI는 편의 도구이며 결정권자는 사용자다.
 불확실하면 수정하지 말고 질문한다.
 과도한 자동화보다 안정성을 우선한다.
+
+
+## 9. Replit AI 작업 제외 폴더/파일
+
+다음 경로는 런타임과 무관한 아카이브이므로 기본 작업 범위에서 제외한다.
+
+- `docs/_screenshots_archive/`
+- `archive/legacy_src_bak/`
+- `archive/attached_assets/`
+
+참고:
+- `attached_assets/stock_images/`는 프런트 런타임(`@assets`)에서 사용하는 실제 자산 경로이므로 보존한다.
+- `attached_assets/`의 나머지 파일은 아카이브 우선 원칙을 적용한다.
+
+## 10. 수정 허용 파일 범위
+
+- 앱 기능 변경: `client/src/**`, `server/**`, `shared/**`
+- 스타일/디자인 시스템: `client/src/styles/**`, `client/src/index.css`, `tailwind.config.ts`
+- 문서 변경: `docs/**`, `GUARDRAILS.md`
+
+위 범위를 벗어나는 대량 변경은 사전 계획 문서가 있을 때만 허용한다.

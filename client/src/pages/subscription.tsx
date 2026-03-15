@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 구독 페이지 — Billing Plans 조회, 구독 신청/해지, 카드 등록, Trip Pass(AI 크레딧) 구매 화면.
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

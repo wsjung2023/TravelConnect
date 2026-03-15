@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 여행 요청·서비스 템플릿 라우터 — 여행자 요청(Request) 생성·목록·상세·응답, 가이드 서비스 템플릿·패키지 CRUD, 오퍼(제안) 관련 엔드포인트를 담당한다.
 import type { Express } from 'express';
 

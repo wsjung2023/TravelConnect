@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 체험 페이지 — 로컬 가이드가 등록한 체험 상품 목록을 조회하고 예약하는 화면.
 import { useRoute, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';

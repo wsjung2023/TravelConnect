@@ -1,6 +1,13 @@
 // 포스트 그룹핑 유틸리티 - 비슷한 시간·장소 포스트를 패치워크 카드로 묶기
 import { Post } from '@shared/schema';
 
+
+function toSafeDate(value: Date | string | null | undefined): Date {
+  if (!value) return new Date(0);
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
+}
+
 interface PostGroup {
   id: string;
   posts: Post[];
@@ -41,15 +48,15 @@ export function groupSimilarPosts(posts: Post[]): PostGroup[] {
 
   // 시간 순으로 정렬 (takenAt 우선, 없으면 createdAt)
   const sortedPosts = [...posts].sort((a, b) => {
-    const aTime = a.takenAt ? new Date(a.takenAt) : new Date(a.createdAt);
-    const bTime = b.takenAt ? new Date(b.takenAt) : new Date(b.createdAt);
+    const aTime = toSafeDate(a.takenAt ?? a.createdAt);
+    const bTime = toSafeDate(b.takenAt ?? b.createdAt);
     return aTime.getTime() - bTime.getTime();
   });
 
   for (const post of sortedPosts) {
     if (processed.has(post.id)) continue;
 
-    const postTime = new Date(post.takenAt || post.createdAt);
+    const postTime = toSafeDate(post.takenAt ?? post.createdAt);
     const postLat = post.latitude ? parseFloat(post.latitude) : null;
     const postLng = post.longitude ? parseFloat(post.longitude) : null;
 
@@ -60,7 +67,7 @@ export function groupSimilarPosts(posts: Post[]): PostGroup[] {
     for (const otherPost of sortedPosts) {
       if (processed.has(otherPost.id)) continue;
 
-      const otherTime = new Date(otherPost.takenAt || otherPost.createdAt);
+      const otherTime = toSafeDate(otherPost.takenAt ?? otherPost.createdAt);
       const otherLat = otherPost.latitude ? parseFloat(otherPost.latitude) : null;
       const otherLng = otherPost.longitude ? parseFloat(otherPost.longitude) : null;
 
@@ -94,7 +101,7 @@ export function groupSimilarPosts(posts: Post[]): PostGroup[] {
     }
 
     // 그룹 생성
-    const times = similarPosts.map(p => new Date(p.takenAt || p.createdAt));
+    const times = similarPosts.map(p => toSafeDate(p.takenAt ?? p.createdAt));
     const coordinates = postLat && postLng ? { lat: postLat, lng: postLng } : null;
 
     groups.push({
@@ -122,7 +129,7 @@ export function groupPostsByDay(posts: Post[], startDate?: Date): Record<number,
     
     // startDate가 있고 takenAt이 있으면 실제 날짜 차이로 day 계산
     if (startDate && (post.takenAt || post.createdAt)) {
-      const takenAt = new Date(post.takenAt || post.createdAt);
+      const takenAt = toSafeDate(post.takenAt ?? post.createdAt);
       const diffTime = takenAt.getTime() - startDate.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
       day = Math.max(1, diffDays);
@@ -139,7 +146,7 @@ export function groupPostsByDay(posts: Post[], startDate?: Date): Record<number,
     const dayPosts = posts.filter(post => {
       let postDay = post.day || 1;
       if (startDate && (post.takenAt || post.createdAt)) {
-        const takenAt = new Date(post.takenAt || post.createdAt);
+        const takenAt = toSafeDate(post.takenAt ?? post.createdAt);
         const diffTime = takenAt.getTime() - startDate.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
         postDay = Math.max(1, diffDays);

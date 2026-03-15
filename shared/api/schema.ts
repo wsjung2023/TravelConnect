@@ -343,8 +343,5 @@ export type SlotSearchData = z.infer<typeof SlotSearchSchema>;
 export type UpdateSlotAvailabilityData = z.infer<typeof UpdateSlotAvailabilitySchema>;
 
 // 예약 관련 타입 정의
-export type CreateBookingData = z.infer<typeof CreateBookingSchema>;
-export type UpdateBookingStatusData = z.infer<typeof UpdateBookingStatusSchema>;
 export type BookingSearchData = z.infer<typeof BookingSearchSchema>;
 export type CheckSlotAvailabilityData = z.infer<typeof CheckSlotAvailabilitySchema>;
-

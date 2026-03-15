@@ -136,6 +136,21 @@ app.use('/api/auth/demo-login', rateLimit({ windowMs: 60_000, max: 10 })); // �
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+const startupSyncMode = process.env.STARTUP_SYNC_MODE || (process.env.NODE_ENV === 'production' ? 'off' : 'safe');
+
+function shouldRunStartupSync() {
+  return startupSyncMode !== 'off';
+}
+
+function shouldRunTranslationSync() {
+  return startupSyncMode === 'safe' || startupSyncMode === 'full';
+}
+
+function shouldRunSystemConfigSeed() {
+  return startupSyncMode === 'full';
+}
+
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -254,17 +269,29 @@ if (process.env.NODE_ENV === 'production') {
     () => {
       log(`serving on port ${port}`);
       
-      // 번역 데이터 동기화 (서버 시작 후 백그라운드에서 실행)
-      syncTranslations().catch((err) => {
-        console.error('Translation sync failed:', err);
-      });
-      
-      // 시스템 설정 시드 (DB 기반 설정값 초기화)
-      seedSystemConfig().then((result) => {
-        console.log(`[SystemConfig Seed] Result: ${result.created} created, ${result.skipped} skipped`);
-      }).catch((err) => {
-        console.error('SystemConfig seed failed:', err);
-      });
+      if (shouldRunStartupSync()) {
+        console.log(`[Startup Sync] Enabled (mode=${startupSyncMode})`);
+
+        if (shouldRunTranslationSync()) {
+          // 번역 데이터 동기화 (서버 시작 후 백그라운드에서 실행)
+          syncTranslations().catch((err) => {
+            console.error('Translation sync failed:', err);
+          });
+        }
+
+        if (shouldRunSystemConfigSeed()) {
+          // 시스템 설정 시드 (DB 기반 설정값 초기화)
+          seedSystemConfig().then((result) => {
+            console.log(`[SystemConfig Seed] Result: ${result.created} created, ${result.skipped} skipped`);
+          }).catch((err) => {
+            console.error('SystemConfig seed failed:', err);
+          });
+        } else {
+          console.log('[Startup Sync] SystemConfig seeding skipped (mode is not full)');
+        }
+      } else {
+        console.log('[Startup Sync] Skipped (STARTUP_SYNC_MODE=off)');
+      }
     }
   );
 })();

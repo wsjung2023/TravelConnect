@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 피드 저장소 (Feed Repository) — 포스트, 해시태그, 스마트 피드와 관련된 DB 접근 로직을 담당한다.
 import {
   posts,

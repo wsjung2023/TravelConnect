@@ -193,6 +193,8 @@
   "navigation": {
     "map": "지도",
     "feed": "모뷔",
+    "explore": "탐색",
+    "meet": "만나기",
     "timeline": "타임라인",
     "chat": "받은편지함",
     "profile": "나"

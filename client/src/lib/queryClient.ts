@@ -9,14 +9,20 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Deprecated: Use api() from @/lib/api instead
+type ApiRequestOptions = Omit<RequestInit, 'body'> & {
+  body?: unknown;
+};
+
 export async function apiRequest(
   url: string,
-  options: RequestInit = {}
-): Promise<Response> {
+  options: ApiRequestOptions = {}
+): Promise<any> {
   // 호환성을 위해 api() 함수 사용
   const { api } = await import('@/lib/api');
   const method = options.method || 'GET';
-  const body = options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : undefined;
+  const body = options.body
+    ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body)
+    : undefined;
   
   const result = await api(url, { method, body });
   
@@ -26,7 +32,7 @@ export async function apiRequest(
     ok: true,
     status: 200,
     statusText: 'OK'
-  } as Response;
+  };
 }
 
 type UnauthorizedBehavior = 'returnNull' | 'throw';

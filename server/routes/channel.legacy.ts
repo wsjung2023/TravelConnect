@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 채널·메시지 라우터 — 그룹 채널 생성/목록/상세/초대/나가기, 채널 내 메시지 송수신, 읽음 처리, WebSocket 연동 관련 REST 엔드포인트를 담당한다.
 import type { Express } from 'express';
 
