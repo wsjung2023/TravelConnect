@@ -2,6 +2,20 @@
 
 ---
 
+## [세션] Task #3: 글쓰기 진입점 복원 (2026-03-16)
+
+### 작업 결과
+- UIUX 리뉴얼에서 중앙 FAB를 Meet으로 교체할 때 대체 글쓰기 진입점이 누락된 것을 수정
+- **Map 탭**: `MapComponent.tsx` 내부에 우하단 보라색 펜 FAB 추가, 클릭 시 `mapCenter` 좌표 자동 전달
+- **Explore 탭**: `feed.tsx` 헤더 우측에 보라색 PenLine 버튼 추가, 위치 없이 열기 (모달 내 검색 가능)
+- 새 컴포넌트/API 0개 — 기존 `CreatePostModal` 100% 재사용
+
+### 변경 파일
+- `client/src/components/MapComponent.tsx` — 글쓰기 FAB 버튼 추가 (map div 바로 아래)
+- `client/src/pages/feed.tsx` — PenLine import, showCreatePost 상태, 헤더 버튼, CreatePostModal 인스턴스 추가
+
+---
+
 ## [세션] i18n Task #2: seed SHA256 해시 기반 번역 동기화 최적화 (2026-03-16)
 
 ### 작업 결과

@@ -15,6 +15,7 @@ import {
   Trash2,
   Bookmark,
   BookmarkCheck,
+  PenLine,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,7 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
   const [hasOpenedInitialPost, setHasOpenedInitialPost] = useState(false);
   const [editPost, setEditPost] = useState<Post | null>(null);
   const [editExperience, setEditExperience] = useState<Experience | null>(null);
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const [useVirtualization, setUseVirtualization] = useState(true);
   const [failedImages, setFailedImages] = useState(new Set<number>());
   const [filter, setFilter] = useState<FilterType>('all');
@@ -545,6 +547,13 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
             <h1 className="text-xl font-bold text-gray-800">{t('navigation.explore')}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCreatePost(true)}
+              className="p-2 bg-violet-100 hover:bg-violet-200 rounded-lg transition-colors"
+              data-testid="button-create-post"
+            >
+              <PenLine size={20} className="text-violet-600" />
+            </button>
             <Link href="/travel-itinerary">
               <button className="px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors flex items-center gap-1">
                 <Calendar size={14} />
@@ -938,6 +947,12 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
           onShare={handleSharePost}
         />
       )}
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={showCreatePost}
+        onClose={() => setShowCreatePost(false)}
+      />
 
       {/* Edit Post Modal */}
       <CreatePostModal
