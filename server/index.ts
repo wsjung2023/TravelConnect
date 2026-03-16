@@ -9,6 +9,7 @@ import { storage } from './storage';
 import { validateStartupEnv, logEnvStatus } from './middleware/envCheck';
 import { syncTranslations } from './seeds/syncTranslations';
 import { seedSystemConfig } from './seeds/systemConfigSeed';
+import { seedPoiData } from './seeds/seedPoiData';
 import {
   startBookingScheduler,
   getSchedulerHandles,
@@ -276,6 +277,11 @@ if (process.env.NODE_ENV === 'production') {
           // 번역 데이터 동기화 (서버 시작 후 백그라운드에서 실행)
           syncTranslations().catch((err) => {
             console.error('Translation sync failed:', err);
+          });
+
+          // POI 카테고리 시딩 (COUNT 1건 체크 후 없을 때만 삽입)
+          seedPoiData().catch((err) => {
+            console.error('POI seed failed:', err);
           });
         }
 

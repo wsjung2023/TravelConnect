@@ -1,6 +1,6 @@
 // 관리자 페이지 — 시스템 설정(system_config), AI 프롬프트 템플릿, 정산·분쟁·구독 현황을 관리하는 어드민 대시보드.
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,7 @@ import {
   Database,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import CommerceDashboard from '@/components/admin/CommerceDashboard';
 import SystemConfigManager from '@/components/admin/SystemConfigManager';
 import { AiPromptTemplateManager } from '@/components/admin/AiPromptTemplateManager';
@@ -56,6 +57,8 @@ interface DatabasePost {
 export default function AdminPage() {
   const { t } = useTranslation('ui');
   const { user, isLoading: userLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTheme, setFilterTheme] = useState('all');
   const [selectedTab, setSelectedTab] = useState<'commerce' | 'posts' | 'system'>('commerce');
@@ -75,6 +78,38 @@ export default function AdminPage() {
       return response.json();
     },
     enabled: isAdmin && !userLoading, // 관리자일 때만 데이터 요청
+  });
+
+  // POI 카테고리 수 조회
+  const { data: poiData, refetch: refetchPoi } = useQuery<{ categories: any[] }>({
+    queryKey: ['/api/poi/categories'],
+    queryFn: async () => {
+      const res = await fetch('/api/poi/categories');
+      if (!res.ok) throw new Error('Failed to fetch POI categories');
+      return res.json();
+    },
+    enabled: isAdmin,
+  });
+
+  // POI 시딩 뮤테이션
+  const poiSeedMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/poi/seed', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('POI seed failed');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      refetchPoi();
+      queryClient.invalidateQueries({ queryKey: ['/api/poi/categories'] });
+      toast({ title: data.message || 'POI 데이터 초기화 완료', description: `카테고리: ${data.categories ?? '-'}개, 타입: ${data.types ?? '-'}개` });
+    },
+    onError: () => {
+      toast({ title: 'POI 시딩 실패', variant: 'destructive' });
+    },
   });
 
   const deletePost = async (postId: number) => {
@@ -421,6 +456,45 @@ export default function AdminPage() {
                   </Button>
                   <p className="text-sm text-muted-foreground">
                     {t('admin.databaseToolDesc')}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* POI 데이터 관리 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  POI 데이터 관리
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <div className="text-sm font-medium">현재 카테고리 수</div>
+                      <div className="text-2xl font-bold">
+                        {poiData?.categories?.length ?? 0}
+                        <span className="text-sm font-normal text-muted-foreground ml-1">개</span>
+                      </div>
+                    </div>
+                    <Badge variant={poiData?.categories?.length ? 'default' : 'destructive'}>
+                      {poiData?.categories?.length ? '정상' : '데이터 없음'}
+                    </Badge>
+                  </div>
+                  <Button
+                    onClick={() => poiSeedMutation.mutate()}
+                    disabled={poiSeedMutation.isPending}
+                    variant="outline"
+                    className="w-full justify-start"
+                    data-testid="button-poi-seed"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {poiSeedMutation.isPending ? 'POI 데이터 초기화 중...' : 'POI 데이터 초기화 (이미 있으면 스킵)'}
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    9개 카테고리 + 26개 타입 + 6개 언어 번역을 DB에 삽입합니다. 이미 데이터가 있으면 자동으로 스킵됩니다. 서버 재시작 시에도 자동으로 체크됩니다.
                   </p>
                 </div>
               </CardContent>
