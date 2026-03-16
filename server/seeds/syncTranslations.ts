@@ -104,6 +104,7 @@ export async function syncTranslations(): Promise<void> {
 
     let inserted = 0;
     let skipped = 0;
+    let hadBatchError = false;
 
     for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       const batch = entries.slice(i, i + BATCH_SIZE);
@@ -126,13 +127,18 @@ export async function syncTranslations(): Promise<void> {
         inserted += result.length;
         skipped += batch.length - result.length;
       } catch (err) {
+        hadBatchError = true;
         console.error(`[Translation Sync] Batch error at offset ${i}:`, err);
         skipped += batch.length;
       }
     }
 
-    await saveHash(currentHash);
-    console.log(`[Translation Sync] Completed: ${inserted} inserted, ${skipped} already exist.`);
+    if (hadBatchError) {
+      console.warn(`[Translation Sync] Completed with errors: ${inserted} inserted, ${skipped} skipped. Hash NOT saved — will retry on next restart.`);
+    } else {
+      await saveHash(currentHash);
+      console.log(`[Translation Sync] Completed: ${inserted} inserted, ${skipped} already exist.`);
+    }
   } catch (error) {
     console.error('[Translation Sync] Fatal error:', error);
   }
