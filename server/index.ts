@@ -267,9 +267,9 @@ if (process.env.NODE_ENV === 'production') {
     () => {
       log(`serving on port ${port}`);
       
-      syncTranslations().catch((err) => {
-        console.error('Translation sync failed:', err);
-      });
+      syncTranslations()
+        .catch((err) => console.error('Translation sync failed:', err))
+        .then(() => runI18nAudit().catch((err) => console.error('i18n audit failed:', err)));
 
       seedPoiData().catch((err) => {
         console.error('POI seed failed:', err);
@@ -288,10 +288,6 @@ if (process.env.NODE_ENV === 'production') {
           console.log('[Startup Sync] SystemConfig seeding skipped (mode is not full)');
         }
       }
-
-      runI18nAudit().catch((err) => {
-        console.error('i18n audit failed:', err);
-      });
     }
   );
 })();
