@@ -10,6 +10,7 @@ import { validateStartupEnv, logEnvStatus } from './middleware/envCheck';
 import { syncTranslations } from './seeds/syncTranslations';
 import { seedSystemConfig } from './seeds/systemConfigSeed';
 import { seedPoiData } from './seeds/seedPoiData';
+import { runI18nAudit } from './startup/auditI18nKeys';
 import {
   startBookingScheduler,
   getSchedulerHandles,
@@ -284,6 +285,11 @@ if (process.env.NODE_ENV === 'production') {
             console.error('POI seed failed:', err);
           });
         }
+
+        // i18n 키 감사 (개발 환경만, 논블로킹)
+          runI18nAudit().catch((err) => {
+            console.error('i18n audit failed:', err);
+          });
 
         if (shouldRunSystemConfigSeed()) {
           // 시스템 설정 시드 (DB 기반 설정값 초기화)

@@ -510,3 +510,29 @@ COUNT(DB행) >= COUNT(시드항목) → 즉시 return
 | server/index.ts | ~270줄 | ~270줄 (스케줄러 코드 제거) |
 | server/scheduler.ts | (신규) | 143줄 |
 | server/seeds/syncTranslations.ts | (이동) | 76줄 |
+
+---
+
+## [세션] i18n 전수 감사 + 방지 메커니즘 (2026-03-16)
+
+### 문제
+프론트엔드에서 `t('admin.loading')` 같은 키를 사용하지만 DB `translations` 테이블에 해당 번역이 없어 raw key가 UI에 노출됨. 새 기능 추가 시마다 반복 발생.
+
+### 해결
+1. **i18n 감사 서비스** `server/services/i18nAuditService.ts` — 코드 t() 키 스캔 + DB 비교
+2. **standalone 스크립트** `scripts/i18n-audit.mjs` (seed 비교), `scripts/i18n-sync.mjs` (OpenAI 번역 + DB/seed upsert)
+3. **서버 시작 경고** `server/startup/auditI18nKeys.ts` — dev 환경에서 누락 키 자동 감지 + 로그 경고
+4. **Admin UI** 관리자 > 시스템 탭 "번역 키 동기화" 카드 — 누락 키 수 표시 + 원클릭 동기화 버튼
+5. **API** `GET /api/admin/i18n/audit`, `POST /api/admin/i18n/sync`
+
+### 결과
+- 코드 키 800개 vs DB 키 1526개 — 316개 누락 키 전부 수정 (1266 translations 삽입)
+- seed-translations.json: 5563 → 8263 entries
+- 서버 시작 시 `[i18n Audit] ✅ 모든 번역 키 정상` 확인
+
+### 방지 흐름
+- 새 기능 추가 → 서버 재시작 → `[i18n Audit] ⚠️ N개 번역 누락 키 발견` 경고 출력 → 관리자 UI 또는 `node scripts/i18n-sync.mjs` 실행
+
+### 주의
+- 현재 누락 키에 삽입된 비영어 번역은 영어 fallback 값이므로, 향후 OpenAI 또는 수동으로 교정 필요
+- admin.tsx는 720줄 — 가드레일 한도 초과이나 단일 페이지 특성상 분리 어려움

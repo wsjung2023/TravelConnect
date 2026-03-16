@@ -490,4 +490,58 @@ router.get('/overdue-milestones', authenticateHybrid, async (req: AuthRequest, r
   }
 });
 
+// ============================================
+// i18n 번역 키 동기화
+// ============================================
+// POST /api/admin/i18n/sync
+// 프론트엔드 코드의 t() 키를 스캔하여 누락된 번역을 자동 생성·삽입합니다.
+router.post('/i18n/sync', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+  const start = Date.now();
+  try {
+    const { auditI18nKeys, syncMissingKeys, updateSeedFile } = await import('../services/i18nAuditService');
+
+    const audit = await auditI18nKeys();
+
+    if (audit.missingKeys.length === 0) {
+      return res.json({
+        message: '모든 번역 키가 정상입니다.',
+        inserted: 0,
+        skipped: audit.totalCodeKeys,
+        missing: 0,
+        duration: Date.now() - start,
+      });
+    }
+
+    const { inserted, failed } = await syncMissingKeys(audit.missingKeys);
+
+    const translatedValues = new Map<string, string>();
+    const seedAdded = await updateSeedFile(audit.missingKeys, translatedValues);
+
+    res.json({
+      message: `${inserted}개 번역 삽입 완료`,
+      inserted,
+      failed,
+      seedAdded,
+      missing: audit.missingKeys.length,
+      duration: Date.now() - start,
+    });
+  } catch (error) {
+    console.error('i18n 동기화 오류:', error);
+    res.status(500).json({ error: 'Failed to sync i18n keys' });
+  }
+});
+
+// GET /api/admin/i18n/audit
+// 프론트엔드 코드의 t() 키와 DB를 비교하여 누락 키 목록을 반환합니다.
+router.get('/i18n/audit', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { auditI18nKeys } = await import('../services/i18nAuditService');
+    const result = await auditI18nKeys();
+    res.json(result);
+  } catch (error) {
+    console.error('i18n 감사 오류:', error);
+    res.status(500).json({ error: 'Failed to audit i18n keys' });
+  }
+});
+
 export const adminRouter = router;

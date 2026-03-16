@@ -28,6 +28,7 @@ import {
   Settings,
   BarChart3,
   Database,
+  Languages,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -109,6 +110,47 @@ export default function AdminPage() {
     },
     onError: () => {
       toast({ title: 'POI 시딩 실패', variant: 'destructive' });
+    },
+  });
+
+  // i18n 감사 조회
+  const { data: i18nAuditData, refetch: refetchI18nAudit } = useQuery<{
+    totalCodeKeys: number;
+    totalDbKeys: number;
+    missingKeys: { namespace: string; key: string; missingLocales: string[] }[];
+  }>({
+    queryKey: ['/api/admin/i18n/audit'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/i18n/audit', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('Failed to fetch i18n audit');
+      return res.json();
+    },
+    enabled: isAdmin && selectedTab === 'system',
+  });
+
+  // i18n 동기화 뮤테이션
+  const i18nSyncMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/i18n/sync', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('i18n sync failed');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      refetchI18nAudit();
+      toast({
+        title: data.message || '번역 동기화 완료',
+        description: `삽입: ${data.inserted}개, 소요: ${(data.duration / 1000).toFixed(1)}초`,
+      });
+    },
+    onError: () => {
+      toast({ title: '번역 동기화 실패', variant: 'destructive' });
     },
   });
 
@@ -495,6 +537,66 @@ export default function AdminPage() {
                   </Button>
                   <p className="text-sm text-muted-foreground">
                     9개 카테고리 + 26개 타입 + 6개 언어 번역을 DB에 삽입합니다. 이미 데이터가 있으면 자동으로 스킵됩니다. 서버 재시작 시에도 자동으로 체크됩니다.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 번역 키 동기화 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Languages className="w-5 h-5" />
+                  번역 키 동기화
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <div className="text-sm font-medium">코드 키 / DB 키</div>
+                      <div className="text-2xl font-bold">
+                        {i18nAuditData?.totalCodeKeys ?? '...'} / {i18nAuditData?.totalDbKeys ?? '...'}
+                      </div>
+                    </div>
+                    <Badge variant={
+                      !i18nAuditData ? 'secondary' :
+                      i18nAuditData.missingKeys.length === 0 ? 'default' : 'destructive'
+                    }>
+                      {!i18nAuditData ? '조회 중...' :
+                       i18nAuditData.missingKeys.length === 0 ? '정상' :
+                       `${i18nAuditData.missingKeys.length}개 누락`}
+                    </Badge>
+                  </div>
+                  {i18nAuditData && i18nAuditData.missingKeys.length > 0 && (
+                    <div className="text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
+                      <div className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                        누락 키 샘플:
+                      </div>
+                      {i18nAuditData.missingKeys.slice(0, 5).map((mk, i) => (
+                        <div key={i} className="text-xs font-mono text-yellow-700 dark:text-yellow-300">
+                          {mk.namespace}::{mk.key} → [{mk.missingLocales.join(', ')}]
+                        </div>
+                      ))}
+                      {i18nAuditData.missingKeys.length > 5 && (
+                        <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                          외 {i18nAuditData.missingKeys.length - 5}개...
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <Button
+                    onClick={() => i18nSyncMutation.mutate()}
+                    disabled={i18nSyncMutation.isPending}
+                    variant="outline"
+                    className="w-full justify-start"
+                    data-testid="button-i18n-sync"
+                  >
+                    <Languages className="w-4 h-4 mr-2" />
+                    {i18nSyncMutation.isPending ? '번역 동기화 중... (OpenAI 번역 진행)' : '번역 키 동기화 (누락 키 자동 번역 + 삽입)'}
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    프론트엔드 코드의 t() 키를 스캔하여 DB에 없는 번역을 OpenAI로 자동 번역 후 삽입합니다. 이미 있는 키는 스킵됩니다.
                   </p>
                 </div>
               </CardContent>
