@@ -6,7 +6,7 @@ import { X, Camera, MapPin, Image, Video, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { LocationSearchInput } from '@/components/ui/location-search-input';
+import { LocationPicker } from '@/components/ui/location-picker';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { InsertPost, Post } from '@shared/schema';
@@ -495,16 +495,20 @@ export default function CreatePostModal({
               <MapPin size={16} />
               <span>{t('post.addLocation')}</span>
             </div>
-            <LocationSearchInput
+            <LocationPicker
               value={location}
+              coords={locationCoords}
               onChange={(value, placeData) => {
                 if (placeData && placeData.geometry && placeData.geometry.location) {
-                  // 구체적인 장소명(name) 우선, 없으면 formatted_address 사용
                   const locationName = placeData.name || placeData.formatted_address || value;
                   setLocation(locationName);
                   setLocationCoords({
-                    lat: placeData.geometry.location.lat(),
-                    lng: placeData.geometry.location.lng(),
+                    lat: typeof placeData.geometry.location.lat === 'function'
+                      ? placeData.geometry.location.lat()
+                      : placeData.geometry.location.lat,
+                    lng: typeof placeData.geometry.location.lng === 'function'
+                      ? placeData.geometry.location.lng()
+                      : placeData.geometry.location.lng,
                   });
                 } else {
                   setLocation(value);

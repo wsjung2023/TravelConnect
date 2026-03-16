@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LocationSearchInput } from '@/components/ui/location-search-input';
+import { LocationPicker } from '@/components/ui/location-picker';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
@@ -462,8 +462,9 @@ export default function CreateExperienceModal({
               <label className="block text-sm font-medium mb-2">
                 위치 <span className="text-red-500">*</span>
               </label>
-              <LocationSearchInput
+              <LocationPicker
                 value={location}
+                coords={locationCoords}
                 onChange={(value, placeData) => {
                   if (placeData && placeData.geometry && placeData.geometry.location) {
                     setLocation(placeData.formatted_address || value);

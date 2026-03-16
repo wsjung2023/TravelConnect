@@ -25,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
-import { LocationSearchInput } from '@/components/ui/location-search-input';
+import { LocationPicker } from '@/components/ui/location-picker';
 import { useToast } from '@/hooks/use-toast';
 import { AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
@@ -355,7 +355,7 @@ export default function ProfileEditModal({
                 <FormItem>
                   <FormLabel>{t('ui:profileEdit.location')}</FormLabel>
                   <FormControl>
-                    <LocationSearchInput
+                    <LocationPicker
                       value={field.value || ''}
                       onChange={(value) => field.onChange(value)}
                       placeholder={t('ui:profileEdit.locationPlaceholder')}
