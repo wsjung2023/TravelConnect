@@ -2,6 +2,27 @@
 
 ---
 
+## [세션] i18n Task #2: seed SHA256 해시 기반 번역 동기화 최적화 (2026-03-16)
+
+### 작업 결과
+- `syncTranslations()`이 seed JSON 파일의 SHA256 해시를 `system_config` 테이블(`i18n.seed_hash`)에 저장
+- 해시 일치 시 DB 쿼리 1건(SELECT)으로 종료, 8101 upsert 완전 skip
+- `syncTranslations()`을 `shouldRunStartupSync()` 블록 밖으로 이동 → `STARTUP_SYNC_MODE=off`여도 항상 실행 (해시 체크로 비용 없음)
+- `auditI18nKeys.ts`에서 `NODE_ENV === 'production'` 가드 제거 → 운영·개발 모두 audit 실행
+- `shouldRunTranslationSync()` 함수 제거 (더 이상 불필요)
+
+### 핵심 결정
+- `configService.ts`가 아닌 `systemConfig` 테이블 직접 접근 (startup 시 storage 의존성 문제 회피)
+- 해시 레코드 `isEditable: false` → 관리자 UI에서 실수로 수정 방지
+- seed 파일 변경(신규 배포) 시에만 full upsert 실행 → 운영 DB 비용 최소화
+
+### 변경 파일
+- `server/seeds/syncTranslations.ts` — SHA256 해시 비교 로직 추가
+- `server/index.ts` — syncTranslations/seedPoiData를 shouldRunStartupSync 밖으로 이동
+- `server/startup/auditI18nKeys.ts` — production guard 제거
+
+---
+
 ## [세션 N] storage.ts 도메인 분리 완료 (2026-03-08)
 
 ### 작업 결과

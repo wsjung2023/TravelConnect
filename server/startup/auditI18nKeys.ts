@@ -1,9 +1,7 @@
-// i18n 키 감사 — 개발 서버 시작 시 프론트엔드 코드의 t() 키와 DB를 비교하여 누락 키 경고를 출력한다 (논블로킹).
+// i18n 키 감사 — 서버 시작 시 프론트엔드 코드의 t() 키와 DB를 비교하여 누락 키 경고를 출력한다 (논블로킹, 운영·개발 모두 실행).
 import { auditI18nKeys } from '../services/i18nAuditService';
 
 export async function runI18nAudit(): Promise<void> {
-  if (process.env.NODE_ENV === 'production') return;
-
   try {
     const result = await auditI18nKeys();
 

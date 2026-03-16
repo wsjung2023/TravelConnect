@@ -144,10 +144,6 @@ function shouldRunStartupSync() {
   return startupSyncMode !== 'off';
 }
 
-function shouldRunTranslationSync() {
-  return startupSyncMode === 'safe' || startupSyncMode === 'full';
-}
-
 function shouldRunSystemConfigSeed() {
   return startupSyncMode === 'full';
 }
@@ -271,18 +267,16 @@ if (process.env.NODE_ENV === 'production') {
     () => {
       log(`serving on port ${port}`);
       
+      syncTranslations().catch((err) => {
+        console.error('Translation sync failed:', err);
+      });
+
+      seedPoiData().catch((err) => {
+        console.error('POI seed failed:', err);
+      });
+
       if (shouldRunStartupSync()) {
         console.log(`[Startup Sync] Enabled (mode=${startupSyncMode})`);
-
-        if (shouldRunTranslationSync()) {
-          syncTranslations().catch((err) => {
-            console.error('Translation sync failed:', err);
-          });
-
-          seedPoiData().catch((err) => {
-            console.error('POI seed failed:', err);
-          });
-        }
 
         if (shouldRunSystemConfigSeed()) {
           seedSystemConfig().then((result) => {
@@ -293,8 +287,6 @@ if (process.env.NODE_ENV === 'production') {
         } else {
           console.log('[Startup Sync] SystemConfig seeding skipped (mode is not full)');
         }
-      } else {
-        console.log('[Startup Sync] Skipped (STARTUP_SYNC_MODE=off)');
       }
 
       runI18nAudit().catch((err) => {
