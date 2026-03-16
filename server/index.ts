@@ -275,24 +275,16 @@ if (process.env.NODE_ENV === 'production') {
         console.log(`[Startup Sync] Enabled (mode=${startupSyncMode})`);
 
         if (shouldRunTranslationSync()) {
-          // 번역 데이터 동기화 (서버 시작 후 백그라운드에서 실행)
           syncTranslations().catch((err) => {
             console.error('Translation sync failed:', err);
           });
 
-          // POI 카테고리 시딩 (COUNT 1건 체크 후 없을 때만 삽입)
           seedPoiData().catch((err) => {
             console.error('POI seed failed:', err);
           });
         }
 
-        // i18n 키 감사 (개발 환경만, 논블로킹)
-          runI18nAudit().catch((err) => {
-            console.error('i18n audit failed:', err);
-          });
-
         if (shouldRunSystemConfigSeed()) {
-          // 시스템 설정 시드 (DB 기반 설정값 초기화)
           seedSystemConfig().then((result) => {
             console.log(`[SystemConfig Seed] Result: ${result.created} created, ${result.skipped} skipped`);
           }).catch((err) => {
@@ -304,6 +296,10 @@ if (process.env.NODE_ENV === 'production') {
       } else {
         console.log('[Startup Sync] Skipped (STARTUP_SYNC_MODE=off)');
       }
+
+      runI18nAudit().catch((err) => {
+        console.error('i18n audit failed:', err);
+      });
     }
   );
 })();
