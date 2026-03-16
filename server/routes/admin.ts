@@ -514,12 +514,22 @@ router.post('/i18n/sync', authenticateHybrid, requireAdmin, async (req: AuthRequ
 
     const { inserted, failed } = await syncMissingKeys(audit.missingKeys);
 
+    const { db } = await import('../db');
+    const { translations: translationsTable } = await import('@shared/schema');
+    const dbRows = await db
+      .select({ namespace: translationsTable.namespace, key: translationsTable.key, locale: translationsTable.locale, value: translationsTable.value })
+      .from(translationsTable);
     const translatedValues = new Map<string, string>();
+    for (const row of dbRows) {
+      translatedValues.set(`${row.namespace}::${row.key}::${row.locale}`, row.value);
+    }
     const seedAdded = await updateSeedFile(audit.missingKeys, translatedValues);
 
+    const skipped = audit.totalCodeKeys - audit.missingKeys.length;
     res.json({
       message: `${inserted}개 번역 삽입 완료`,
       inserted,
+      skipped,
       failed,
       seedAdded,
       missing: audit.missingKeys.length,

@@ -40,7 +40,10 @@ function extractKeysFromFile(filePath) {
   let match;
   while ((match = tCallRegex.exec(content)) !== null) {
     const rawKey = match[1];
-    if (!rawKey.includes('.')) continue;
+    if (!rawKey.includes('.')) {
+      keys.push({ namespace: defaultNs, key: rawKey });
+      continue;
+    }
     const firstDot = rawKey.indexOf('.');
     const firstPart = rawKey.substring(0, firstDot);
 

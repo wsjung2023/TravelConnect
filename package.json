@@ -10,7 +10,9 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "check:backend-structure": "node scripts/verify-backend-structure.mjs",
-    "check:quality-baseline": "node scripts/verify-quality-baseline.mjs"
+    "check:quality-baseline": "node scripts/verify-quality-baseline.mjs",
+    "i18n:audit": "node scripts/i18n-audit.mjs",
+    "i18n:sync": "node scripts/i18n-sync.mjs"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

@@ -1,8 +1,9 @@
-// i18n 감사 스크립트 — 프론트엔드 코드의 t() 키를 스캔해 seed-translations.json과 비교하여 누락 키를 출력한다.
-// 실행: node scripts/i18n-audit.mjs
+// i18n 감사 스크립트 — 프론트엔드 코드의 t() 키를 스캔해 DB translations 테이블 및 seed-translations.json과 비교하여 누락 키를 출력한다.
+// 실행: node scripts/i18n-audit.mjs [--seed-only]
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { neon } from '@neondatabase/serverless';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -39,7 +40,10 @@ function extractKeysFromFile(filePath) {
   let match;
   while ((match = tCallRegex.exec(content)) !== null) {
     const rawKey = match[1];
-    if (!rawKey.includes('.')) continue;
+    if (!rawKey.includes('.')) {
+      keys.push({ namespace: defaultNs, key: rawKey });
+      continue;
+    }
 
     const firstDot = rawKey.indexOf('.');
     const firstPart = rawKey.substring(0, firstDot);
@@ -54,10 +58,7 @@ function extractKeysFromFile(filePath) {
 }
 
 function loadSeed() {
-  if (!fs.existsSync(SEED_PATH)) {
-    console.error('❌ seed-translations.json not found at', SEED_PATH);
-    process.exit(1);
-  }
+  if (!fs.existsSync(SEED_PATH)) return new Map();
   const data = JSON.parse(fs.readFileSync(SEED_PATH, 'utf-8'));
   const map = new Map();
   for (const entry of data) {
@@ -68,8 +69,78 @@ function loadSeed() {
   return map;
 }
 
-function main() {
-  console.log('🔍 i18n Audit — 프론트엔드 t() 키 vs seed-translations.json 비교\n');
+async function loadDbTranslations() {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    const rows = await sql`SELECT namespace, key, locale FROM translations`;
+    const map = new Map();
+    for (const row of rows) {
+      const compound = `${row.namespace}::${row.key}`;
+      if (!map.has(compound)) map.set(compound, new Set());
+      map.get(compound).add(row.locale);
+    }
+    return map;
+  } catch (err) {
+    console.error('⚠️ DB 접속 실패, seed 파일만 비교합니다:', err.message);
+    return null;
+  }
+}
+
+function auditAgainst(nsKeyMap, sourceMap, sourceName) {
+  const missing = [];
+  const fullyMissing = [];
+  const partiallyMissing = [];
+
+  for (const [ns, keys] of nsKeyMap) {
+    for (const key of keys) {
+      const compound = `${ns}::${key}`;
+      const existingLocales = sourceMap.get(compound);
+
+      if (!existingLocales) {
+        fullyMissing.push({ namespace: ns, key, missingLocales: [...LOCALES] });
+        missing.push({ namespace: ns, key, missingLocales: [...LOCALES] });
+      } else {
+        const ml = LOCALES.filter(l => !existingLocales.has(l));
+        if (ml.length > 0) {
+          partiallyMissing.push({ namespace: ns, key, missingLocales: ml });
+          missing.push({ namespace: ns, key, missingLocales: ml });
+        }
+      }
+    }
+  }
+
+  return { missing, fullyMissing, partiallyMissing, sourceName, sourceSize: sourceMap.size };
+}
+
+function printResult(result) {
+  console.log(`\n📊 비교 대상: ${result.sourceName} (${result.sourceSize}개 unique ns::key)`);
+
+  if (result.missing.length === 0) {
+    console.log(`✅ 모든 키가 ${result.sourceName}에 존재합니다. 누락 없음!`);
+    return;
+  }
+
+  console.log(`❌ 누락 키 총 ${result.missing.length}개:`);
+
+  if (result.fullyMissing.length > 0) {
+    console.log(`  🔴 완전 누락 (모든 언어 없음): ${result.fullyMissing.length}개`);
+    for (const m of result.fullyMissing) {
+      console.log(`     ${m.namespace}::${m.key}`);
+    }
+  }
+
+  if (result.partiallyMissing.length > 0) {
+    console.log(`  🟡 부분 누락 (일부 언어 없음): ${result.partiallyMissing.length}개`);
+    for (const m of result.partiallyMissing) {
+      console.log(`     ${m.namespace}::${m.key} → [${m.missingLocales.join(', ')}]`);
+    }
+  }
+}
+
+async function main() {
+  const seedOnly = process.argv.includes('--seed-only');
+  console.log('🔍 i18n Audit — 프론트엔드 t() 키 비교\n');
 
   const files = scanFiles(CLIENT_SRC, ['.tsx', '.ts']);
   console.log(`📂 스캔 파일: ${files.length}개`);
@@ -85,62 +156,28 @@ function main() {
 
   let totalCodeKeys = 0;
   for (const keys of nsKeyMap.values()) totalCodeKeys += keys.size;
-  console.log(`🔑 코드 t() 키: ${totalCodeKeys}개\n`);
+  console.log(`🔑 코드 t() 키: ${totalCodeKeys}개`);
+
+  if (!seedOnly) {
+    const dbMap = await loadDbTranslations();
+    if (dbMap) {
+      const dbResult = auditAgainst(nsKeyMap, dbMap, 'DB translations');
+      printResult(dbResult);
+    }
+  }
 
   const seedMap = loadSeed();
-  console.log(`📦 seed 파일 키: ${seedMap.size}개 (unique ns::key)\n`);
-
-  const missing = [];
-  const fullyMissing = [];
-  const partiallyMissing = [];
-
-  for (const [ns, keys] of nsKeyMap) {
-    for (const key of keys) {
-      const compound = `${ns}::${key}`;
-      const existingLocales = seedMap.get(compound);
-
-      if (!existingLocales) {
-        fullyMissing.push({ namespace: ns, key, missingLocales: [...LOCALES] });
-        missing.push({ namespace: ns, key, missingLocales: [...LOCALES] });
-      } else {
-        const ml = LOCALES.filter(l => !existingLocales.has(l));
-        if (ml.length > 0) {
-          partiallyMissing.push({ namespace: ns, key, missingLocales: ml });
-          missing.push({ namespace: ns, key, missingLocales: ml });
-        }
-      }
-    }
+  if (seedMap.size > 0) {
+    const seedResult = auditAgainst(nsKeyMap, seedMap, 'seed-translations.json');
+    printResult(seedResult);
   }
 
-  if (missing.length === 0) {
-    console.log('✅ 모든 키가 seed 파일에 존재합니다. 누락 없음!');
-    return;
-  }
-
-  console.log(`❌ 누락 키 총 ${missing.length}개:\n`);
-
-  if (fullyMissing.length > 0) {
-    console.log(`  🔴 완전 누락 (모든 언어 없음): ${fullyMissing.length}개`);
-    for (const m of fullyMissing) {
-      console.log(`     ${m.namespace}::${m.key}`);
-    }
-    console.log('');
-  }
-
-  if (partiallyMissing.length > 0) {
-    console.log(`  🟡 부분 누락 (일부 언어 없음): ${partiallyMissing.length}개`);
-    for (const m of partiallyMissing) {
-      console.log(`     ${m.namespace}::${m.key} → [${m.missingLocales.join(', ')}]`);
-    }
-    console.log('');
-  }
-
-  console.log('💡 수정 방법: node scripts/i18n-sync.mjs 실행');
+  console.log('\n💡 수정 방법: node scripts/i18n-sync.mjs 실행');
 
   const outputPath = path.join(ROOT, '.local', 'i18n-audit-result.json');
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, JSON.stringify(missing, null, 2));
-  console.log(`\n📄 결과 저장: ${outputPath}`);
+  fs.writeFileSync(outputPath, JSON.stringify({ totalCodeKeys, timestamp: new Date().toISOString() }, null, 2));
+  console.log(`📄 결과 저장: ${outputPath}`);
 }
 
-main();
+main().catch(err => { console.error(err); process.exit(1); });

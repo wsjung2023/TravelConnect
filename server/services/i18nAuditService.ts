@@ -49,13 +49,17 @@ function extractKeysFromFile(filePath: string): { namespace: string; key: string
     if (first) defaultNs = first[1];
   }
 
+  const knownNamespaces = ['ui', 'billing', 'common', 'seo', 'toast', 'validation', 'interests', 'notification'];
   const tCallRegex = /\bt\(\s*['"]([\w.]+)['"]/g;
   let match;
   while ((match = tCallRegex.exec(content)) !== null) {
     const rawKey = match[1];
-    if (!rawKey.includes('.')) continue;
 
-    const knownNamespaces = ['ui', 'billing', 'common', 'seo', 'toast', 'validation', 'interests', 'notification'];
+    if (!rawKey.includes('.')) {
+      keys.push({ namespace: defaultNs, key: rawKey });
+      continue;
+    }
+
     const firstDot = rawKey.indexOf('.');
     const firstPart = rawKey.substring(0, firstDot);
 
@@ -266,10 +270,17 @@ async function translateBatch(
     throw new Error(`OpenAI API error: ${response.status}`);
   }
 
-  const data = await response.json() as any;
+  interface OpenAIResponse {
+    choices?: Array<{ message?: { content?: string } }>;
+  }
+  const data: OpenAIResponse = await response.json() as OpenAIResponse;
   const content = data.choices?.[0]?.message?.content || '[]';
 
-  let parsed: any[];
+  interface TranslationEntry {
+    index: number;
+    translations: Record<string, string>;
+  }
+  let parsed: TranslationEntry[];
   try {
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
