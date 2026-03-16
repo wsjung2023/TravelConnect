@@ -42,18 +42,19 @@ function extractKeysFromFile(filePath: string): { namespace: string; key: string
   let defaultNs = 'ui';
   const nsMatch = content.match(/useTranslation\(\s*['"]([a-z_]+)['"]\s*\)/);
   const nsArrayMatch = content.match(/useTranslation\(\s*\[([^\]]+)\]\s*\)/);
-  if (nsMatch) {
+  if (nsMatch && nsMatch[1]) {
     defaultNs = nsMatch[1];
-  } else if (nsArrayMatch) {
+  } else if (nsArrayMatch && nsArrayMatch[1]) {
     const first = nsArrayMatch[1].match(/['"]([a-z_]+)['"]/);
-    if (first) defaultNs = first[1];
+    if (first && first[1]) defaultNs = first[1];
   }
 
   const knownNamespaces = ['ui', 'billing', 'common', 'seo', 'toast', 'validation', 'interests', 'notification'];
   const tCallRegex = /\bt\(\s*['"]([\w.]+)['"]/g;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = tCallRegex.exec(content)) !== null) {
-    const rawKey = match[1];
+    const rawKey = match[1] ?? '';
+    if (!rawKey) continue;
 
     if (!rawKey.includes('.')) {
       keys.push({ namespace: defaultNs, key: rawKey });
@@ -92,7 +93,7 @@ export async function auditI18nKeys(): Promise<AuditResult> {
   const codeKeys = extractAllCodeKeys();
 
   let totalCodeKeys = 0;
-  for (const keys of codeKeys.values()) totalCodeKeys += keys.size;
+  codeKeys.forEach((keys) => { totalCodeKeys += keys.size; });
 
   const dbRows = await db
     .select({
@@ -112,21 +113,21 @@ export async function auditI18nKeys(): Promise<AuditResult> {
   const totalDbKeys = dbKeySet.size;
   const missingKeys: MissingKey[] = [];
 
-  for (const [ns, keys] of codeKeys) {
-    for (const key of keys) {
+  codeKeys.forEach((keys, ns) => {
+    keys.forEach((key) => {
       const compound = `${ns}::${key}`;
       const existingLocales = dbKeySet.get(compound);
 
       if (!existingLocales) {
-        missingKeys.push({ namespace: ns, key, missingLocales: [...LOCALES] });
+        missingKeys.push({ namespace: ns, key, missingLocales: LOCALES.slice() });
       } else {
         const missing = LOCALES.filter(l => !existingLocales.has(l));
         if (missing.length > 0) {
           missingKeys.push({ namespace: ns, key, missingLocales: missing });
         }
       }
-    }
-  }
+    });
+  });
 
   return { totalCodeKeys, totalDbKeys, missingKeys, orphanedDbKeys: 0 };
 }
@@ -246,7 +247,8 @@ async function translateBatch(
     ko: 'Korean', ja: 'Japanese', zh: 'Chinese (Simplified)', fr: 'French', es: 'Spanish',
   };
 
-  const localeDesc = [...new Set(keysToTranslate.flatMap(k => k.locales))]
+  const allLocales = Array.from(new Set(keysToTranslate.flatMap(k => k.locales)));
+  const localeDesc = allLocales
     .map(l => `${l}=${localeNames[l] || l}`)
     .join(', ');
 
@@ -300,11 +302,12 @@ async function translateBatch(
 
   for (const entry of parsed) {
     const idx = (entry.index || 0) - 1;
-    if (idx >= 0 && idx < keysToTranslate.length) {
-      const compound = keysToTranslate[idx].compound;
+    const translateItem = idx >= 0 && idx < keysToTranslate.length ? keysToTranslate[idx] : undefined;
+    if (translateItem) {
+      const compound = translateItem.compound;
       if (!result[compound]) result[compound] = {};
       for (const [locale, text] of Object.entries(entry.translations || {})) {
-        result[compound][locale] = text as string;
+        result[compound][locale] = String(text);
       }
     }
   }

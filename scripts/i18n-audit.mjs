@@ -158,25 +158,32 @@ async function main() {
   for (const keys of nsKeyMap.values()) totalCodeKeys += keys.size;
   console.log(`🔑 코드 t() 키: ${totalCodeKeys}개`);
 
+  let dbAuditResult = null;
   if (!seedOnly) {
     const dbMap = await loadDbTranslations();
     if (dbMap) {
-      const dbResult = auditAgainst(nsKeyMap, dbMap, 'DB translations');
-      printResult(dbResult);
+      dbAuditResult = auditAgainst(nsKeyMap, dbMap, 'DB translations');
+      printResult(dbAuditResult);
     }
   }
 
   const seedMap = loadSeed();
+  let seedAuditResult = null;
   if (seedMap.size > 0) {
-    const seedResult = auditAgainst(nsKeyMap, seedMap, 'seed-translations.json');
-    printResult(seedResult);
+    seedAuditResult = auditAgainst(nsKeyMap, seedMap, 'seed-translations.json');
+    printResult(seedAuditResult);
   }
 
   console.log('\n💡 수정 방법: node scripts/i18n-sync.mjs 실행');
 
   const outputPath = path.join(ROOT, '.local', 'i18n-audit-result.json');
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, JSON.stringify({ totalCodeKeys, timestamp: new Date().toISOString() }, null, 2));
+  fs.writeFileSync(outputPath, JSON.stringify({
+    totalCodeKeys,
+    timestamp: new Date().toISOString(),
+    db: dbAuditResult ? { missingKeys: dbAuditResult.missing, sourceSize: dbAuditResult.sourceSize } : null,
+    seed: seedAuditResult ? { missingKeys: seedAuditResult.missing, sourceSize: seedAuditResult.sourceSize } : null,
+  }, null, 2));
   console.log(`📄 결과 저장: ${outputPath}`);
 }
 
