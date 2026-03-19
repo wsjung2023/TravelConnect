@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { useSearch } from 'wouter';
 import ChannelList from '@/components/ChannelList';
 import EnhancedChatWindow from '@/components/EnhancedChatWindow';
+import ChatTopBar from '@/components/chat/ChatTopBar';
+import ChatList from '@/components/chat/ChatList';
+import type { ChatListItemData } from '@/components/chat/ChatListItem';
 import ThreadPanel from '@/components/ThreadPanel';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,6 +60,12 @@ export default function Chat() {
   }, [conversationIdFromUrl, conversations]);
 
   const currentUserId = user?.id || 'current-user';
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+
+  // v3 mobile list — channels query (shares cache key with desktop ChannelList)
+  const { data: channelsForList = [], isLoading: channelsLoading } = useQuery<Channel[]>({
+    queryKey: ['/api/channels'],
+  });
 
   // 현재 선택된 채팅의 메시지 조회
   const { 
@@ -418,17 +427,67 @@ export default function Chat() {
     );
   }
 
-  // 기본: 채널/대화 목록
+  // 기본: 채널/대화 목록 (v3 모바일 UI)
+  const v3ListItems: ChatListItemData[] = [
+    // DM conversations
+    ...conversations
+      .filter((c) => {
+        if (!chatSearchQuery) return true;
+        const ou = c.otherUser;
+        const n = ou ? `${ou.firstName ?? ''} ${ou.lastName ?? ''}`.trim() || ou.id : '';
+        return n.toLowerCase().includes(chatSearchQuery.toLowerCase());
+      })
+      .map((c): ChatListItemData => {
+        const ou = c.otherUser;
+        const name = ou
+          ? (`${ou.firstName ?? ''} ${ou.lastName ?? ''}`.trim() || ou.id)
+          : (c.participant1Id === currentUserId ? c.participant2Id : c.participant1Id);
+        return {
+          id: String(c.id),
+          type: 'conversation',
+          name,
+          avatarUrl: ou?.profileImageUrl,
+          initials: name.slice(0, 2).toUpperCase(),
+          lastMessage: (c as any).lastMessageContent ?? undefined,
+          lastMessageAt: c.lastMessageAt ? new Date(c.lastMessageAt) : null,
+          unreadCount: (c as any).unreadCount ?? 0,
+          hasTranslation: (c as any).hasTranslation ?? false,
+          isOnline: true,
+          onClick: () => handleConversationSelect(c),
+        };
+      }),
+    // Channels
+    ...channelsForList
+      .filter((ch) => {
+        if (!chatSearchQuery) return true;
+        return (ch.name ?? '').toLowerCase().includes(chatSearchQuery.toLowerCase());
+      })
+      .map((ch): ChatListItemData => ({
+        id: String(ch.id),
+        type: 'channel',
+        name: ch.name ?? 'Channel',
+        initials: (ch.name ?? 'CH').slice(0, 2).toUpperCase(),
+        lastMessage: ch.description ?? undefined,
+        lastMessageAt: ch.lastMessageAt ? new Date(ch.lastMessageAt) : null,
+        unreadCount: (ch as any).unreadCount ?? 0,
+        isOnline: false,
+        onClick: () => handleChannelSelect(ch),
+      })),
+  ].sort((a, b) => (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0));
+
   return (
     <>
-      <div className="h-full">
-        <ChannelList
-          selectedChannelId={selectedChannel?.id}
-          selectedConversationId={selectedConversation?.id}
-          onChannelSelect={handleChannelSelect}
-          onConversationSelect={handleConversationSelect}
-          onCreateChannel={handleCreateChannel}
-          currentUserId={currentUserId}
+      <div
+        style={{
+          height: 'calc(100vh - 72px)',
+          overflowY: 'auto',
+          background: 'var(--app-bg)',
+        }}
+      >
+        <ChatTopBar onSearchChange={setChatSearchQuery} />
+        <ChatList
+          items={v3ListItems}
+          isLoading={channelsLoading}
         />
       </div>
 
