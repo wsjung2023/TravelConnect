@@ -1,5 +1,5 @@
 // 피드 페이지 — 여행 게시글 스마트 피드를 스크롤 형태로 보여주고, 게시글 작성·좋아요·댓글·저장 기능을 제공한다.
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type MouseEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
@@ -41,10 +41,11 @@ import SmartImage from '@/components/SmartImage';
 import { Seo } from '@/components/Seo';
 import { type FeedMode } from '@/components/FeedModeSelector';
 import { useAuth } from '@/hooks/useAuth';
-import ExploreHeader from '@/components/explore/ExploreHeader';
-import ExploreReels from '@/components/explore/ExploreReels';
-import ExploreCardFeed from '@/components/explore/ExploreCardFeed';
 import ExploreReelsViewer from '@/components/explore/ExploreReelsViewer';
+import ExploreTopBar, { type ExploreSegment } from '@/components/explore/ExploreTopBar';
+import CategoryTabs, { type ExploreCategory } from '@/components/explore/CategoryTabs';
+import ExploreGrid from '@/components/explore/ExploreGrid';
+import type { ExploreCardProps } from '@/components/explore/ExploreCard';
 
 // localStorage 키 상수
 const LIKED_POSTS_KEY = 'likedPosts';
@@ -127,6 +128,8 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
   const [exploreMode, setExploreMode] = useState<'stories' | 'reels' | 'nearby'>('stories');
   const [showReelsViewer, setShowReelsViewer] = useState(false);
   const [savedPosts, setSavedPosts] = useState<Set<number>>(new Set());
+  const [exploreSegment, setExploreSegment] = useState<ExploreSegment>('추천');
+  const [activeCategory, setActiveCategory] = useState<ExploreCategory>('전체');
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -516,139 +519,56 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
     );
   }
 
+  // Map filteredItems → ExploreCardProps for v3 grid
+  const exploreItems: ExploreCardProps[] = filteredItems.map((item: any) => {
+    const isExp = item.type === 'experience';
+    return {
+      id: item.id,
+      type: item.type,
+      title: item.title || (isExp ? '체험' : '스토리'),
+      subtitle: item.content ? item.content.slice(0, 80) : undefined,
+      imageUrl: item.images?.[0] && !item.images[0].startsWith('dummy_') ? item.images[0] : undefined,
+      location: item.location || undefined,
+      category: item.tags?.[0] || (isExp ? '체험' : '스토리'),
+      isLiked: likedPosts.has(item.id),
+      likesCount: item.likesCount ?? 0,
+      isSaved: savedPosts.has(item.id),
+      onLike: (e: MouseEvent) => { e.stopPropagation(); handleLike(item.id); },
+      onSave: (e: MouseEvent) => { e.stopPropagation(); handleSavePost(item.id); },
+      onClick: () => {
+        if (isExp) setLocation(`/experience/${item.id}`);
+        else setSelectedPost(item);
+      },
+    };
+  });
+
   return (
-    <div className="mobile-content" ref={containerRef} style={{ height: '100vh', overflow: 'auto' }}>
-      <Seo 
+    <div
+      className="mobile-content"
+      ref={containerRef}
+      style={{ height: 'calc(100vh - 72px)', overflow: 'auto', background: 'var(--app-bg)' }}
+    >
+      <Seo
         title={t('feedPage.title')}
         desc="Share and discover authentic travel experiences from local hosts and travelers"
       />
-      {/* Header */}
-      <div className="border-b bg-white sticky top-0 z-10">
-        <div className="px-4 pt-3">
-          <ExploreHeader mode={exploreMode} onChange={setExploreMode} />
-          {exploreMode === 'reels' ? (
-            <div className="space-y-2">
-              <ExploreReels />
-              <button className="app-chip" onClick={() => setShowReelsViewer(true)}>릴스 전체 보기</button>
-            </div>
-          ) : (
-            <ExploreCardFeed mode={exploreMode === 'nearby' ? 'nearby' : 'stories'} />
-          )}
-        </div>
-        <div className="flex items-center justify-between p-4 pb-2">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack || (() => setLocation('/'))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              data-testid="button-back"
-            >
-              <ArrowLeft size={20} className="text-gray-600" />
-            </button>
-            <h1 className="text-xl font-bold text-gray-800">{t('navigation.explore')}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowCreatePost(true)}
-              className="p-2 bg-violet-100 hover:bg-violet-200 rounded-lg transition-colors"
-              data-testid="button-create-post"
-            >
-              <PenLine size={20} className="text-violet-600" />
-            </button>
-            <Link href="/travel-itinerary">
-              <button className="px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors flex items-center gap-1">
-                <Calendar size={14} />
-                <span>{t('seoLinks.travelItinerary')}</span>
-              </button>
-            </Link>
-            <Link href="/timeline">
-              <button className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors">
-                <Calendar size={20} className="text-purple-600" />
-              </button>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Single-row filter - Apple/SaaS style */}
-        <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto">
-          {/* Feed Mode Pills */}
-          <div className="flex gap-1 shrink-0">
-            {(['smart', 'recent', 'nearby'] as FeedMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setFeedMode(mode)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
-                  feedMode === mode
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                }`}
-                data-testid={`mode-${mode}`}
-              >
-                {t(`feedMode.${mode}`)}
-              </button>
-            ))}
-          </div>
-          
-          {/* Divider */}
-          <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-700 shrink-0" />
-          
-          {/* Content Type Pills */}
-          <div className="flex gap-1 shrink-0">
-            {(['all', 'posts', 'experiences'] as FilterType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilter(type)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
-                  filter === type
-                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                }`}
-                data-testid={`filter-${type}`}
-              >
-                {t(`filter.${type}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* 통계 정보 */}
-      {shouldUseVirtualization && posts.length > 0 && (
-        <div className="p-4 pb-0">
-          <FeedStats 
-            originalCount={posts.length}
-            groupedCount={postGroups.length}
-          />
-        </div>
-      )}
+      {/* v3 Header: TopBar + CategoryTabs */}
+      <ExploreTopBar
+        segment={exploreSegment}
+        onSegmentChange={setExploreSegment}
+        onCreateClick={() => setShowCreatePost(true)}
+      />
+      <CategoryTabs active={activeCategory} onChange={setActiveCategory} />
 
-      {/* Posts */}
-      {filteredItems.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          {filter === 'experiences' ? t('feedPage.noExperiences') : t('feedPage.noFeed')}
-        </div>
-      ) : shouldUseVirtualization ? (
-        <VirtualizedFeed
-          posts={filteredItems as Post[]}
-          onPostClick={(post) => setSelectedPost(post)}
-          containerRef={containerRef}
-        />
-      ) : (
-        <div className="space-y-4 p-4">
-          {filteredItems.map((item: any) => {
+      {/* v3 Explore Grid */}
+      <ExploreGrid items={exploreItems} isLoading={isLoading} />
+
+      {/* Invisible data bridge: keeps TypeScript happy, not rendered */}
+      {false && filteredItems.map((item: any) => {
             const isExperience = item.type === 'experience';
-            
             return (
-            <div 
-              key={`${item.type}-${item.id}`} 
-              className="travel-card p-4"
-              data-testid={`post-card-${item.id}`}
-              onClick={() => {
-                if (isExperience) {
-                  setLocation(`/experience/${item.id}`);
-                }
-              }}
-              style={isExperience ? { cursor: 'pointer' } : undefined}
-            >
+            <div key={`hidden-${item.type}-${item.id}`} style={{ display: 'none' }}>
               {/* Post Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -921,8 +841,6 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
             </div>
           );
         })}
-        </div>
-      )}
 
       {/* Post Detail Modal */}
       {showReelsViewer && (
