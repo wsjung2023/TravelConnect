@@ -10,7 +10,7 @@ import * as Sentry from '@sentry/react';
 import ErrorBoundary from '@/ErrorBoundary';
 import NotFound from '@/pages/not-found';
 import Landing from '@/pages/landing';
-import AppShell from '@/components/AppShell';
+import AppShell from '@/components/app/AppShell';
 import Config from '@/pages/config';
 import LegalPage from '@/pages/legal';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
@@ -212,13 +212,12 @@ function Router() {
             </AuthGate>
           )}
         />
+        {/* /timeline → me 탭으로 리다이렉트 (legacy route) */}
         <Route
           path="/timeline"
           component={() => (
             <AuthGate>
-              <Suspense fallback={<LoadingSpinner />}>
-                <TimelinePage />
-              </Suspense>
+              <AppShell />
             </AuthGate>
           )}
         />

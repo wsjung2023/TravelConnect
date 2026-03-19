@@ -6,6 +6,21 @@
 @tailwind utilities;
 
 :root {
+  /* ── Tourgether v3 Design Tokens (절대값 — 변경 금지) ── */
+  --app-bg:        #0A0B10;
+  --surface-1:     #11131A;
+  --surface-2:     #151824;
+  --stroke:        rgba(255, 255, 255, 0.08);
+  --text-primary:  #F6F7FB;
+  --text-secondary:#A5AEC4;
+  --accent-gold:   #E6C989;
+  --accent-mint:   #7CE7D6;
+  --accent-coral:  #FF8A70;
+  --accent-blue:   #6BA8FF;
+  --radius-card:   24px;
+  --radius-sheet:  28px;
+  --radius-chip:   99px;
+
   /* Sophisticated color palette - weight + playfulness */
   --background: #0b1020;
   --foreground: #f5f7ff;
@@ -985,9 +1000,82 @@ input[placeholder*="검색"]:focus {
 /* 토스트 볼륨감 */
 [data-sonner-toast],
 [role="status"].bg-white {
-  box-shadow: 
+  box-shadow:
     0 16px 40px rgba(15, 23, 42, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(148, 163, 184, 0.18) !important;
   border: 1px solid rgba(100, 116, 139, 0.35) !important;
+}
+
+/* ================================================
+   Tourgether v3 Utility Classes
+   ================================================ */
+
+.tg-surface {
+  background: var(--surface-1);
+  border: 1px solid var(--stroke);
+}
+
+.tg-surface-2 {
+  background: var(--surface-2);
+}
+
+.tg-glass {
+  background: rgba(17, 19, 26, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tg-chip {
+  border-radius: 99px;
+  padding: 6px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--stroke);
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.tg-chip-active {
+  border-color: var(--accent-mint);
+  color: var(--accent-mint);
+}
+
+.tg-bottom-sheet {
+  border-radius: 28px 28px 0 0;
+  background: var(--surface-1);
+  border-top: 1px solid var(--stroke);
+}
+
+.tg-btn-primary {
+  background: var(--accent-coral);
+  color: #fff;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.tg-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.tg-btn-ghost {
+  border: 1px solid var(--stroke);
+  color: var(--text-primary);
+  border-radius: 99px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  transition: border-color 0.2s ease;
+}
+
+.tg-btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.2);
 }
