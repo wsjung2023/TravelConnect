@@ -1,11 +1,14 @@
+/* Tourgether v3 — 앱 컴포넌트 CSS. 보라/파랑 없음. gold+mint+coral+dark only. */
+
 .app-tabbar {
-  background: rgba(10, 14, 30, 0.88);
-  backdrop-filter: blur(10px);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(10,11,16,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(200,168,78,0.15);
 }
 
 .nav-btn {
-  color: rgba(233, 236, 255, 0.72);
+  color: #A5AEC4;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,53 +19,64 @@
 
 .nav-btn.active,
 .nav-btn:hover {
-  color: #fff;
+  color: #E6C989;
 }
 
+/* Meet tab — gold circular button */
 .nav-btn.meet {
-  background: linear-gradient(135deg, #7b5ea7, #ff6b6b);
-  color: #fff;
+  background: #E6C989;
+  color: #0A0B10;
   padding: 0.75rem;
   border-radius: 999px;
   margin-top: -1.75rem;
-  box-shadow: 0 8px 22px rgba(123, 94, 167, 0.45);
+  box-shadow: 0 8px 22px rgba(200,168,78,0.45), 0 0 0 3px rgba(200,168,78,0.15);
 }
 
+/* Map bottom sheet — dark glass, gold border */
 .map-bottom-sheet {
-  background: linear-gradient(180deg, rgba(26, 26, 46, 0.95), rgba(11, 16, 32, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10,11,16,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(200,168,78,0.15);
 }
 
+/* App card — dark surface, gold glow border */
 .app-card {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: #11131A;
+  border: 1px solid rgba(200,168,78,0.2);
+  box-shadow: 0 0 12px rgba(200,168,78,0.1);
   border-radius: 1rem;
 }
 
+/* Chat bubbles */
 .app-chat-bubble {
   border-radius: 1rem;
   padding: 0.75rem;
 }
 
 .app-chat-bubble.sent {
-  background: linear-gradient(135deg, var(--primary), #9b75cf);
+  background: #FF8A70;          /* coral */
   color: #fff;
 }
 
 .app-chat-bubble.received {
-  background: #1f2742;
-  color: #edf1ff;
+  background: #1A1D26;
+  color: #F6F7FB;
 }
 
+/* AI bubble */
+.app-chat-bubble.ai {
+  background: linear-gradient(135deg, #11131A, #151824);
+  color: #F6F7FB;
+  border: 1px solid rgba(200,168,78,0.15);
+}
+
+/* Chip — gold tint */
 .app-chip {
   border-radius: 999px;
   padding: 0.25rem 0.625rem;
   font-size: 0.75rem;
-  background: #273055;
-  color: #dce3ff;
-}
-
-.app-chat-bubble.ai {
-  background: linear-gradient(135deg, #322756, #2d3a64);
-  color: #f2f5ff;
+  background: rgba(230,201,137,0.1);
+  border: 1px solid rgba(230,201,137,0.3);
+  color: #E6C989;
 }

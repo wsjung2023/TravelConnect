@@ -1,17 +1,20 @@
+/* Tourgether v3 — 앱 색상 토큰. 모든 보라/파랑 제거, gold+mint+dark 시스템 */
 :root {
-  --primary: #7b5ea7;
-  --primary-foreground: #ffffff;
-  --accent: #ff6b6b;
-  --accent-foreground: #1a1a2e;
-  --background: #0b1020;
-  --foreground: #f5f7ff;
-  --surface: #1a1a2e;
-  --card: #171b30;
-  --card-foreground: #eef0ff;
-  --muted: #232845;
-  --muted-foreground: #aab1d5;
-  --border: #2d355d;
-  --input: #2d355d;
-  --ring: #7b5ea7;
-  --radius: 1rem;
+  --primary:            #E6C989;            /* gold — replaces old purple */
+  --primary-foreground: #0A0B10;
+  --accent:             #FF8A70;            /* coral */
+  --accent-foreground:  #0A0B10;
+  --background:         #0A0B10;            /* pure dark */
+  --foreground:         #F6F7FB;
+  --surface:            #11131A;
+  --card:               #11131A;
+  --card-foreground:    #F6F7FB;
+  --muted:              #151824;
+  --muted-foreground:   #A5AEC4;
+  --popover:            #11131A;
+  --popover-foreground: #F6F7FB;
+  --border:             rgba(200,168,78,0.2); /* gold border */
+  --input:              #151824;
+  --ring:               rgba(200,168,78,0.4);
+  --radius:             1rem;
 }

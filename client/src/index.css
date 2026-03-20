@@ -21,70 +21,52 @@
   --radius-sheet:  28px;
   --radius-chip:   99px;
 
-  /* Sophisticated color palette - weight + playfulness */
-  --background: #0b1020;
-  --foreground: #f5f7ff;
-  --muted: #232845;
-  --muted-foreground: #aab1d5;
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(280, 20%, 20%);
-  --card: #171b30;
-  --card-foreground: #eef0ff;
-  --border: #2d355d;
-  --input: #2d355d;
-  
-  /* Deep Plum - Sophisticated weight */
-  --primary: #7b5ea7;
-  --primary-foreground: hsl(0, 0%, 100%);
-  
-  /* Warm Coral - Playful warmth */
-  --secondary: #ff6b6b;
-  --secondary-foreground: hsl(7, 85%, 20%);
-  
-  /* Soft Gold - Luxury accent */
-  --accent: #ff6b6b;
-  --accent-foreground: hsl(39, 69%, 20%);
-  
-  /* Supporting colors */
-  --mint: hsl(150, 45%, 65%);
-  --mint-foreground: hsl(150, 45%, 15%);
-  --dark: hsl(280, 25%, 25%);
-  --slate: hsl(280, 15%, 35%);
-  
-  --destructive: hsl(0, 70%, 55%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(280, 33%, 40%);
-  --radius: 1rem;
+  /* shadcn/Radix compat — gold/dark system, NO purple */
+  --background:         #0A0B10;
+  --foreground:         #F6F7FB;
+  --muted:              #151824;
+  --muted-foreground:   #A5AEC4;
+  --popover:            #11131A;
+  --popover-foreground: #F6F7FB;
+  --card:               #11131A;
+  --card-foreground:    #F6F7FB;
+  --border:             rgba(200,168,78,0.2);
+  --input:              #151824;
+  --primary:            #E6C989;
+  --primary-foreground: #0A0B10;
+  --secondary:          #FF8A70;
+  --secondary-foreground: #0A0B10;
+  --accent:             #FF8A70;
+  --accent-foreground:  #0A0B10;
+  --mint:               #7CE7D6;
+  --mint-foreground:    #0A0B10;
+  --destructive:        hsl(0, 70%, 55%);
+  --destructive-foreground: #fff;
+  --ring:               rgba(200,168,78,0.4);
+  --radius:             1rem;
 }
 
 .dark {
-  /* Dark mode with sophisticated palette */
-  --background: hsl(280, 15%, 8%);
-  --foreground: hsl(30, 20%, 95%);
-  --muted: hsl(280, 10%, 15%);
-  --muted-foreground: hsl(30, 15%, 65%);
-  --popover: hsl(280, 15%, 12%);
-  --popover-foreground: hsl(30, 20%, 95%);
-  --card: hsl(280, 15%, 12%);
-  --card-foreground: hsl(30, 20%, 95%);
-  --border: hsl(280, 10%, 20%);
-  --input: hsl(280, 10%, 18%);
-  
-  /* Deep Plum - Lightened for dark mode */
-  --primary: hsl(280, 40%, 55%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  
-  /* Warm Coral - Adjusted for dark mode */
-  --secondary: hsl(7, 75%, 68%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  
-  /* Soft Gold - Brightened for dark mode */
-  --accent: hsl(39, 75%, 72%);
-  --accent-foreground: hsl(280, 15%, 12%);
-  
-  --destructive: hsl(0, 65%, 50%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(280, 40%, 55%);
+  /* Dark mode — same gold system (app is always dark) */
+  --background:         #0A0B10;
+  --foreground:         #F6F7FB;
+  --muted:              #151824;
+  --muted-foreground:   #A5AEC4;
+  --popover:            #11131A;
+  --popover-foreground: #F6F7FB;
+  --card:               #11131A;
+  --card-foreground:    #F6F7FB;
+  --border:             rgba(200,168,78,0.2);
+  --input:              #151824;
+  --primary:            #E6C989;
+  --primary-foreground: #0A0B10;
+  --secondary:          #FF8A70;
+  --secondary-foreground: #0A0B10;
+  --accent:             #FF8A70;
+  --accent-foreground:  #0A0B10;
+  --destructive:        hsl(0, 65%, 50%);
+  --destructive-foreground: #fff;
+  --ring:               rgba(200,168,78,0.4);
 }
 
 @layer base {
@@ -94,55 +76,53 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(to bottom, #0b1020, #131a31);
+    background: var(--app-bg);
     min-height: 100vh;
-  }
-  
-  .dark body {
-    background: linear-gradient(to bottom, hsl(280, 15%, 8%), hsl(280, 12%, 10%));
   }
 }
 
-/* Custom travel app styles - Sophisticated design */
+/* Travel app styles — gold/coral/dark, no purple */
 .travel-gradient {
-  background: linear-gradient(135deg, var(--primary) 0%, hsl(280, 40%, 50%) 50%, var(--secondary) 100%);
+  background: linear-gradient(135deg, #E6C989 0%, #FF8A70 100%);
 }
 
 .travel-card {
   @apply rounded-2xl overflow-hidden;
   background: var(--card);
-  box-shadow: 0 8px 24px rgba(6, 10, 22, 0.35), 0 3px 10px rgba(123, 94, 167, 0.08);
-  border: 1px solid var(--border);
+  box-shadow: 0 0 12px rgba(200,168,78,0.12), 0 4px 16px rgba(0,0,0,0.3);
+  border: 1px solid rgba(200,168,78,0.2);
   transition: all 0.3s ease;
 }
 
 .travel-card:hover {
-  box-shadow: 0 14px 32px rgba(6, 10, 22, 0.45), 0 6px 14px rgba(123, 94, 167, 0.16);
+  box-shadow: 0 0 20px rgba(200,168,78,0.2), 0 8px 24px rgba(0,0,0,0.35);
   transform: translateY(-2px);
 }
 
 .travel-button {
-  @apply text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300;
-  background: linear-gradient(135deg, var(--primary) 0%, hsl(280, 40%, 50%) 100%);
-  box-shadow: 0 4px 12px rgba(92, 58, 110, 0.25), 0 2px 4px rgba(92, 58, 110, 0.15);
+  @apply font-semibold py-3 px-6 rounded-xl transition-all duration-300;
+  background: #FF8A70;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255,138,112,0.35);
 }
 
 .travel-button:hover {
-  box-shadow: 0 6px 20px rgba(92, 58, 110, 0.35), 0 3px 6px rgba(92, 58, 110, 0.2);
+  box-shadow: 0 6px 20px rgba(255,138,112,0.45);
   transform: translateY(-1px);
 }
 
 .travel-button-outline {
   @apply font-semibold py-3 px-6 rounded-xl transition-all duration-300;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(123, 94, 167, 0.75);
-  color: #d7ddff;
+  background: transparent;
+  border: 1px solid rgba(200,168,78,0.5);
+  color: #E6C989;
 }
 
 .travel-button-outline:hover {
-  background: linear-gradient(135deg, rgba(123, 94, 167, 0.22), rgba(255, 107, 107, 0.2));
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(123, 94, 167, 0.3);
+  background: rgba(230,201,137,0.08);
+  border-color: rgba(200,168,78,0.8);
+  color: #E6C989;
+  box-shadow: 0 4px 14px rgba(200,168,78,0.2);
 }
 
 .map-marker {
@@ -174,9 +154,9 @@
 /* Mobile SNS App Container - Responsive */
 .mobile-container {
   @apply w-full mx-auto min-h-screen relative overflow-hidden;
-  background: linear-gradient(to bottom, #0d1224, #151c34);
+  background: var(--app-bg);
   max-width: min(428px, 100vw); /* iPhone 14 Pro Max width or full viewport */
-  box-shadow: 0 0 40px rgba(92, 58, 110, 0.08);
+  box-shadow: 0 0 40px rgba(200,168,78,0.05);
 }
 
 /* Responsive mobile viewport */
@@ -208,9 +188,11 @@
 /* Mobile navigation - Responsive */
 .mobile-nav {
   @apply fixed bottom-0 z-50;
-  background: linear-gradient(to top, rgba(10, 14, 30, 0.98), rgba(16, 22, 42, 0.94));
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 -10px 28px rgba(4, 8, 20, 0.45);
+  background: rgba(10,11,16,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(200,168,78,0.15);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
@@ -563,16 +545,16 @@
 
 /* Feed 헤더 글래스 효과 */
 .mobile-content > .border-b.bg-white.sticky {
-  background: rgba(17, 24, 39, 0.92) !important;
+  background: rgba(10,11,16,0.92) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-color: rgba(71, 85, 105, 0.45) !important;
+  border-color: rgba(200,168,78,0.15) !important;
 }
 
 /* Feed 필터 버튼 호버 효과 */
 .mobile-content .bg-gray-100.text-gray-700:hover {
-  background: rgba(155, 92, 255, 0.08) !important;
-  color: var(--landing-primary) !important;
+  background: rgba(200,168,78,0.08) !important;
+  color: #E6C989 !important;
   transform: translateY(-1px);
   transition: all 0.2s ease;
 }
