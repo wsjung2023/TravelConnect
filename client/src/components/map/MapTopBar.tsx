@@ -1,10 +1,16 @@
-// MapTopBar — floating overlay over the map: city label + search pill + bell + filter chips
+// MapTopBar — floating premium overlay: city label, frosted search, bell, filter chips.
 import type { CSSProperties } from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Bell, MapPin, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const FILTER_CHIPS = ['Nearby', 'Stories', 'Meet', 'Food', 'Photo'] as const;
-export type MapFilter = typeof FILTER_CHIPS[number];
+const FILTER_CHIPS = [
+  { id: 'nearby', key: 'feedMode.nearby' },
+  { id: 'stories', key: 'navigation.timeline' },
+  { id: 'meet', key: 'navigation.meet' },
+  { id: 'food', key: 'labels.food' },
+  { id: 'photo', key: 'labels.photography' },
+] as const;
+export type MapFilter = (typeof FILTER_CHIPS)[number]['id'];
 
 interface Props {
   city?: string;
@@ -12,62 +18,65 @@ interface Props {
   onFilterChange: (f: MapFilter) => void;
 }
 
-export default function MapTopBar({ city = '서울 강남구', activeFilter, onFilterChange }: Props) {
+export default function MapTopBar({ city, activeFilter, onFilterChange }: Props) {
   const { t } = useTranslation('ui');
+  const resolvedCity = city || t('labels.location');
+
   return (
     <div
       className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
-      style={{ background: 'linear-gradient(to bottom, rgba(10,11,16,0.92) 0%, transparent 100%)' }}
+      style={{
+        background: 'linear-gradient(to bottom, rgba(7,9,13,0.92) 0%, rgba(7,9,13,0.46) 48%, transparent 100%)',
+        paddingTop: 'max(10px, env(safe-area-inset-top))',
+      }}
     >
-      {/* Main row: city | search pill | bell */}
-      <div className="flex items-center gap-2 px-4 pt-3 pb-2 pointer-events-auto">
-        <span
-          className="shrink-0 font-semibold"
-          style={{ fontSize: 16, color: 'var(--accent-gold)' }}
-        >
-          {city}
-        </span>
+      <div className="flex items-center gap-3 px-4 pt-2 pb-3 pointer-events-auto">
+        <div className="shrink-0" style={{ minWidth: 96 }}>
+          <div className="flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+            <MapPin size={15} color="var(--accent-gold)" />
+            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em' }}>{resolvedCity}</span>
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 3 }}>
+            {t('map.topbar.subtitle')}
+          </p>
+        </div>
 
         <div
-          className="tg-glass flex flex-1 items-center gap-2 rounded-full px-3 py-2 cursor-pointer"
-          style={{ border: '1px solid var(--stroke)' }}
+          className="tg-glass-strong flex flex-1 items-center gap-2 rounded-full px-4 py-2.5 cursor-pointer"
+          style={{ border: '1px solid rgba(255,255,255,0.08)' }}
         >
-          <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-          <span className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
+          <Search size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+          <span className="truncate" style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
             {t('map.searchPlaceholder')}
           </span>
         </div>
 
         <button
-          className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full tg-glass"
-          style={{ border: '1px solid var(--stroke)' }}
-          aria-label="Notifications"
+          className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full tg-glass-strong"
+          style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)' }}
+          aria-label={t('navigation.chat')}
         >
-          <Bell size={17} style={{ color: 'var(--text-primary)' }} />
+          <Bell size={17} />
         </button>
       </div>
 
-      {/* Filter chips: horizontal scroll, no scrollbar */}
       <div
         className="flex gap-2 px-4 pb-3 overflow-x-auto pointer-events-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as CSSProperties}
       >
-        {FILTER_CHIPS.map((chip) => (
-          <button
-            key={chip}
-            onClick={() => onFilterChange(chip)}
-            className="tg-chip"
-            style={{
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              ...(activeFilter === chip
-                ? { borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)', background: 'rgba(230,201,137,0.1)' }
-                : { borderColor: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', background: 'var(--surface-2)' }),
-            }}
-          >
-            {chip}
-          </button>
-        ))}
+        {FILTER_CHIPS.map((chip) => {
+          const active = activeFilter === chip.id;
+          return (
+            <button
+              key={chip.id}
+              onClick={() => onFilterChange(chip.id)}
+              className={active ? 'tg-chip tg-chip-active' : 'tg-chip'}
+              style={{ whiteSpace: 'nowrap', flexShrink: 0, padding: '8px 15px', fontSize: 12, fontWeight: active ? 600 : 500 }}
+            >
+              {t(chip.key)}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

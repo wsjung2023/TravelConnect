@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';
-import { MapPin, Star, Compass, Camera, Navigation } from 'lucide-react';
+import { MapPin, Plus, Star } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import HelpRequestForm from '@/components/HelpRequestForm';
 import CreateExperienceModal from '@/components/CreateExperienceModal';
+import CreatePostModal from '@/components/CreatePostModal';
 import TimelineCreateModal from '@/components/TimelineCreateModal';
 import ProfileEditModal from '@/components/ProfileEditModal';
 import type { Post, Trip, Experience } from '@shared/schema';
@@ -19,8 +20,6 @@ import PostDetailModal from '@/components/PostDetailModal';
 import SeoLinkCards from '@/components/seo/SeoLinkCards';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileStats from '@/components/profile/ProfileStats';
-import ProfileLanguages from '@/components/profile/ProfileLanguages';
-import ProfileActivities from '@/components/profile/ProfileActivities';
 import ProfileSettingsSection from '@/components/profile/ProfileSettingsSection';
 import SavedPostsTab from '@/components/profile/SavedPostsTab';
 
@@ -51,6 +50,7 @@ export default function Profile() {
 
   const [showHelpRequestForm, setShowHelpRequestForm] = useState(false);
   const [showCreateExperienceModal, setShowCreateExperienceModal] = useState(false);
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showTimelineCreateModal, setShowTimelineCreateModal] = useState(false);
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -209,47 +209,25 @@ export default function Profile() {
         friends={friends}
       />
 
-      {/* Role badges row */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 20, padding: '12px 16px 4px' }}>
-        {[
-          { icon: <Compass size={16} color="var(--accent-gold)" />, label: t('profile.badge.traveler', { defaultValue: 'Traveler' }) },
-          ...(user?.userType === 'influencer' || user?.userType === 'creator'
-            ? [{ icon: <Camera size={16} color="var(--accent-gold)" />, label: t('profile.badge.creator', { defaultValue: 'Creator' }) }]
-            : []),
-          ...(user?.userType === 'local_guide'
-            ? [{ icon: <Navigation size={16} color="var(--accent-gold)" />, label: t('profile.badge.guide', { defaultValue: 'Local Guide' }) }]
-            : []),
-        ].map((b, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-2)', border: '1.5px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px rgba(200,168,78,0.18)' }}>
-              {b.icon}
-            </div>
-            <span style={{ fontSize: 10, color: 'var(--text-secondary)', fontWeight: 500 }}>{b.label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ height: 12 }} />
-      <ProfileLanguages languages={user?.languages} />
-      <ProfileActivities interests={user?.interests} />
+      <div style={{ height: 10 }} />
 
       {/* Tabs — 포스트 / 루트 / 저장 / 서비스 */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList
-          className="flex w-full"
-          style={{ background: 'var(--surface-1)', borderBottom: '1px solid var(--stroke)', borderRadius: 0, padding: 0 }}
+          className="mx-4 flex w-auto rounded-full p-1"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)' }}
         >
           {(['posts', 'trips', 'saved', 'services'] as const).map((tab) => {
-            const labels: Record<string, string> = { posts: '포스트', trips: '루트', saved: '저장', services: '서비스' };
+            const labels: Record<string, string> = { posts: t('profile.tabs.posts'), trips: t('profile.tabs.trips'), saved: t('profile.tabs.saved'), services: t('profile.tabs.services') };
             return (
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="flex-1 py-3 text-sm font-medium rounded-none"
+                className="flex-1 rounded-full py-3 text-sm font-medium"
                 style={
                   activeTab === tab
-                    ? { color: 'var(--text-primary)', borderBottom: '2px solid var(--accent-mint)', background: 'transparent' }
-                    : { color: 'var(--text-secondary)', borderBottom: '2px solid transparent', background: 'transparent' }
+                    ? { color: 'var(--accent-gold)', background: 'rgba(255,214,134,0.1)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)' }
+                    : { color: 'var(--text-secondary)', background: 'transparent' }
                 }
                 data-testid={`tab-${tab}`}
               >
@@ -259,61 +237,122 @@ export default function Profile() {
           })}
         </TabsList>
 
-        <TabsContent value="posts" className="mt-0 px-1 pt-1">
+        <TabsContent value="posts" className="mt-0 px-4 pt-4 pb-6">
           {posts.length === 0 ? (
-            <div className="text-center py-12" style={{ color: 'var(--text-secondary)' }}>
-              <div className="text-4xl mb-3">📸</div>
+            <div className="mx-0 rounded-[24px] px-6 py-12 text-center" style={{ color: 'var(--text-secondary)', background: 'linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.025) 100%)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 44px rgba(0,0,0,0.18)' }}>
+              <div className="mb-3 text-4xl">📸</div>
               <p className="text-sm">{t('profile.empty.noPosts')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-0.5">
+            <div className="grid grid-cols-3 gap-2">
               {posts.map((post: Post) => (
                 <div
                   key={post.id}
-                  className="aspect-square overflow-hidden cursor-pointer relative"
-                  style={{ background: 'var(--surface-2)' }}
+                  className="group aspect-square overflow-hidden cursor-pointer relative rounded-2xl"
+                  style={{ background: 'var(--surface-2)', boxShadow: '0 14px 32px rgba(0,0,0,0.18)' }}
                   onClick={() => setSelectedPost(post)}
                   data-testid={`post-item-${post.id}`}
                 >
                   {post.images && post.images.length > 0 ? (
-                    <img src={post.images[0]} alt={post.title || 'Post'} className="w-full h-full object-cover" />
+                    <img src={post.images[0]} alt={post.title || 'Post'} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                   ) : post.videos && post.videos.length > 0 ? (
-                    <video src={post.videos[0]} className="w-full h-full object-cover" muted />
+                    <video src={post.videos[0]} className="h-full w-full object-cover" muted />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-2xl">📷</div>
+                    <div className="flex h-full w-full items-center justify-center text-2xl">📷</div>
                   )}
-                  {/* Bottom overlay: ❤️ + city + 👁 */}
-                  <div className="absolute inset-x-0 bottom-0 px-1.5 py-1 flex items-center gap-1"
-                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)' }}>
-                    <span style={{ fontSize: 10, color: '#fff' }}>❤️ {post.likesCount ?? 0}</span>
-                    {post.location && <span className="truncate" style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', flex: 1 }}>{post.location}</span>}
-                    <span style={{ fontSize: 10, color: '#fff' }}>👁 {post.viewsCount ?? 0}</span>
+
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.02) 40%, rgba(0,0,0,0.45) 100%)' }} />
+
+                  <div
+                    className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 px-2 py-2"
+                    style={{ background: 'linear-gradient(to top, rgba(8,8,12,0.76) 0%, rgba(8,8,12,0.18) 100%)' }}
+                  >
+                    <span style={{ fontSize: 10, color: 'rgba(255,225,155,0.96)' }}>❤ {post.likesCount ?? 0}</span>
+                    {post.location && (
+                      <span className="truncate" style={{ fontSize: 9, color: 'rgba(255,255,255,0.78)', flex: 1 }}>
+                        {post.location}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.9)' }}>👁 {post.viewsCount ?? 0}</span>
                   </div>
                 </div>
               ))}
+
+              {isViewingOwnProfile && (
+                <button
+                  type="button"
+                  className="flex aspect-square items-center justify-center rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,214,134,0.08) 0%, rgba(255,214,134,0.04) 100%)',
+                    border: '1px dashed rgba(255,214,134,0.35)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                  }}
+                  onClick={() => setShowCreatePostModal(true)}
+                  data-testid="button-create-post-tile"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: 'rgba(255,214,134,0.1)', color: 'var(--accent-gold)' }}>
+                      <Plus size={22} />
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600 }}>{t('profile.actions.newPost')}</span>
+                  </div>
+                </button>
+              )}
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="trips" className="mt-0 px-4 pt-4">
+        <TabsContent value="trips" className="mt-0 px-4 pt-4 pb-6">
           {trips.length === 0 ? (
-            <div className="text-center py-12" style={{ color: 'var(--text-secondary)' }}>
-              <div className="text-4xl mb-3">✈️</div>
+            <div className="rounded-[24px] px-6 py-12 text-center" style={{ color: 'var(--text-secondary)', background: 'linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.025) 100%)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 44px rgba(0,0,0,0.18)' }}>
+              <div className="mb-3 text-4xl">✈️</div>
               <p className="text-sm">{t('profile.empty.noTrips')}</p>
               <button className="tg-btn-primary mt-4" onClick={() => setShowTimelineCreateModal(true)} data-testid="button-plan-trip">
                 {t('profile.planTrip')}
               </button>
             </div>
           ) : (
-            <div className="space-y-3 pb-4">
+            <div className="space-y-3">
               {trips.map((trip: Trip) => (
-                <div key={trip.id} className="tg-surface p-4" style={{ borderRadius: 16 }}>
-                  <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>{trip.title}</h3>
-                  <div className="flex items-center gap-1 mt-1" style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                    <MapPin size={12} /><span>{trip.destination}</span>
+                <div
+                  key={trip.id}
+                  className="overflow-hidden rounded-[24px] p-4"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.025) 100%)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    boxShadow: '0 20px 44px rgba(0,0,0,0.18)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1" style={{ background: 'rgba(255,214,134,0.08)', border: '1px solid rgba(255,214,134,0.18)', color: 'var(--accent-gold)', fontSize: 11, fontWeight: 700 }}>
+                        ✈︎ {t('profile.trip.cardType')}
+                      </div>
+                      <h3 className="mt-3 font-semibold" style={{ color: 'var(--text-primary)', fontSize: 16 }}>{trip.title}</h3>
+                    </div>
+                    <div className="rounded-full px-3 py-1.5" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)', fontSize: 11 }}>
+                      {(trip as any).status || t('profile.trip.planned')}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                    {new Date(trip.startDate).toLocaleDateString('ko-KR')} – {new Date(trip.endDate).toLocaleDateString('ko-KR')}
+
+                  <div className="mt-3 flex items-center gap-1.5" style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+                    <MapPin size={12} style={{ color: 'var(--accent-gold)' }} /><span>{trip.destination}</span>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between rounded-2xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.025)' }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('profile.trip.departure')}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, marginTop: 3 }}>
+                        {new Date(trip.startDate).toLocaleDateString('ko-KR')}
+                      </div>
+                    </div>
+                    <div style={{ width: 28, height: 1, background: 'rgba(255,214,134,0.3)' }} />
+                    <div className="text-right">
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('profile.trip.return')}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600, marginTop: 3 }}>
+                        {new Date(trip.endDate).toLocaleDateString('ko-KR')}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -321,14 +360,14 @@ export default function Profile() {
           )}
         </TabsContent>
 
-        <TabsContent value="saved" className="mt-0 px-1 pt-1" data-testid="tab-content-saved">
+        <TabsContent value="saved" className="mt-0" data-testid="tab-content-saved">
           <SavedPostsTab />
         </TabsContent>
 
-        <TabsContent value="services" className="mt-0 px-4 pt-4">
+        <TabsContent value="services" className="mt-0 px-4 pt-4 pb-6">
           {experiences.length === 0 ? (
-            <div className="text-center py-12" style={{ color: 'var(--text-secondary)' }}>
-              <div className="text-4xl mb-3">🗺️</div>
+            <div className="rounded-[24px] px-6 py-12 text-center" style={{ color: 'var(--text-secondary)', background: 'linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.025) 100%)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 44px rgba(0,0,0,0.18)' }}>
+              <div className="mb-3 text-4xl">🗺️</div>
               <p className="text-sm">{t('profile.empty.noExperiences')}</p>
               {isViewingOwnProfile && (
                 <button className="tg-btn-primary mt-4" onClick={() => setShowCreateExperienceModal(true)} data-testid="button-create-experience">
@@ -337,20 +376,38 @@ export default function Profile() {
               )}
             </div>
           ) : (
-            <div className="space-y-3 pb-4">
+            <div className="space-y-3">
               {experiences.map((experience: Experience) => (
-                <div key={experience.id} className="tg-surface p-4" style={{ borderRadius: 16 }}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>{experience.title}</h3>
-                    <div className="flex items-center gap-1">
+                <div
+                  key={experience.id}
+                  className="overflow-hidden rounded-[24px] p-4"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.025) 100%)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    boxShadow: '0 20px 44px rgba(0,0,0,0.18)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1" style={{ background: 'rgba(124,231,214,0.08)', border: '1px solid rgba(124,231,214,0.18)', color: 'var(--accent-mint)', fontSize: 11, fontWeight: 700 }}>
+                        {t('profile.service.cardType')}
+                      </div>
+                      <h3 className="mt-3 font-semibold" style={{ color: 'var(--text-primary)', fontSize: 16 }}>{experience.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-1 rounded-full px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
                       <Star size={12} style={{ color: 'var(--accent-gold)' }} className="fill-current" />
                       <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{experience.rating || '0'}</span>
                     </div>
                   </div>
-                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }} className="line-clamp-2 mb-2">{experience.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--accent-gold)' }}>₩{Number(experience.price).toLocaleString()}</span>
-                    <span className="tg-chip" style={{ fontSize: 11 }}>{experience.category}</span>
+
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65 }} className="line-clamp-2 mt-3">{experience.description}</p>
+
+                  <div className="mt-4 flex items-center justify-between rounded-2xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.025)' }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('profile.service.price')}</div>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent-gold)' }}>₩{Number(experience.price).toLocaleString()}</span>
+                    </div>
+                    <span className="rounded-full px-3 py-1.5" style={{ fontSize: 11, color: 'var(--text-primary)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>{experience.category}</span>
                   </div>
                 </div>
               ))}

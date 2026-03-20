@@ -46,6 +46,16 @@ export default function PostDetailModal({
     ...(post.videos || []).map((src) => ({ type: 'video' as const, src })),
   ];
 
+  const heroActionProps = {
+    ...(onSave ? { onSave: () => onSave(post.id) } : {}),
+    ...(onShare ? { onShare: () => onShare(post) } : {}),
+  };
+
+  const reactionActionProps = {
+    ...(onSave ? { onSave: () => onSave(post.id) } : {}),
+    ...(onShare ? { onShare: () => onShare(post) } : {}),
+  };
+
   return (
     <Modal open={isOpen} onClose={onClose}>
       <div style={{ background: 'var(--app-bg)', minHeight: '100%' }}>
@@ -58,9 +68,8 @@ export default function PostDetailModal({
           onNext={() => setCurrentMediaIndex((i) => Math.min(allMedia.length - 1, i + 1))}
           onIndexChange={setCurrentMediaIndex}
           isSaved={isSaved}
-          onSave={onSave ? () => onSave(post.id) : undefined}
-          onShare={onShare ? () => onShare(post) : undefined}
           onBack={onClose}
+          {...heroActionProps}
           failedMedia={failedMedia}
           onMediaError={(src) => setFailedMedia((prev) => new Set(prev).add(src))}
         />
@@ -80,8 +89,7 @@ export default function PostDetailModal({
           isLiked={isLiked}
           isSaved={isSaved}
           onLike={() => onLike(post.id)}
-          onSave={onSave ? () => onSave(post.id) : undefined}
-          onShare={onShare ? () => onShare(post) : undefined}
+          {...reactionActionProps}
         />
 
         {/* Post body */}

@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 // Booking type (matching backend)
 interface Booking {
@@ -68,6 +69,7 @@ export default function BookingList({ role }: BookingListProps) {
   const [cancelReason, setCancelReason] = useState('');
   
   const { toast } = useToast();
+  const { t } = useTranslation('ui');
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -102,8 +104,8 @@ export default function BookingList({ role }: BookingListProps) {
     },
     onSuccess: () => {
       toast({
-        title: '상태 변경 완료',
-        description: '예약 상태가 성공적으로 변경되었습니다.',
+        title: t('booking.statusUpdated'),
+        description: t('booking.statusUpdatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       setCancellingBooking(null);
@@ -111,8 +113,8 @@ export default function BookingList({ role }: BookingListProps) {
     },
     onError: (error: any) => {
       toast({
-        title: '상태 변경 실패',
-        description: error?.message || '상태 변경 중 오류가 발생했습니다.',
+        title: t('booking.statusUpdateFailed'),
+        description: error?.message || t('booking.statusUpdateFailedDesc'),
         variant: 'destructive',
       });
     },
@@ -233,7 +235,7 @@ export default function BookingList({ role }: BookingListProps) {
           <TabsTrigger value="pending" data-testid="tab-pending">대기중</TabsTrigger>
           <TabsTrigger value="confirmed" data-testid="tab-confirmed">확정</TabsTrigger>
           <TabsTrigger value="completed" data-testid="tab-completed">완료</TabsTrigger>
-          <TabsTrigger value="cancelled" data-testid="tab-cancelled">취소</TabsTrigger>
+          <TabsTrigger value="cancelled" data-testid="tab-cancelled">{t('common.cancel')}</TabsTrigger>
           <TabsTrigger value="declined" data-testid="tab-declined">거절</TabsTrigger>
         </TabsList>
 
@@ -402,14 +404,14 @@ export default function BookingList({ role }: BookingListProps) {
       <Dialog open={!!cancellingBooking} onOpenChange={() => setCancellingBooking(null)}>
         <DialogContent data-testid="dialog-cancel-booking">
           <DialogHeader>
-            <DialogTitle>예약 취소</DialogTitle>
+            <DialogTitle>{t('booking.cancelDialog.title')}</DialogTitle>
             <DialogDescription>
-              예약을 취소하는 사유를 입력해주세요. (선택사항)
+              {t('booking.cancelDialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Textarea
-              placeholder="취소 사유를 입력해주세요..."
+              placeholder={t('booking.cancelDialog.placeholder')}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
@@ -428,7 +430,7 @@ export default function BookingList({ role }: BookingListProps) {
                 disabled={updateStatusMutation.isPending}
                 data-testid="button-confirm-cancel"
               >
-                {updateStatusMutation.isPending ? '처리 중...' : '예약 취소'}
+                {updateStatusMutation.isPending ? t('booking.cancelDialog.processing') : t('booking.cancelDialog.confirm')}
               </Button>
             </div>
           </div>

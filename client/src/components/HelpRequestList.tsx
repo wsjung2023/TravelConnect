@@ -63,7 +63,7 @@ const urgencyColors = {
 };
 
 export default function HelpRequestList() {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation('ui');
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -74,6 +74,26 @@ export default function HelpRequestList() {
     queryKey: ['/api/requests/my'],
     enabled: !!user?.id,
   });
+
+  const categoryLabels: Record<HelpRequest['category'], string> = {
+    local_tip: t('helpRequest.categories.localTip', '현지 팁'),
+    custom_planning: t('helpRequest.categories.customPlanning', '맞춤 계획'),
+    urgent_help: t('helpRequest.categories.urgentHelp', '긴급 도움'),
+    product_purchase: t('helpRequest.categories.productPurchase', '제품 구매'),
+  };
+
+  const statusLabels: Record<HelpRequest['status'], string> = {
+    open: t('helpRequest.status.open', '진행 중'),
+    assigned: t('helpRequest.status.assigned', '할당됨'),
+    completed: t('helpRequest.status.completed', '완료'),
+    cancelled: t('helpRequest.status.cancelled', '취소'),
+  };
+
+  const urgencyLabels: Record<HelpRequest['urgencyLevel'], string> = {
+    urgent: t('helpRequest.urgency.urgent', '긴급'),
+    normal: t('helpRequest.urgency.normal', '보통'),
+    flexible: t('helpRequest.urgency.flexible', '여유롭게'),
+  };
 
   if (!user) {
     return (
@@ -117,10 +137,10 @@ export default function HelpRequestList() {
       <div className="flex flex-col items-center justify-center p-8 text-center">
         <XCircle className="w-12 h-12 text-red-400 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
-          오류가 발생했습니다
+          {t('helpRequest.list.errorTitle', '오류가 발생했습니다')}
         </h3>
         <p className="text-gray-500">
-          도움 요청을 불러오는 중 문제가 발생했습니다.
+          {t('helpRequest.list.errorDescription', '도움 요청을 불러오는 중 문제가 발생했습니다.')}
         </p>
       </div>
     );
@@ -165,15 +185,10 @@ export default function HelpRequestList() {
                 </h3>
                 <div className="flex items-center space-x-2">
                   <Badge className={statusColors[request.status]} data-testid={`request-status-${request.id}`}>
-                    {request.status === 'open' && '진행 중'}
-                    {request.status === 'assigned' && '할당됨'}
-                    {request.status === 'completed' && '완료'}
-                    {request.status === 'cancelled' && '취소'}
+                    {statusLabels[request.status]}
                   </Badge>
                   <Badge className={urgencyColors[request.urgencyLevel]} data-testid={`request-urgency-${request.id}`}>
-                    {request.urgencyLevel === 'urgent' && '긴급'}
-                    {request.urgencyLevel === 'normal' && '보통'}
-                    {request.urgencyLevel === 'flexible' && '여유'}
+                    {urgencyLabels[request.urgencyLevel]}
                   </Badge>
                 </div>
               </div>
@@ -181,7 +196,9 @@ export default function HelpRequestList() {
             <div className="text-right text-sm text-gray-500">
               <div className="flex items-center space-x-1 mb-1">
                 <MessageCircle className="w-4 h-4" />
-                <span data-testid={`request-responses-${request.id}`}>{request.responseCount}개 응답</span>
+                <span data-testid={`request-responses-${request.id}`}>
+                  {t('helpRequest.list.responseCount', '{{count}} responses', { count: request.responseCount })}
+                </span>
               </div>
               <div className="flex items-center space-x-1">
                 <Clock className="w-4 h-4" />
@@ -222,7 +239,10 @@ export default function HelpRequestList() {
               <div className="flex items-center space-x-1">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  {new Date(request.deadline).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}까지
+                  {t('helpRequest.list.deadline', {
+                    date: new Date(request.deadline).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US'),
+                    defaultValue: '{{date}}까지',
+                  })}
                 </span>
               </div>
             )}
@@ -240,10 +260,7 @@ export default function HelpRequestList() {
 
           <div className="flex justify-between items-center mt-4">
             <div className="text-xs text-gray-400">
-              카테고리: {request.category === 'local_tip' && '현지 팁'}
-              {request.category === 'custom_planning' && '맞춤 계획'}
-              {request.category === 'urgent_help' && '긴급 도움'}
-              {request.category === 'product_purchase' && '제품 구매'}
+              {t('helpRequest.list.categoryLabel', '카테고리')}: {categoryLabels[request.category]}
             </div>
             
             <Button 
@@ -255,7 +272,7 @@ export default function HelpRequestList() {
               }}
               data-testid={`button-view-request-${request.id}`}
             >
-              상세보기
+              {t('helpRequest.list.viewDetails', '상세보기')}
             </Button>
           </div>
         </CardContent>
@@ -268,34 +285,36 @@ export default function HelpRequestList() {
       {/* Header with filters */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">나의 도움 요청</h2>
-          <p className="text-gray-600">총 {requests.length}개의 요청</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('helpRequest.list.title', '나의 도움 요청')}</h2>
+          <p className="text-gray-600">
+            {t('helpRequest.list.totalCount', '총 {{count}}개의 요청', { count: requests.length })}
+          </p>
         </div>
 
         <div className="flex space-x-2">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-[140px]">
               <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="카테고리" />
+              <SelectValue placeholder={t('helpRequest.list.filterCategory', '카테고리')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">모든 카테고리</SelectItem>
-              <SelectItem value="local_tip">현지 팁</SelectItem>
-              <SelectItem value="custom_planning">맞춤 계획</SelectItem>
-              <SelectItem value="urgent_help">긴급 도움</SelectItem>
-              <SelectItem value="product_purchase">제품 구매</SelectItem>
+              <SelectItem value="all">{t('helpRequest.list.allCategories', '모든 카테고리')}</SelectItem>
+              <SelectItem value="local_tip">{categoryLabels.local_tip}</SelectItem>
+              <SelectItem value="custom_planning">{categoryLabels.custom_planning}</SelectItem>
+              <SelectItem value="urgent_help">{categoryLabels.urgent_help}</SelectItem>
+              <SelectItem value="product_purchase">{categoryLabels.product_purchase}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="상태" />
+              <SelectValue placeholder={t('helpRequest.list.filterStatus', '상태')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">모든 상태</SelectItem>
-              <SelectItem value="open">진행 중</SelectItem>
-              <SelectItem value="assigned">할당됨</SelectItem>
-              <SelectItem value="completed">완료</SelectItem>
+              <SelectItem value="all">{t('helpRequest.list.allStatuses', '모든 상태')}</SelectItem>
+              <SelectItem value="open">{statusLabels.open}</SelectItem>
+              <SelectItem value="assigned">{statusLabels.assigned}</SelectItem>
+              <SelectItem value="completed">{statusLabels.completed}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -305,16 +324,16 @@ export default function HelpRequestList() {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="all" data-testid="tab-all">
-            전체 ({groupedRequests.all.length})
+            {t('helpRequest.list.tabs.all', '전체')} ({groupedRequests.all.length})
           </TabsTrigger>
           <TabsTrigger value="open" data-testid="tab-open">
-            진행 중 ({groupedRequests.open.length})
+            {statusLabels.open} ({groupedRequests.open.length})
           </TabsTrigger>
           <TabsTrigger value="assigned" data-testid="tab-assigned">
-            할당됨 ({groupedRequests.assigned.length})
+            {statusLabels.assigned} ({groupedRequests.assigned.length})
           </TabsTrigger>
           <TabsTrigger value="completed" data-testid="tab-completed">
-            완료 ({groupedRequests.completed.length})
+            {statusLabels.completed} ({groupedRequests.completed.length})
           </TabsTrigger>
         </TabsList>
 
@@ -324,14 +343,14 @@ export default function HelpRequestList() {
               <div className="flex flex-col items-center justify-center p-12 text-center">
                 <MessageCircle className="w-16 h-16 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {status === 'all' ? '도움 요청이 없습니다' :
-                   status === 'open' ? '진행 중인 요청이 없습니다' :
-                   status === 'assigned' ? '할당된 요청이 없습니다' :
-                   '완료된 요청이 없습니다'}
+                  {status === 'all' ? t('helpRequest.list.empty.allTitle', '도움 요청이 없습니다') :
+                   status === 'open' ? t('helpRequest.list.empty.openTitle', '진행 중인 요청이 없습니다') :
+                   status === 'assigned' ? t('helpRequest.list.empty.assignedTitle', '할당된 요청이 없습니다') :
+                   t('helpRequest.list.empty.completedTitle', '완료된 요청이 없습니다')}
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  {status === 'all' ? '첫 번째 도움 요청을 만들어보세요!' :
-                   '해당하는 요청이 없습니다.'}
+                  {status === 'all' ? t('helpRequest.list.empty.allDescription', '첫 번째 도움 요청을 만들어보세요!') :
+                   t('helpRequest.list.empty.filteredDescription', '해당하는 요청이 없습니다.')}
                 </p>
                 {status === 'all' && (
                   <Button 
@@ -343,7 +362,7 @@ export default function HelpRequestList() {
                     }}
                     data-testid="button-create-first-request"
                   >
-                    도움 요청하기
+                    {t('helpRequest.form.createRequest', '도움 요청 생성')}
                   </Button>
                 )}
               </div>

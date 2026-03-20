@@ -1,8 +1,6 @@
-// MapBottomSheet — v3 3-snap 바텀시트
-// collapsed(120px) → half(50vh) → expanded(90vh)
-// 기본 뷰: 추천 카드 / 마커 탭 시: 인물 카드
+// MapBottomSheet — premium 3-snap bottom sheet with richer recommendation cards and person detail state.
+import { CalendarDays, Clock3, MapPin, MessageCircle, Sparkles, Star, X } from 'lucide-react';
 import { useRef } from 'react';
-import { MessageCircle, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export type MapSheetState = 'collapsed' | 'half' | 'expanded';
@@ -22,32 +20,35 @@ interface Props {
   onStateChange: (s: MapSheetState) => void;
   selectedUser?: SelectedUser | null;
   onClearUser?: () => void;
-  /** @deprecated use selectedUser for marker-tap flow */
   focusedStoryLabel?: string | null;
   onQuickMiniConcierge?: () => void;
 }
 
+interface RecCard {
+  id: number;
+  accent: 'gold' | 'mint' | 'coral';
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  host: string;
+  eta: string;
+  distance: string;
+  price: string;
+  badges: string[];
+}
+
 const SNAPS: MapSheetState[] = ['collapsed', 'half', 'expanded'];
 const HEIGHT: Record<MapSheetState, string> = {
-  collapsed: '120px',
-  half:      '50vh',
-  expanded:  '90vh',
+  collapsed: '132px',
+  half: '54vh',
+  expanded: '90vh',
 };
 
-const MOCK_RECS = [
-  { id: 1, initials: '민', title: '감성 카페 투어 & 사진 찍기', sub: 'with 민지', dist: '0.3km' },
-  { id: 2, initials: '준', title: '북촌 한옥마을 야경 산책',   sub: 'with 준호', dist: '0.7km' },
-  { id: 3, initials: '현', title: '강남 맛집 탐방 저녁 식사', sub: 'with 현우 & 수진', dist: '1.2km' },
-];
+const REC_ACCENTS: RecCard['accent'][] = ['gold', 'mint', 'coral'];
 
-export default function MapBottomSheet({
-  state,
-  onStateChange,
-  selectedUser,
-  onClearUser,
-  onQuickMiniConcierge,
-}: Props) {
+export default function MapBottomSheet({ state, onStateChange, selectedUser, onClearUser, focusedStoryLabel, onQuickMiniConcierge }: Props) {
   const touchStartY = useRef<number | null>(null);
+  const { t } = useTranslation('ui');
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0]?.clientY ?? null;
@@ -58,7 +59,7 @@ export default function MapBottomSheet({
     const dy = (e.changedTouches[0]?.clientY ?? 0) - touchStartY.current;
     const idx = SNAPS.indexOf(state);
     if (dy < -50 && idx < SNAPS.length - 1) onStateChange(SNAPS[idx + 1]!);
-    else if (dy > 50 && idx > 0)            onStateChange(SNAPS[idx - 1]!);
+    else if (dy > 50 && idx > 0) onStateChange(SNAPS[idx - 1]!);
     touchStartY.current = null;
   };
 
@@ -75,88 +76,182 @@ export default function MapBottomSheet({
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Drag handle */}
       <button
         onClick={handleHandleTap}
-        className="mx-auto mt-3 mb-1 flex-shrink-0 h-1 w-12 rounded-full cursor-pointer"
+        className="mx-auto mt-3 mb-2 flex-shrink-0 h-[5px] w-12 rounded-full cursor-pointer"
         style={{ background: 'rgba(255,255,255,0.18)' }}
-        aria-label="Drag handle"
+        aria-label={t('common.back')}
       />
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {selectedUser
-          ? <PersonView user={selectedUser} onClose={onClearUser} />
-          : <DefaultView state={state} onQuickMiniConcierge={onQuickMiniConcierge} />
-        }
+      <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
+        {selectedUser ? (
+          <PersonView user={selectedUser} {...(onClearUser ? { onClose: onClearUser } : {})} />
+        ) : (
+          <DefaultView
+            state={state}
+            focusedStoryLabel={focusedStoryLabel}
+            {...(onQuickMiniConcierge ? { onQuickMiniConcierge } : {})}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-/* ── Default view ── */
-function DefaultView({
-  state,
-  onQuickMiniConcierge,
-}: {
-  state: MapSheetState;
-  onQuickMiniConcierge?: () => void;
-}) {
+function DefaultView({ state, focusedStoryLabel, onQuickMiniConcierge }: { state: MapSheetState; focusedStoryLabel?: string | null | undefined; onQuickMiniConcierge?: () => void }) {
   const { t } = useTranslation('ui');
+  const recommendationCards = t('map.sheet.recommendationCards', { returnObjects: true }) as Omit<RecCard, 'id' | 'accent'>[];
+  const mockRecs: RecCard[] = recommendationCards.map((card, index) => ({
+    id: index + 1,
+    accent: REC_ACCENTS[index] ?? 'gold',
+    ...card,
+  }));
+
   return (
     <>
-      <p className="text-sm font-semibold mb-3 mt-1" style={{ color: 'var(--text-primary)' }}>
-        {t('map.sheet.title')}
-      </p>
-
-      {MOCK_RECS.map((rec) => (
-        <div
-          key={rec.id}
-          className="flex items-center gap-3 mb-2.5 rounded-2xl p-3"
-          style={{ background: 'var(--surface-2)', border: '1px solid rgba(200,168,78,0.2)', boxShadow: '0 0 6px rgba(200,168,78,0.12)' }}
-        >
-          {/* Avatar 40px */}
-          <div
-            className="shrink-0 rounded-full flex items-center justify-center font-bold text-sm"
-            style={{
-              width: 40, height: 40,
-              background: 'var(--surface-1)',
-              color: 'var(--accent-mint)',
-              border: '2px solid #11131A',
-            }}
-          >
-            {rec.initials}
-          </div>
-
-          {/* Text */}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-              {rec.title}
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-              {rec.sub} · {rec.dist}
-            </p>
-          </div>
-
-          {/* CTA */}
-          <button
-            className="shrink-0 tg-btn-primary rounded-full px-3 py-1.5 text-xs font-medium"
-            onClick={onQuickMiniConcierge}
-          >
-            {t('map.sheet.view')}
-          </button>
+      <div className="mb-3 mt-1 flex items-center justify-between gap-4">
+        <div>
+          <p style={{ color: 'var(--text-primary)', fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>{t('map.sheet.title')}</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 2 }}>{t('map.sheet.exploreMore')}</p>
         </div>
-      ))}
+        <div
+          className="shrink-0 rounded-[18px] px-3 py-2"
+          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <p style={{ color: 'var(--accent-gold)', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em' }}>{t('map.sheet.recommendations')}</p>
+          <p style={{ color: 'var(--text-primary)', fontSize: 12, marginTop: 3 }}>{focusedStoryLabel ?? t('map.sheet.liveNow')}</p>
+        </div>
+      </div>
 
-      {state === 'expanded' && (
-        <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
-          {t('map.sheet.exploreMore')}
-        </p>
-      )}
+      <div
+        className="mb-3 rounded-[24px] p-4"
+        style={{
+          background: 'linear-gradient(180deg, rgba(26,29,38,0.96), rgba(18,20,28,0.98))',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 12px 28px rgba(0,0,0,0.18)',
+        }}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p style={{ color: 'var(--accent-gold)', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em' }}>{t('map.sheet.heroEyebrow')}</p>
+            <h3 style={{ color: 'var(--text-primary)', fontSize: 17, fontWeight: 700, marginTop: 6, lineHeight: 1.25 }}>
+              {t('map.sheet.heroTitle')}
+            </h3>
+          </div>
+          <div className="rounded-full p-2" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--accent-gold)' }}>
+            <Sparkles size={16} />
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(t('map.sheet.heroTags', { returnObjects: true }) as string[]).map((chip) => (
+            <span key={chip} className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{chip}</span>
+          ))}
+        </div>
+
+        {state === 'collapsed' && (
+          <p className="mt-3" style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+            {t('map.sheet.collapsedHint')}
+          </p>
+        )}
+      </div>
+
+      {mockRecs.map((rec) => (
+        <StoryRecCard key={rec.id} rec={rec} expanded={state !== 'collapsed'} {...(onQuickMiniConcierge ? { onQuickMiniConcierge } : {})} ctaText={t('map.sheet.view')} />
+      ))}
     </>
   );
 }
 
-/* ── Person view (marker tap) ── */
+function StoryRecCard({ rec, expanded, onQuickMiniConcierge, ctaText }: { rec: RecCard; expanded: boolean; onQuickMiniConcierge?: () => void; ctaText: string }) {
+  const { t } = useTranslation('ui');
+  const accent = rec.accent === 'mint' ? 'rgba(124,231,214,0.72)' : rec.accent === 'coral' ? 'rgba(255,138,112,0.68)' : 'rgba(230,201,137,0.74)';
+  const glow = '0 10px 24px rgba(0,0,0,0.14)';
+
+  return (
+    <div className="mb-3 flex gap-3 items-stretch">
+      <div
+        className="shrink-0 rounded-[22px] px-3 py-4 flex flex-col items-center justify-between"
+        style={{ width: 72, background: 'linear-gradient(180deg, rgba(23,25,34,0.98), rgba(18,20,28,0.98))', border: `1px solid ${accent}`, boxShadow: glow }}
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--accent-gold)' }}>
+          <MapPin size={16} />
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-16 w-[1px]" style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)` }} />
+          <div className="w-7 h-7 rounded-full" style={{ background: 'rgba(255,255,255,0.08)', boxShadow: `0 0 0 1px ${accent}` }} />
+        </div>
+      </div>
+
+      <div
+        className="flex-1 rounded-[24px] p-3.5"
+        style={{ background: 'linear-gradient(180deg, rgba(24,27,36,0.96), rgba(18,20,28,0.98))', border: '1px solid rgba(255,255,255,0.06)', boxShadow: glow }}
+      >
+        <div
+          className="w-full rounded-[20px] p-4 flex flex-col justify-between"
+          style={{
+            minHeight: expanded ? 164 : 126,
+            background: 'linear-gradient(180deg, rgba(37,41,53,0.9), rgba(19,21,29,0.96))',
+            border: '1px solid rgba(255,255,255,0.06)',
+          }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p style={{ color: 'var(--accent-gold)', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em' }}>{rec.eyebrow}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: 16, fontWeight: 700, lineHeight: 1.3, marginTop: 7 }}>{rec.title}</p>
+            </div>
+            <div className="rounded-full px-2 py-1" style={{ background: 'rgba(18,20,28,0.55)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <span style={{ color: 'var(--text-primary)', fontSize: 11, fontWeight: 600 }}>{rec.price}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            {rec.badges.map((badge) => (
+              <span key={badge} className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{badge}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p style={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 700 }}>{rec.host}</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.5, marginTop: 4 }}>{rec.subtitle}</p>
+          </div>
+          <div className="rounded-[16px] px-3 py-2 shrink-0" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="flex items-center gap-1.5" style={{ color: 'var(--accent-gold)', fontSize: 11, fontWeight: 700 }}>
+              <Star size={11} fill="currentColor" />
+              <span>4.9</span>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 10, marginTop: 4 }}>{rec.distance}</p>
+          </div>
+        </div>
+
+        {expanded && (
+          <div className="mt-3 grid grid-cols-[1fr_1fr_auto] gap-2 items-stretch">
+            <div className="rounded-[18px] px-3 py-2" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="flex items-center gap-2" style={{ color: 'var(--accent-gold)', fontSize: 11, fontWeight: 600 }}>
+                <CalendarDays size={12} />
+                <span>{rec.eta}</span>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 6 }}>{rec.distance}</p>
+            </div>
+            <div className="rounded-[18px] px-3 py-2" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="flex items-center gap-2" style={{ color: 'var(--accent-mint)', fontSize: 11, fontWeight: 700 }}>
+                <Clock3 size={12} />
+                <span>{t('map.sheet.routeFlexible')}</span>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 6 }}>{t('map.sheet.routePickup')}</p>
+            </div>
+            <button className="tg-btn-primary px-4 py-2 text-xs font-semibold" onClick={onQuickMiniConcierge}>
+              {ctaText}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PersonView({ user, onClose }: { user: SelectedUser; onClose?: () => void }) {
   const { t } = useTranslation('ui');
   const initials = user.initials ?? user.name.slice(0, 2);
@@ -165,82 +260,60 @@ function PersonView({ user, onClose }: { user: SelectedUser; onClose?: () => voi
     <>
       <div className="flex justify-end -mt-1 mb-2">
         {onClose && (
-          <button onClick={onClose} aria-label="Close person view">
+          <button onClick={onClose} aria-label={t('common.back')}>
             <X size={18} style={{ color: 'var(--text-secondary)' }} />
           </button>
         )}
       </div>
 
-      {/* Avatar 64px */}
-      <div className="flex flex-col items-center gap-2 mb-5">
-        <div
-          className="rounded-full flex items-center justify-center font-bold text-xl"
-          style={{
-            width: 64, height: 64,
-            background: 'var(--surface-2)',
-            color: 'var(--accent-mint)',
-            border: '2px solid #11131A',
-            boxShadow: '0 0 0 3px #7CE7D6',
-          }}
-        >
-          {initials}
-        </div>
-
-        <p className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
-          {user.name}
-        </p>
-
-        {user.distance && (
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {user.distance}
-          </p>
-        )}
-
-        {user.languages && user.languages.length > 0 && (
-          <div className="flex gap-1.5">
-            {user.languages.map((lang) => (
-              <span key={lang} className="tg-chip" style={{ fontSize: 11, padding: '2px 8px' }}>
-                {lang}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {user.activity && (
-          <span
-            className="rounded-full px-3 py-1 text-xs"
+      <div className="rounded-[28px] p-5 tg-surface">
+        <div className="flex flex-col items-center gap-3 mb-5">
+          <div
+            className="rounded-full flex items-center justify-center font-bold text-xl overflow-hidden"
             style={{
-              background: 'var(--surface-2)',
+              width: 78,
+              height: 78,
+              background: user.avatarUrl ? undefined : 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(24,27,37,0.96) 70%)',
+              backgroundImage: user.avatarUrl ? `url(${user.avatarUrl})` : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
               color: 'var(--accent-mint)',
-              border: '1px solid var(--stroke)',
+              boxShadow: '0 0 0 3px rgba(124,231,214,0.85), 0 0 20px rgba(124,231,214,0.28), 0 0 40px rgba(124,231,214,0.12)',
             }}
           >
-            {user.activity}
-          </span>
-        )}
-      </div>
+            {!user.avatarUrl && initials}
+          </div>
 
-      {/* CTA row */}
-      <div className="flex gap-2">
-        <button
-          className="flex-1 rounded-full py-2.5 text-sm font-semibold"
-          style={{ background: 'var(--accent-coral)', color: '#fff' }}
-        >
-          {t('map.sheet.sayHello')}
-        </button>
-        <button
-          className="rounded-full px-4 py-2.5 text-sm"
-          style={{ border: '1px solid var(--stroke)', color: 'var(--text-primary)' }}
-        >
-          {t('map.sheet.profile')}
-        </button>
-        <button
-          className="rounded-full px-4 py-2.5"
-          style={{ border: '1px solid var(--stroke)', color: 'var(--text-primary)' }}
-          aria-label="Chat"
-        >
-          <MessageCircle size={16} />
-        </button>
+          <div className="text-center">
+            <p style={{ color: 'var(--text-primary)', fontSize: 18, fontWeight: 700 }}>{user.name}</p>
+            {user.distance && <p style={{ color: 'var(--accent-gold)', fontSize: 12, marginTop: 4 }}>{user.distance}</p>}
+          </div>
+
+          {user.languages && user.languages.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap justify-center">
+              {user.languages.map((lang) => (
+                <span key={lang} className="tg-chip" style={{ fontSize: 11, padding: '4px 9px' }}>{lang}</span>
+              ))}
+            </div>
+          )}
+
+          {user.activity && (
+            <span className="tg-chip tg-chip-mint-active" style={{ fontSize: 12, padding: '6px 12px' }}>
+              {user.activity}
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+          <button className="tg-btn-primary py-3 text-sm font-semibold">{t('map.sheet.sayHello')}</button>
+          <button className="tg-btn-ghost py-3 text-sm font-medium">{t('map.sheet.profile')}</button>
+          <button className="tg-btn-ghost w-12 h-12 flex items-center justify-center" aria-label={t('navigation.chat')}>
+            <MessageCircle size={16} />
+          </button>
+        </div>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 11, textAlign: 'center', marginTop: 10 }}>
+          {t('map.sheet.personHint')}
+        </p>
       </div>
     </>
   );

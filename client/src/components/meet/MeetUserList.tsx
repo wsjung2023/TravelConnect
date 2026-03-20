@@ -44,12 +44,21 @@ export default function MeetUserList({ users, isLoading, onHello, onViewProfile 
   if (users.length === 0) {
     return (
       <div
-        className="flex flex-col items-center justify-center gap-3 py-12"
-        style={{ color: 'var(--text-secondary)' }}
+        className="mx-4 mt-2 rounded-[24px] px-6 py-12 text-center"
+        style={{
+          color: 'var(--text-secondary)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.025) 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 20px 44px rgba(0,0,0,0.18)',
+        }}
       >
-        <Users size={40} strokeWidth={1.5} />
-        <p className="text-sm">{t('meet.empty.noUsers')}</p>
-        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+        <div className="mb-3 flex justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'rgba(255,214,134,0.08)', color: 'var(--accent-gold)', border: '1px solid rgba(255,214,134,0.18)' }}>
+            <Users size={26} strokeWidth={1.5} />
+          </div>
+        </div>
+        <p className="text-sm" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{t('meet.empty.noUsers')}</p>
+        <p className="mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
           {t('meet.empty.openToMeetHint')}
         </p>
       </div>
@@ -63,7 +72,7 @@ export default function MeetUserList({ users, isLoading, onHello, onViewProfile 
           key={user.id}
           user={user}
           onHello={() => onHello(user.id)}
-          onViewProfile={onViewProfile ? () => onViewProfile(user.id) : undefined}
+          {...(onViewProfile ? { onViewProfile: () => onViewProfile(user.id) } : {})}
         />
       ))}
     </div>

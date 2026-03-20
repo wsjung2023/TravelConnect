@@ -1,9 +1,11 @@
-// 만나기 탭 페이지 — 레이더 + 필터 + 유저 카드 목록 (v3)
+// 만나기 탭 페이지 — 레이더 + 필터 + 유저 카드 목록 (v4)
+import { Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 import MeetTopBar from '@/components/meet/MeetTopBar';
 import MeetStatusBanner from '@/components/meet/MeetStatusBanner';
@@ -14,9 +16,9 @@ import MeetUserList from '@/components/meet/MeetUserList';
 export default function MeetPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [activeFilter, setActiveFilter] = useState<MeetFilter>('지금');
+  const { t } = useTranslation('ui');
+  const [activeFilter, setActiveFilter] = useState<MeetFilter>('now');
 
-  // Existing data hooks — untouched
   const { data: openUsers = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/users/open'],
   });
@@ -33,7 +35,7 @@ export default function MeetPage() {
       const res = await apiRequest('/api/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId, initialMessage: 'Hi there! 👋' }),
+        body: JSON.stringify({ targetUserId, initialMessage: t('meet.helloInitialMessage') }),
       });
       return res.json();
     },
@@ -41,23 +43,22 @@ export default function MeetPage() {
       navigate(`/chat?conversationId=${data.id}`);
     },
     onError: () => {
-      toast({ title: '인사 전송 실패', variant: 'destructive' });
+      toast({ title: t('meet.helloFailed'), variant: 'destructive' });
     },
   });
 
   const [isScrollingToBanner, setIsScrollingToBanner] = useState(false);
 
-  // Simple client-side filter by activity/intent keyword
   const filteredUsers = openUsers.filter((u: any) => {
-    if (activeFilter === '지금') return true;
+    if (activeFilter === 'now') return true;
     const activity = (u.currentActivity ?? u.interests?.[0] ?? '').toLowerCase();
     const map: Record<MeetFilter, string> = {
-      '지금': '',
-      '1시간': '',
-      '2km': '',
-      '저녁': 'dinner',
-      '산책': 'walk',
-      '언어교환': 'lang',
+      now: '',
+      oneHour: '',
+      within2km: '',
+      dinner: 'dinner',
+      walk: 'walk',
+      langExchange: 'lang',
     };
     return activity.includes(map[activeFilter] ?? activeFilter.toLowerCase());
   });
@@ -71,7 +72,6 @@ export default function MeetPage() {
         background: 'var(--app-bg)',
       }}
     >
-      {/* Top bar: title + online/offline toggle pill */}
       <MeetTopBar
         isOpen={isOpen}
         onToggle={() => {
@@ -82,18 +82,60 @@ export default function MeetPage() {
         isPending={isScrollingToBanner}
       />
 
-      {/* Radar visualization */}
+      <div className="px-4 pt-2">
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          {t('meet.sections.radar')}
+        </p>
+      </div>
+
       <MeetRadar users={openUsers.slice(0, 5)} />
 
-      {/* Filter chips */}
+      <div className="px-4 -mt-2 mb-3">
+        <div
+          className="rounded-[24px] p-4"
+          style={{
+            background: 'linear-gradient(180deg, rgba(25,28,36,0.96), rgba(18,20,28,0.98))',
+            border: '1px solid rgba(255,255,255,0.06)',
+            boxShadow: '0 10px 24px rgba(0,0,0,0.16)',
+          }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p style={{ color: 'var(--accent-gold)', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em' }}>{t('meet.hero.eyebrow')}</p>
+              <h2 style={{ color: 'var(--text-primary)', fontSize: 17, fontWeight: 700, marginTop: 6, lineHeight: 1.3 }}>
+                {t('meet.hero.title')}
+              </h2>
+            </div>
+            <div className="rounded-full p-2 shrink-0" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--accent-mint)' }}>
+              <Sparkles size={16} />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{t('meet.hero.nearby', { count: filteredUsers.length })}</span>
+            <span className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{t('meet.hero.fastHello')}</span>
+            <span className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{t('meet.hero.localContext')}</span>
+          </div>
+        </div>
+      </div>
+
       <MeetFilterRow active={activeFilter} onChange={setActiveFilter} />
 
-      {/* Status banner — open-to-meet toggle */}
       <div id="meet-status-banner">
         <MeetStatusBanner />
       </div>
 
-      {/* User card list */}
+      <div className="px-4 pt-1 pb-1">
+        <div className="flex items-center justify-between">
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              {t('meet.sections.travelers')}
+            </p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 4 }}>{t('meet.travelersHint')}</p>
+          </div>
+          <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{filteredUsers.length}</span>
+        </div>
+      </div>
+
       <MeetUserList
         users={filteredUsers}
         isLoading={isLoading}
