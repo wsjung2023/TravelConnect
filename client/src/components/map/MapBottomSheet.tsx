@@ -112,7 +112,7 @@ function DefaultView({
         <div
           key={rec.id}
           className="flex items-center gap-3 mb-2.5 rounded-2xl p-3"
-          style={{ background: 'var(--surface-2)', border: '1px solid var(--stroke)' }}
+          style={{ background: 'var(--surface-2)', border: '1px solid rgba(200,168,78,0.2)', boxShadow: '0 0 6px rgba(200,168,78,0.12)' }}
         >
           {/* Avatar 40px */}
           <div

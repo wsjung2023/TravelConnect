@@ -51,7 +51,7 @@ export default function ChatListItem({
           style={{
             background: avatarUrl ? 'transparent' : 'var(--surface-2)',
             color: 'var(--accent-mint)',
-            border: '2px solid var(--stroke)',
+            border: '2px solid var(--accent-gold)',
             ...(avatarUrl ? { backgroundImage: `url(${avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}),
           }}
         >
@@ -61,7 +61,7 @@ export default function ChatListItem({
         <span
           className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full"
           style={{
-            background: isOnline ? '#4ADE80' : 'var(--text-secondary)',
+            background: isOnline ? 'var(--accent-mint)' : 'var(--text-secondary)',
             border: '2px solid var(--app-bg)',
           }}
         />
@@ -109,8 +109,8 @@ export default function ChatListItem({
               <span
                 className="rounded-full px-1.5 text-xs font-bold"
                 style={{
-                  background: 'var(--accent-mint)',
-                  color: '#0A0B10',
+                  background: 'var(--accent-coral)',
+                  color: '#fff',
                   minWidth: 20,
                   height: 20,
                   lineHeight: '20px',

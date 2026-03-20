@@ -134,12 +134,12 @@ export default function ExploreCard({
         {/* Distance / location pill */}
         {location && (
           <div className="flex items-center gap-1 mt-2">
-            <MapPin size={12} style={{ color: 'var(--text-secondary)' }} />
+            <MapPin size={12} style={{ color: 'var(--accent-mint)' }} />
             <span
               className="rounded-full px-2 py-0.5 text-xs"
               style={{
-                background: 'var(--surface-2)',
-                color: 'var(--text-secondary)',
+                background: 'rgba(124,231,214,0.08)',
+                color: 'var(--accent-mint)',
               }}
             >
               {location}

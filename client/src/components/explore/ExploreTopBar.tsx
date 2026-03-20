@@ -66,9 +66,9 @@ export default function ExploreTopBar({ segment, onSegmentChange, onFilterClick,
             style={
               segment === s
                 ? {
-                    background: 'var(--surface-2)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--accent-mint)',
+                    background: 'rgba(230,201,137,0.1)',
+                    color: 'var(--accent-gold)',
+                    border: '1px solid var(--accent-gold)',
                   }
                 : {
                     background: 'transparent',

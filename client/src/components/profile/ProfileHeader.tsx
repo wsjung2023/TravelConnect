@@ -107,9 +107,10 @@ export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFo
             width: 96,
             height: 96,
             borderRadius: '50%',
+            border: '3px solid var(--accent-gold)',
             boxShadow: user.openToMeet
-              ? '0 0 0 3px var(--accent-mint), 0 0 20px rgba(124,231,214,0.45)'
-              : '0 0 0 3px var(--surface-2)',
+              ? '0 0 0 5px rgba(124,231,214,0.35), 0 0 20px rgba(124,231,214,0.3)'
+              : '0 4px 16px rgba(200,168,78,0.25)',
           }}
         >
           {user.profileImageUrl ? (
@@ -134,7 +135,7 @@ export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFo
             {displayName}
           </h2>
           {user.location && (
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 3 }}>
+            <p style={{ fontSize: 13, color: 'var(--accent-gold)', marginTop: 3, opacity: 0.85 }}>
               {user.location}
             </p>
           )}

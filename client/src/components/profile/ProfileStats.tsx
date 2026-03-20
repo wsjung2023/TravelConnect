@@ -12,7 +12,7 @@ interface StatItemProps {
 
 const StatItem = ({ value, label }: StatItemProps) => (
   <div className="flex flex-col items-center">
-    <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+    <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent-gold)', lineHeight: 1.2 }}>
       {value}
     </span>
     <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>{label}</span>
@@ -26,7 +26,8 @@ export default function ProfileStats({ visitedCountries = 0, travelDays = 0, fri
       style={{
         background: 'var(--surface-1)',
         borderRadius: 16,
-        border: '1px solid var(--stroke)',
+        border: '1px solid rgba(200,168,78,0.2)',
+        boxShadow: '0 0 8px rgba(200,168,78,0.12)',
       }}
     >
       <StatItem value={visitedCountries} label="방문국" />

@@ -31,8 +31,10 @@ export default function AppBottomNav({ activeTab, onTabChange }: AppBottomNavPro
       id="bottom-nav"
       className="fixed inset-x-0 bottom-0 z-30"
       style={{
-        background: 'var(--surface-1)',
-        borderTop: '1px solid var(--stroke)',
+        background: 'rgba(13,11,16,0.88)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(200,168,78,0.15)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
@@ -40,7 +42,7 @@ export default function AppBottomNav({ activeTab, onTabChange }: AppBottomNavPro
         {TABS.map(({ id, label, Icon }) => {
           const isActive = activeTab === id;
           const isMeet = id === 'meet';
-          const activeColor = 'var(--accent-mint)';
+          const activeColor = 'var(--accent-gold)';
           const inactiveColor = 'var(--text-secondary)';
 
           return (
@@ -57,12 +59,12 @@ export default function AppBottomNav({ activeTab, onTabChange }: AppBottomNavPro
                   style={
                     isActive
                       ? {
-                          background: 'rgba(124,231,214,0.15)',
-                          boxShadow: '0 0 0 2.5px var(--accent-mint), 0 0 14px rgba(124,231,214,0.35)',
-                          color: 'var(--accent-mint)',
+                          background: 'rgba(230,201,137,0.12)',
+                          boxShadow: '0 0 0 2.5px var(--accent-gold), 0 0 14px rgba(230,201,137,0.35)',
+                          color: 'var(--accent-gold)',
                         }
                       : {
-                          boxShadow: '0 0 0 1.5px rgba(124,231,214,0.25)',
+                          boxShadow: '0 0 0 1.5px rgba(124,231,214,0.22)',
                           color: 'var(--text-secondary)',
                         }
                   }
@@ -76,7 +78,7 @@ export default function AppBottomNav({ activeTab, onTabChange }: AppBottomNavPro
                   className="w-6 h-6 rounded-full object-cover transition-all duration-200"
                   style={
                     isActive
-                      ? { outline: '2px solid var(--accent-mint)', outlineOffset: '1px' }
+                      ? { outline: '2px solid var(--accent-gold)', outlineOffset: '1px' }
                       : undefined
                   }
                 />

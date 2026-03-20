@@ -1013,7 +1013,8 @@ input[placeholder*="검색"]:focus {
 
 .tg-surface {
   background: var(--surface-1);
-  border: 1px solid var(--stroke);
+  border: 1px solid rgba(200,168,78,0.2);
+  box-shadow: 0 0 8px rgba(200,168,78,0.15);
 }
 
 .tg-surface-2 {
@@ -1045,8 +1046,10 @@ input[placeholder*="검색"]:focus {
 
 .tg-bottom-sheet {
   border-radius: 28px 28px 0 0;
-  background: var(--surface-1);
-  border-top: 1px solid var(--stroke);
+  background: rgba(17,19,26,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(200,168,78,0.18);
 }
 
 .tg-btn-primary {

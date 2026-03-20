@@ -23,7 +23,7 @@ export default function MapTopBar({ city = '서울 강남구', activeFilter, onF
       <div className="flex items-center gap-2 px-4 pt-3 pb-2 pointer-events-auto">
         <span
           className="shrink-0 font-semibold"
-          style={{ fontSize: 16, color: 'var(--text-primary)' }}
+          style={{ fontSize: 16, color: 'var(--accent-gold)' }}
         >
           {city}
         </span>
@@ -56,8 +56,14 @@ export default function MapTopBar({ city = '서울 강남구', activeFilter, onF
           <button
             key={chip}
             onClick={() => onFilterChange(chip)}
-            className={activeFilter === chip ? 'tg-chip tg-chip-active' : 'tg-chip'}
-            style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+            className="tg-chip"
+            style={{
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              ...(activeFilter === chip
+                ? { borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)', background: 'rgba(230,201,137,0.1)' }
+                : { borderColor: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', background: 'var(--surface-2)' }),
+            }}
           >
             {chip}
           </button>
