@@ -11,7 +11,7 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react';
-import { createProfileBubbleMarker } from '@/components/map/ProfileBubbleMarker';
+import { createPeopleMarkerSvg } from '@/components/map/PeopleMarker';
 import { createStoryClusterMarker } from '@/components/map/StoryClusterMarker';
 
 // 마커 타입 정의
@@ -144,13 +144,13 @@ export function useMapMarkers({
     };
   }, []);
 
-  const createOpenUserMarker = useCallback((profileImageUrl?: string | null, name?: string) => {
+  const createOpenUserMarker = useCallback((profileImageUrl?: string | null, name?: string, openToMeet: boolean = true) => {
     if (!window.google) return null;
     const initials = name?.trim()?.slice(0, 2) || 'TG';
     return {
-      url: createProfileBubbleMarker(profileImageUrl, initials),
-      scaledSize: new window.google.maps.Size(48, 48),
-      anchor: new window.google.maps.Point(24, 24),
+      url: createPeopleMarkerSvg({ profileImageUrl, initials, openToMeet }),
+      scaledSize: new window.google.maps.Size(64, 58),
+      anchor: new window.google.maps.Point(32, 32),
     };
   }, []);
 
@@ -318,7 +318,7 @@ export function useMapMarkers({
       const lng = parseFloat(user.lastLongitude);
       if (isNaN(lat) || isNaN(lng)) return;
 
-      const icon = createOpenUserMarker(user.profileImageUrl, user.firstName || user.nickname || user.email || 'TG');
+      const icon = createOpenUserMarker(user.profileImageUrl, user.firstName || user.nickname || user.email || 'TG', user.openToMeet !== false);
       if (!icon) return;
 
       const marker = new window.google.maps.Marker({
