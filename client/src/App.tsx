@@ -62,6 +62,8 @@ const PurchaseProxy = lazy(() => import('@/pages/purchase-proxy'));
 const SlotsPage = lazy(() => import('@/pages/slots'));
 const SubscriptionPage = lazy(() => import('@/pages/subscription'));
 const ServiceRequest = lazy(() => import('@/pages/service-request'));
+const ContractPage = lazy(() => import('@/pages/contract'));
+const SerendipityPage = lazy(() => import('@/pages/serendipity'));
 
 // Simple loading component
 const LoadingSpinner = () => (
@@ -366,6 +368,26 @@ function Router() {
             <AuthGate>
               <Suspense fallback={<LoadingSpinner />}>
                 <ServiceRequest />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/contract/:id"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <ContractPage />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/serendipity"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <SerendipityPage />
               </Suspense>
             </AuthGate>
           )}
