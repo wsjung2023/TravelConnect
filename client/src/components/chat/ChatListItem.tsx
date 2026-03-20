@@ -1,5 +1,5 @@
-// 채팅 목록 단일 행 — 아바타(48px)+온라인dot+이름+국기+미읽뱃지+번역아이콘+마지막메시지+시간
-import { Languages } from 'lucide-react';
+// 채팅 목록 단일 행 — 아바타(48px)+온라인dot+이름+국기+Globe번역뱃지+미읽뱃지+마지막메시지+시간
+import { Globe } from 'lucide-react';
 
 export interface ChatListItemData {
   id: string;
@@ -80,12 +80,12 @@ export default function ChatListItem({
             </span>
             {flag && <span className="text-sm flex-shrink-0">{flag}</span>}
           </div>
-          <span
-            className="shrink-0 ml-2"
-            style={{ fontSize: 12, color: 'var(--text-secondary)' }}
-          >
-            {timeStr}
-          </span>
+          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            {hasTranslation && (
+              <Globe size={14} style={{ color: 'var(--accent-mint)' }} />
+            )}
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{timeStr}</span>
+          </div>
         </div>
 
         {/* Row 2: last message + unread badge + translation icon */}
@@ -102,9 +102,6 @@ export default function ChatListItem({
           </p>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {hasTranslation && (
-              <Languages size={14} style={{ color: 'var(--accent-mint)' }} />
-            )}
             {hasUnread && (
               <span
                 className="rounded-full px-1.5 text-xs font-bold"

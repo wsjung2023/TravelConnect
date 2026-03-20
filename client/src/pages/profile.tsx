@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useSearch } from 'wouter';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, Compass, Camera, Navigation } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -209,6 +209,26 @@ export default function Profile() {
         friends={friends}
       />
 
+      {/* Role badges row */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 20, padding: '12px 16px 4px' }}>
+        {[
+          { icon: <Compass size={16} color="var(--accent-gold)" />, label: t('profile.badge.traveler', { defaultValue: 'Traveler' }) },
+          ...(user?.userType === 'influencer' || user?.userType === 'creator'
+            ? [{ icon: <Camera size={16} color="var(--accent-gold)" />, label: t('profile.badge.creator', { defaultValue: 'Creator' }) }]
+            : []),
+          ...(user?.userType === 'local_guide'
+            ? [{ icon: <Navigation size={16} color="var(--accent-gold)" />, label: t('profile.badge.guide', { defaultValue: 'Local Guide' }) }]
+            : []),
+        ].map((b, i) => (
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-2)', border: '1.5px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px rgba(200,168,78,0.18)' }}>
+              {b.icon}
+            </div>
+            <span style={{ fontSize: 10, color: 'var(--text-secondary)', fontWeight: 500 }}>{b.label}</span>
+          </div>
+        ))}
+      </div>
+
       <div style={{ height: 12 }} />
       <ProfileLanguages languages={user?.languages} />
       <ProfileActivities interests={user?.interests} />
@@ -250,7 +270,7 @@ export default function Profile() {
               {posts.map((post: Post) => (
                 <div
                   key={post.id}
-                  className="aspect-square overflow-hidden cursor-pointer"
+                  className="aspect-square overflow-hidden cursor-pointer relative"
                   style={{ background: 'var(--surface-2)' }}
                   onClick={() => setSelectedPost(post)}
                   data-testid={`post-item-${post.id}`}
@@ -262,6 +282,13 @@ export default function Profile() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl">📷</div>
                   )}
+                  {/* Bottom overlay: ❤️ + city + 👁 */}
+                  <div className="absolute inset-x-0 bottom-0 px-1.5 py-1 flex items-center gap-1"
+                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)' }}>
+                    <span style={{ fontSize: 10, color: '#fff' }}>❤️ {post.likesCount ?? 0}</span>
+                    {post.location && <span className="truncate" style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', flex: 1 }}>{post.location}</span>}
+                    <span style={{ fontSize: 10, color: '#fff' }}>👁 {post.viewsCount ?? 0}</span>
+                  </div>
                 </div>
               ))}
             </div>

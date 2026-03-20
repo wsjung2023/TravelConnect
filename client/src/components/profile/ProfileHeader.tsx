@@ -57,22 +57,6 @@ export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFo
 
   return (
     <div>
-      {/* Open-to-meet banner */}
-      {user.openToMeet && (
-        <div
-          className="flex items-center justify-center gap-2 py-2"
-          style={{ background: 'rgba(124,231,214,0.10)', borderBottom: '1px solid var(--accent-mint)' }}
-        >
-          <span
-            className="w-2 h-2 rounded-full"
-            style={{ background: 'var(--accent-mint)', boxShadow: '0 0 6px var(--accent-mint)' }}
-          />
-          <span style={{ fontSize: 12, color: 'var(--accent-mint)', fontWeight: 500 }}>
-            Open-to-meet · {user.openMeetRegion || user.location || 'Seoul'}
-          </span>
-        </div>
-      )}
-
       {/* Cover image */}
       <div className="relative" style={{ height: 200, overflow: 'hidden' }}>
         {user.coverImageUrl ? (
@@ -80,13 +64,27 @@ export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFo
         ) : (
           <div
             className="w-full h-full"
-            style={{ background: 'linear-gradient(135deg, #1a2340 0%, #0d1520 50%, #0A0B10 100%)' }}
+            style={{ background: 'linear-gradient(135deg, #11131A 0%, #1A1D2E 50%, #0D0F14 100%)' }}
           />
         )}
         <div
           className="absolute inset-x-0 bottom-0"
           style={{ height: '60%', background: 'linear-gradient(to top, #0A0B10 0%, transparent 100%)' }}
         />
+
+        {/* Open-to-meet badge — top-right of cover */}
+        {user.openToMeet && (
+          <div
+            className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{ background: 'rgba(124,231,214,0.15)', border: '1px solid rgba(124,231,214,0.5)', backdropFilter: 'blur(8px)' }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-mint)', boxShadow: '0 0 5px var(--accent-mint)' }} />
+            <span style={{ fontSize: 11, color: 'var(--accent-mint)', fontWeight: 600 }}>
+              Open · {user.openMeetRegion || user.location || 'Seoul'}
+            </span>
+          </div>
+        )}
+
         {isOwnProfile && (
           <button
             onClick={onEdit}
