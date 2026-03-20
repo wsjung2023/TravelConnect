@@ -1,8 +1,10 @@
 // 나의 상태 배너 — open-to-meet 상태를 v3 카드로 래핑, OpenToMeetToggle 로직 재사용
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import OpenToMeetToggle from '@/components/OpenToMeetToggle';
 
 export default function MeetStatusBanner() {
+  const { t } = useTranslation('ui');
   const { data: openStatus } = useQuery<any>({ queryKey: ['/api/profile/open'] });
   const isOpen = openStatus?.openToMeet ?? false;
 
@@ -18,7 +20,7 @@ export default function MeetStatusBanner() {
         className="text-xs font-semibold mb-2"
         style={{ color: isOpen ? 'var(--accent-mint)' : 'var(--text-secondary)' }}
       >
-        나의 상태
+        {t('meet.myStatus')}
       </p>
       <OpenToMeetToggle />
     </div>

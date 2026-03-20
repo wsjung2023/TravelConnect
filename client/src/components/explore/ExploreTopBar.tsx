@@ -1,6 +1,7 @@
 // 탐색 탭 상단바 — "탐색" 제목 + 세그먼트 컨트롤 + 필터 아이콘
 import type { CSSProperties } from 'react';
 import { SlidersHorizontal, PenLine } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const SEGMENTS = ['추천', '주변', '릴스', '로컬호스트', '경로'] as const;
 export type ExploreSegment = typeof SEGMENTS[number];
@@ -12,7 +13,16 @@ interface Props {
   onCreateClick?: () => void;
 }
 
+const SEGMENT_KEYS: Record<ExploreSegment, string> = {
+  '추천': 'explore.segments.recommended',
+  '주변': 'explore.segments.nearby',
+  '릴스': 'explore.segments.reels',
+  '로컬호스트': 'explore.segments.localhost',
+  '경로': 'explore.segments.routes',
+};
+
 export default function ExploreTopBar({ segment, onSegmentChange, onFilterClick, onCreateClick }: Props) {
+  const { t } = useTranslation('ui');
   return (
     <div
       className="sticky top-0 z-10"
@@ -20,7 +30,7 @@ export default function ExploreTopBar({ segment, onSegmentChange, onFilterClick,
     >
       {/* Title row */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>탐색</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{t('explore.title')}</h1>
         <div className="flex items-center gap-2">
           {onCreateClick && (
             <button
@@ -67,7 +77,7 @@ export default function ExploreTopBar({ segment, onSegmentChange, onFilterClick,
                   }
             }
           >
-            {s}
+            {t(SEGMENT_KEYS[s])}
           </button>
         ))}
       </div>

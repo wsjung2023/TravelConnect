@@ -1,5 +1,6 @@
 // 탐색 탭 카드 목록 — ExploreCard 수직 스크롤 + 로딩/빈 상태
 import { Compass } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ExploreCard, { type ExploreCardProps } from './ExploreCard';
 
 interface Props {
@@ -25,6 +26,7 @@ const SkeletonCard = () => (
 );
 
 export default function ExploreGrid({ items, isLoading }: Props) {
+  const { t } = useTranslation('ui');
   if (isLoading) {
     return (
       <div className="pt-2">
@@ -40,7 +42,7 @@ export default function ExploreGrid({ items, isLoading }: Props) {
         style={{ color: 'var(--text-secondary)' }}
       >
         <Compass size={40} strokeWidth={1.5} />
-        <p className="text-sm">주변 장소를 불러오는 중...</p>
+        <p className="text-sm">{t('explore.emptyLoading')}</p>
       </div>
     );
   }

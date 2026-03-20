@@ -1,4 +1,6 @@
 // 만나기 탭 상단바 — "지금 만날 사람" 제목 + 온라인/오프라인 상태 pill
+import { useTranslation } from 'react-i18next';
+
 interface Props {
   isOpen: boolean;
   onToggle: () => void;
@@ -6,13 +8,14 @@ interface Props {
 }
 
 export default function MeetTopBar({ isOpen, onToggle, isPending }: Props) {
+  const { t } = useTranslation('ui');
   return (
     <div
       className="flex items-center justify-between px-4 pt-4 pb-3"
       style={{ background: 'var(--app-bg)' }}
     >
       <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
-        지금 만날 사람
+        {t('meet.title')}
       </h1>
 
       <button
@@ -37,7 +40,7 @@ export default function MeetTopBar({ isOpen, onToggle, isPending }: Props) {
           className="w-2 h-2 rounded-full"
           style={{ background: isOpen ? 'var(--accent-mint)' : 'var(--text-secondary)' }}
         />
-        {isOpen ? '온라인' : '오프라인'}
+        {isOpen ? t('meet.online') : t('meet.offline')}
       </button>
     </div>
   );

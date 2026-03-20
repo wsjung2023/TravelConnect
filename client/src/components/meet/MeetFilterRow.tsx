@@ -1,6 +1,7 @@
 // 만나기 탭 필터 칩 행 — 지금/1시간/2km/저녁/산책/언어교환 가로 스크롤
 import type { CSSProperties, ReactNode } from 'react';
 import { Clock, MapPin, Utensils, PersonStanding, MessageSquare, Timer } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const MEET_FILTERS = ['지금', '1시간', '2km', '저녁', '산책', '언어교환'] as const;
 export type MeetFilter = typeof MEET_FILTERS[number];
@@ -19,7 +20,17 @@ interface Props {
   onChange: (f: MeetFilter) => void;
 }
 
+const FILTER_KEYS: Record<MeetFilter, string> = {
+  '지금':    'meet.filter.now',
+  '1시간':   'meet.filter.1hour',
+  '2km':     'meet.filter.2km',
+  '저녁':    'meet.filter.dinner',
+  '산책':    'meet.filter.walk',
+  '언어교환': 'meet.filter.langExchange',
+};
+
 export default function MeetFilterRow({ active, onChange }: Props) {
+  const { t } = useTranslation('ui');
   return (
     <div
       className="flex gap-2 px-4 py-2 overflow-x-auto"
@@ -45,7 +56,7 @@ export default function MeetFilterRow({ active, onChange }: Props) {
           }
         >
           {ICONS[f]}
-          {f}
+          {t(FILTER_KEYS[f])}
         </button>
       ))}
     </div>

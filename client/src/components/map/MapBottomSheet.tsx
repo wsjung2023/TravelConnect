@@ -3,6 +3,7 @@
 // 기본 뷰: 추천 카드 / 마커 탭 시: 인물 카드
 import { useRef } from 'react';
 import { MessageCircle, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export type MapSheetState = 'collapsed' | 'half' | 'expanded';
 
@@ -100,10 +101,11 @@ function DefaultView({
   state: MapSheetState;
   onQuickMiniConcierge?: () => void;
 }) {
+  const { t } = useTranslation('ui');
   return (
     <>
       <p className="text-sm font-semibold mb-3 mt-1" style={{ color: 'var(--text-primary)' }}>
-        '지금 1시간, 뭐 하지?'
+        {t('map.sheet.title')}
       </p>
 
       {MOCK_RECS.map((rec) => (
@@ -140,14 +142,14 @@ function DefaultView({
             className="shrink-0 tg-btn-primary rounded-full px-3 py-1.5 text-xs font-medium"
             onClick={onQuickMiniConcierge}
           >
-            보기
+            {t('map.sheet.view')}
           </button>
         </div>
       ))}
 
       {state === 'expanded' && (
         <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
-          주변 더 많은 활동을 탐색하세요
+          {t('map.sheet.exploreMore')}
         </p>
       )}
     </>
@@ -156,6 +158,7 @@ function DefaultView({
 
 /* ── Person view (marker tap) ── */
 function PersonView({ user, onClose }: { user: SelectedUser; onClose?: () => void }) {
+  const { t } = useTranslation('ui');
   const initials = user.initials ?? user.name.slice(0, 2);
 
   return (
@@ -223,13 +226,13 @@ function PersonView({ user, onClose }: { user: SelectedUser; onClose?: () => voi
           className="flex-1 rounded-full py-2.5 text-sm font-semibold"
           style={{ background: 'var(--accent-coral)', color: '#fff' }}
         >
-          인사 보내기
+          {t('map.sheet.sayHello')}
         </button>
         <button
           className="rounded-full px-4 py-2.5 text-sm"
           style={{ border: '1px solid var(--stroke)', color: 'var(--text-primary)' }}
         >
-          프로필
+          {t('map.sheet.profile')}
         </button>
         <button
           className="rounded-full px-4 py-2.5"

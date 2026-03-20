@@ -1,6 +1,7 @@
 // MapTopBar — floating overlay over the map: city label + search pill + bell + filter chips
 import type { CSSProperties } from 'react';
 import { Bell, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const FILTER_CHIPS = ['Nearby', 'Stories', 'Meet', 'Food', 'Photo'] as const;
 export type MapFilter = typeof FILTER_CHIPS[number];
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function MapTopBar({ city = '서울 강남구', activeFilter, onFilterChange }: Props) {
+  const { t } = useTranslation('ui');
   return (
     <div
       className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
@@ -32,7 +34,7 @@ export default function MapTopBar({ city = '서울 강남구', activeFilter, onF
         >
           <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
           <span className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
-            어디 / 누구 / 분위기
+            {t('map.searchPlaceholder')}
           </span>
         </div>
 

@@ -1,5 +1,6 @@
 // 만나기 유저 카드 목록 — UserCard 수직 스크롤 + 스켈레톤/빈 상태
 import { Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import UserCard from './UserCard';
 
 interface Props {
@@ -31,6 +32,7 @@ const SkeletonCard = () => (
 );
 
 export default function MeetUserList({ users, isLoading, onHello, onViewProfile }: Props) {
+  const { t } = useTranslation('ui');
   if (isLoading) {
     return (
       <div className="pt-2">
@@ -46,9 +48,9 @@ export default function MeetUserList({ users, isLoading, onHello, onViewProfile 
         style={{ color: 'var(--text-secondary)' }}
       >
         <Users size={40} strokeWidth={1.5} />
-        <p className="text-sm">근처에 지금 만날 수 있는 여행자가 없어요</p>
+        <p className="text-sm">{t('meet.empty.noUsers')}</p>
         <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-          Open to Meet을 켜면 다른 여행자에게 보여요
+          {t('meet.empty.openToMeetHint')}
         </p>
       </div>
     );

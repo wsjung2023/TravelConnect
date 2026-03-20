@@ -1,12 +1,14 @@
 // 채팅 탭 상단바 — "채팅" 제목 + 검색 아이콘 + 검색 인풋 토글
 import { useState } from 'react';
 import { Search, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   onSearchChange?: (q: string) => void;
 }
 
 export default function ChatTopBar({ onSearchChange }: Props) {
+  const { t } = useTranslation('ui');
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -37,7 +39,7 @@ export default function ChatTopBar({ onSearchChange }: Props) {
               autoFocus
               className="flex-1 bg-transparent text-sm outline-none"
               style={{ color: 'var(--text-primary)' }}
-              placeholder="대화 검색..."
+              placeholder={t('chat.searchPlaceholder')}
               value={query}
               onChange={(e) => handleChange(e.target.value)}
             />
@@ -50,7 +52,7 @@ export default function ChatTopBar({ onSearchChange }: Props) {
         /* Title row */
         <div className="flex items-center justify-between">
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
-            채팅
+            {t('chat.title')}
           </h1>
           <button
             onClick={() => setSearchOpen(true)}
