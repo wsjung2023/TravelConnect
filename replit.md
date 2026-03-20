@@ -96,3 +96,43 @@ Translation data must be managed in the database (`translations` table), not har
 - **Radix UI**: Accessible component primitives
 - **Tailwind CSS**: Utility-first styling framework
 - **Class Variance Authority**: Component variant management
+## UI/UX v3 업그레이드 현황 (2026-03-20)
+
+### 완료된 작업
+- **Ticket 1**: AppShell 통합 ? AppBottomNav 5탭, 만나기 탭 민트 글로우링
+- **Ticket 2**: 디자인 토큰 ? `--app-bg:#0A0B10`, `--accent-gold:#E6C989`, `--accent-mint:#7CE7D6`, `--accent-coral:#FF8A70`
+- **Ticket 3**: Map 탭 ? MapTopBar(골드 도시명+검색필+벨), MapFilterChips, PeopleMarker(민트 글로우링 SVG), MapBottomSheet(3단 스냅, 글래스모피즘)
+- **Ticket 4**: Explore 탭 ? ExploreTopBar, CategoryTabs, ExploreCard(이미지 200px+그라데이션), 2열 그리드
+- **Ticket 5**: Meet 탭 ? RadarView(레이더 스캔 애니메이션), MeetTopBar, MeetFilterRow, UserCard(80px 아바타+민트 글로우+코럴 CTA), MeetStatusBanner
+- **Ticket 6**: Chat 탭 ? ChatTopBar, ChatListItem(골드 아바타링+코럴 읽지않음 배지+번역 아이콘), ChatList(섹션헤더)
+- **Ticket 7**: Me/Profile 탭 ? ProfileHeader(96px+민트 글로우+커버포토), ProfileStats, ProfileLanguages, ProfileActivities, ProfileSettingsSection, 역할 배지, 3열 포토그리드
+- **Ticket 8**: 피드 포스트 상세 ? 히어로 이미지, 작성자 행, 가이드 제안 카드(블루 보더), 댓글 섹션
+- **Ticket 9**: 체험 상세 ? 히어로 260px, 호스트 카드(ShieldCheck 뱃지), 인포칩, 확장 설명, 미니 캘린더, 리뷰, 스티키 바텀바
+- **Ticket 10**: 서비스 요청 ? 요청서 폼 v3 스타일
+- **Ticket 11**: P2P 에스크로 계약 ? 계약 화면 v3 스타일
+- **Ticket 12**: 세런디피티 모먼트 ? 대형 민트 오비탈 링, 두 아바타 매칭 시각화, 미니맵, CTA
+
+### 전역 스킨 (2026-03-20 적용)
+- 전체 배경: 순수 블랙 `#0A0B10` (보라 계열 전면 제거)
+- 모든 카드: `border: 1px solid rgba(200,168,78,0.2)` + `box-shadow: 0 0 12px rgba(200,168,78,0.08)`
+- 탭바: `backdrop-filter: blur(10px)`, 활성탭 골드
+- 바텀시트: `backdrop-filter: blur(16px)` + 글래스모피즘
+- 모든 CTA 버튼: `var(--accent-coral)` #FF8A70
+- 아웃라인 버튼: 골드 테두리
+- 지도 마커: 원형 아바타 + 민트 네온 글로우링 SVG
+
+### i18n Seed 스크립트 (Replit에서 1회 실행 필요)
+```
+npx tsx scripts/seed-uiux-v3-translations.ts
+npx tsx scripts/seed-uiux-v3-translations-t8.ts
+npx tsx scripts/seed-uiux-v3-translations-t9.ts
+npx tsx scripts/seed-uiux-v3-translations-t10.ts
+npx tsx scripts/seed-uiux-v3-translations-t11.ts
+npx tsx scripts/seed-uiux-v3-translations-t12.ts
+```
+
+### 진행 중 / 잔여 작업
+- [ ] 세런디피티 페이지 대형 오비탈 링 시각화 최종 완성
+- [ ] 전체 앱 페이지 순회 골드/다크 테마 일관성 검증
+- [ ] Replit에서 seed 스크립트 실행 (i18n 키 DB 등록)
+- [ ] 컨셉아트 10개와 실제 화면 1:1 스크린샷 비교 검증
