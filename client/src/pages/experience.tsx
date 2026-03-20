@@ -1,13 +1,12 @@
-// @ts-nocheck
-// 체험 페이지 — 로컬 가이드가 등록한 체험 상품 목록을 조회하고 예약하는 화면.
+// 여행 체험 상품 상세 — v3 컨셉아트 기반 리디자인 (히어로/호스트카드/정보칩/설명/체크리스트/달력/리뷰/스티키바)
 import { useRoute, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, Users, MapPin, Star, Heart, User } from 'lucide-react';
+import {
+  ArrowLeft, MapPin, Clock, Users, Star,
+  CheckCircle2, Globe, ChevronDown, ChevronUp, ShieldCheck,
+} from 'lucide-react';
 import BookingModal from '@/components/BookingModal';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -29,10 +28,26 @@ interface Experience {
     firstName?: string;
     lastName?: string;
     profileImageUrl?: string;
+    isVerified?: boolean;
   };
   included: string[];
   requirements: string[];
   cancelPolicy: string;
+}
+
+interface Review {
+  id: number;
+  authorName: string;
+  authorAvatar?: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+function buildCalendar(year: number, month: number) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  return { firstDay, daysInMonth };
 }
 
 export default function ExperienceDetailPage() {
@@ -40,67 +55,61 @@ export default function ExperienceDetailPage() {
   const [, params] = useRoute('/experience/:id');
   const { user } = useAuth();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const experienceId = params?.id;
+
+  const now = new Date();
+  const calYear = now.getFullYear();
+  const calMonth = now.getMonth();
+  const { firstDay, daysInMonth } = buildCalendar(calYear, calMonth);
+  const availableDays = Array.from({ length: daysInMonth }, (_, i) => {
+    const d = new Date(calYear, calMonth, i + 1);
+    return d.getDay() === 5 || d.getDay() === 6 || d.getDay() === 0;
+  });
 
   const { data: experience, isLoading, error } = useQuery<Experience>({
     queryKey: ['/api/experiences', experienceId],
     queryFn: async () => {
-      const response = await fetch(`/api/experiences/${experienceId}`);
-      if (!response.ok) throw new Error('Failed to fetch experience');
-      return response.json();
+      const r = await fetch(`/api/experiences/${experienceId}`);
+      if (!r.ok) throw new Error('Failed to fetch experience');
+      return r.json();
     },
     enabled: !!experienceId,
   });
 
-  const formatPrice = (price: string, currency: string = 'USD') => {
-    const numPrice = parseFloat(price);
+  const { data: reviews = [] } = useQuery<Review[]>({
+    queryKey: ['/api/experiences', experienceId, 'reviews'],
+    queryFn: async () => {
+      const r = await fetch(`/api/experiences/${experienceId}/reviews`);
+      if (!r.ok) return [];
+      return r.json();
+    },
+    enabled: !!experienceId,
+  });
+
+  const formatPrice = (price: string, currency = 'USD') => {
     try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency
-      }).format(numPrice);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(parseFloat(price));
     } catch {
-      return `$${numPrice.toFixed(2)}`;
+      return `$${parseFloat(price).toFixed(2)}`;
     }
   };
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return t('experiencePage.minutes', { count: minutes });
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return remainingMinutes > 0 
-      ? t('experiencePage.hoursMinutes', { hours, minutes: remainingMinutes })
-      : t('experiencePage.hours', { count: hours });
-  };
-
-  const getCategoryLabel = (category: string) => {
-    const categoryMap: Record<string, string> = {
-      tour: t('experiencePage.tour'),
-      food: t('experiencePage.food'),
-      activity: t('experiencePage.activityCat'),
-      tip: t('experiencePage.tip'),
-    };
-    return categoryMap[category] || category;
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'tour': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'food': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      case 'activity': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'tip': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    }
+    if (minutes < 60) return t('exp.detail.minutes', { count: minutes });
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0
+      ? t('exp.detail.hoursMinutes', { hours: h, minutes: m })
+      : t('exp.detail.hours', { count: h });
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('experiencePage.loading')}</p>
-          </div>
+      <div style={{ minHeight: '100vh', background: 'var(--app-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: 32, height: 32, border: '3px solid var(--accent-mint)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{t('exp.detail.loading')}</p>
         </div>
       </div>
     );
@@ -108,198 +117,216 @@ export default function ExperienceDetailPage() {
 
   if (error || !experience) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-foreground mb-4">{t('experiencePage.notFound')}</h2>
-            <p className="text-muted-foreground mb-6">{t('experiencePage.notFoundDesc')}</p>
-            <Button onClick={() => window.history.back()} data-testid="button-back">
-              {t('experiencePage.back')}
-            </Button>
-          </div>
+      <div style={{ minHeight: '100vh', background: 'var(--app-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ color: 'var(--text-primary)', fontSize: 20, fontWeight: 600, marginBottom: 8 }}>{t('exp.detail.notFound')}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>{t('exp.detail.notFoundDesc')}</p>
+          <button onClick={() => window.history.back()} className="tg-btn-primary"
+            style={{ padding: '10px 24px', border: 'none', cursor: 'pointer', fontSize: 14 }} data-testid="button-back">
+            {t('exp.detail.back')}
+          </button>
         </div>
       </div>
     );
   }
 
+  const hostName = experience.host?.firstName && experience.host?.lastName
+    ? `${experience.host.firstName} ${experience.host.lastName}`
+    : t('exp.detail.hostCard.unknownHost');
+  const heroImage = experience.images?.[0] || null;
+  const DESC_LIMIT = 180;
+  const shortDesc = experience.description.length > DESC_LIMIT
+    ? experience.description.slice(0, DESC_LIMIT) + '…'
+    : experience.description;
+  const weekDays = t('exp.detail.availability.weekDays').split(',');
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-4">
-        {/* Header */}
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => window.history.back()}
-            className="mb-4"
-            data-testid="button-back"
-          >
-            ← {t('experiencePage.back')}
-          </Button>
-          
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className={getCategoryColor(experience.category)}>
-                  {getCategoryLabel(experience.category)}
-                </Badge>
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{experience.rating}</span>
-                  <span className="text-sm text-muted-foreground">({experience.reviewCount})</span>
-                </div>
-              </div>
-              
-              <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="text-title">
-                {experience.title}
-              </h1>
-              
-              <div className="flex items-center gap-4 text-muted-foreground mb-4">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">{experience.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-sm">{formatDuration(experience.duration)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span className="text-sm">{t('experiencePage.max')} {experience.maxParticipants}{t('experiencePage.people')}</span>
-                </div>
-              </div>
-            </div>
-            
-            <Button variant="outline" size="icon">
-              <Heart className="w-4 h-4" />
-            </Button>
+    <div style={{ background: 'var(--app-bg)', minHeight: '100vh', paddingBottom: 88 }}>
+
+      {/* Hero */}
+      <div style={{ position: 'relative', width: '100%', height: 260, overflow: 'hidden', background: 'var(--surface-1)', flexShrink: 0 }}>
+        {heroImage ? (
+          <img src={heroImage} alt={experience.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, var(--surface-1), var(--surface-2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56 }}>
+            🌏
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('experiencePage.description')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-foreground leading-relaxed" data-testid="text-description">
-                  {experience.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Host Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('experiencePage.guideInfo')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link 
-                  to={`/guide/${experience.hostId}`}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  data-testid="link-guide-profile"
-                >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg font-medium">
-                    {experience.host?.firstName?.[0] || <User className="w-6 h-6" />}
-                    {experience.host?.lastName?.[0] || ''}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {experience.host?.firstName && experience.host?.lastName 
-                        ? `${experience.host.firstName} ${experience.host.lastName}`
-                        : t('experiencePage.guide')
-                      }
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {t('experiencePage.viewGuideProfile')}
-                    </p>
-                  </div>
-                  <div className="text-blue-600 dark:text-blue-400">
-                    <Star className="w-5 h-5" />
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* What's Included */}
-            {experience.included && experience.included.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('experiencePage.includes')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {experience.included.map((item, index) => (
-                      <li key={index} className="flex items-center gap-2 text-foreground">
-                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Requirements */}
-            {experience.requirements && experience.requirements.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('experiencePage.requirements')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {experience.requirements.map((item, index) => (
-                      <li key={index} className="flex items-center gap-2 text-foreground">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Booking Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-foreground" data-testid="text-price">
-                    {formatPrice(experience.price, experience.currency)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">{t('experiencePage.perPerson')}</div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full travel-button text-lg"
-                  onClick={() => setIsBookingModalOpen(true)}
-                  disabled={!user}
-                  data-testid="button-book"
-                >
-                  {user ? t('experiencePage.bookNow') : t('experiencePage.loginToBook')}
-                </Button>
-                
-                <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-                  <div className="flex justify-between">
-                    <span>{t('experiencePage.cancelPolicy')}</span>
-                    <span className="capitalize">{experience.cancelPolicy}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t('experiencePage.maxParticipants')}</span>
-                    <span>{experience.maxParticipants}{t('experiencePage.people')}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        )}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,11,16,0.55) 0%, transparent 40%, rgba(10,11,16,0.6) 100%)' }} />
+        <button onClick={() => window.history.back()} data-testid="button-back"
+          style={{ position: 'absolute', top: 16, left: 16, width: 36, height: 36, borderRadius: '50%', background: 'rgba(10,11,16,0.7)', border: '1px solid var(--stroke)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}>
+          <ArrowLeft size={18} />
+        </button>
+        <div data-testid="text-price"
+          style={{ position: 'absolute', top: 16, right: 16, background: 'var(--accent-gold)', color: '#111', borderRadius: 8, padding: '6px 12px', fontWeight: 700, fontSize: 15, lineHeight: 1 }}>
+          {formatPrice(experience.price, experience.currency)}
         </div>
       </div>
 
-      {/* Booking Modal */}
+      <div style={{ padding: '16px 16px 0' }}>
+
+        {/* Host card */}
+        <Link to={`/guide/${experience.hostId}`} data-testid="link-guide-profile">
+          <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, cursor: 'pointer', textDecoration: 'none' }}>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', background: 'var(--surface-2)', border: '2px solid var(--stroke)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontWeight: 600, fontSize: 18 }}>
+                {experience.host?.profileImageUrl
+                  ? <img src={experience.host.profileImageUrl} alt={hostName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : (experience.host?.firstName?.[0] || '?').toUpperCase()}
+              </div>
+              <ShieldCheck size={16} style={{ position: 'absolute', bottom: -2, right: -2, color: 'var(--accent-blue)', background: 'var(--app-bg)', borderRadius: '50%', padding: 1 }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 14 }}>{hostName}</span>
+                <span style={{ background: 'rgba(107,168,255,0.15)', color: 'var(--accent-blue)', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>{t('exp.detail.hostCard.verifiedBadge')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                <Star size={12} fill="var(--accent-gold)" color="var(--accent-gold)" />
+                <span style={{ color: 'var(--accent-gold)', fontSize: 13, fontWeight: 600 }}>{experience.rating}</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>({experience.reviewCount} {t('exp.detail.hostCard.reviews')})</span>
+              </div>
+            </div>
+            <span style={{ color: 'var(--accent-mint)', fontSize: 12, flexShrink: 0 }}>{t('exp.detail.hostCard.viewProfile')} →</span>
+          </div>
+        </Link>
+
+        {/* Title + location */}
+        <h1 data-testid="text-title"
+          style={{ color: 'var(--text-primary)', fontSize: 22, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 }}>
+          {experience.title}
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+          <MapPin size={14} color="var(--text-secondary)" />
+          <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{experience.location}</span>
+        </div>
+
+        {/* Info chips */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+          <div className="tg-chip" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Clock size={13} color="var(--accent-mint)" />
+            <span>{formatDuration(experience.duration)}</span>
+          </div>
+          <div className="tg-chip" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Globe size={13} color="var(--accent-mint)" />
+            <span>{(experience as any).language || t('exp.detail.infoChip.langDefault')}</span>
+          </div>
+          <div className="tg-chip" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Users size={13} color="var(--accent-mint)" />
+            <span>{t('exp.detail.infoChip.maxPeople', { count: experience.maxParticipants })}</span>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 }}>
+          <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>{t('exp.detail.description')}</h3>
+          <p data-testid="text-description" style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.65, margin: 0 }}>
+            {descExpanded ? experience.description : shortDesc}
+          </p>
+          {experience.description.length > DESC_LIMIT && (
+            <button onClick={() => setDescExpanded(!descExpanded)}
+              style={{ marginTop: 8, color: 'var(--accent-mint)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4, padding: 0 }}>
+              {descExpanded
+                ? <><ChevronUp size={14} />{t('exp.detail.descCollapse')}</>
+                : <><ChevronDown size={14} />{t('exp.detail.descExpand')}</>}
+            </button>
+          )}
+        </div>
+
+        {/* Included checklist */}
+        {experience.included && experience.included.length > 0 && (
+          <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 }}>
+            <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 15, marginBottom: 12 }}>{t('exp.detail.includes.title')}</h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {experience.included.map((item, i) => (
+                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <CheckCircle2 size={16} color="var(--accent-mint)" style={{ flexShrink: 0 }} />
+                  <span style={{ color: 'var(--text-primary)', fontSize: 14 }}>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Mini calendar */}
+        <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 }}>
+          <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 15, marginBottom: 12 }}>{t('exp.detail.availability.title')}</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, textAlign: 'center' }}>
+            {weekDays.map((d, i) => (
+              <div key={i} style={{ fontSize: 11, color: 'var(--text-secondary)', paddingBottom: 4 }}>{d}</div>
+            ))}
+            {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
+            {availableDays.map((avail, i) => (
+              <div key={i} style={{ fontSize: 12, width: 28, height: 28, borderRadius: '50%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: avail ? 'rgba(124,231,214,0.15)' : 'transparent', color: avail ? 'var(--accent-mint)' : 'var(--text-secondary)', fontWeight: avail ? 600 : 400 }}>
+                {i + 1}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-mint)' }} />
+              <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('exp.detail.availability.available')}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--surface-2)', border: '1px solid var(--stroke)' }} />
+              <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('exp.detail.availability.unavailable')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 15 }}>{t('exp.detail.reviews.title')}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Star size={13} fill="var(--accent-gold)" color="var(--accent-gold)" />
+              <span style={{ color: 'var(--accent-gold)', fontWeight: 600, fontSize: 14 }}>{experience.rating}</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>({experience.reviewCount})</span>
+            </div>
+          </div>
+          {reviews.length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13, textAlign: 'center', padding: '8px 0', margin: 0 }}>{t('exp.detail.reviews.empty')}</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {reviews.slice(0, 3).map((review) => (
+                <div key={review.id} style={{ borderTop: '1px solid var(--stroke)', paddingTop: 12, paddingBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0 }}>
+                      {review.authorName[0]}
+                    </div>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 13 }}>{review.authorName}</span>
+                    <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
+                      {Array.from({ length: Math.min(review.rating, 5) }).map((_, i) => (
+                        <Star key={i} size={11} fill="var(--accent-gold)" color="var(--accent-gold)" />
+                      ))}
+                    </div>
+                  </div>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.5, margin: 0 }}>{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* Sticky bottom bar */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--surface-1)', borderTop: '1px solid var(--stroke)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, zIndex: 50 }}>
+        <div style={{ flexShrink: 0 }}>
+          <div data-testid="text-price-sticky" style={{ color: 'var(--accent-gold)', fontWeight: 700, fontSize: 18, lineHeight: 1 }}>
+            {formatPrice(experience.price, experience.currency)}
+          </div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 11, marginTop: 2 }}>{t('exp.detail.perPerson')}</div>
+        </div>
+        <button className="tg-btn-primary"
+          style={{ flex: 1, padding: '14px 0', border: 'none', cursor: user ? 'pointer' : 'not-allowed', opacity: user ? 1 : 0.55, fontSize: 15, fontWeight: 600 }}
+          onClick={() => user && setIsBookingModalOpen(true)}
+          disabled={!user}
+          data-testid="button-book">
+          {user ? t('exp.detail.bookNow') : t('exp.detail.loginToBook')}
+        </button>
+      </div>
+
       {isBookingModalOpen && (
         <BookingModal
           experience={experience}
