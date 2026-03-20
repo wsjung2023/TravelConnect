@@ -22,8 +22,8 @@ interface Comment {
 interface CommentsSectionProps {
   postId: number;
   postOwnerId?: string;
-  currentUserId?: string;
-  onReply?: (parentId: number) => void;
+  currentUserId?: string | undefined;
+  onReply?: ((parentId: number) => void) | undefined;
 }
 
 /* ── Offer card ── */
@@ -141,8 +141,8 @@ function CommentItem({ comment, replies, isPostOwner, currentUserId, onReply, on
   comment: Comment;
   replies: Comment[];
   isPostOwner: boolean;
-  currentUserId?: string;
-  onReply?: (parentId: number) => void;
+  currentUserId?: string | undefined;
+  onReply?: ((parentId: number) => void) | undefined;
   onAcceptOffer: (id: number) => void;
   onDeclineOffer: (id: number) => void;
   depth?: number;
@@ -161,8 +161,10 @@ function CommentItem({ comment, replies, isPostOwner, currentUserId, onReply, on
           onDecline={() => onDeclineOffer(comment.id as number)}
         />
         {replies.map((r) => (
-          <CommentItem key={r.id} comment={r} replies={[]} isPostOwner={isPostOwner} currentUserId={currentUserId}
-            onReply={onReply} onAcceptOffer={onAcceptOffer} onDeclineOffer={onDeclineOffer} depth={depth + 1} />
+          <CommentItem key={r.id} comment={r} replies={[]} isPostOwner={isPostOwner}
+            {...(currentUserId !== undefined ? { currentUserId } : {})}
+            {...(onReply ? { onReply } : {})}
+            onAcceptOffer={onAcceptOffer} onDeclineOffer={onDeclineOffer} depth={depth + 1} />
         ))}
       </div>
     );
@@ -204,8 +206,10 @@ function CommentItem({ comment, replies, isPostOwner, currentUserId, onReply, on
       {replies.length > 0 && (
         <div className="mt-2">
           {replies.map((r) => (
-            <CommentItem key={r.id} comment={r} replies={[]} isPostOwner={isPostOwner} currentUserId={currentUserId}
-              onReply={onReply} onAcceptOffer={onAcceptOffer} onDeclineOffer={onDeclineOffer} depth={depth + 1} />
+            <CommentItem key={r.id} comment={r} replies={[]} isPostOwner={isPostOwner}
+              {...(currentUserId !== undefined ? { currentUserId } : {})}
+              {...(onReply ? { onReply } : {})}
+              onAcceptOffer={onAcceptOffer} onDeclineOffer={onDeclineOffer} depth={depth + 1} />
           ))}
         </div>
       )}

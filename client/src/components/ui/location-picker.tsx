@@ -266,7 +266,6 @@ export function LocationPicker({
                 type="text"
                 placeholder={placeholder}
                 className="pl-9"
-                defaultValue=""
               />
             </div>
           </div>

@@ -56,7 +56,40 @@
     "noDescription": "No description",
     "lastMessage": "Last message",
     "translated": "Translated",
-    "aiConcierge": "AI Concierge"
+    "aiConcierge": "AI Concierge",
+    "repliesCount": "Replies Count",
+    "empty": {
+      "title": "No conversations yet",
+      "hint": "Start a new chat to see messages here."
+    },
+    "group": {
+      "today": "Today",
+      "thisWeek": "This week",
+      "older": "Older"
+    },
+    "searchPlaceholder": "Search conversations",
+    "title": "Chat",
+    "closeSearch": "Close search",
+    "openSearch": "Search",
+    "subtitle": "Keep fast translations, intros, and follow-ups in one place.",
+    "chips": {
+      "translationReady": "Translation ready",
+      "recentIntros": "Recent intros",
+      "quickReplies": "Quick replies"
+    },
+    "summary": {
+      "eyebrow": "Inbox flow",
+      "title": "Continue active travel conversations without losing translation context.",
+      "activeThreads": "{{count}} active threads",
+      "translationOnDemand": "Translation on demand",
+      "replyFaster": "Reply faster"
+    },
+    "item": {
+      "translation": "Translation",
+      "onlineNow": "Online now",
+      "fallbackMessage": "Start the conversation with a simple hello."
+    },
+    "translationFailed": "Translation failed"
   },
   "themes": {
     "restaurant": "Restaurant",
@@ -187,7 +220,76 @@
     "locationPlaceholder": "Where is this story from?",
     "addPhoto": "Add Photo",
     "posting": "Posting...",
-    "publish": "Publish"
+    "publish": "Publish",
+    "addMedia": "Add Photos & Videos",
+    "editPost": "Edit Post",
+    "gallery": "Gallery",
+    "invalidYoutubeUrl": "Invalid Youtube Url",
+    "noMediaSelected": "No media selected",
+    "photos": "Photos",
+    "recordVideo": "Record Video",
+    "saved": "Saved",
+    "savedDesc": "Saved Desc",
+    "takePhoto": "Take Photo",
+    "unsaved": "Unsaved",
+    "unsavedDesc": "Unsaved Desc",
+    "update": "Update",
+    "updateError": "Update Error",
+    "updateErrorDesc": "Update Error Desc",
+    "updateSuccess": "Update Success",
+    "updateSuccessDesc": "Update Success Desc",
+    "updating": "Updating",
+    "videos": "Videos",
+    "videoTooLarge": "Video is too large",
+    "videoTooLargeDesc": "Maximum video size is 50MB",
+    "videoUploadFailed": "Video Upload Failed",
+    "videoUploadFailedDesc": "Video Upload Failed Desc",
+    "youtubeUrl": "YouTube URL",
+    "detail": {
+      "timeAgo": {
+        "justNow": "Just now",
+        "mins": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} day ago"
+      },
+      "comments": {
+        "title": "Comments",
+        "replyBadge": "Replying",
+        "replyPlaceholder": "Write a reply",
+        "placeholder": "Write a comment",
+        "sending": "Sending",
+        "reply": "Reply",
+        "loading": "Loading comments…",
+        "empty": "No comments yet"
+      },
+      "offer": {
+        "title": "Special offer",
+        "contentPlaceholder": "Write your offer message",
+        "priceLabel": "Price",
+        "durationLabel": "Duration",
+        "descriptionPlaceholder": "Add offer details",
+        "cancel": "Cancel",
+        "sending": "Sending…",
+        "send": "Send offer",
+        "guideBadge": "Guide",
+        "specialOffer": "Special offer",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "pending": "Pending",
+        "accept": "Accept",
+        "decline": "Decline",
+        "viewOffer": "View offer"
+      },
+      "following": "Following",
+      "follow": "Follow",
+      "back": "Back",
+      "saved": "Saved",
+      "save": "Save",
+      "share": "Share",
+      "mapView": "Map view",
+      "like": "Like",
+      "comment": "Comment"
+    }
   },
   "experiences": {
     "nearbyTitle": "Nearby Experiences",
@@ -208,7 +310,11 @@
   "feed": {
     "title": "MoVi",
     "subtitle": "Moments + Vibes",
-    "description": "Your cinematic travel moments"
+    "description": "Your cinematic travel moments",
+    "sortFollowing": "Following",
+    "sortLatest": "Latest",
+    "sortNearby": "Nearby",
+    "sortPopular": "Popular"
   },
   "feedMode": {
     "smart": "For You",
@@ -249,7 +355,7 @@
   },
   "search": {
     "location": "Location",
-    "content": "Content", 
+    "content": "Content",
     "locationPlaceholder": "Search location, region, place...",
     "contentPlaceholder": "Search content...",
     "searchChannels": "Search channels..."
@@ -309,6 +415,37 @@
     "error": {
       "title": "Request Creation Failed",
       "description": "An error occurred while creating your help request"
+    },
+    "status": {
+      "open": "Open",
+      "assigned": "Assigned",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "list": {
+      "errorTitle": "Something went wrong",
+      "errorDescription": "There was a problem loading your help requests.",
+      "responseCount": "{{count}} responses",
+      "deadline": "By {{date}}",
+      "categoryLabel": "Category",
+      "viewDetails": "View details",
+      "title": "My Help Requests",
+      "totalCount": "{{count}} requests total",
+      "filterCategory": "Category",
+      "allCategories": "All categories",
+      "filterStatus": "Status",
+      "allStatuses": "All statuses",
+      "tabs": {
+        "all": "All"
+      },
+      "empty": {
+        "allTitle": "No help requests yet",
+        "openTitle": "No open requests",
+        "assignedTitle": "No assigned requests",
+        "completedTitle": "No completed requests",
+        "allDescription": "Create your first help request.",
+        "filteredDescription": "There are no requests in this filter."
+      }
     }
   },
   "profileEdit": {
@@ -341,7 +478,9 @@
     "uploading": "Uploading image...",
     "saving": "Saving...",
     "noInterestsSelected": "No interests selected",
-    "noLanguagesSelected": "No languages selected"
+    "noLanguagesSelected": "No languages selected",
+    "nickname": "Nickname",
+    "nicknamePlaceholder": "Enter your display name"
   },
   "interests": {
     "food": "Food",
@@ -358,17 +497,14 @@
     "wellness": "Wellness"
   },
   "common": {
+    "back": "Back",
+    "bookmark": "Bookmark",
+    "bookmarkRemove": "Remove from bookmarks",
+    "bookmarkSave": "Save to bookmarks",
     "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "submit": "Submit",
-    "create": "Create",
-    "update": "Update",
-    "error": "Error",
-    "loginRequired": "Login Required",
     "loading": "Loading...",
-    "success": "Success"
+    "save": "Save",
+    "error": "Error"
   },
   "experience": {
     "createSuccess": "Experience Created",
@@ -377,7 +513,61 @@
     "createErrorDesc": "An error occurred while creating the experience. Please try again.",
     "loginRequiredDesc": "Please login first to register an experience.",
     "requiredFieldsMissing": "Required Information Missing",
-    "requiredFieldsDesc": "Title, description, price, location, and category are required."
+    "requiredFieldsDesc": "Title, description, price, location, and category are required.",
+    "editExperience": "Edit Experience",
+    "updateError": "Update Error",
+    "updateErrorDesc": "Update Error Desc",
+    "updateSuccess": "Update Success",
+    "updateSuccessDesc": "Update Success Desc",
+    "validation": {
+      "categoryRequired": "Category Required",
+      "descriptionRequired": "Description Required",
+      "locationRequired": "Location Required",
+      "priceRequired": "Price Required",
+      "titleRequired": "Title Required"
+    },
+    "form": {
+      "basicInfo": "Basic information",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter a title for the experience",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Enter a detailed description of the experience",
+      "priceLabel": "Price (KRW)",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Select a category",
+      "categoryTour": "🗺️ Tour",
+      "categoryFood": "🍜 Food",
+      "categoryActivity": "🎯 Activity",
+      "categoryTip": "💡 Tip",
+      "locationLabel": "Location",
+      "locationPlaceholder": "Search places, restaurants, cafés, landmarks, or addresses...",
+      "details": "Details",
+      "durationLabel": "Duration (minutes)",
+      "maxParticipantsLabel": "Max participants",
+      "meetingPointLabel": "Meeting point",
+      "meetingPointPlaceholder": "Exit 2, Gangnam Station",
+      "contactPhoneLabel": "Contact number",
+      "includedLabel": "Included items (one per line)",
+      "includedPlaceholder": "Guide explanation&#10;Admission fee&#10;Snacks provided",
+      "requirementsLabel": "Requirements (one per line)",
+      "requirementsPlaceholder": "Wear comfortable shoes&#10;Bring a camera&#10;Basic Korean communication possible",
+      "mediaSection": "Photos & videos",
+      "addPhoto": "Add photo",
+      "addVideo": "Add video",
+      "photosCount": "Photos ({{count}})",
+      "videosCount": "Videos ({{count}})",
+      "youtubeLabel": "YouTube video URL",
+      "youtubePlaceholder": "https://www.youtube.com/watch?v=... or https://youtu.be/...",
+      "youtubePreview": "YouTube video preview",
+      "invalidYoutube": "Invalid YouTube URL",
+      "bookingSettings": "Booking settings",
+      "cancelPolicyLabel": "Cancellation policy",
+      "cancelFlexible": "Flexible cancellation",
+      "cancelModerate": "Moderate cancellation",
+      "cancelStrict": "Strict cancellation",
+      "minLeadHoursLabel": "Minimum booking notice (hours before)",
+      "autoConfirmLabel": "Auto confirm"
+    }
   },
   "booking": {
     "success": "Booking Completed",
@@ -386,7 +576,25 @@
     "failedDesc": "An error occurred while booking. Please try again.",
     "loginRequiredDesc": "Please login first to make a booking.",
     "selectDate": "Select Date",
-    "selectDateDesc": "Please select a booking date."
+    "selectDateDesc": "Please select a booking date.",
+    "statusUpdated": "Status Updated",
+    "statusUpdatedDesc": "The booking status was updated successfully.",
+    "statusUpdateFailed": "Status Update Failed",
+    "statusUpdateFailedDesc": "An error occurred while updating the booking status.",
+    "cancelDialog": {
+      "title": "Cancel booking",
+      "description": "Please enter a reason for cancelling this booking. (Optional)",
+      "placeholder": "Enter a cancellation reason...",
+      "confirm": "Cancel booking",
+      "processing": "Processing..."
+    },
+    "requiredAgreement": "Required agreement",
+    "requiredAgreementDesc": "Please agree to all required items before proceeding with payment.",
+    "bookNow": "Book now",
+    "bookingInProgress": "Booking...",
+    "specialRequests": "Special requests",
+    "specialRequestsPlaceholder": "Add any special requests you want to share with the host...",
+    "totalAmount": "Total amount"
   },
   "review": {
     "success": "Review Submitted",
@@ -394,7 +602,17 @@
     "failed": "Review Submission Failed",
     "failedDesc": "An error occurred while submitting your review. Please try again.",
     "tooManyImages": "Too Many Images",
-    "tooManyImagesDesc": "You can upload up to 5 images."
+    "tooManyImagesDesc": "You can upload up to 5 images.",
+    "ratingLabels": {
+      "1": "Very dissatisfied",
+      "2": "Dissatisfied",
+      "3": "Average",
+      "4": "Satisfied",
+      "5": "Very satisfied"
+    },
+    "commentLabel": "Review content",
+    "commentPlaceholder": "Write an honest review about the experience...",
+    "photoLabel": "Review photos (optional)"
   },
   "miniMeet": {
     "create": "Create Mini Meet Here",
@@ -446,7 +664,10 @@
       "trips": "Trips",
       "followers": "Followers",
       "following": "Following",
-      "experiences": "Experiences"
+      "experiences": "Experiences",
+      "countries": "Countries",
+      "travelDays": "Travel days",
+      "friends": "Friends"
     },
     "tabs": {
       "posts": "Posts",
@@ -458,7 +679,8 @@
       "templates": "Templates",
       "packages": "Packages",
       "slots": "Slots",
-      "saved": "Saved"
+      "saved": "Saved",
+      "services": "Services"
     },
     "empty": {
       "noPosts": "No posts yet",
@@ -479,7 +701,61 @@
     "hostApplySuccess": "Host Application Complete",
     "hostApplySuccessDesc": "Congratulations! You can now operate as a host.",
     "hostApplyError": "Application Failed",
-    "hostApplyErrorDesc": "An error occurred during host application. Please try again."
+    "hostApplyErrorDesc": "An error occurred during host application. Please try again.",
+    "badge": {
+      "traveler": "Traveler",
+      "creator": "Creator",
+      "guide": "Local Guide",
+      "host": "Host"
+    },
+    "actions": {
+      "edit": "Edit profile",
+      "follow": "Follow",
+      "chat": "Chat",
+      "meet": "Meet up",
+      "editProfile": "Edit profile",
+      "newPost": "New post"
+    },
+    "hero": {
+      "defaultMeetRegion": "Seoul",
+      "defaultBio": "Exploring the world one city at a time.",
+      "openToMeet": "Open to meet:",
+      "currentlyIn": "Currently in {{region}}",
+      "identityHub": "Travel identity hub"
+    },
+    "settings": {
+      "title": "Settings",
+      "openToMeet": "Open to Meet",
+      "portfolioMode": "Portfolio Mode",
+      "subtitle": "Adjust profile visibility and personal settings here.",
+      "openToMeetOn": "Currently open to meeting",
+      "openToMeetOff": "Meeting status hidden",
+      "portfolioOn": "Portfolio is public",
+      "portfolioOff": "Portfolio is hidden",
+      "notifications": "Notifications",
+      "notificationsDesc": "Manage message, booking, and activity alerts",
+      "privacy": "Privacy",
+      "privacyDesc": "Manage account, security, and visibility",
+      "locale": "Language & region",
+      "localeDesc": "Set app language and default region"
+    },
+    "saved": {
+      "savedBadge": "Saved"
+    },
+    "trip": {
+      "cardType": "Trip",
+      "planned": "Planned",
+      "departure": "Departure",
+      "return": "Return"
+    },
+    "service": {
+      "cardType": "Service",
+      "price": "Price"
+    },
+    "bookmarksTab": "Bookmarks",
+    "myBookingsTab": "My Bookings",
+    "noBookings": "No bookings yet",
+    "noBookmarks": "No bookmarks yet"
   },
   "notification": {
     "title": "Notifications",
@@ -494,7 +770,10 @@
     "empty": "No new notifications",
     "user": "User",
     "viewMore": "View more notifications",
-    "moreItems": " more"
+    "moreItems": " more",
+    "booking": "New booking for your experience",
+    "comment": "{{name}} commented on your post",
+    "like": "{{name}} liked your post"
   },
   "login": {
     "signIn": "Sign In",
@@ -576,7 +855,13 @@
     "backHome": "Back to Home",
     "outOf": "Out of {{total}}",
     "checkBookings": "Check and manage customer bookings",
-    "people": "people"
+    "people": "people",
+    "step1Desc": "Share your local expertise with travelers looking for authentic experiences",
+    "step1Title": "Create Experience",
+    "step2Desc": "Choose available dates and times that work best for you",
+    "step2Title": "Set Your Schedule",
+    "step3Desc": "Connect with travelers, provide amazing experiences, and earn",
+    "step3Title": "Welcome Guests"
   },
   "admin": {
     "panel": "🛠️ Admin Panel",
@@ -619,7 +904,31 @@
     "loadingUser": "Checking user information...",
     "accessDenied": "Access Denied",
     "accessDeniedDesc": "This page is only accessible to administrators.",
-    "loadingData": "Loading data..."
+    "loadingData": "Loading data...",
+    "allCategories": "All Categories",
+    "configLoadError": "Config Load Error",
+    "configUpdated": "Config Updated",
+    "configUpdatedDesc": "Config Updated Desc",
+    "configUpdateFailed": "Config Update Failed",
+    "configUpdateFailedDesc": "Config Update Failed Desc",
+    "description": "Description",
+    "editSetting": "Edit Setting",
+    "enterValidJson": "Enter Valid Json",
+    "enterValidNumber": "Enter Valid Number",
+    "invalidJson": "Invalid Json",
+    "invalidNumber": "Invalid Number",
+    "loading": "Loading",
+    "maxValue": "Max Value",
+    "minValue": "Min Value",
+    "searchConfig": "Search Config",
+    "selectCategory": "Select Category",
+    "settingKey": "Setting Key",
+    "settings": "Settings",
+    "systemConfig": "System Config",
+    "systemConfigDesc": "System Config Desc",
+    "value": "Value",
+    "valueTooHigh": "Value Too High",
+    "valueTooLow": "Value Too Low"
   },
   "experiencePage": {
     "loading": "Loading experience information...",
@@ -676,7 +985,20 @@
     "deleteFailedDesc": "An error occurred while deleting the post.",
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}} hours ago",
-    "daysAgo": "{{count}} days ago"
+    "daysAgo": "{{count}} days ago",
+    "confirmDeleteExperience": "Confirm Delete Experience",
+    "deleteExperienceFailed": "Delete Experience Failed",
+    "deleteExperienceFailedDesc": "Delete Experience Failed Desc",
+    "deleteExperienceSuccess": "Delete Experience Success",
+    "deleteExperienceSuccessDesc": "Delete Experience Success Desc",
+    "saved": "Saved",
+    "savedDesc": "Saved Desc",
+    "saveFailed": "Save Failed",
+    "saveFailedDesc": "Save Failed Desc",
+    "unsaved": "Unsaved",
+    "unsavedDesc": "Unsaved Desc",
+    "viewExperience": "View Experience",
+    "viewingHashtag": "Viewing Hashtag"
   },
   "mapPage": {
     "nearbyExperiences": "Nearby Experiences",
@@ -697,7 +1019,8 @@
     "cancel": "Cancel",
     "create": "Create",
     "loadingUser": "Checking user information...",
-    "userInfoLoading": "Loading user information..."
+    "userInfoLoading": "Loading user information...",
+    "channelFallback": "Channel"
   },
   "homePage": {
     "appName": "Tourgether",
@@ -766,7 +1089,31 @@
     "timelineDesc": "Every check-in, photo, and local meet-up is stitched into a beautiful travel story. Relive your journeys day by day, pin by pin.",
     "timelineBullet1": "Map-based view of your entire journey",
     "timelineBullet2": "Safety check-ins and trusted contacts along the route",
-    "timelineBullet3": "Shareable highlights for friends and followers"
+    "timelineBullet3": "Shareable highlights for friends and followers",
+    "seoSection": {
+      "article1": {
+        "desc": "Tired of getting off a tour bus, snapping one photo, and getting back on? Tourgether lets you experience hidden gems only locals know, authentic restaurants, and the real vibe of each city. Connect directly with local guides and plan your own customized journey.",
+        "title": "Say goodbye to cookie-cutter package tours"
+      },
+      "article2": {
+        "desc": "Want to travel solo but worried about eating alone or having no one to take your photos? Use our \"Open to Meet\" feature to find other travelers in the same area. Share meals, tours, and activities with like-minded people and say goodbye to the loneliness of solo travel.",
+        "title": "A connection platform for solo travelers"
+      },
+      "article3": {
+        "desc": "No one knows your city better than you. Become a local guide on Tourgether, offer unique experiences to travelers, and earn income. Register various services like food tours, photography services, shopping companions, and language interpretation.",
+        "title": "A sharing economy where locals can earn"
+      },
+      "article4": {
+        "desc": "Trade with confidence using our escrow-based payment system. Funds are securely held until service completion, and our dispute resolution system protects both parties. Find trustworthy partners easily through reviews and verified host badges.",
+        "title": "Safe P2P transaction system"
+      },
+      "article5": {
+        "desc": "Share your travel moments with photos on the feed and visualize your journey on a map-based timeline. Our AI-powered CineMap feature analyzes photo location data to automatically create cinematic travel storyboards. Easily look back on your memories even after your trip.",
+        "title": "Beautifully preserve your travel memories"
+      },
+      "subtitle": "A new way to rediscover the essence of travel",
+      "title": "Why Tourgether?"
+    }
   },
   "miniConcierge": {
     "fabButton": "What to do for 1 hour?",
@@ -875,10 +1222,11 @@
     "hours": "hours",
     "minutes": "minutes",
     "maxParticipants": "Max {{count}}",
-    "perPerson": "/person"
-  },
-  "common": {
-    "back": "Back"
+    "perPerson": "/person",
+    "loading": "Loading",
+    "noResults": "No Results",
+    "resetFilters": "Reset Filters",
+    "tryDifferentFilters": "Try Different Filters"
   },
   "seoFooter": {
     "service": "Services",
@@ -933,5 +1281,311 @@
     "travelCreatorDesc": "Monetize your travel content",
     "travelFriends": "Travel Friends",
     "travelFriendsDesc": "Connect with travelers worldwide"
+  },
+  "map": {
+    "sheet": {
+      "recommendations": "Recommendations",
+      "collapsedHint": "Pull up to see more recommendations and people.",
+      "personHint": "Open the profile or say hello right away.",
+      "title": "Explore nearby",
+      "exploreMore": "Find more stories and people around you",
+      "view": "View",
+      "sayHello": "Say hello",
+      "profile": "Profile",
+      "liveNow": "Live nearby now",
+      "heroEyebrow": "Curated for right now",
+      "heroTitle": "Match a short local plan to your mood, distance, and available time.",
+      "heroTags": [
+        "1 hour",
+        "Walkable",
+        "English-friendly"
+      ],
+      "routeFlexible": "Flexible route",
+      "routePickup": "Quick pickup points nearby",
+      "recommendationCards": [
+        {
+          "eyebrow": "Tonight pick",
+          "title": "What should I do for one perfect hour?",
+          "subtitle": "Sunset tea, a photo stop, and a story-rich walk within a few blocks.",
+          "host": "Mina · City host",
+          "eta": "Starts in 20 min",
+          "distance": "0.4 km away",
+          "price": "₩22,000",
+          "badges": [
+            "Sunset",
+            "Local pick",
+            "Easy walk"
+          ]
+        },
+        {
+          "eyebrow": "Mini concierge",
+          "title": "Late-night food street with a local foodie",
+          "subtitle": "Two signature bites, quick translations, and easy train access back.",
+          "host": "Jae · Food scout",
+          "eta": "Best after 8 PM",
+          "distance": "1.1 km away",
+          "price": "₩18,000",
+          "badges": [
+            "Street food",
+            "English OK",
+            "Fast route"
+          ]
+        },
+        {
+          "eyebrow": "Story route",
+          "title": "Indie shops + hidden rooftop photo route",
+          "subtitle": "A flexible loop with vinyl stores, a rooftop pause, and café backup spots.",
+          "host": "Sora · Creative guide",
+          "eta": "45-minute route",
+          "distance": "0.8 km away",
+          "price": "₩15,000",
+          "badges": [
+            "Photo spot",
+            "Rain plan",
+            "Small group"
+          ]
+        }
+      ]
+    },
+    "topbar": {
+      "subtitle": "See nearby stories and people at a glance."
+    },
+    "searchPlaceholder": "Search places, stories, and travelers"
+  },
+  "meet": {
+    "sections": {
+      "filters": "Filters",
+      "radar": "Radar",
+      "travelers": "Nearby Travelers"
+    },
+    "filters": {
+      "helper": "Choose the vibe you want to meet right now."
+    },
+    "helloInitialMessage": "Hi there! 👋",
+    "title": "Meet",
+    "subtitle": "Connect with nearby travelers right now.",
+    "online": "Open",
+    "offline": "Hidden",
+    "helloFailed": "Failed to send greeting",
+    "empty": {
+      "noUsers": "No nearby travelers yet",
+      "openToMeetHint": "Turn on Open to Meet and come back in a bit."
+    },
+    "userCard": {
+      "hello": "Say hello",
+      "viewProfile": "View profile",
+      "trust": "Trusted traveler"
+    },
+    "myStatus": "My status",
+    "hero": {
+      "eyebrow": "Live meet match",
+      "title": "See who is open right now, then move from radar to a warm intro in one tap.",
+      "nearby": "{{count}} nearby",
+      "fastHello": "Fast hello",
+      "localContext": "Local context"
+    },
+    "travelersHint": "Short profile cards tuned for quick introductions."
+  },
+  "serendipity": {
+    "distance": "0.3 km apart",
+    "matchLabel": "You're nearby right now!",
+    "header": "Serendipity",
+    "commonInterests": "Common interests",
+    "languages": "Languages",
+    "mood": "Mood",
+    "miniMap": "Mini map",
+    "greetCTA": "Send greeting",
+    "laterCTA": "Maybe later",
+    "interest": {
+      "photo": "Photo",
+      "food": "Food",
+      "solo": "Solo travel",
+      "history": "History"
+    },
+    "lang": {
+      "ko": "Korean",
+      "en": "English",
+      "it": "Italian"
+    },
+    "moodTag": {
+      "explore": "Explore",
+      "chill": "Chill"
+    }
+  },
+  "actions": {
+    "comment": "Comment",
+    "like": "Like",
+    "liked": "Liked",
+    "save": "Save",
+    "saved": "Saved",
+    "share": "Share"
+  },
+  "app": {
+    "error": "Error"
+  },
+  "auth": {
+    "loginFirst": "Login First",
+    "required": "Required"
+  },
+  "guide": {
+    "categoryActivity": "Activity",
+    "categoryFood": "Food",
+    "categoryTip": "Tip",
+    "categoryTour": "Tour",
+    "experiences": "Experiences",
+    "experiencesTab": "Experiences ({{count}})",
+    "hours": "h",
+    "joinedYear": "Joined",
+    "maxParticipants": "Max {{count}} participants",
+    "minutes": "min",
+    "noExperiences": "No experiences yet",
+    "noReviews": "No reviews yet",
+    "noStories": "No stories yet",
+    "notFound": "Guide not found",
+    "notFoundDesc": "The guide you are looking for does not exist or has been removed.",
+    "responseRate": "Response Rate",
+    "reviewsCount": "{{count}} Reviews",
+    "reviewsTab": "Reviews ({{count}})",
+    "sendMessage": "Send Message",
+    "storiesTab": "Stories",
+    "verifiedGuide": "Verified Guide",
+    "viewDetails": "View Details"
+  },
+  "nav": {
+    "marketplace": "Marketplace"
+  },
+  "trending": {
+    "title": "Trending"
+  },
+  "locationPicker": {
+    "title": "Select Location",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "explore": {
+    "title": "Explore",
+    "emptyLoading": "Loading recommendations…"
+  },
+  "contract": {
+    "signSuccess": "Contract signed",
+    "signSuccessDesc": "Your signature has been saved successfully.",
+    "signError": "Failed to sign contract",
+    "demoTitle": "Private city guide experience",
+    "header": "Escrow Contract",
+    "travelerLabel": "Traveler",
+    "guideLabel": "Guide",
+    "summaryTitle": "Contract summary",
+    "dateLabel": "Date",
+    "locationLabel": "Location",
+    "totalAmount": "Total amount",
+    "paymentSchedule": "Payment schedule",
+    "deposit": "Deposit",
+    "depositDesc": "Paid at booking to reserve the service.",
+    "balance": "Balance",
+    "balanceDesc": "Released after the service is completed.",
+    "escrow": {
+      "title": "Protected by escrow",
+      "desc": "Funds are held safely until both sides complete the agreed service."
+    },
+    "scopeTitle": "Included scope",
+    "milestoneTitle": "Milestones",
+    "reviseNote": "Please request revisions from the other party before signing.",
+    "reviseCTA": "Request revision",
+    "signing": "Signing…",
+    "signCTA": "Sign contract"
+  },
+  "exp": {
+    "detail": {
+      "minutes": "{{count}} min",
+      "hoursMinutes": "{{hours}} hr {{minutes}} min",
+      "hours": "{{count}} hr",
+      "loading": "Loading experience…",
+      "notFound": "Experience not found",
+      "notFoundDesc": "This experience may have been removed or is unavailable.",
+      "back": "Go back",
+      "hostCard": {
+        "unknownHost": "Unknown host",
+        "verifiedBadge": "Verified",
+        "reviews": "reviews",
+        "viewProfile": "View profile"
+      },
+      "availability": {
+        "weekDays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
+        "title": "Availability",
+        "available": "Available",
+        "unavailable": "Unavailable"
+      },
+      "infoChip": {
+        "langDefault": "Local language",
+        "maxPeople": "Up to {{count}} people"
+      },
+      "description": "Description",
+      "descCollapse": "Show less",
+      "descExpand": "Show more",
+      "includes": {
+        "title": "What’s included"
+      },
+      "reviews": {
+        "title": "Reviews",
+        "empty": "No reviews yet"
+      },
+      "perPerson": "per person",
+      "bookNow": "Book now",
+      "loginToBook": "Log in to book"
+    }
+  },
+  "sreq": {
+    "header": "Request a local guide",
+    "success": {
+      "title": "Request sent",
+      "desc": "Guides can now review your request."
+    },
+    "error": {
+      "title": "Could not send request",
+      "desc": "Please try again in a moment."
+    },
+    "validation": {
+      "destination": "Please enter a destination.",
+      "serviceType": "Select at least one service type.",
+      "description": "Please describe what you need."
+    },
+    "destination": {
+      "label": "Destination",
+      "placeholder": "Where are you traveling?"
+    },
+    "dates": {
+      "label": "Travel dates",
+      "from": "From",
+      "to": "To"
+    },
+    "serviceType": {
+      "label": "Service type"
+    },
+    "groupSize": {
+      "label": "Group size",
+      "people": "people"
+    },
+    "budget": {
+      "label": "Budget",
+      "perDay": "/ day"
+    },
+    "description": {
+      "label": "Details",
+      "placeholder": "Tell guides what kind of help you need."
+    },
+    "languages": {
+      "label": "Preferred languages"
+    },
+    "photos": {
+      "label": "Reference photos",
+      "hint": "Optional, up to 5 photos."
+    },
+    "guidesPreview": {
+      "title": "Matching guides",
+      "unknownGuide": "Unknown guide",
+      "reviews": "reviews"
+    },
+    "submitting": "Sending request…",
+    "submit": "Send request"
   }
 }

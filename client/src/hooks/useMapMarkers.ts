@@ -148,7 +148,7 @@ export function useMapMarkers({
     if (!window.google) return null;
     const initials = name?.trim()?.slice(0, 2) || 'TG';
     return {
-      url: createPeopleMarkerSvg({ profileImageUrl, initials, openToMeet }),
+      url: createPeopleMarkerSvg({ ...(profileImageUrl !== undefined ? { profileImageUrl } : {}), initials, openToMeet }),
       scaledSize: new window.google.maps.Size(80, 80),
       anchor: new window.google.maps.Point(40, 40),
     };

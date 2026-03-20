@@ -103,7 +103,7 @@ export default function EnhancedChatWindow({
       });
 
       if (!response.ok) {
-        throw new Error('Translation failed');
+        throw new Error(t('chat.translationFailed'));
       }
 
       const data = await response.json();
