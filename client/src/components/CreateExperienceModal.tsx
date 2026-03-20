@@ -378,21 +378,21 @@ export default function CreateExperienceModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* 기본 정보 */}
+          {/* {t('experience.form.basicInfo')} */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
               <Info className="w-5 h-5" />
-              기본 정보
+              {t('experience.form.basicInfo')}
             </h3>
             
             <div>
               <label className="block text-sm font-medium mb-2">
-                제목 <span className="text-red-500">*</span>
+                {t('experience.form.titleLabel')} <span className="text-red-500">*</span>
               </label>
               <Input
                 value={title}
                 onChange={(e) => { setTitle(e.target.value); setFieldErrors(prev => ({ ...prev, title: '' })); }}
-                placeholder="경험의 제목을 입력하세요"
+                placeholder={t('experience.form.titlePlaceholder')}
                 className={fieldErrors.title ? 'border-red-500' : ''}
                 data-testid="input-experience-title"
               />
@@ -403,12 +403,12 @@ export default function CreateExperienceModal({
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                설명 <span className="text-red-500">*</span>
+                {t('experience.form.descriptionLabel')} <span className="text-red-500">*</span>
               </label>
               <Textarea
                 value={description}
                 onChange={(e) => { setDescription(e.target.value); setFieldErrors(prev => ({ ...prev, description: '' })); }}
-                placeholder="경험에 대한 자세한 설명을 입력하세요"
+                placeholder={t('experience.form.descriptionPlaceholder')}
                 rows={4}
                 className={fieldErrors.description ? 'border-red-500' : ''}
                 data-testid="textarea-experience-description"
@@ -421,7 +421,7 @@ export default function CreateExperienceModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  가격 (원) <span className="text-red-500">*</span>
+                  {t('experience.form.priceLabel')} <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="number"
@@ -439,17 +439,17 @@ export default function CreateExperienceModal({
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  카테고리 <span className="text-red-500">*</span>
+                  {t('experience.form.categoryLabel')} <span className="text-red-500">*</span>
                 </label>
                 <Select value={category} onValueChange={(v) => { setCategory(v); setFieldErrors(prev => ({ ...prev, category: '' })); }}>
                   <SelectTrigger data-testid="select-experience-category" className={fieldErrors.category ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="카테고리 선택" />
+                    <SelectValue placeholder="{t('experience.form.categoryLabel')} 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tour">🗺️ 투어</SelectItem>
-                    <SelectItem value="food">🍜 음식</SelectItem>
-                    <SelectItem value="activity">🎯 액티비티</SelectItem>
-                    <SelectItem value="tip">💡 팁</SelectItem>
+                    <SelectItem value="tour">{t('experience.form.categoryTour')}</SelectItem>
+                    <SelectItem value="food">{t('experience.form.categoryFood')}</SelectItem>
+                    <SelectItem value="activity">{t('experience.form.categoryActivity')}</SelectItem>
+                    <SelectItem value="tip">{t('experience.form.categoryTip')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldErrors.category && (
@@ -460,7 +460,7 @@ export default function CreateExperienceModal({
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                위치 <span className="text-red-500">*</span>
+                {t('experience.form.locationLabel')} <span className="text-red-500">*</span>
               </label>
               <LocationPicker
                 value={location}
@@ -482,8 +482,8 @@ export default function CreateExperienceModal({
                   }
                   setFieldErrors(prev => ({ ...prev, location: '' }));
                 }}
-                placeholder="장소, 음식점, 카페, 랜드마크, 주소 검색..."
-                useCurrentLocationText="현재 위치 사용"
+                placeholder={t('experience.form.locationPlaceholder')}
+                useCurrentLocationText="현재 {t('experience.form.locationLabel')} 사용"
                 className={fieldErrors.location ? 'border-red-500' : ''}
               />
               {fieldErrors.location && (
@@ -492,17 +492,17 @@ export default function CreateExperienceModal({
             </div>
           </div>
 
-          {/* 상세 정보 */}
+          {/* {t('experience.form.details')} */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              상세 정보
+              {t('experience.form.details')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  소요시간 (분)
+                  {t('experience.form.durationLabel')}
                 </label>
                 <Input
                   type="number"
@@ -516,7 +516,7 @@ export default function CreateExperienceModal({
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  최대 참가자
+                  {t('experience.form.maxParticipantsLabel')}
                 </label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -535,19 +535,19 @@ export default function CreateExperienceModal({
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                만날 장소
+                {t('experience.form.meetingPointLabel')}
               </label>
               <Input
                 value={meetingPoint}
                 onChange={(e) => setMeetingPoint(e.target.value)}
-                placeholder="강남역 2번 출구"
+                placeholder={t('experience.form.meetingPointPlaceholder')}
                 data-testid="input-experience-meeting-point"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                연락처
+                {t('experience.form.contactPhoneLabel')}
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -566,12 +566,12 @@ export default function CreateExperienceModal({
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                포함사항 (각 줄에 하나씩 입력)
+                {t('experience.form.includedLabel')}
               </label>
               <Textarea
                 value={included}
                 onChange={(e) => setIncluded(e.target.value)}
-                placeholder="가이드 설명&#10;입장료&#10;간식 제공"
+                placeholder={t('experience.form.includedPlaceholder')}
                 rows={3}
                 data-testid="textarea-experience-included"
               />
@@ -579,12 +579,12 @@ export default function CreateExperienceModal({
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                요구사항 (각 줄에 하나씩 입력)
+                {t('experience.form.requirementsLabel')}
               </label>
               <Textarea
                 value={requirements}
                 onChange={(e) => setRequirements(e.target.value)}
-                placeholder="편한 신발 착용&#10;카메라 지참&#10;기본적인 한국어 소통 가능"
+                placeholder={t('experience.form.requirementsPlaceholder')}
                 rows={3}
                 data-testid="textarea-experience-requirements"
               />
@@ -595,14 +595,14 @@ export default function CreateExperienceModal({
           <div className="space-y-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
               <Image className="w-5 h-5" />
-              사진 및 동영상
+              {t('experience.form.mediaSection')}
             </h3>
             
             {/* 업로드 버튼들 */}
             <div className="flex gap-2 flex-wrap">
               <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
                 <Image size={18} className="text-gray-500" />
-                <span className="text-gray-600">사진 추가</span>
+                <span className="text-gray-600">{t('experience.form.addPhoto')}</span>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -619,7 +619,7 @@ export default function CreateExperienceModal({
               
               <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-sm">
                 <Video size={18} className="text-gray-500" />
-                <span className="text-gray-600">동영상 추가</span>
+                <span className="text-gray-600">{t('experience.form.addVideo')}</span>
                 <input
                   ref={videoInputRef}
                   type="file"
@@ -637,7 +637,7 @@ export default function CreateExperienceModal({
             {/* 이미지 미리보기 */}
             {images.length > 0 && (
               <div>
-                <p className="text-xs text-gray-400 mb-1">사진 ({images.length})</p>
+                <p className="text-xs text-gray-400 mb-1">{t('experience.form.photosCount', { count: images.length })}</p>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {images.map((image, index) => (
                     <div key={`img-${image}`} className="relative w-20 h-20 flex-shrink-0">
@@ -658,7 +658,7 @@ export default function CreateExperienceModal({
             {/* 비디오 미리보기 */}
             {videos.length > 0 && (
               <div>
-                <p className="text-xs text-gray-400 mb-1">동영상 ({videos.length})</p>
+                <p className="text-xs text-gray-400 mb-1">{t('experience.form.videosCount', { count: videos.length })}</p>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {videos.map((video, index) => (
                     <div key={`vid-${video}`} className="relative w-20 h-20 flex-shrink-0">
@@ -685,12 +685,12 @@ export default function CreateExperienceModal({
                 <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                 </svg>
-                YouTube 동영상 URL
+                {t('experience.form.youtubeLabel')}
               </p>
               <Input
                 value={youtubeUrl}
                 onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                placeholder={t('experience.form.youtubePlaceholder')}
                 className="text-sm"
                 data-testid="input-experience-youtube-url"
               />
@@ -701,7 +701,7 @@ export default function CreateExperienceModal({
                     <iframe
                       className="absolute top-0 left-0 w-full h-full rounded-lg"
                       src={`https://www.youtube.com/embed/${youtubeVideoId}`}
-                      title="YouTube video preview"
+                      title={t('experience.form.youtubePreview')}
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -711,35 +711,35 @@ export default function CreateExperienceModal({
               )}
               
               {youtubeUrl && !youtubeVideoId && (
-                <p className="text-xs text-red-500 mt-1">잘못된 YouTube URL입니다</p>
+                <p className="text-xs text-red-500 mt-1">{t('experience.form.invalidYoutube')}</p>
               )}
             </div>
           </div>
 
-          {/* 예약 설정 */}
+          {/* {t('experience.form.bookingSettings')} */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">예약 설정</h3>
+            <h3 className="text-lg font-medium">{t('experience.form.bookingSettings')}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  취소 정책
+                  {t('experience.form.cancelPolicyLabel')}
                 </label>
                 <Select value={cancelPolicy} onValueChange={setCancelPolicy}>
                   <SelectTrigger data-testid="select-cancel-policy">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="flexible">유연한 취소</SelectItem>
-                    <SelectItem value="moderate">보통 취소</SelectItem>
-                    <SelectItem value="strict">엄격한 취소</SelectItem>
+                    <SelectItem value="flexible">{t('experience.form.cancelFlexible')}</SelectItem>
+                    <SelectItem value="moderate">{t('experience.form.cancelModerate')}</SelectItem>
+                    <SelectItem value="strict">{t('experience.form.cancelStrict')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  최소 예약 시간 (시간 전)
+                  {t('experience.form.minLeadHoursLabel')}
                 </label>
                 <Input
                   type="number"

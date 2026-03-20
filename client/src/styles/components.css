@@ -1,82 +1,95 @@
-/* Tourgether v3 — 앱 컴포넌트 CSS. 보라/파랑 없음. gold+mint+coral+dark only. */
+/* Tourgether v3 — shared premium dark utilities for mockup-matched UI. */
 
 .app-tabbar {
-  background: rgba(10,11,16,0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-color: rgba(200,168,78,0.15);
+  background: linear-gradient(180deg, rgba(17, 19, 26, 0.92), rgba(12, 13, 18, 0.98));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-color: rgba(230, 201, 137, 0.16);
 }
 
-.nav-btn {
-  color: #A5AEC4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  transition: color 0.2s ease;
+.tg-surface {
+  background: linear-gradient(180deg, rgba(20, 22, 31, 0.96), rgba(14, 16, 24, 0.98));
+  border: 1px solid rgba(230, 201, 137, 0.18);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 16px 38px rgba(0, 0, 0, 0.34), 0 0 18px rgba(230, 201, 137, 0.08);
+  border-radius: var(--radius-card);
 }
 
-.nav-btn.active,
-.nav-btn:hover {
-  color: #E6C989;
+.tg-surface-2 {
+  background: linear-gradient(180deg, rgba(28, 31, 42, 0.92), rgba(20, 23, 32, 0.94));
 }
 
-/* Meet tab — gold circular button */
-.nav-btn.meet {
-  background: #E6C989;
-  color: #0A0B10;
-  padding: 0.75rem;
-  border-radius: 999px;
-  margin-top: -1.75rem;
-  box-shadow: 0 8px 22px rgba(200,168,78,0.45), 0 0 0 3px rgba(200,168,78,0.15);
+.tg-glass {
+  background: linear-gradient(180deg, rgba(34, 36, 46, 0.42), rgba(19, 21, 30, 0.66));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 28px rgba(0, 0, 0, 0.24);
 }
 
-/* Map bottom sheet — dark glass, gold border */
-.map-bottom-sheet {
-  background: rgba(10,11,16,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(200,168,78,0.15);
+.tg-glass-strong {
+  background: linear-gradient(180deg, rgba(28, 30, 38, 0.76), rgba(18, 20, 28, 0.88));
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 34px rgba(0, 0, 0, 0.34);
 }
 
-/* App card — dark surface, gold glow border */
-.app-card {
-  background: #11131A;
-  border: 1px solid rgba(200,168,78,0.2);
-  box-shadow: 0 0 12px rgba(200,168,78,0.1);
-  border-radius: 1rem;
+.tg-chip {
+  border-radius: var(--radius-chip);
+  padding: 7px 14px;
+  background: linear-gradient(180deg, rgba(29, 32, 43, 0.92), rgba(19, 22, 31, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-/* Chat bubbles */
-.app-chat-bubble {
-  border-radius: 1rem;
-  padding: 0.75rem;
+.tg-chip-active {
+  border-color: rgba(230, 201, 137, 0.78);
+  color: var(--accent-gold);
+  background: linear-gradient(180deg, rgba(230, 201, 137, 0.18), rgba(90, 72, 28, 0.18));
+  box-shadow: 0 0 0 1px rgba(230, 201, 137, 0.12), 0 0 18px rgba(230, 201, 137, 0.18);
 }
 
-.app-chat-bubble.sent {
-  background: #FF8A70;          /* coral */
+.tg-chip-mint-active {
+  border-color: rgba(124, 231, 214, 0.76);
+  color: var(--accent-mint);
+  background: linear-gradient(180deg, rgba(124, 231, 214, 0.12), rgba(34, 72, 70, 0.18));
+  box-shadow: 0 0 0 1px rgba(124, 231, 214, 0.12), 0 0 18px rgba(124, 231, 214, 0.18);
+}
+
+.tg-bottom-sheet {
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  background: linear-gradient(180deg, rgba(17, 19, 26, 0.96), rgba(10, 12, 18, 0.98));
+  border-top: 1px solid rgba(230, 201, 137, 0.18);
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tg-btn-primary {
+  background: linear-gradient(180deg, #ff9a82 0%, #ff8a70 100%);
   color: #fff;
-}
-
-.app-chat-bubble.received {
-  background: #1A1D26;
-  color: #F6F7FB;
-}
-
-/* AI bubble */
-.app-chat-bubble.ai {
-  background: linear-gradient(135deg, #11131A, #151824);
-  color: #F6F7FB;
-  border: 1px solid rgba(200,168,78,0.15);
-}
-
-/* Chip — gold tint */
-.app-chip {
   border-radius: 999px;
-  padding: 0.25rem 0.625rem;
-  font-size: 0.75rem;
-  background: rgba(230,201,137,0.1);
-  border: 1px solid rgba(230,201,137,0.3);
-  color: #E6C989;
+  box-shadow: 0 14px 28px rgba(255, 138, 112, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tg-btn-ghost {
+  border: 1px solid rgba(230, 201, 137, 0.34);
+  color: var(--text-primary);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(22, 24, 34, 0.78), rgba(14, 16, 23, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.tg-gold-outline {
+  border: 1px solid rgba(230, 201, 137, 0.34);
+  box-shadow: 0 0 18px rgba(230, 201, 137, 0.08);
+}
+
+.tg-mint-ring {
+  box-shadow: 0 0 0 2px rgba(124, 231, 214, 0.86), 0 0 18px rgba(124, 231, 214, 0.34), 0 0 38px rgba(124, 231, 214, 0.16);
+}
+
+.tg-gold-ring {
+  box-shadow: 0 0 0 2px rgba(230, 201, 137, 0.72), 0 0 18px rgba(230, 201, 137, 0.24);
 }

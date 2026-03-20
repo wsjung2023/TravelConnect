@@ -83,8 +83,8 @@ export default function BookingModal({
 
     if (!agreementValid) {
       toast({
-        title: '필수 동의 항목',
-        description: '결제를 진행하려면 모든 필수 항목에 동의해주세요.',
+        title: t('booking.requiredAgreement'),
+        description: t('booking.requiredAgreementDesc'),
         variant: 'destructive',
       });
       return;
@@ -114,7 +114,7 @@ export default function BookingModal({
       <div className="bg-white rounded-t-3xl w-full max-h-[90vh] overflow-y-auto slide-up">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">예약하기</h2>
+          <h2 className="text-lg font-semibold">{t('booking.bookNow')}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full"
@@ -192,12 +192,12 @@ export default function BookingModal({
           {/* Special Requests */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              특별 요청사항
+              {t('booking.specialRequests')}
             </label>
             <Textarea
               value={specialRequests}
               onChange={(e) => setSpecialRequests(e.target.value)}
-              placeholder="호스트에게 전달할 특별한 요청사항이 있다면 작성해주세요..."
+              placeholder={t('booking.specialRequestsPlaceholder')}
               rows={3}
             />
           </div>
@@ -211,7 +211,7 @@ export default function BookingModal({
               <span>₩{totalPrice.toLocaleString()}</span>
             </div>
             <div className="border-t pt-2 flex justify-between items-center font-semibold">
-              <span>총 금액</span>
+              <span>{t('booking.totalAmount')}</span>
               <span className="text-lg text-primary">
                 ₩{totalPrice.toLocaleString()}
               </span>
@@ -232,11 +232,11 @@ export default function BookingModal({
             data-testid="button-booking-submit"
           >
             {bookingMutation.isPending ? (
-              '예약 중...'
+              t('booking.bookingInProgress')
             ) : (
               <>
                 <CreditCard size={16} className="mr-2" />₩
-                {totalPrice.toLocaleString()} 결제하고 예약하기
+                {totalPrice.toLocaleString()} {t('booking.bookNow')}
               </>
             )}
           </Button>

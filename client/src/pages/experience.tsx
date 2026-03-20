@@ -329,7 +329,7 @@ export default function ExperienceDetailPage() {
 
       {isBookingModalOpen && (
         <BookingModal
-          experience={experience}
+          experience={experience as any}
           isOpen={isBookingModalOpen}
           onClose={() => setIsBookingModalOpen(false)}
         />

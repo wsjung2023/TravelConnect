@@ -10,7 +10,7 @@ export default function Home() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [prefilledLocation, setPrefilledLocation] = useState<{ lat: number; lng: number; name?: string } | null>(null);
   const [sheetState, setSheetState] = useState<MapSheetState>('collapsed');
-  const [activeFilter, setActiveFilter] = useState<MapFilter>('Nearby');
+  const [activeFilter, setActiveFilter] = useState<MapFilter>('nearby');
   const [selectedUser, setSelectedUser] = useState<SelectedUser | null>(null);
 
   return (

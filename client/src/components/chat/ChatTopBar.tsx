@@ -1,6 +1,6 @@
-// 채팅 탭 상단바 — "채팅" 제목 + 검색 아이콘 + 검색 인풋 토글
+// 채팅 탭 상단바 — 제목 + 요약 배지 + 검색 토글
 import { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -28,7 +28,6 @@ export default function ChatTopBar({ onSearchChange }: Props) {
       style={{ background: 'var(--app-bg)', borderBottom: '1px solid var(--stroke)' }}
     >
       {searchOpen ? (
-        /* Search input row */
         <div className="flex items-center gap-2">
           <div
             className="flex flex-1 items-center gap-2 rounded-full px-3 py-2"
@@ -44,25 +43,39 @@ export default function ChatTopBar({ onSearchChange }: Props) {
               onChange={(e) => handleChange(e.target.value)}
             />
           </div>
-          <button onClick={handleClose} aria-label="Close search">
+          <button onClick={handleClose} aria-label={t('chat.closeSearch', 'Close search')}>
             <X size={18} style={{ color: 'var(--text-secondary)' }} />
           </button>
         </div>
       ) : (
-        /* Title row */
-        <div className="flex items-center justify-between">
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
-            {t('chat.title')}
-          </h1>
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="flex items-center justify-center w-9 h-9 rounded-full"
-            style={{ background: 'var(--surface-2)', border: '1px solid var(--stroke)' }}
-            aria-label="Search"
-          >
-            <Search size={16} style={{ color: 'var(--text-primary)' }} />
-          </button>
-        </div>
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
+                {t('chat.title')}
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 3 }}>
+                {t('chat.subtitle')}
+              </p>
+            </div>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-full shrink-0"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--stroke)' }}
+              aria-label={t('chat.openSearch', 'Search')}
+            >
+              <Search size={16} style={{ color: 'var(--text-primary)' }} />
+            </button>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{t('chat.chips.translationReady')}</span>
+            <span className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{t('chat.chips.recentIntros')}</span>
+            <span className="tg-chip" style={{ fontSize: 11, padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles size={11} />
+              {t('chat.chips.quickReplies')}
+            </span>
+          </div>
+        </>
       )}
     </div>
   );
