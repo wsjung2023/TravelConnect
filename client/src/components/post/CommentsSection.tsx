@@ -1,11 +1,8 @@
-// 댓글 섹션 — 게시글의 전체 댓글 목록(중첩 구조)을 렌더링하는 컴포넌트.
-import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+// 댓글 섹션 v3 — 오퍼 카드(blue border)와 일반 댓글을 v3 토큰으로 렌더링
+import { useTranslation } from 'react-i18next';
+import { MessageCircle, Clock, Reply } from 'lucide-react';
 import { useComments } from '@/features/comments/useComments';
 import { useUpdateOfferStatus } from '@/features/comments/useAddComment';
-import { Reply, DollarSign, Clock, Check, X, MessageCircle } from 'lucide-react';
 
 interface Comment {
   id: number | string;
@@ -29,186 +26,186 @@ interface CommentsSectionProps {
   onReply?: (parentId: number) => void;
 }
 
+/* ── Offer card ── */
 function OfferCard({ comment, isPostOwner, onAccept, onDecline }: {
   comment: Comment;
   isPostOwner: boolean;
   onAccept: () => void;
   onDecline: () => void;
 }) {
+  const { t } = useTranslation('ui');
+  const authorName = comment.author?.nickname || `user_${comment.userId.slice(-4)}`;
+  const initials = authorName.slice(0, 2).toUpperCase();
+
   return (
-    <div className="bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-xl p-4 shadow-sm">
+    <div
+      className="mb-3 p-3"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--accent-blue)', borderRadius: 16 }}
+    >
+      {/* Guide row */}
       <div className="flex items-center gap-2 mb-2">
-        <Badge variant="secondary" className="bg-violet-100 text-violet-700">
-          <DollarSign className="w-3 h-3 mr-1" />
-          오퍼
-        </Badge>
+        <div
+          className="rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xs"
+          style={{ width: 32, height: 32, background: 'var(--surface-2)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)' }}
+        >
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{authorName}</span>
+            <span
+              className="rounded-full px-2 py-0.5"
+              style={{ fontSize: 10, fontWeight: 600, background: 'rgba(107,168,255,0.15)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)' }}
+            >
+              {t('post.detail.offer.guideBadge')}
+            </span>
+            {comment.offerDuration && (
+              <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                <Clock size={10} className="inline mr-0.5" />{comment.offerDuration}
+              </span>
+            )}
+            <span
+              className="rounded-full px-2 py-0.5"
+              style={{ fontSize: 10, background: 'rgba(107,168,255,0.10)', color: 'var(--accent-blue)', border: '1px solid rgba(107,168,255,0.3)' }}
+            >
+              {t('post.detail.offer.specialOffer')}
+            </span>
+          </div>
+        </div>
+        {/* Status badge */}
         {comment.offerStatus === 'accepted' && (
-          <Badge className="bg-green-100 text-green-700">수락됨</Badge>
+          <span className="tg-chip" style={{ fontSize: 10, color: 'var(--accent-mint)', borderColor: 'var(--accent-mint)' }}>
+            {t('post.detail.offer.accepted')}
+          </span>
         )}
         {comment.offerStatus === 'declined' && (
-          <Badge variant="destructive">거절됨</Badge>
+          <span className="tg-chip" style={{ fontSize: 10, color: 'var(--accent-coral)', borderColor: 'var(--accent-coral)' }}>
+            {t('post.detail.offer.declined')}
+          </span>
         )}
         {comment.offerStatus === 'pending' && (
-          <Badge variant="outline">대기중</Badge>
-        )}
-      </div>
-      
-      <p className="text-sm text-gray-800 mb-3">{comment.content}</p>
-      
-      <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
-        {comment.offerPrice && (
-          <span className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4 text-green-600" />
-            <span className="font-semibold text-green-700">${comment.offerPrice}</span>
-          </span>
-        )}
-        {comment.offerDuration && (
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4 text-blue-600" />
-            {comment.offerDuration}
+          <span className="tg-chip" style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
+            {t('post.detail.offer.pending')}
           </span>
         )}
       </div>
-      
-      {comment.offerDescription && (
-        <p className="text-xs text-gray-500 bg-white/50 p-2 rounded-lg mb-3">
-          {comment.offerDescription}
-        </p>
-      )}
-      
-      {isPostOwner && comment.offerStatus === 'pending' && (
-        <div className="flex gap-2">
-          <Button size="sm" onClick={onAccept} className="bg-green-600 hover:bg-green-700">
-            <Check className="w-4 h-4 mr-1" /> 수락
-          </Button>
-          <Button size="sm" variant="outline" onClick={onDecline}>
-            <X className="w-4 h-4 mr-1" /> 거절
-          </Button>
+
+      {/* Price + description */}
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          {comment.offerPrice && (
+            <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent-gold)' }}>
+              ${comment.offerPrice}
+            </span>
+          )}
+          {comment.content && (
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{comment.content}</p>
+          )}
+          {comment.offerDescription && (
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, fontStyle: 'italic' }}>{comment.offerDescription}</p>
+          )}
         </div>
-      )}
+
+        {/* CTA */}
+        {isPostOwner && comment.offerStatus === 'pending' ? (
+          <div className="flex gap-2 flex-shrink-0">
+            <button
+              onClick={onAccept}
+              className="rounded-full px-3 py-1.5 text-xs font-semibold"
+              style={{ background: 'var(--accent-mint)', color: '#0A0B10' }}
+            >
+              {t('post.detail.offer.accept')}
+            </button>
+            <button
+              onClick={onDecline}
+              className="rounded-full px-3 py-1.5 text-xs font-medium tg-btn-ghost"
+            >
+              {t('post.detail.offer.decline')}
+            </button>
+          </div>
+        ) : (
+          <button
+            className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold"
+            style={{ background: 'var(--accent-coral)', color: '#fff' }}
+          >
+            {t('post.detail.offer.viewOffer')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function CommentItem({ 
-  comment, 
-  replies, 
-  isPostOwner, 
-  currentUserId,
-  onReply, 
-  onAcceptOffer, 
-  onDeclineOffer,
-  depth = 0 
-}: {
+/* ── Regular comment item ── */
+function CommentItem({ comment, replies, isPostOwner, currentUserId, onReply, onAcceptOffer, onDeclineOffer, depth = 0 }: {
   comment: Comment;
   replies: Comment[];
   isPostOwner: boolean;
-  currentUserId?: string | undefined;
-  onReply?: ((parentId: number) => void) | undefined;
+  currentUserId?: string;
+  onReply?: (parentId: number) => void;
   onAcceptOffer: (id: number) => void;
   onDeclineOffer: (id: number) => void;
-  depth?: number | undefined;
+  depth?: number;
 }) {
-  const isReply = depth > 0;
-  
+  const { t } = useTranslation('ui');
+  const authorName = comment.author?.nickname || `user_${comment.userId.slice(-4)}`;
+  const initials = authorName.slice(0, 2).toUpperCase();
+
   if (comment.isOffer) {
     return (
-      <div className={`${isReply ? 'ml-8 border-l-2 border-gray-200 pl-4' : ''}`}>
-        <div className="flex gap-2 mb-2">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment?.userId || 'User'}`} />
-            <AvatarFallback>
-              {comment?.author?.nickname?.[0] || comment?.userId?.[0] || '?'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">
-              {comment?.author?.nickname || `사용자${comment?.userId?.slice(-4) || ''}`}
-            </p>
-            <p className="text-xs text-gray-500">
-              {comment?.createdAt ? new Date(comment.createdAt).toLocaleString('ko-KR') : '방금 전'}
-            </p>
-          </div>
-        </div>
-        <OfferCard 
-          comment={comment} 
+      <div className={depth > 0 ? 'ml-8 pl-3' : ''} style={depth > 0 ? { borderLeft: '2px solid var(--stroke)' } : {}}>
+        <OfferCard
+          comment={comment}
           isPostOwner={isPostOwner}
           onAccept={() => onAcceptOffer(comment.id as number)}
           onDecline={() => onDeclineOffer(comment.id as number)}
         />
-        {replies.length > 0 && (
-          <div className="mt-3 space-y-3">
-            {replies.map((reply) => (
-              <CommentItem
-                key={reply.id}
-                comment={reply}
-                replies={[]}
-                isPostOwner={isPostOwner}
-                currentUserId={currentUserId}
-                onReply={onReply}
-                onAcceptOffer={onAcceptOffer}
-                onDeclineOffer={onDeclineOffer}
-                depth={depth + 1}
-              />
-            ))}
-          </div>
-        )}
+        {replies.map((r) => (
+          <CommentItem key={r.id} comment={r} replies={[]} isPostOwner={isPostOwner} currentUserId={currentUserId}
+            onReply={onReply} onAcceptOffer={onAcceptOffer} onDeclineOffer={onDeclineOffer} depth={depth + 1} />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className={`${isReply ? 'ml-8 border-l-2 border-gray-200 pl-4' : ''}`}>
-      <div className="flex gap-2">
-        <Avatar className="w-8 h-8">
-          <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment?.userId || 'User'}`} />
-          <AvatarFallback>
-            {comment?.author?.nickname?.[0] || comment?.userId?.[0] || '?'}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <p className="text-sm">
-            <span className="font-medium text-gray-900">
-              {comment?.author?.nickname || `사용자${comment?.userId?.slice(-4) || ''}`}
-            </span>
-            <span className="text-gray-700 ml-2">
-              {comment?.content || ''}
-            </span>
-            {comment?._optimistic && (
-              <span className="text-xs text-gray-400 ml-2">(전송중)</span>
-            )}
-          </p>
-          <div className="flex items-center gap-3 mt-1">
-            <p className="text-xs text-gray-500">
-              {comment?.createdAt ? new Date(comment.createdAt).toLocaleString('ko-KR') : '방금 전'}
-            </p>
-            {/* 인스타그램처럼 1단계 답글만 허용 (depth 0인 루트 댓글에만 답글 버튼 표시) */}
-            {onReply && typeof comment.id === 'number' && depth === 0 && (
-              <button 
-                onClick={() => onReply(comment.id as number)}
-                className="text-xs text-gray-500 hover:text-violet-600 flex items-center gap-1"
-              >
-                <Reply className="w-3 h-3" /> 답글
-              </button>
-            )}
-          </div>
+    <div
+      className={`flex gap-2.5 mb-3 ${depth > 0 ? 'ml-8 pl-3' : ''}`}
+      style={depth > 0 ? { borderLeft: '2px solid var(--stroke)' } : {}}
+    >
+      <div
+        className="rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xs"
+        style={{ width: 32, height: 32, background: 'var(--surface-2)', color: 'var(--accent-mint)', border: '1px solid var(--stroke)' }}
+      >
+        {initials}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p style={{ fontSize: 13 }}>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{authorName}</span>
+          <span style={{ color: 'var(--text-primary)', marginLeft: 6 }}>{comment.content || ''}</span>
+          {comment._optimistic && <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 6 }}>({t('post.detail.comments.sending')})</span>}
+        </p>
+        <div className="flex items-center gap-3 mt-1">
+          <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+            {comment.createdAt ? new Date(comment.createdAt).toLocaleString('ko-KR') : t('post.detail.timeAgo.justNow')}
+          </span>
+          {onReply && typeof comment.id === 'number' && depth === 0 && (
+            <button
+              onClick={() => onReply(comment.id as number)}
+              className="flex items-center gap-1"
+              style={{ fontSize: 11, color: 'var(--text-secondary)' }}
+            >
+              <Reply size={11} />{t('post.detail.comments.reply')}
+            </button>
+          )}
         </div>
       </div>
-      
+
       {replies.length > 0 && (
-        <div className="mt-3 space-y-3">
-          {replies.map((reply) => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              replies={[]}
-              isPostOwner={isPostOwner}
-              currentUserId={currentUserId}
-              onReply={onReply}
-              onAcceptOffer={onAcceptOffer}
-              onDeclineOffer={onDeclineOffer}
-              depth={depth + 1}
-            />
+        <div className="mt-2">
+          {replies.map((r) => (
+            <CommentItem key={r.id} comment={r} replies={[]} isPostOwner={isPostOwner} currentUserId={currentUserId}
+              onReply={onReply} onAcceptOffer={onAcceptOffer} onDeclineOffer={onDeclineOffer} depth={depth + 1} />
           ))}
         </div>
       )}
@@ -216,57 +213,49 @@ function CommentItem({
   );
 }
 
+/* ── Main export ── */
 export default function CommentsSection({ postId, postOwnerId, currentUserId, onReply }: CommentsSectionProps) {
+  const { t } = useTranslation('ui');
   const { data: comments, isLoading } = useComments(postId);
   const updateStatus = useUpdateOfferStatus();
-  
-  const safeComments = Array.isArray(comments) ? comments : [];
-  
-  const rootComments = safeComments.filter((c: Comment) => !c.parentId);
-  const repliesMap = safeComments.reduce((acc: Record<number, Comment[]>, c: Comment) => {
+
+  const safeComments: Comment[] = Array.isArray(comments) ? comments : [];
+  const rootComments = safeComments.filter((c) => !c.parentId);
+  const repliesMap = safeComments.reduce((acc: Record<number, Comment[]>, c) => {
     if (c.parentId != null) {
-      const parentKey = c.parentId;
-      if (!acc[parentKey]) acc[parentKey] = [];
-      acc[parentKey].push(c);
+      if (!acc[c.parentId]) acc[c.parentId] = [];
+      acc[c.parentId]!.push(c);
     }
     return acc;
   }, {});
 
   const isPostOwner = currentUserId === postOwnerId;
 
-  const handleAcceptOffer = (commentId: number) => {
-    updateStatus.mutate({ commentId, status: 'accepted' });
-  };
-
-  const handleDeclineOffer = (commentId: number) => {
-    updateStatus.mutate({ commentId, status: 'declined' });
-  };
-
   if (isLoading) {
-    return <div className="text-center text-gray-500 py-4">댓글 로딩중...</div>;
+    return <div className="py-4 text-center" style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('post.detail.comments.loading')}</div>;
   }
 
   if (safeComments.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-4 flex flex-col items-center gap-2">
-        <MessageCircle className="w-8 h-8 text-gray-300" />
-        첫 댓글을 남겨보세요!
+      <div className="flex flex-col items-center gap-2 py-8" style={{ color: 'var(--text-secondary)' }}>
+        <MessageCircle size={32} strokeWidth={1.5} />
+        <p style={{ fontSize: 13 }}>{t('post.detail.comments.empty')}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-      {rootComments.map((comment: Comment) => (
+    <div className="pb-2">
+      {rootComments.map((c) => (
         <CommentItem
-          key={comment.id}
-          comment={comment}
-          replies={repliesMap[comment.id as number] || []}
+          key={c.id}
+          comment={c}
+          replies={repliesMap[c.id as number] || []}
           isPostOwner={isPostOwner}
           currentUserId={currentUserId}
           onReply={onReply}
-          onAcceptOffer={handleAcceptOffer}
-          onDeclineOffer={handleDeclineOffer}
+          onAcceptOffer={(id) => updateStatus.mutate({ commentId: id, status: 'accepted' })}
+          onDeclineOffer={(id) => updateStatus.mutate({ commentId: id, status: 'declined' })}
         />
       ))}
     </div>

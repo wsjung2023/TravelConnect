@@ -1,30 +1,14 @@
-// 게시글 상세 모달 — 게시글 내용, 이미지, 댓글(중첩), 좋아요·저장·공유 기능을 보여주는 상세 모달.
-import React, { useState } from 'react';
-import {
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  MessageCircle,
-  MapPin,
-  Calendar,
-  Bookmark,
-  Share2,
-} from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+// 게시글 상세 모달 v3 — 히어로 + 작성자 + 반응 + 본문 + 지도 + 댓글 (기존 로직 유지)
+import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
+import { useTranslation } from 'react-i18next';
+import type { Post } from '@shared/schema';
+import PostHero from '@/components/post/PostHero';
+import PostAuthorRow from '@/components/post/PostAuthorRow';
+import PostReactions from '@/components/post/PostReactions';
+import PostMapThumb from '@/components/post/PostMapThumb';
 import CommentForm from '@/components/post/CommentForm';
 import CommentsSection from '@/components/post/CommentsSection';
-import type { Post } from '@shared/schema';
-import { ImageFallback } from '@/components/ImageFallback';
-import { useTranslation } from 'react-i18next';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 interface PostDetailModalProps {
   post: Post;
@@ -38,310 +22,111 @@ interface PostDetailModalProps {
 }
 
 export default function PostDetailModal({
-  post,
-  isOpen,
-  onClose,
-  onLike,
-  isLiked,
-  onSave,
-  isSaved = false,
-  onShare,
+  post, isOpen, onClose, onLike, isLiked, onSave, isSaved = false, onShare,
 }: PostDetailModalProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('ui');
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [failedMedia, setFailedMedia] = useState(new Set<string>());
 
   if (!isOpen) return null;
 
-  const formatTime = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
-    const minutes = Math.floor(diff / 60000);
+  const formatTime = (date: Date): string => {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-
-    if (minutes < 60) return `${minutes}분 전`;
-    if (hours < 24) return `${hours}시간 전`;
-    return `${days}일 전`;
+    if (mins < 1) return t('post.detail.timeAgo.justNow');
+    if (mins < 60) return t('post.detail.timeAgo.mins', { count: mins });
+    if (hours < 24) return t('post.detail.timeAgo.hours', { count: hours });
+    return t('post.detail.timeAgo.days', { count: days });
   };
 
-  // 모든 미디어 파일 합치기 (이미지 + 동영상)
   const allMedia = [
-    ...(post.images || []).map((img) => ({ type: 'image' as const, src: img })),
-    ...(post.videos || []).map((vid) => ({ type: 'video' as const, src: vid })),
+    ...(post.images || []).map((src) => ({ type: 'image' as const, src })),
+    ...(post.videos || []).map((src) => ({ type: 'video' as const, src })),
   ];
-
-  const nextMedia = () => {
-    if (currentMediaIndex < allMedia.length - 1) {
-      setCurrentMediaIndex(currentMediaIndex + 1);
-    }
-  };
-
-  const prevMedia = () => {
-    if (currentMediaIndex > 0) {
-      setCurrentMediaIndex(currentMediaIndex - 1);
-    }
-  };
 
   return (
     <Modal open={isOpen} onClose={onClose}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${post.userId}`}
-              />
-              <AvatarFallback>
-                {post.userId.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium text-sm">{post.userId}</p>
-              <p className="text-xs text-gray-500">
-                {post.createdAt ? formatTime(post.createdAt) : '방금 전'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full relative z-50"
-            data-testid="button-close-post-detail"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <div style={{ background: 'var(--app-bg)', minHeight: '100%' }}>
 
-      {/* Content */}
-      <div className="p-4 flex-1 overflow-y-auto">
-          {/* Title and Content */}
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+        {/* Hero image with controls */}
+        <PostHero
+          media={allMedia}
+          currentIndex={currentMediaIndex}
+          onPrev={() => setCurrentMediaIndex((i) => Math.max(0, i - 1))}
+          onNext={() => setCurrentMediaIndex((i) => Math.min(allMedia.length - 1, i + 1))}
+          onIndexChange={setCurrentMediaIndex}
+          isSaved={isSaved}
+          onSave={onSave ? () => onSave(post.id) : undefined}
+          onShare={onShare ? () => onShare(post) : undefined}
+          onBack={onClose}
+          failedMedia={failedMedia}
+          onMediaError={(src) => setFailedMedia((prev) => new Set(prev).add(src))}
+        />
+
+        {/* Author row */}
+        <PostAuthorRow
+          userId={post.userId}
+          location={post.location}
+          timeAgo={post.createdAt ? formatTime(post.createdAt) : t('post.detail.timeAgo.justNow')}
+          isOwnPost={false}
+        />
+
+        {/* Reactions bar */}
+        <PostReactions
+          likesCount={post.likesCount || 0}
+          commentsCount={post.commentsCount || 0}
+          isLiked={isLiked}
+          isSaved={isSaved}
+          onLike={() => onLike(post.id)}
+          onSave={onSave ? () => onSave(post.id) : undefined}
+          onShare={onShare ? () => onShare(post) : undefined}
+        />
+
+        {/* Post body */}
+        <div className="px-4 py-4">
+          {post.title && (
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.4 }}>
               {post.title}
             </h2>
-            <p className="text-gray-700 leading-relaxed">{post.content}</p>
-          </div>
-
-          {/* Location */}
-          {post.location && (
-            <div className="flex items-center gap-1 mb-4 text-gray-500">
-              <MapPin size={16} />
-              <span className="text-sm">{post.location}</span>
-            </div>
           )}
-
-          {/* Media Carousel */}
-          {allMedia.length > 0 && allMedia[currentMediaIndex] && (
-            <div className="relative mb-4">
-              <div className="rounded-lg overflow-hidden bg-gray-100">
-                {allMedia[currentMediaIndex].type === 'image' ? (
-                  allMedia[currentMediaIndex].src.startsWith('dummy_') || failedMedia.has(allMedia[currentMediaIndex].src) ? (
-                    <ImageFallback className="w-full h-80 bg-gradient-to-br flex items-center justify-center" />
-                  ) : (
-                    <img
-                      src={allMedia[currentMediaIndex].src}
-                      alt={post.title ?? ''}
-                      className="w-full h-80 object-cover"
-                      onError={() => {
-                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex]?.src || ''));
-                      }}
-                    />
-                  )
-                ) : (
-                  failedMedia.has(allMedia[currentMediaIndex].src) ? (
-                    <ImageFallback 
-                      isVideo={true} 
-                      className="w-full h-80 bg-gradient-to-br flex items-center justify-center" 
-                    />
-                  ) : (
-                    <video
-                      src={allMedia[currentMediaIndex].src}
-                      controls
-                      className="w-full h-80 object-cover"
-                      onError={() => {
-                        setFailedMedia(prev => new Set(prev).add(allMedia[currentMediaIndex]?.src || ''));
-                      }}
-                    />
-                  )
-                )}
-              </div>
-
-              {/* Media Navigation */}
-              {allMedia.length > 1 && (
-                <>
-                  {/* Left Arrow */}
-                  {currentMediaIndex > 0 && (
-                    <button
-                      onClick={prevMedia}
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                  )}
-
-                  {/* Right Arrow */}
-                  {currentMediaIndex < allMedia.length - 1 && (
-                    <button
-                      onClick={nextMedia}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  )}
-
-                  {/* Media Indicators */}
-                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                    {allMedia.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentMediaIndex(index)}
-                        className={`w-2 h-2 rounded-full ${
-                          index === currentMediaIndex
-                            ? 'bg-white'
-                            : 'bg-white bg-opacity-50'
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Media Counter */}
-                  <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                    {currentMediaIndex + 1} / {allMedia.length}
-                  </div>
-                </>
-              )}
-            </div>
+          {post.content && (
+            <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.75 }}>
+              {post.content}
+            </p>
           )}
 
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {post.tags.map((tag, index) => (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {post.tags.map((tag, i) => (
                 <span
-                  key={index}
-                  className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm"
+                  key={i}
+                  className="tg-chip tg-chip-active"
+                  style={{ fontSize: 12, padding: '3px 10px' }}
                 >
-                  {tag}
+                  #{tag}
                 </span>
               ))}
             </div>
           )}
-
-          {/* Post Date and Time */}
-          {(post.postDate || post.postTime) && (
-            <div className="flex items-center gap-1 mb-4 text-gray-500">
-              <Calendar size={16} />
-              <span className="text-sm">
-                {post.postDate &&
-                  new Date(post.postDate).toLocaleDateString('ko-KR')}
-                {post.postDate && post.postTime && ' '}
-                {post.postTime}
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* Actions */}
-        <div className="p-4 border-t bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* 좋아요 버튼 + 툴팁 */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => onLike(post.id)}
-                      className={`flex items-center gap-2 transition-colors ${
-                        isLiked ? 'text-red-500' : 'text-gray-600 hover:text-red-500'
-                      }`}
-                      data-testid="btn-like"
-                    >
-                      <Heart size={20} className={isLiked ? 'fill-current' : ''} />
-                      <span className="text-sm">{post.likesCount || 0}</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{isLiked ? t('ui.actions.liked') : t('ui.actions.like')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+        {/* Map thumbnail */}
+        <PostMapThumb location={post.location} />
 
-              {/* 댓글 버튼 + 툴팁 */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button 
-                      className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors"
-                      data-testid="btn-comment"
-                    >
-                      <MessageCircle size={20} />
-                      <span className="text-sm">{post.commentsCount || 0}</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('ui.actions.comment')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              {/* 저장(북마크) 버튼 + 툴팁 */}
-              {onSave && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => onSave(post.id)}
-                        className={`flex items-center gap-2 transition-colors ${
-                          isSaved ? 'text-yellow-500' : 'text-gray-600 hover:text-yellow-500'
-                        }`}
-                        data-testid="btn-save"
-                      >
-                        <Bookmark size={20} className={isSaved ? 'fill-current' : ''} />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{isSaved ? t('ui.actions.saved') : t('ui.actions.save')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              {/* 공유 버튼 + 툴팁 */}
-              {onShare && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => onShare(post)}
-                        className="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors"
-                        data-testid="btn-share"
-                      >
-                        <Share2 size={20} />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('ui.actions.share')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-            <Button variant="outline" onClick={onClose}>
-              {t('common.app.cancel')}
-            </Button>
-          </div>
-
-          {/* Comments Section */}
-          <div className="mt-4 pt-4 border-t">
-            <h3 className="font-semibold text-gray-900 mb-3">댓글</h3>
-
-            {/* Comment Input */}
-            <CommentForm postId={post.id} />
-
-            {/* Live Comments */}
-            <CommentsSection postId={post.id} />
-          </div>
+        {/* Comments header */}
+        <div className="px-4 pb-2">
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
+            {t('post.detail.comments.title')}
+          </p>
+          <CommentsSection postId={post.id} />
         </div>
+
+        {/* Comment input — sticky at bottom */}
+        <CommentForm postId={post.id} />
+      </div>
     </Modal>
   );
 }
