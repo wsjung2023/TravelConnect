@@ -1,5 +1,6 @@
-// 프로필 히어로 — 커버 200px + 아바타 96px + mint ring + 이름 + 뱃지 + CTA
-import { Compass, Camera, Map, Home, Edit3 } from 'lucide-react';
+// 프로필 히어로 — mockup 기준의 커버/오픈투밋 배너/아바타/언어칩/역할 배지/CTA
+import { Compass, Camera, Map, Home, Edit3, MapPin, Sparkles, MessageCircle, UserPlus, HeartHandshake } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface User {
   profileImageUrl?: string | null;
@@ -29,14 +30,14 @@ interface Props {
 }
 
 const BADGE_DEFS = [
-  { key: 'traveler', label: 'Traveler', icon: <Compass size={14} /> },
-  { key: 'creator', label: 'Creator', icon: <Camera size={14} /> },
-  { key: 'guide', label: 'Local Guide', icon: <Map size={14} /> },
-  { key: 'host', label: 'Host', icon: <Home size={14} /> },
+  { key: 'traveler', labelKey: 'profile.badge.traveler', fallback: '여행자', icon: <Compass size={15} /> },
+  { key: 'creator', labelKey: 'profile.badge.creator', fallback: '크리에이터', icon: <Camera size={15} /> },
+  { key: 'guide', labelKey: 'profile.badge.guide', fallback: '로컬 가이드', icon: <Map size={15} /> },
+  { key: 'host', labelKey: 'profile.badge.host', fallback: '호스트', icon: <Home size={15} /> },
 ] as const;
 
 function getBadges(user: User) {
-  const badges: { key: string; label: string; icon: React.ReactNode }[] = [];
+  const badges: { key: string; labelKey: string; fallback: string; icon: React.ReactNode }[] = [];
   badges.push(BADGE_DEFS[0]);
   if (user.userType === 'influencer' || user.userType === 'creator') badges.push(BADGE_DEFS[1]);
   if (user.userType === 'local_guide') badges.push(BADGE_DEFS[2]);
@@ -44,7 +45,12 @@ function getBadges(user: User) {
   return badges;
 }
 
+function normalizeLanguage(lang: string) {
+  return lang.trim().slice(0, 3).toUpperCase();
+}
+
 export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFollow, onMeet }: Props) {
+  const { t } = useTranslation('ui');
   if (!user) return null;
 
   const displayName =
@@ -54,159 +60,194 @@ export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFo
     'User';
 
   const badges = getBadges(user);
+  const languages = (user.languages && user.languages.length > 0 ? user.languages : ['EN']).slice(0, 3);
+  const meetLabel = user.openMeetRegion || user.location || t('profile.hero.defaultMeetRegion');
+  const bio = user.bio || t('profile.hero.defaultBio');
 
   return (
-    <div>
-      {/* Cover image */}
-      <div className="relative" style={{ height: 200, overflow: 'hidden' }}>
-        {user.coverImageUrl ? (
-          <img src={user.coverImageUrl} alt="cover" className="w-full h-full object-cover" />
-        ) : (
-          <div
-            className="w-full h-full"
-            style={{ background: 'linear-gradient(135deg, #11131A 0%, #1A1D2E 50%, #0D0F14 100%)' }}
-          />
-        )}
-        <div
-          className="absolute inset-x-0 bottom-0"
-          style={{ height: '60%', background: 'linear-gradient(to top, #0A0B10 0%, transparent 100%)' }}
-        />
-
-        {/* Open-to-meet badge — top-right of cover */}
-        {user.openToMeet && (
-          <div
-            className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-            style={{ background: 'rgba(124,231,214,0.15)', border: '1px solid rgba(124,231,214,0.5)', backdropFilter: 'blur(8px)' }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-mint)', boxShadow: '0 0 5px var(--accent-mint)' }} />
-            <span style={{ fontSize: 11, color: 'var(--accent-mint)', fontWeight: 600 }}>
-              Open · {user.openMeetRegion || user.location || 'Seoul'}
-            </span>
-          </div>
-        )}
-
-        {isOwnProfile && (
-          <button
-            onClick={onEdit}
-            className="absolute top-3 right-3 flex items-center justify-center w-8 h-8 rounded-full"
-            style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', border: '1px solid var(--stroke)' }}
-            aria-label="Edit profile"
-          >
-            <Edit3 size={14} style={{ color: 'var(--text-primary)' }} />
-          </button>
-        )}
-      </div>
-
-      {/* Avatar — 96px overlapping cover */}
-      <div className="flex flex-col items-center" style={{ marginTop: -48 }}>
-        <div
-          className="relative"
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: '50%',
-            border: '3px solid var(--accent-gold)',
-            boxShadow: user.openToMeet
-              ? '0 0 0 5px rgba(124,231,214,0.35), 0 0 20px rgba(124,231,214,0.3)'
-              : '0 4px 16px rgba(200,168,78,0.25)',
-          }}
-        >
-          {user.profileImageUrl ? (
-            <img
-              src={user.profileImageUrl}
-              alt={displayName}
-              className="w-full h-full rounded-full object-cover"
-            />
+    <div className="px-4 pt-3 pb-2">
+      <div
+        className="overflow-hidden"
+        style={{
+          borderRadius: 28,
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 28px 80px rgba(0,0,0,0.34)',
+        }}
+      >
+        <div className="relative" style={{ height: 230, overflow: 'hidden' }}>
+          {user.coverImageUrl ? (
+            <img src={user.coverImageUrl} alt="cover" className="h-full w-full object-cover" />
           ) : (
             <div
-              className="w-full h-full rounded-full flex items-center justify-center font-bold text-2xl"
-              style={{ background: 'var(--surface-2)', color: 'var(--accent-gold)', border: '3px solid var(--surface-1)' }}
-            >
-              {displayName.charAt(0).toUpperCase()}
-            </div>
+              className="h-full w-full"
+              style={{
+                background:
+                  'radial-gradient(circle at top left, rgba(255,186,102,0.18) 0%, transparent 30%), linear-gradient(180deg, rgba(36,39,59,0.2) 0%, rgba(12,14,22,0.12) 100%), linear-gradient(135deg, #3a2a21 0%, #1b2132 42%, #090b12 100%)',
+              }}
+            />
           )}
-        </div>
 
-        {/* Name + location */}
-        <div className="mt-3 text-center px-4">
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>
-            {displayName}
-          </h2>
-          {user.location && (
-            <p style={{ fontSize: 13, color: 'var(--accent-gold)', marginTop: 3, opacity: 0.85 }}>
-              {user.location}
-            </p>
-          )}
-        </div>
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(180deg, rgba(10,11,16,0.08) 10%, rgba(10,11,16,0.62) 66%, #0A0B10 100%)' }}
+          />
 
-        {/* Bio */}
-        {user.bio && (
-          <p
-            className="mt-3 text-center px-6"
-            style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}
-          >
-            {user.bio}
-          </p>
-        )}
-
-        {/* Badge row */}
-        {badges.length > 0 && (
-          <div className="flex gap-3 mt-4 flex-wrap justify-center px-4">
-            {badges.map((b) => (
-              <div key={b.key} className="flex flex-col items-center gap-1">
-                <div
-                  className="flex items-center justify-center w-10 h-10 rounded-full"
-                  style={{
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--accent-gold)',
-                    color: 'var(--accent-gold)',
-                  }}
-                >
-                  {b.icon}
-                </div>
-                <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500 }}>
-                  {b.label}
-                </span>
+          <div className="absolute left-1/2 top-4 -translate-x-1/2">
+            {user.openToMeet ? (
+              <div
+                className="flex items-center gap-2 rounded-full px-3.5 py-2"
+                style={{
+                  background: 'rgba(28,30,34,0.58)',
+                  border: '1px solid rgba(255,214,134,0.14)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.22)',
+                  backdropFilter: 'blur(14px)',
+                }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#4ADE80', boxShadow: '0 0 12px rgba(74,222,128,0.9)' }} />
+                <span style={{ fontSize: 12, color: 'rgba(255,214,134,0.92)', fontWeight: 700 }}>{t('profile.hero.openToMeet')}</span>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.86)' }}>{t('profile.hero.currentlyIn', { region: meetLabel })}</span>
               </div>
-            ))}
+            ) : (
+              <div
+                className="flex items-center gap-2 rounded-full px-3.5 py-2"
+                style={{
+                  background: 'rgba(28,30,34,0.58)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.22)',
+                  backdropFilter: 'blur(14px)',
+                }}
+              >
+                <Sparkles size={13} style={{ color: 'var(--accent-gold)' }} />
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.84)', fontWeight: 600 }}>{t('profile.hero.identityHub')}</span>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* CTA row */}
-        <div className="flex gap-2 mt-4 px-4 w-full justify-center pb-4">
-          {!isOwnProfile ? (
-            <>
-              <button
-                className="tg-btn-ghost"
-                style={{ flex: 1, maxWidth: 110, padding: '8px 0', fontSize: 13 }}
-                onClick={onFollow}
-              >
-                팔로우
-              </button>
-              <button
-                className="tg-btn-ghost"
-                style={{ flex: 1, maxWidth: 110, padding: '8px 0', fontSize: 13 }}
-                onClick={onChat}
-              >
-                채팅
-              </button>
-              <button
-                className="tg-btn-primary"
-                style={{ flex: 1, maxWidth: 110, padding: '8px 0', fontSize: 13 }}
-                onClick={onMeet}
-              >
-                같이만나기
-              </button>
-            </>
-          ) : (
+          {isOwnProfile && (
             <button
-              className="tg-btn-ghost"
-              style={{ minWidth: 140, padding: '8px 20px', fontSize: 13 }}
               onClick={onEdit}
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full"
+              style={{
+                background: 'rgba(10,11,16,0.5)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                backdropFilter: 'blur(12px)',
+              }}
+              aria-label={t('profile.actions.edit')}
             >
-              프로필 편집
+              <Edit3 size={15} style={{ color: 'var(--text-primary)' }} />
             </button>
           )}
+        </div>
+
+        <div className="relative px-5 pb-6">
+          <div className="flex flex-col items-center" style={{ marginTop: -46 }}>
+            <div
+              className="relative"
+              style={{
+                width: 92,
+                height: 92,
+                borderRadius: '50%',
+                padding: 3,
+                background: 'linear-gradient(135deg, rgba(255,227,157,0.95) 0%, rgba(200,168,78,0.98) 100%)',
+                boxShadow: '0 18px 36px rgba(0,0,0,0.35)',
+              }}
+            >
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2" style={{ borderColor: 'rgba(255,255,255,0.88)', background: 'var(--surface-2)' }}>
+                {user.profileImageUrl ? (
+                  <img src={user.profileImageUrl} alt={displayName} className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  <div
+                    className="flex h-full w-full items-center justify-center rounded-full font-bold"
+                    style={{
+                      background: 'radial-gradient(circle at top, rgba(124,231,214,0.18) 0%, rgba(255,255,255,0.02) 55%), #151923',
+                      color: 'var(--accent-gold)',
+                      fontSize: 30,
+                    }}
+                  >
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 text-center">
+              <h2 style={{ fontSize: 21, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>{displayName}</h2>
+              {user.location && (
+                <div className="mt-2 flex items-center justify-center gap-1.5" style={{ color: 'var(--accent-gold)' }}>
+                  <MapPin size={13} />
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{user.location}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 px-2">
+              {languages.map((lang) => (
+                <span
+                  key={lang}
+                  className="rounded-full px-3 py-1"
+                  style={{
+                    background: 'rgba(255,214,134,0.05)',
+                    border: '1px solid rgba(255,214,134,0.22)',
+                    color: 'rgba(255,234,184,0.92)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  {normalizeLanguage(lang)}
+                </span>
+              ))}
+            </div>
+
+            <p
+              className="mt-4 max-w-md text-center"
+              style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--text-secondary)' }}
+            >
+              {bio}
+            </p>
+
+            {badges.length > 0 && (
+              <div className="mt-5 flex flex-wrap justify-center gap-5">
+                {badges.map((badge) => (
+                  <div key={badge.key} className="flex flex-col items-center gap-2">
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-full"
+                      style={{
+                        background: 'radial-gradient(circle at top, rgba(255,237,186,0.2) 0%, rgba(200,168,78,0.08) 45%, rgba(20,22,30,0.92) 100%)',
+                        border: '1px solid rgba(200,168,78,0.4)',
+                        color: 'var(--accent-gold)',
+                        boxShadow: '0 10px 24px rgba(0,0,0,0.24)',
+                      }}
+                    >
+                      {badge.icon}
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600 }}>{t(badge.labelKey)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-5 flex w-full flex-wrap gap-2">
+              {!isOwnProfile ? (
+                <>
+                  <button className="tg-btn-ghost flex-1" style={{ minWidth: 96, padding: '10px 12px', fontSize: 13 }} onClick={onFollow}>
+                    <span className="inline-flex items-center gap-1.5"><UserPlus size={14} />{t('profile.actions.follow')}</span>
+                  </button>
+                  <button className="tg-btn-ghost flex-1" style={{ minWidth: 96, padding: '10px 12px', fontSize: 13 }} onClick={onChat}>
+                    <span className="inline-flex items-center gap-1.5"><MessageCircle size={14} />{t('profile.actions.chat')}</span>
+                  </button>
+                  <button className="tg-btn-primary flex-1" style={{ minWidth: 120, padding: '10px 12px', fontSize: 13 }} onClick={onMeet}>
+                    <span className="inline-flex items-center gap-1.5"><HeartHandshake size={14} />{t('profile.actions.meet')}</span>
+                  </button>
+                </>
+              ) : (
+                <button className="tg-btn-ghost w-full" style={{ padding: '11px 16px', fontSize: 13 }} onClick={onEdit}>
+                  {t('profile.actions.editProfile')}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

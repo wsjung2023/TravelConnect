@@ -192,11 +192,11 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
                         onRatingChange={field.onChange}
                       />
                       <p className="text-sm text-gray-600">
-                        {field.value === 1 && '매우 불만족'}
-                        {field.value === 2 && '불만족'}
-                        {field.value === 3 && '보통'}
-                        {field.value === 4 && '만족'}
-                        {field.value === 5 && '매우 만족'}
+                        {field.value === 1 && t('review.ratingLabels.1')}
+                        {field.value === 2 && t('review.ratingLabels.2')}
+                        {field.value === 3 && t('review.ratingLabels.3')}
+                        {field.value === 4 && t('review.ratingLabels.4')}
+                        {field.value === 5 && t('review.ratingLabels.5')}
                       </p>
                     </div>
                   </FormControl>
@@ -211,12 +211,12 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
               name="comment"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>후기 내용</FormLabel>
+                  <FormLabel>{t('review.commentLabel')}</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       value={field.value || ''}
-                      placeholder="경험에 대한 솔직한 후기를 작성해주세요..."
+                      placeholder={t('review.commentPlaceholder')}
                       className="min-h-[120px] resize-none"
                       data-testid="input-review-comment"
                     />
@@ -228,7 +228,7 @@ export default function CreateReviewModal({ booking, children }: CreateReviewMod
 
             {/* 이미지 업로드 */}
             <div className="space-y-3">
-              <label className="text-sm font-medium">후기 사진 (선택사항)</label>
+              <label className="text-sm font-medium">{t('review.photoLabel')}</label>
               
               <div className="flex flex-wrap gap-3">
                 {uploadedImages.map((image, index) => (

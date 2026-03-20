@@ -41,7 +41,7 @@ async function getStoredHash(): Promise<string | null> {
       .from(systemConfig)
       .where(and(eq(systemConfig.category, HASH_CONFIG_CATEGORY), eq(systemConfig.key, HASH_CONFIG_KEY)))
       .limit(1);
-    return rows.length > 0 ? rows[0].valueString : null;
+    return rows.length > 0 ? rows[0]!.valueString : null;
   } catch {
     return null;
   }
@@ -59,7 +59,7 @@ async function saveHash(hash: string): Promise<void> {
       await db
         .update(systemConfig)
         .set({ valueString: hash })
-        .where(eq(systemConfig.id, existing[0].id));
+        .where(eq(systemConfig.id, existing[0]!.id));
     } else {
       await db.insert(systemConfig).values({
         category: HASH_CONFIG_CATEGORY,

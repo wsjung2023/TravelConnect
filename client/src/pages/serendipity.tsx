@@ -139,13 +139,13 @@ export default function SerendipityPage() {
           }}>
             <MapPin size={12} color="var(--accent-mint)" />
             <span style={{ fontSize: 12, color: 'var(--accent-mint)', fontWeight: 600 }}>
-              {t('serendipity.distance', { defaultValue: '0.3 km apart' })}
+              {t('serendipity.distance')}
             </span>
           </div>
 
           {/* Match label */}
           <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
-            {t('serendipity.matchLabel', { defaultValue: 'You\'re nearby right now!' })}
+            {t('serendipity.matchLabel')}
           </p>
         </div>
 
@@ -183,7 +183,7 @@ export default function SerendipityPage() {
                       background: 'rgba(124,231,214,0.10)', color: 'var(--accent-mint)',
                       border: '1px solid rgba(124,231,214,0.25)',
                     }}>
-                      {t(`serendipity.interest.${interest}`, { defaultValue: interest })}
+                      {t(`serendipity.interest.${interest}`)}
                     </span>
                   ))}
                 </div>
@@ -196,7 +196,7 @@ export default function SerendipityPage() {
                 {t('serendipity.languages')}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {[...new Set([...(a.languages ?? []), ...(b.languages ?? [])])].map((lang) => (
+                {Array.from(new Set([...(a.languages ?? []), ...(b.languages ?? [])])).map((lang) => (
                   <span key={lang} style={{
                     display: 'flex', alignItems: 'center', gap: 4,
                     padding: '4px 10px', borderRadius: 99, fontSize: 12,
@@ -204,7 +204,7 @@ export default function SerendipityPage() {
                     border: '1px solid var(--stroke)',
                   }}>
                     <Globe size={10} />
-                    {t(`serendipity.lang.${lang}`, { defaultValue: lang.toUpperCase() })}
+                    {t(`serendipity.lang.${lang}`)}
                   </span>
                 ))}
               </div>
@@ -222,7 +222,7 @@ export default function SerendipityPage() {
                     background: 'rgba(230,201,137,0.10)', color: 'var(--accent-gold)',
                     border: '1px solid rgba(230,201,137,0.25)',
                   }}>
-                    {t(`serendipity.moodTag.${m}`, { defaultValue: m })}
+                    {t(`serendipity.moodTag.${m}`)}
                   </span>
                 ))}
               </div>

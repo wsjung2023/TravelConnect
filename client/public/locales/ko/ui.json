@@ -56,7 +56,40 @@
     "noDescription": "설명 없음",
     "lastMessage": "마지막 메시지",
     "translated": "번역됨",
-    "aiConcierge": "AI 컨시어지"
+    "aiConcierge": "AI 컨시어지",
+    "repliesCount": "댓글 수",
+    "empty": {
+      "title": "아직 대화가 없습니다",
+      "hint": "새 채팅을 시작하면 여기에 메시지가 표시됩니다."
+    },
+    "group": {
+      "today": "오늘",
+      "thisWeek": "이번 주",
+      "older": "이전"
+    },
+    "searchPlaceholder": "대화를 검색하세요",
+    "title": "채팅",
+    "closeSearch": "검색 닫기",
+    "openSearch": "검색",
+    "subtitle": "빠른 번역, 첫 인사, 후속 대화를 한 곳에서 이어가세요.",
+    "chips": {
+      "translationReady": "번역 준비 완료",
+      "recentIntros": "최근 인사",
+      "quickReplies": "빠른 답장"
+    },
+    "summary": {
+      "eyebrow": "채팅 흐름",
+      "title": "번역 맥락을 잃지 않고 진행 중인 여행 대화를 이어가세요.",
+      "activeThreads": "활성 대화 {{count}}개",
+      "translationOnDemand": "필요할 때 번역",
+      "replyFaster": "더 빠른 답장"
+    },
+    "item": {
+      "translation": "번역",
+      "onlineNow": "지금 온라인",
+      "fallbackMessage": "가벼운 인사 한마디로 대화를 시작해보세요."
+    },
+    "translationFailed": "번역 실패"
   },
   "themes": {
     "restaurant": "맛집",
@@ -181,7 +214,76 @@
     "locationPlaceholder": "어디에서의 이야기인가요?",
     "addPhoto": "사진 추가",
     "posting": "게시 중...",
-    "publish": "게시하기"
+    "publish": "게시하기",
+    "addMedia": "사진 및 동영상 추가",
+    "editPost": "게시물 수정",
+    "gallery": "갤러리",
+    "invalidYoutubeUrl": "유효하지 않은 유튜브 URL",
+    "noMediaSelected": "선택된 미디어 없음",
+    "photos": "사진",
+    "recordVideo": "동영상 촬영",
+    "saved": "저장됨",
+    "savedDesc": "저장됨 설명",
+    "takePhoto": "사진 촬영",
+    "unsaved": "저장되지 않음",
+    "unsavedDesc": "저장되지 않음 설명",
+    "update": "업데이트",
+    "updateError": "업데이트 오류",
+    "updateErrorDesc": "업데이트 오류 설명",
+    "updateSuccess": "업데이트 성공",
+    "updateSuccessDesc": "업데이트 성공 설명",
+    "updating": "업데이트 중",
+    "videos": "비디오",
+    "videoTooLarge": "동영상 파일이 너무 큽니다",
+    "videoTooLargeDesc": "최대 동영상 크기는 50MB입니다",
+    "videoUploadFailed": "비디오 업로드 실패",
+    "videoUploadFailedDesc": "비디오 업로드 실패 설명",
+    "youtubeUrl": "YouTube URL",
+    "detail": {
+      "timeAgo": {
+        "justNow": "방금 전",
+        "mins": "{{count}}분 전",
+        "hours": "{{count}}시간 전",
+        "days": "{{count}}일 전"
+      },
+      "comments": {
+        "title": "댓글",
+        "replyBadge": "답글 작성 중",
+        "replyPlaceholder": "답글을 입력하세요",
+        "placeholder": "댓글을 입력하세요",
+        "sending": "전송 중",
+        "reply": "답글",
+        "loading": "댓글 불러오는 중…",
+        "empty": "아직 댓글이 없습니다"
+      },
+      "offer": {
+        "title": "특별 제안",
+        "contentPlaceholder": "제안 메시지를 입력하세요",
+        "priceLabel": "가격",
+        "durationLabel": "소요 시간",
+        "descriptionPlaceholder": "제안 설명을 추가하세요",
+        "cancel": "취소",
+        "sending": "전송 중…",
+        "send": "제안 보내기",
+        "guideBadge": "가이드",
+        "specialOffer": "특별 제안",
+        "accepted": "수락됨",
+        "declined": "거절됨",
+        "pending": "대기 중",
+        "accept": "수락",
+        "decline": "거절",
+        "viewOffer": "제안 보기"
+      },
+      "following": "팔로잉",
+      "follow": "팔로우",
+      "back": "뒤로",
+      "saved": "저장됨",
+      "save": "저장",
+      "share": "공유",
+      "mapView": "지도 보기",
+      "like": "좋아요",
+      "comment": "댓글"
+    }
   },
   "experiences": {
     "nearbyTitle": "주변 체험",
@@ -202,7 +304,11 @@
   "feed": {
     "title": "모뷔",
     "subtitle": "Moments + Vibes",
-    "description": "당신의 영화같은 여행의 순간들"
+    "description": "당신의 영화같은 여행의 순간들",
+    "sortFollowing": "팔로잉",
+    "sortLatest": "최신순",
+    "sortNearby": "가까운순",
+    "sortPopular": "인기순"
   },
   "feedMode": {
     "smart": "추천",
@@ -303,6 +409,37 @@
     "error": {
       "title": "요청 생성 실패",
       "description": "도움 요청을 생성하는 중 오류가 발생했습니다"
+    },
+    "status": {
+      "open": "진행 중",
+      "assigned": "할당됨",
+      "completed": "완료",
+      "cancelled": "취소"
+    },
+    "list": {
+      "errorTitle": "오류가 발생했습니다",
+      "errorDescription": "도움 요청을 불러오는 중 문제가 발생했습니다.",
+      "responseCount": "응답 {{count}}개",
+      "deadline": "{{date}}까지",
+      "categoryLabel": "카테고리",
+      "viewDetails": "상세보기",
+      "title": "나의 도움 요청",
+      "totalCount": "총 {{count}}개의 요청",
+      "filterCategory": "카테고리",
+      "allCategories": "모든 카테고리",
+      "filterStatus": "상태",
+      "allStatuses": "모든 상태",
+      "tabs": {
+        "all": "전체"
+      },
+      "empty": {
+        "allTitle": "도움 요청이 없습니다",
+        "openTitle": "진행 중인 요청이 없습니다",
+        "assignedTitle": "할당된 요청이 없습니다",
+        "completedTitle": "완료된 요청이 없습니다",
+        "allDescription": "첫 번째 도움 요청을 만들어보세요!",
+        "filteredDescription": "해당하는 요청이 없습니다."
+      }
     }
   },
   "auth": {
@@ -339,7 +476,9 @@
     "uploading": "이미지 업로드 중...",
     "saving": "저장 중...",
     "noInterestsSelected": "선택된 관심사가 없습니다",
-    "noLanguagesSelected": "선택된 언어가 없습니다"
+    "noLanguagesSelected": "선택된 언어가 없습니다",
+    "nickname": "닉네임",
+    "nicknamePlaceholder": "표시될 이름을 입력하세요"
   },
   "interests": {
     "food": "음식",
@@ -356,17 +495,14 @@
     "wellness": "웰니스"
   },
   "common": {
+    "back": "뒤로",
+    "bookmark": "북마크",
+    "bookmarkRemove": "북마크에서 제거",
+    "bookmarkSave": "북마크에 저장",
     "cancel": "취소",
-    "save": "저장",
-    "delete": "삭제",
-    "edit": "수정",
-    "submit": "제출",
-    "create": "생성",
-    "update": "업데이트",
-    "error": "오류",
-    "loginRequired": "로그인 필요",
     "loading": "로딩 중...",
-    "success": "성공"
+    "save": "저장",
+    "error": "오류"
   },
   "experience": {
     "createSuccess": "경험 등록 완료",
@@ -375,7 +511,61 @@
     "createErrorDesc": "경험 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
     "loginRequiredDesc": "경험을 등록하려면 먼저 로그인해주세요.",
     "requiredFieldsMissing": "필수 정보 누락",
-    "requiredFieldsDesc": "제목, 설명, 가격, 위치, 카테고리는 필수 입력 사항입니다."
+    "requiredFieldsDesc": "제목, 설명, 가격, 위치, 카테고리는 필수 입력 사항입니다.",
+    "editExperience": "경험 수정",
+    "updateError": "업데이트 오류",
+    "updateErrorDesc": "업데이트 오류 설명",
+    "updateSuccess": "업데이트 성공",
+    "updateSuccessDesc": "업데이트 성공 설명",
+    "validation": {
+      "categoryRequired": "카테고리 필수",
+      "descriptionRequired": "설명 필수",
+      "locationRequired": "위치 필수",
+      "priceRequired": "가격 필수",
+      "titleRequired": "제목 필수"
+    },
+    "form": {
+      "basicInfo": "기본 정보",
+      "titleLabel": "제목",
+      "titlePlaceholder": "경험의 제목을 입력하세요",
+      "descriptionLabel": "설명",
+      "descriptionPlaceholder": "경험에 대한 자세한 설명을 입력하세요",
+      "priceLabel": "가격 (원)",
+      "categoryLabel": "카테고리",
+      "categoryPlaceholder": "카테고리 선택",
+      "categoryTour": "🗺️ 투어",
+      "categoryFood": "🍜 음식",
+      "categoryActivity": "🎯 액티비티",
+      "categoryTip": "💡 팁",
+      "locationLabel": "위치",
+      "locationPlaceholder": "장소, 음식점, 카페, 랜드마크, 주소 검색...",
+      "details": "상세 정보",
+      "durationLabel": "소요시간 (분)",
+      "maxParticipantsLabel": "최대 참가자",
+      "meetingPointLabel": "만날 장소",
+      "meetingPointPlaceholder": "강남역 2번 출구",
+      "contactPhoneLabel": "연락처",
+      "includedLabel": "포함사항 (각 줄에 하나씩 입력)",
+      "includedPlaceholder": "가이드 설명&#10;입장료&#10;간식 제공",
+      "requirementsLabel": "요구사항 (각 줄에 하나씩 입력)",
+      "requirementsPlaceholder": "편한 신발 착용&#10;카메라 지참&#10;기본적인 한국어 소통 가능",
+      "mediaSection": "사진 및 동영상",
+      "addPhoto": "사진 추가",
+      "addVideo": "동영상 추가",
+      "photosCount": "사진 ({{count}})",
+      "videosCount": "동영상 ({{count}})",
+      "youtubeLabel": "YouTube 동영상 URL",
+      "youtubePlaceholder": "https://www.youtube.com/watch?v=... or https://youtu.be/...",
+      "youtubePreview": "YouTube video preview",
+      "invalidYoutube": "잘못된 YouTube URL입니다",
+      "bookingSettings": "예약 설정",
+      "cancelPolicyLabel": "취소 정책",
+      "cancelFlexible": "유연한 취소",
+      "cancelModerate": "보통 취소",
+      "cancelStrict": "엄격한 취소",
+      "minLeadHoursLabel": "최소 예약 시간 (시간 전)",
+      "autoConfirmLabel": "자동 확정"
+    }
   },
   "booking": {
     "success": "예약 완료",
@@ -384,7 +574,25 @@
     "failedDesc": "예약 중 오류가 발생했습니다. 다시 시도해주세요.",
     "loginRequiredDesc": "예약하려면 먼저 로그인해주세요.",
     "selectDate": "날짜 선택",
-    "selectDateDesc": "예약 날짜를 선택해주세요."
+    "selectDateDesc": "예약 날짜를 선택해주세요.",
+    "statusUpdated": "상태 변경 완료",
+    "statusUpdatedDesc": "예약 상태가 성공적으로 변경되었습니다.",
+    "statusUpdateFailed": "상태 변경 실패",
+    "statusUpdateFailedDesc": "예약 상태 변경 중 오류가 발생했습니다.",
+    "cancelDialog": {
+      "title": "예약 취소",
+      "description": "예약을 취소하는 사유를 입력해주세요. (선택사항)",
+      "placeholder": "취소 사유를 입력해주세요...",
+      "confirm": "예약 취소",
+      "processing": "처리 중..."
+    },
+    "requiredAgreement": "필수 동의 항목",
+    "requiredAgreementDesc": "결제를 진행하려면 모든 필수 항목에 동의해주세요.",
+    "bookNow": "예약하기",
+    "bookingInProgress": "예약 중...",
+    "specialRequests": "특별 요청사항",
+    "specialRequestsPlaceholder": "호스트에게 전달할 특별한 요청사항이 있다면 작성해주세요...",
+    "totalAmount": "총 금액"
   },
   "review": {
     "success": "후기 등록 완료",
@@ -392,7 +600,17 @@
     "failed": "후기 등록 실패",
     "failedDesc": "후기 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
     "tooManyImages": "이미지 개수 초과",
-    "tooManyImagesDesc": "이미지는 최대 5개까지 업로드 가능합니다."
+    "tooManyImagesDesc": "이미지는 최대 5개까지 업로드 가능합니다.",
+    "ratingLabels": {
+      "1": "매우 불만족",
+      "2": "불만족",
+      "3": "보통",
+      "4": "만족",
+      "5": "매우 만족"
+    },
+    "commentLabel": "후기 내용",
+    "commentPlaceholder": "경험에 대한 솔직한 후기를 작성해주세요...",
+    "photoLabel": "후기 사진 (선택사항)"
   },
   "miniMeet": {
     "create": "여기서 미니모임 만들기",
@@ -444,7 +662,10 @@
       "trips": "여행",
       "followers": "팔로워",
       "following": "팔로잉",
-      "experiences": "체험"
+      "experiences": "체험",
+      "countries": "방문국",
+      "travelDays": "여행일수",
+      "friends": "친구"
     },
     "tabs": {
       "posts": "게시글",
@@ -456,7 +677,8 @@
       "templates": "템플릿",
       "packages": "패키지",
       "slots": "슬롯",
-      "saved": "저장됨"
+      "saved": "저장됨",
+      "services": "서비스"
     },
     "empty": {
       "noPosts": "아직 게시한 사진이 없어요",
@@ -477,7 +699,61 @@
     "hostApplySuccess": "호스트 신청 완료",
     "hostApplySuccessDesc": "축하합니다! 이제 호스트로 활동하실 수 있습니다.",
     "hostApplyError": "신청 실패",
-    "hostApplyErrorDesc": "호스트 신청 중 오류가 발생했습니다. 다시 시도해주세요."
+    "hostApplyErrorDesc": "호스트 신청 중 오류가 발생했습니다. 다시 시도해주세요.",
+    "badge": {
+      "traveler": "여행자",
+      "creator": "크리에이터",
+      "guide": "로컬 가이드",
+      "host": "호스트"
+    },
+    "actions": {
+      "edit": "프로필 편집",
+      "follow": "팔로우",
+      "chat": "채팅",
+      "meet": "같이 만나기",
+      "editProfile": "프로필 편집",
+      "newPost": "새 포스트"
+    },
+    "hero": {
+      "defaultMeetRegion": "서울",
+      "defaultBio": "한 도시씩 천천히 여행하며 나만의 여정을 만들고 있어요.",
+      "openToMeet": "만남 상태:",
+      "currentlyIn": "현재 {{region}}에 있어요",
+      "identityHub": "여행자 프로필 허브"
+    },
+    "settings": {
+      "title": "설정",
+      "openToMeet": "만남 열기",
+      "portfolioMode": "포트폴리오 모드",
+      "subtitle": "프로필 공개 상태와 개인 설정을 여기서 조정할 수 있어요.",
+      "openToMeetOn": "현재 만남 가능 상태",
+      "openToMeetOff": "만남 상태 비공개",
+      "portfolioOn": "포트폴리오 공개 중",
+      "portfolioOff": "포트폴리오 비공개",
+      "notifications": "알림 설정",
+      "notificationsDesc": "메시지, 예약, 활동 알림 관리",
+      "privacy": "개인 정보",
+      "privacyDesc": "계정, 보안, 공개 범위 관리",
+      "locale": "언어 및 지역",
+      "localeDesc": "앱 언어와 기본 지역 설정"
+    },
+    "saved": {
+      "savedBadge": "저장됨"
+    },
+    "trip": {
+      "cardType": "여행",
+      "planned": "예정됨",
+      "departure": "출발",
+      "return": "복귀"
+    },
+    "service": {
+      "cardType": "서비스",
+      "price": "가격"
+    },
+    "bookmarksTab": "북마크",
+    "myBookingsTab": "내 예약",
+    "noBookings": "아직 예약이 없습니다",
+    "noBookmarks": "아직 북마크한 게시글이 없습니다"
   },
   "notification": {
     "title": "알림",
@@ -492,7 +768,10 @@
     "empty": "새로운 알림이 없습니다",
     "user": "사용자",
     "viewMore": "더 많은 알림 보기",
-    "moreItems": "개 더"
+    "moreItems": "개 더",
+    "booking": "체험에 새로운 예약이 있습니다",
+    "comment": "{{name}}님이 댓글을 남겼습니다",
+    "like": "{{name}}님이 회원님의 게시글을 좋아합니다"
   },
   "login": {
     "signIn": "로그인",
@@ -571,7 +850,13 @@
     "backHome": "홈으로 돌아가기",
     "outOf": "{{total}}명 중",
     "checkBookings": "고객 예약을 확인하고 관리하세요",
-    "people": "명"
+    "people": "명",
+    "step1Desc": "진정한 경험을 찾는 여행자들과 현지 전문 지식을 공유하세요",
+    "step1Title": "체험 만들기",
+    "step2Desc": "가장 적합한 날짜와 시간을 선택하세요",
+    "step2Title": "일정 설정",
+    "step3Desc": "여행자와 연결하고, 놀라운 경험을 제공하며 수익을 올리세요",
+    "step3Title": "게스트 맞이"
   },
   "admin": {
     "panel": "🛠️ 관리자 패널",
@@ -614,7 +899,31 @@
     "loadingUser": "사용자 정보 확인 중...",
     "accessDenied": "접근 거부",
     "accessDeniedDesc": "이 페이지는 관리자만 접근 가능합니다.",
-    "loadingData": "데이터 로딩 중..."
+    "loadingData": "데이터 로딩 중...",
+    "allCategories": "모든 카테고리",
+    "configLoadError": "구성 로드 오류",
+    "configUpdated": "구성 업데이트됨",
+    "configUpdatedDesc": "구성 업데이트 설명",
+    "configUpdateFailed": "구성 업데이트 실패",
+    "configUpdateFailedDesc": "구성 업데이트 실패 설명",
+    "description": "설명",
+    "editSetting": "설정 편집",
+    "enterValidJson": "유효한 JSON을 입력하세요",
+    "enterValidNumber": "유효한 번호를 입력하세요",
+    "invalidJson": "유효하지 않은 JSON",
+    "invalidNumber": "유효하지 않은 번호",
+    "loading": "로딩 중",
+    "maxValue": "최대 값",
+    "minValue": "최소 값",
+    "searchConfig": "구성 검색",
+    "selectCategory": "카테고리 선택",
+    "settingKey": "설정 키",
+    "settings": "설정",
+    "systemConfig": "시스템 구성",
+    "systemConfigDesc": "시스템 구성 설명",
+    "value": "값",
+    "valueTooHigh": "값이 너무 높음",
+    "valueTooLow": "값이 너무 낮음"
   },
   "experiencePage": {
     "loading": "체험 정보를 불러오는 중...",
@@ -671,7 +980,20 @@
     "deleteFailedDesc": "게시글 삭제 중 오류가 발생했습니다.",
     "minutesAgo": "{{count}}분 전",
     "hoursAgo": "{{count}}시간 전",
-    "daysAgo": "{{count}}일 전"
+    "daysAgo": "{{count}}일 전",
+    "confirmDeleteExperience": "경험 삭제 확인",
+    "deleteExperienceFailed": "경험 삭제 실패",
+    "deleteExperienceFailedDesc": "경험 삭제 실패 설명",
+    "deleteExperienceSuccess": "경험 삭제 성공",
+    "deleteExperienceSuccessDesc": "경험 삭제 성공 설명",
+    "saved": "저장됨",
+    "savedDesc": "변경 사항이 저장되었습니다.",
+    "saveFailed": "저장 실패",
+    "saveFailedDesc": "저장에 실패했습니다.",
+    "unsaved": "저장되지 않음",
+    "unsavedDesc": "변경 사항이 저장되지 않았습니다.",
+    "viewExperience": "체험 보기",
+    "viewingHashtag": "해시태그 보기"
   },
   "mapPage": {
     "nearbyExperiences": "주변 체험",
@@ -692,7 +1014,8 @@
     "cancel": "취소",
     "create": "만들기",
     "loadingUser": "사용자 정보 확인 중...",
-    "userInfoLoading": "사용자 정보를 불러오는 중..."
+    "userInfoLoading": "사용자 정보를 불러오는 중...",
+    "channelFallback": "채널"
   },
   "homePage": {
     "appName": "투어게더",
@@ -761,7 +1084,31 @@
     "timelineDesc": "체크인, 사진, 로컬 만남이 아름다운 여행 스토리로 엮입니다. 날짜별, 핀별로 여정을 되살려보세요.",
     "timelineBullet1": "여정 전체를 지도에서 확인",
     "timelineBullet2": "경로를 따라 안전 체크인과 연락처 관리",
-    "timelineBullet3": "친구와 팔로워에게 하이라이트 공유"
+    "timelineBullet3": "친구와 팔로워에게 하이라이트 공유",
+    "seoSection": {
+      "article1": {
+        "desc": "대형 관광버스에서 내려 사진 한 장 찍고 다시 버스에 오르는 여행에 지치셨나요? Tourgether는 현지인만 아는 숨은 명소, 로컬 맛집, 진짜 그 도시의 분위기를 경험할 수 있게 해드립니다. 현지 가이드와 직접 연결되어 나만의 맞춤 여행을 계획하세요.",
+        "title": "패키지 여행의 아쉬움을 해결합니다"
+      },
+      "article2": {
+        "desc": "혼자 여행하고 싶지만 혼밥이 두렵거나, 사진 찍어줄 사람이 없어 아쉬웠던 경험이 있으신가요? \"Open to Meet\" 기능으로 같은 지역에 있는 다른 여행자들을 만나보세요. 취향이 맞는 사람들과 함께하는 식사, 투어, 액티비티로 혼자 여행의 외로움을 채워드립니다.",
+        "title": "혼자 여행하는 분들을 위한 연결 플랫폼"
+      },
+      "article3": {
+        "desc": "당신의 도시를 가장 잘 아는 사람은 바로 당신입니다. Tourgether에서 로컬 가이드가 되어 여행자들에게 특별한 경험을 제공하고 수익을 창출하세요. 맛집 투어, 사진 촬영 서비스, 쇼핑 동행, 언어 통역 등 다양한 서비스를 등록할 수 있습니다.",
+        "title": "현지인도 수익을 올릴 수 있는 공유경제"
+      },
+      "article4": {
+        "desc": "에스크로 기반 결제 시스템으로 안심하고 거래하세요. 서비스가 완료되기 전까지 대금은 안전하게 보관되며, 문제 발생 시 분쟁 해결 시스템이 양측을 보호합니다. 리뷰 시스템과 인증된 호스트 배지로 신뢰할 수 있는 상대를 쉽게 찾을 수 있습니다.",
+        "title": "안전한 P2P 거래 시스템"
+      },
+      "article5": {
+        "desc": "사진과 함께 여행 순간을 피드에 공유하고, 지도 기반 타임라인으로 여정을 시각화하세요. AI 기반 CineMap 기능은 사진의 위치 정보를 분석해 영화 같은 여행 스토리보드를 자동으로 생성합니다. 여행 후에도 추억을 쉽게 되돌아볼 수 있습니다.",
+        "title": "여행 기록을 아름답게 남기세요"
+      },
+      "subtitle": "여행의 본질을 되찾는 새로운 방법",
+      "title": "왜 Tourgether인가요?"
+    }
   },
   "miniConcierge": {
     "fabButton": "지금 1시간 뭐하지?",
@@ -870,10 +1217,11 @@
     "hours": "시간",
     "minutes": "분",
     "maxParticipants": "최대 {{count}}명",
-    "perPerson": "/인"
-  },
-  "common": {
-    "back": "뒤로"
+    "perPerson": "/인",
+    "loading": "로딩 중",
+    "noResults": "결과 없음",
+    "resetFilters": "필터 초기화",
+    "tryDifferentFilters": "다른 필터 시도"
   },
   "seoFooter": {
     "service": "서비스",
@@ -928,5 +1276,307 @@
     "travelCreatorDesc": "여행 콘텐츠로 수익 창출",
     "travelFriends": "여행 친구",
     "travelFriendsDesc": "전 세계 여행자와 연결하세요"
+  },
+  "map": {
+    "sheet": {
+      "recommendations": "추천",
+      "collapsedHint": "위로 올려서 더 많은 추천과 사람들을 확인하세요.",
+      "personHint": "프로필을 열거나 바로 인사를 보내보세요.",
+      "title": "주변 탐색",
+      "exploreMore": "주변의 더 많은 스토리와 사람을 찾아보세요",
+      "view": "보기",
+      "sayHello": "인사하기",
+      "profile": "프로필",
+      "liveNow": "지금 근처에서 진행 중",
+      "heroEyebrow": "지금 딱 맞는 추천",
+      "heroTitle": "기분, 거리, 남은 시간에 맞춰 짧은 로컬 플랜을 찾아보세요.",
+      "heroTags": [
+        "1시간 코스",
+        "도보 이동",
+        "영어 가능"
+      ],
+      "routeFlexible": "유연한 동선",
+      "routePickup": "근처에서 바로 합류 가능",
+      "recommendationCards": [
+        {
+          "eyebrow": "오늘 밤 추천",
+          "title": "완벽한 1시간을 보내려면 뭘 하면 좋을까?",
+          "subtitle": "노을 티타임, 포토 스팟, 짧지만 이야기가 있는 산책 코스예요.",
+          "host": "미나 · 시티 호스트",
+          "eta": "20분 후 시작",
+          "distance": "0.4km 거리",
+          "price": "₩22,000",
+          "badges": [
+            "노을",
+            "로컬 추천",
+            "가벼운 산책"
+          ]
+        },
+        {
+          "eyebrow": "미니 컨시어지",
+          "title": "로컬 푸디와 함께하는 심야 길거리 음식 코스",
+          "subtitle": "대표 메뉴 두 가지와 간단한 번역 도움, 쉬운 복귀 동선까지 포함돼요.",
+          "host": "재 · 푸드 스카우트",
+          "eta": "오후 8시 이후 추천",
+          "distance": "1.1km 거리",
+          "price": "₩18,000",
+          "badges": [
+            "길거리 음식",
+            "영어 가능",
+            "빠른 동선"
+          ]
+        },
+        {
+          "eyebrow": "스토리 루트",
+          "title": "인디 숍 + 숨은 루프탑 포토 루트",
+          "subtitle": "바이닐 숍, 루프탑 휴식, 카페 대안까지 묶은 유연한 루트예요.",
+          "host": "소라 · 크리에이티브 가이드",
+          "eta": "45분 코스",
+          "distance": "0.8km 거리",
+          "price": "₩15,000",
+          "badges": [
+            "포토 스팟",
+            "우천 대안",
+            "소규모"
+          ]
+        }
+      ]
+    },
+    "topbar": {
+      "subtitle": "주변 스토리와 사람들을 한눈에 확인하세요."
+    },
+    "searchPlaceholder": "장소, 스토리, 여행자를 검색하세요"
+  },
+  "meet": {
+    "sections": {
+      "filters": "필터",
+      "radar": "레이더",
+      "travelers": "근처 여행자"
+    },
+    "filters": {
+      "helper": "지금 원하는 만남 분위기를 선택해보세요."
+    },
+    "helloInitialMessage": "안녕하세요! 👋",
+    "title": "만나기",
+    "subtitle": "근처 여행자와 지금 바로 연결해보세요.",
+    "online": "공개 중",
+    "offline": "비공개",
+    "helloFailed": "인사 전송 실패",
+    "empty": {
+      "noUsers": "주변 여행자가 아직 없어요",
+      "openToMeetHint": "Open to Meet를 켜고 잠시 후 다시 확인해보세요."
+    },
+    "userCard": {
+      "hello": "인사하기",
+      "viewProfile": "프로필 보기",
+      "trust": "신뢰 여행자"
+    },
+    "myStatus": "내 상태",
+    "hero": {
+      "eyebrow": "실시간 밋 매치",
+      "title": "지금 공개 중인 사람을 보고, 레이더에서 자연스럽게 첫 인사까지 이어가세요.",
+      "nearby": "근처 {{count}}명",
+      "fastHello": "빠른 인사",
+      "localContext": "현지 맥락"
+    },
+    "travelersHint": "빠르게 인사를 건넬 수 있도록 짧은 프로필 카드로 정리했어요."
+  },
+  "serendipity": {
+    "distance": "약 0.3km 거리",
+    "matchLabel": "지금 서로 가까이에 있어요!",
+    "header": "세렌디피티",
+    "commonInterests": "공통 관심사",
+    "languages": "언어",
+    "mood": "분위기",
+    "miniMap": "미니맵",
+    "greetCTA": "인사 보내기",
+    "laterCTA": "나중에 할게요",
+    "interest": {
+      "photo": "사진",
+      "food": "음식",
+      "solo": "혼자 여행",
+      "history": "역사"
+    },
+    "lang": {
+      "ko": "한국어",
+      "en": "영어",
+      "it": "이탈리아어"
+    },
+    "moodTag": {
+      "explore": "탐험",
+      "chill": "여유"
+    }
+  },
+  "actions": {
+    "comment": "Comment",
+    "like": "Like",
+    "liked": "Liked",
+    "save": "Save",
+    "saved": "Saved",
+    "share": "Share"
+  },
+  "app": {
+    "error": "오류"
+  },
+  "guide": {
+    "categoryActivity": "액티비티",
+    "categoryFood": "음식",
+    "categoryTip": "팁",
+    "categoryTour": "투어",
+    "experiences": "체험",
+    "experiencesTab": "체험 ({{count}})",
+    "hours": "시간",
+    "joinedYear": "가입",
+    "maxParticipants": "최대 {{count}}명",
+    "minutes": "분",
+    "noExperiences": "아직 등록된 체험이 없습니다",
+    "noReviews": "아직 리뷰가 없습니다",
+    "noStories": "아직 작성된 스토리가 없습니다",
+    "notFound": "가이드를 찾을 수 없습니다",
+    "notFoundDesc": "찾으시는 가이드가 존재하지 않거나 삭제되었습니다.",
+    "responseRate": "응답률",
+    "reviewsCount": "{{count}}개 리뷰",
+    "reviewsTab": "리뷰 ({{count}})",
+    "sendMessage": "메시지 보내기",
+    "storiesTab": "스토리",
+    "verifiedGuide": "인증된 가이드",
+    "viewDetails": "상세 보기"
+  },
+  "nav": {
+    "marketplace": "마켓플레이스"
+  },
+  "trending": {
+    "title": "트렌딩"
+  },
+  "locationPicker": {
+    "title": "위치 선택",
+    "cancel": "취소",
+    "confirm": "확인"
+  },
+  "explore": {
+    "title": "탐색",
+    "emptyLoading": "추천을 불러오는 중…"
+  },
+  "contract": {
+    "signSuccess": "계약이 서명되었습니다",
+    "signSuccessDesc": "서명이 정상적으로 저장되었습니다.",
+    "signError": "계약 서명에 실패했습니다",
+    "demoTitle": "프라이빗 시티 가이드 체험",
+    "header": "에스크로 계약",
+    "travelerLabel": "여행자",
+    "guideLabel": "가이드",
+    "summaryTitle": "계약 요약",
+    "dateLabel": "날짜",
+    "locationLabel": "위치",
+    "totalAmount": "총 금액",
+    "paymentSchedule": "결제 일정",
+    "deposit": "계약금",
+    "depositDesc": "예약 시 서비스 확정을 위해 결제됩니다.",
+    "balance": "잔금",
+    "balanceDesc": "서비스 완료 후 정산됩니다.",
+    "escrow": {
+      "title": "에스크로 보호 적용",
+      "desc": "양측이 합의한 서비스가 완료될 때까지 결제금이 안전하게 보관됩니다."
+    },
+    "scopeTitle": "포함 범위",
+    "milestoneTitle": "진행 단계",
+    "reviseNote": "서명 전에 상대방에게 수정 요청을 보내주세요.",
+    "reviseCTA": "수정 요청",
+    "signing": "서명 중…",
+    "signCTA": "계약 서명"
+  },
+  "exp": {
+    "detail": {
+      "minutes": "{{count}}분",
+      "hoursMinutes": "{{hours}}시간 {{minutes}}분",
+      "hours": "{{count}}시간",
+      "loading": "체험 정보를 불러오는 중…",
+      "notFound": "체험을 찾을 수 없습니다",
+      "notFoundDesc": "이 체험은 삭제되었거나 현재 이용할 수 없습니다.",
+      "back": "뒤로 가기",
+      "hostCard": {
+        "unknownHost": "알 수 없는 호스트",
+        "verifiedBadge": "인증됨",
+        "reviews": "리뷰",
+        "viewProfile": "프로필 보기"
+      },
+      "availability": {
+        "weekDays": "일,월,화,수,목,금,토",
+        "title": "예약 가능일",
+        "available": "가능",
+        "unavailable": "불가"
+      },
+      "infoChip": {
+        "langDefault": "현지 언어",
+        "maxPeople": "최대 {{count}}명"
+      },
+      "description": "설명",
+      "descCollapse": "접기",
+      "descExpand": "더보기",
+      "includes": {
+        "title": "포함 사항"
+      },
+      "reviews": {
+        "title": "리뷰",
+        "empty": "아직 리뷰가 없습니다"
+      },
+      "perPerson": "1인 기준",
+      "bookNow": "지금 예약",
+      "loginToBook": "예약하려면 로그인"
+    }
+  },
+  "sreq": {
+    "header": "로컬 가이드 요청",
+    "success": {
+      "title": "요청이 전송되었습니다",
+      "desc": "가이드가 이제 요청을 검토할 수 있습니다."
+    },
+    "error": {
+      "title": "요청을 보낼 수 없습니다",
+      "desc": "잠시 후 다시 시도해주세요."
+    },
+    "validation": {
+      "destination": "목적지를 입력해주세요.",
+      "serviceType": "서비스 유형을 하나 이상 선택해주세요.",
+      "description": "필요한 내용을 설명해주세요."
+    },
+    "destination": {
+      "label": "목적지",
+      "placeholder": "어디로 여행하시나요?"
+    },
+    "dates": {
+      "label": "여행 일정",
+      "from": "출발",
+      "to": "도착"
+    },
+    "serviceType": {
+      "label": "서비스 유형"
+    },
+    "groupSize": {
+      "label": "인원 수",
+      "people": "명"
+    },
+    "budget": {
+      "label": "예산",
+      "perDay": "/ 일"
+    },
+    "description": {
+      "label": "상세 내용",
+      "placeholder": "가이드에게 어떤 도움이 필요한지 알려주세요."
+    },
+    "languages": {
+      "label": "선호 언어"
+    },
+    "photos": {
+      "label": "참고 사진",
+      "hint": "선택 사항, 최대 5장까지."
+    },
+    "guidesPreview": {
+      "title": "추천 가이드",
+      "unknownGuide": "알 수 없는 가이드",
+      "reviews": "리뷰"
+    },
+    "submitting": "요청 전송 중…",
+    "submit": "요청 보내기"
   }
 }

@@ -6,67 +6,77 @@
 @tailwind utilities;
 
 :root {
-  /* ── Tourgether v3 Design Tokens (절대값 — 변경 금지) ── */
-  --app-bg:        #0A0B10;
-  --surface-1:     #11131A;
-  --surface-2:     #151824;
-  --stroke:        rgba(255, 255, 255, 0.08);
-  --text-primary:  #F6F7FB;
-  --text-secondary:#A5AEC4;
-  --accent-gold:   #E6C989;
-  --accent-mint:   #7CE7D6;
-  --accent-coral:  #FF8A70;
-  --accent-blue:   #6BA8FF;
-  --radius-card:   24px;
-  --radius-sheet:  28px;
-  --radius-chip:   99px;
+  /* ── Tourgether v3 Design Tokens (mockup-matched) ── */
+  --app-bg: #07090d;
+  --surface-1: #11131a;
+  --surface-2: #171a24;
+  --surface-3: #1d2230;
+  --surface-glass: rgba(18, 20, 29, 0.72);
+  --surface-glass-strong: rgba(20, 21, 29, 0.86);
+  --stroke: rgba(255, 255, 255, 0.08);
+  --stroke-strong: rgba(230, 201, 137, 0.32);
+  --text-primary: #f6f7fb;
+  --text-secondary: #a5aec4;
+  --text-tertiary: #70788f;
+  --accent-gold: #e6c989;
+  --accent-gold-strong: #f1d58e;
+  --accent-mint: #7ce7d6;
+  --accent-coral: #ff8a70;
+  --accent-blue: #6ba8ff;
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+  --radius-chip: 999px;
+  --shadow-soft: 0 18px 48px rgba(0, 0, 0, 0.42);
+  --shadow-float: 0 20px 44px rgba(0, 0, 0, 0.52);
+  --glow-gold: 0 0 0 1px rgba(230, 201, 137, 0.2), 0 0 24px rgba(230, 201, 137, 0.14);
+  --glow-mint: 0 0 0 1px rgba(124, 231, 214, 0.3), 0 0 26px rgba(124, 231, 214, 0.22);
+  --glow-coral: 0 12px 30px rgba(255, 138, 112, 0.34);
 
-  /* shadcn/Radix compat — gold/dark system, NO purple */
-  --background:         #0A0B10;
-  --foreground:         #F6F7FB;
-  --muted:              #151824;
-  --muted-foreground:   #A5AEC4;
-  --popover:            #11131A;
-  --popover-foreground: #F6F7FB;
-  --card:               #11131A;
-  --card-foreground:    #F6F7FB;
-  --border:             rgba(200,168,78,0.2);
-  --input:              #151824;
-  --primary:            #E6C989;
-  --primary-foreground: #0A0B10;
-  --secondary:          #FF8A70;
-  --secondary-foreground: #0A0B10;
-  --accent:             #FF8A70;
-  --accent-foreground:  #0A0B10;
-  --mint:               #7CE7D6;
-  --mint-foreground:    #0A0B10;
-  --destructive:        hsl(0, 70%, 55%);
+  /* shadcn compat */
+  --background: var(--app-bg);
+  --foreground: var(--text-primary);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-secondary);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--text-primary);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-primary);
+  --border: rgba(200, 168, 78, 0.2);
+  --input: var(--surface-2);
+  --primary: var(--accent-gold);
+  --primary-foreground: #0a0b10;
+  --secondary: var(--accent-coral);
+  --secondary-foreground: #0a0b10;
+  --accent: var(--accent-coral);
+  --accent-foreground: #0a0b10;
+  --mint: var(--accent-mint);
+  --mint-foreground: #0a0b10;
+  --destructive: hsl(0, 70%, 55%);
   --destructive-foreground: #fff;
-  --ring:               rgba(200,168,78,0.4);
-  --radius:             1rem;
+  --ring: rgba(230, 201, 137, 0.35);
+  --radius: 1rem;
 }
 
 .dark {
-  /* Dark mode — same gold system (app is always dark) */
-  --background:         #0A0B10;
-  --foreground:         #F6F7FB;
-  --muted:              #151824;
-  --muted-foreground:   #A5AEC4;
-  --popover:            #11131A;
-  --popover-foreground: #F6F7FB;
-  --card:               #11131A;
-  --card-foreground:    #F6F7FB;
-  --border:             rgba(200,168,78,0.2);
-  --input:              #151824;
-  --primary:            #E6C989;
-  --primary-foreground: #0A0B10;
-  --secondary:          #FF8A70;
-  --secondary-foreground: #0A0B10;
-  --accent:             #FF8A70;
-  --accent-foreground:  #0A0B10;
-  --destructive:        hsl(0, 65%, 50%);
+  --background: var(--app-bg);
+  --foreground: var(--text-primary);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-secondary);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--text-primary);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-primary);
+  --border: rgba(200, 168, 78, 0.2);
+  --input: var(--surface-2);
+  --primary: var(--accent-gold);
+  --primary-foreground: #0a0b10;
+  --secondary: var(--accent-coral);
+  --secondary-foreground: #0a0b10;
+  --accent: var(--accent-coral);
+  --accent-foreground: #0a0b10;
+  --destructive: hsl(0, 65%, 50%);
   --destructive-foreground: #fff;
-  --ring:               rgba(200,168,78,0.4);
+  --ring: rgba(230, 201, 137, 0.35);
 }
 
 @layer base {
@@ -74,130 +84,107 @@
     @apply border-border;
   }
 
+  html {
+    background: #030407;
+  }
+
   body {
     @apply font-sans antialiased text-foreground;
-    background: var(--app-bg);
+    background:
+      radial-gradient(circle at top center, rgba(124, 231, 214, 0.06), transparent 30%),
+      radial-gradient(circle at bottom center, rgba(230, 201, 137, 0.08), transparent 36%),
+      linear-gradient(180deg, #07090d 0%, #090b10 38%, #07080c 100%);
     min-height: 100vh;
   }
 }
 
-/* Travel app styles — gold/coral/dark, no purple */
 .travel-gradient {
-  background: linear-gradient(135deg, #E6C989 0%, #FF8A70 100%);
+  background: linear-gradient(135deg, #e6c989 0%, #ff8a70 100%);
 }
 
 .travel-card {
   @apply rounded-2xl overflow-hidden;
-  background: var(--card);
-  box-shadow: 0 0 12px rgba(200,168,78,0.12), 0 4px 16px rgba(0,0,0,0.3);
-  border: 1px solid rgba(200,168,78,0.2);
+  background: linear-gradient(180deg, rgba(18, 20, 29, 0.96), rgba(14, 16, 23, 0.98));
+  box-shadow: var(--shadow-soft), var(--glow-gold);
+  border: 1px solid rgba(230, 201, 137, 0.2);
   transition: all 0.3s ease;
 }
 
 .travel-card:hover {
-  box-shadow: 0 0 20px rgba(200,168,78,0.2), 0 8px 24px rgba(0,0,0,0.35);
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.54), 0 0 30px rgba(230, 201, 137, 0.2);
   transform: translateY(-2px);
 }
 
 .travel-button {
   @apply font-semibold py-3 px-6 rounded-xl transition-all duration-300;
-  background: #FF8A70;
+  background: linear-gradient(180deg, #ff9a82 0%, #ff8a70 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(255,138,112,0.35);
+  box-shadow: var(--glow-coral);
 }
 
 .travel-button:hover {
-  box-shadow: 0 6px 20px rgba(255,138,112,0.45);
+  box-shadow: 0 14px 32px rgba(255, 138, 112, 0.44);
   transform: translateY(-1px);
 }
 
 .travel-button-outline {
   @apply font-semibold py-3 px-6 rounded-xl transition-all duration-300;
-  background: transparent;
-  border: 1px solid rgba(200,168,78,0.5);
-  color: #E6C989;
+  background: rgba(18, 20, 29, 0.74);
+  border: 1px solid rgba(230, 201, 137, 0.45);
+  color: var(--accent-gold);
 }
 
 .travel-button-outline:hover {
-  background: rgba(230,201,137,0.08);
-  border-color: rgba(200,168,78,0.8);
-  color: #E6C989;
-  box-shadow: 0 4px 14px rgba(200,168,78,0.2);
-}
-
-.map-marker {
-  @apply w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 border-white cursor-pointer transform hover:scale-110 transition-transform duration-200;
-}
-
-.map-marker.tour {
-  @apply bg-primary;
-}
-
-.map-marker.food {
-  @apply bg-secondary;
-}
-
-.map-marker.activity {
-  @apply bg-accent;
+  background: rgba(230, 201, 137, 0.08);
+  border-color: rgba(230, 201, 137, 0.8);
+  box-shadow: 0 4px 18px rgba(230, 201, 137, 0.18);
 }
 
 .story-ring {
   @apply w-16 h-16 rounded-full p-0.5;
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--secondary) 50%,
-    var(--accent) 100%
-  );
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-coral) 52%, var(--accent-mint) 100%);
 }
 
-/* Mobile SNS App Container - Responsive */
 .mobile-container {
   @apply w-full mx-auto min-h-screen relative overflow-hidden;
   background: var(--app-bg);
-  max-width: min(428px, 100vw); /* iPhone 14 Pro Max width or full viewport */
-  box-shadow: 0 0 40px rgba(200,168,78,0.05);
+  max-width: min(430px, 100vw);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 30px 80px rgba(0, 0, 0, 0.55);
 }
 
-/* Responsive mobile viewport */
 @media (max-width: 428px) {
   .mobile-container {
     @apply w-full max-w-none;
   }
 }
 
-/* Tablet adjustments */
 @media (min-width: 429px) and (max-width: 768px) {
   .mobile-container {
-    max-width: 480px; /* Slightly wider for tablets */
+    max-width: 480px;
   }
 }
 
-/* Large tablet/small desktop */
 @media (min-width: 769px) {
   .mobile-container {
-    max-width: min(640px, 100vw); /* Wider for desktop but still mobile-first */
+    max-width: min(640px, 100vw);
   }
 }
 
-/* Full width mobile layout */
 .mobile-full {
   @apply w-full min-h-screen;
 }
 
-/* Mobile navigation - Responsive */
 .mobile-nav {
   @apply fixed bottom-0 z-50;
-  background: rgba(10,11,16,0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(200,168,78,0.15);
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  background: rgba(10, 11, 16, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(230, 201, 137, 0.15);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: min(428px, 100vw);
-  backdrop-filter: blur(10px);
+  max-width: min(430px, 100vw);
 }
 
 @media (max-width: 428px) {
@@ -208,15 +195,13 @@
   }
 }
 
-/* Content area with navigation spacing */
 .mobile-content {
-  @apply pb-20; /* Space for bottom navigation */
+  @apply pb-20;
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Status bar safe area */
 .status-safe {
   padding-top: max(1rem, env(safe-area-inset-top));
 }
@@ -225,10 +210,9 @@
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
-/* Custom scrollbar for mobile */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--primary) transparent;
+  scrollbar-color: var(--accent-gold) transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -240,827 +224,15 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--primary);
+  background-color: var(--accent-gold);
   border-radius: 2px;
 }
 
-/* Animation utilities */
 .slide-up {
   animation: slideUp 0.3s ease-out;
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Landing page animations */
-.animate-slide-up {
-  animation: slideUpSmooth 0.8s ease-out;
-}
-
-@keyframes slideUpSmooth {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-fade-in {
-  animation: fadeInSmooth 0.6s ease-out;
-}
-
-@keyframes fadeInSmooth {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* ================================================
-   Landing Page v0.3 - Premium Travel Design System
-   ================================================ */
-
-/* Landing Design Tokens */
-:root {
-  --landing-bg-dark: #070817;
-  --landing-bg-light: #F9FAFB;
-  --landing-primary: #9B5CFF;
-  --landing-primary-soft: #B982FF;
-  --landing-accent: #FFAF5F;
-  --landing-text-main: #111827;
-  --landing-text-muted: #6B7280;
-  --landing-card: rgba(15, 23, 42, 0.8);
-  --landing-border-soft: rgba(148, 163, 184, 0.3);
-}
-
-/* Landing Section Base */
-.landing-section {
-  @apply w-full;
-}
-
-.landing-section--dark {
-  background: var(--landing-bg-dark);
-  color: #E5E7EB;
-}
-
-/* Landing Buttons with Volume */
-.landing-btn-primary {
-  @apply text-white font-semibold py-3 px-6 rounded-full transition-all duration-200;
-  background: linear-gradient(135deg, var(--landing-primary) 0%, var(--landing-accent) 100%);
-  box-shadow: 
-    0 4px 6px rgba(155, 92, 255, 0.25),
-    0 10px 20px rgba(155, 92, 255, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transform: translateY(0);
-}
-
-.landing-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 6px 12px rgba(155, 92, 255, 0.35),
-    0 15px 30px rgba(155, 92, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-.landing-btn-primary:active {
-  transform: translateY(1px);
-  box-shadow: 
-    0 2px 4px rgba(155, 92, 255, 0.2),
-    0 5px 10px rgba(155, 92, 255, 0.1);
-}
-
-.landing-btn-secondary {
-  @apply font-semibold py-3 px-6 rounded-full transition-all duration-200;
-  background: transparent;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  color: #E5E7EB;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.landing-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-.landing-btn-secondary--light {
-  color: var(--landing-text-main);
-  border-color: rgba(148, 163, 184, 0.5);
-}
-
-.landing-btn-secondary--light:hover {
-  background: rgba(155, 92, 255, 0.1);
-  border-color: var(--landing-primary);
-  color: var(--landing-primary);
-}
-
-/* Landing Glass Card with Volume */
-.landing-glass-card {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 20px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 
-    0 18px 40px rgba(15, 23, 42, 0.45),
-    0 4px 12px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.landing-glass-card--light {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(100, 116, 139, 0.35);
-  box-shadow: 
-    0 18px 40px rgba(15, 23, 42, 0.12),
-    0 4px 12px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-/* Landing Cinematic Card */
-.landing-cinematic-card {
-  @apply relative overflow-hidden;
-  border-radius: 24px;
-  box-shadow: 
-    0 20px 50px rgba(15, 23, 42, 0.25),
-    0 8px 20px rgba(0, 0, 0, 0.15);
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-}
-
-.landing-cinematic-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 
-    0 30px 60px rgba(15, 23, 42, 0.3),
-    0 12px 30px rgba(0, 0, 0, 0.2);
-}
-
-/* Landing Pill Tags */
-.landing-pill {
-  @apply inline-flex items-center px-4 py-2 text-sm font-medium whitespace-nowrap;
-  background: rgba(155, 92, 255, 0.1);
-  color: var(--landing-primary);
-  border-radius: 999px;
-  border: 1px solid rgba(155, 92, 255, 0.2);
-  transition: all 0.2s ease;
-}
-
-.landing-pill:hover {
-  background: rgba(155, 92, 255, 0.2);
-  border-color: rgba(155, 92, 255, 0.4);
-}
-
-.landing-pill--dark {
-  background: rgba(255, 255, 255, 0.1);
-  color: #E5E7EB;
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Landing Metrics Card */
-.landing-metrics-card {
-  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4C1D95 100%);
-  border-radius: 24px;
-  box-shadow: 
-    0 20px 50px rgba(30, 27, 75, 0.4),
-    0 8px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.landing-metrics-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -30%;
-  width: 80%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(155, 92, 255, 0.15) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* Landing Timeline Mock */
-.landing-timeline-mock {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(155, 92, 255, 0.2);
-  box-shadow: 
-    0 15px 40px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-/* Horizontal scroll container */
-.landing-scroll-x {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 8px 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.landing-scroll-x::-webkit-scrollbar {
-  display: none;
-}
-
-/* Landing animations */
-@keyframes landingFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.landing-float {
-  animation: landingFloat 4s ease-in-out infinite;
-}
-
-@keyframes landingPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.landing-pulse {
-  animation: landingPulse 2s ease-in-out infinite;
-}
-
-/* Responsive utilities for mobile-first */
-@media (max-width: 640px) {
-  .text-responsive {
-    @apply text-sm;
-  }
-
-  .button-responsive {
-    @apply py-2 px-4 text-sm;
-  }
-}
-
-/* Safe area support */
-@supports (padding: max(0px)) {
-  .safe-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-
-  .safe-bottom {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-}
-
-/* ================================================
-   App Global Style Upgrade v0.3
-   TSX 파일 수정 없이 CSS만으로 적용
-   ================================================ */
-
-/* -----------------------------------------
-   1. Feed Page Styles
-   ----------------------------------------- */
-
-/* Feed 헤더 글래스 효과 */
-.mobile-content > .border-b.bg-white.sticky {
-  background: rgba(10,11,16,0.92) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-color: rgba(200,168,78,0.15) !important;
-}
-
-/* Feed 필터 버튼 호버 효과 */
-.mobile-content .bg-gray-100.text-gray-700:hover {
-  background: rgba(200,168,78,0.08) !important;
-  color: #E6C989 !important;
-  transform: translateY(-1px);
-  transition: all 0.2s ease;
-}
-
-/* Feed 카드 호버 효과 */
-.mobile-content .bg-white.rounded-xl.shadow-sm,
-.mobile-content .bg-card.rounded-xl.shadow-sm {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.mobile-content .bg-white.rounded-xl.shadow-sm:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 28px rgba(15, 23, 42, 0.12),
-    0 4px 10px rgba(0, 0, 0, 0.06) !important;
-}
-
-/* Feed 이미지 호버 줌 */
-.mobile-content .aspect-video img,
-.mobile-content .aspect-square img {
-  transition: transform 0.5s ease;
-}
-
-.mobile-content .aspect-video:hover img,
-.mobile-content .aspect-square:hover img {
-  transform: scale(1.03);
-}
-
-/* -----------------------------------------
-   2. Profile Page Styles
-   ----------------------------------------- */
-
-/* 프로필 통계 영역 그라디언트 */
-.mobile-content .grid.grid-cols-3.text-center {
-  background: linear-gradient(135deg, rgba(155, 92, 255, 0.05) 0%, rgba(255, 175, 95, 0.05) 100%);
-  border-radius: 16px;
-  padding: 16px;
-  margin: 0 -8px;
-}
-
-/* 프로필 통계 숫자 강조 */
-.mobile-content .grid.grid-cols-3.text-center .text-xl.font-bold,
-.mobile-content .grid.grid-cols-3.text-center .text-2xl.font-bold {
-  background: linear-gradient(135deg, var(--landing-primary), var(--landing-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* 프로필 섹션 카드 볼륨감 */
-.mobile-content .bg-white\/50.rounded-lg.border {
-  background: rgba(30, 41, 59, 0.85) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 
-    0 8px 24px rgba(15, 23, 42, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(148, 163, 184, 0.12);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.mobile-content .bg-white\/50.rounded-lg.border:hover {
-  transform: translateY(-1px);
-  box-shadow: 
-    0 12px 32px rgba(15, 23, 42, 0.1),
-    0 4px 12px rgba(0, 0, 0, 0.06);
-}
-
-/* -----------------------------------------
-   3. Chat Page Styles
-   ----------------------------------------- */
-
-/* 채팅 메시지 버블 - 내 메시지 */
-.bg-blue-500.text-white.rounded-lg,
-.bg-blue-500.text-white.rounded-2xl {
-  background: linear-gradient(135deg, var(--landing-primary) 0%, #7C3AED 100%) !important;
-  box-shadow: 0 4px 12px rgba(155, 92, 255, 0.25);
-  border-radius: 18px 18px 4px 18px !important;
-}
-
-/* 채팅 메시지 버블 - 상대방 */
-.bg-gray-100.rounded-lg,
-.bg-gray-100.rounded-2xl {
-  background: rgba(30, 41, 59, 0.92) !important;
-  border: 1px solid rgba(100, 116, 139, 0.35);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border-radius: 18px 18px 18px 4px !important;
-}
-
-/* 채팅 입력창 스타일 */
-.border-t.bg-white.p-3,
-.border-t.bg-white.p-4,
-.border-t.bg-card.p-3,
-.border-t.bg-card.p-4 {
-  background: rgba(30, 41, 59, 0.92) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-color: rgba(148, 163, 184, 0.1) !important;
-}
-
-/* 채팅 입력 필드 */
-.border-t input[type="text"],
-.border-t textarea {
-  background: rgba(15, 23, 42, 0.82) !important;
-  border: 1px solid rgba(100, 116, 139, 0.4) !important;
-  border-radius: 20px !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.border-t input[type="text"]:focus,
-.border-t textarea:focus {
-  border-color: var(--landing-primary) !important;
-  box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.1) !important;
-}
-
-/* -----------------------------------------
-   4. Timeline Page Styles
-   ----------------------------------------- */
-
-/* 타임라인 카드 호버 */
-.mobile-content .bg-white.rounded-lg.shadow,
-.mobile-content .bg-white.rounded-xl.shadow {
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
-}
-
-.mobile-content .bg-white.rounded-lg.shadow:hover,
-.mobile-content .bg-white.rounded-xl.shadow:hover {
-  transform: translateY(-4px);
-  box-shadow: 
-    0 20px 40px rgba(15, 23, 42, 0.15),
-    0 8px 16px rgba(0, 0, 0, 0.08) !important;
-}
-
-/* 타임라인 CineMap 버튼 강조 */
-.bg-purple-500,
-.bg-purple-600 {
-  background: linear-gradient(135deg, var(--landing-primary) 0%, #7C3AED 100%) !important;
-  box-shadow: 0 4px 12px rgba(155, 92, 255, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bg-purple-500:hover,
-.bg-purple-600:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(155, 92, 255, 0.4);
-}
-
-/* -----------------------------------------
-   5. Marketplace / Experience Styles
-   ----------------------------------------- */
-
-/* 체험 카드 시네마틱 호버 */
-[class*="Card"][class*="overflow-hidden"],
-.overflow-hidden.rounded-lg,
-.overflow-hidden.rounded-xl {
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-}
-
-[class*="Card"][class*="overflow-hidden"]:hover,
-.overflow-hidden.rounded-lg:hover,
-.overflow-hidden.rounded-xl:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 
-    0 24px 48px rgba(15, 23, 42, 0.18),
-    0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* 체험 가격 뱃지 */
-.bg-green-500.text-white,
-.bg-emerald-500.text-white {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-}
-
-/* -----------------------------------------
-   6. Common Button Styles
-   ----------------------------------------- */
-
-/* Primary 버튼 볼륨감 */
-button.bg-primary,
-.bg-primary.text-primary-foreground {
-  box-shadow: 
-    0 4px 12px rgba(var(--primary), 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-button.bg-primary:hover,
-.bg-primary.text-primary-foreground:hover {
-  transform: translateY(-1px);
-  box-shadow: 
-    0 6px 16px rgba(var(--primary), 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-button.bg-primary:active,
-.bg-primary.text-primary-foreground:active {
-  transform: translateY(1px);
-}
-
-/* Blue 버튼 그라디언트 */
-.bg-blue-500.text-white,
-.bg-blue-600.text-white {
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bg-blue-500.text-white:hover,
-.bg-blue-600.text-white:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-}
-
-/* -----------------------------------------
-   7. Common Modal Styles
-   ----------------------------------------- */
-
-/* 모달 백드롭 */
-[data-state="open"][role="dialog"],
-.fixed.inset-0.bg-black\/80 {
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-/* 모달 콘텐츠 볼륨감 */
-[role="dialog"] > div,
-.bg-white.rounded-lg.shadow-lg {
-  box-shadow: 
-    0 24px 48px rgba(15, 23, 42, 0.25),
-    0 8px 24px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(148, 163, 184, 0.18) !important;
-}
-
-/* -----------------------------------------
-   8. Common Input Styles
-   ----------------------------------------- */
-
-/* 텍스트 입력 필드 포커스 */
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="search"]:focus,
-textarea:focus {
-  border-color: var(--landing-primary) !important;
-  box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.1) !important;
-  outline: none;
-}
-
-/* 검색 입력 스타일 */
-input[type="search"],
-input[placeholder*="Search"],
-input[placeholder*="검색"] {
-  background: rgba(15, 23, 42, 0.86) !important;
-  border: 1px solid rgba(100, 116, 139, 0.4) !important;
-  border-radius: 12px !important;
-  transition: all 0.2s ease;
-}
-
-input[type="search"]:focus,
-input[placeholder*="Search"]:focus,
-input[placeholder*="검색"]:focus {
-  background: rgba(15, 23, 42, 0.98) !important;
-  border-color: var(--landing-primary) !important;
-  box-shadow: 0 0 0 3px rgba(155, 92, 255, 0.1) !important;
-}
-
-/* -----------------------------------------
-   9. Tabs & Navigation Styles
-   ----------------------------------------- */
-
-/* 탭 활성 상태 */
-[data-state="active"][role="tab"],
-.data-\[state\=active\]\:bg-background[data-state="active"] {
-  position: relative;
-}
-
-[data-state="active"][role="tab"]::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--landing-primary), var(--landing-accent));
-  border-radius: 2px;
-}
-
-/* 하단 네비게이션 활성 아이콘 */
-.text-primary,
-[class*="text-blue-600"],
-[class*="text-purple-600"] {
-  filter: drop-shadow(0 2px 4px rgba(155, 92, 255, 0.3));
-}
-
-/* -----------------------------------------
-   10. Avatar & Badge Styles
-   ----------------------------------------- */
-
-/* 아바타 링 효과 */
-.rounded-full.overflow-hidden {
-  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-
-/* -----------------------------------------
-   Fixed: Absolute Positioned Buttons Z-Index
-   (홈 버튼, 설정 아이콘 등 클릭 가능 보장)
-   ----------------------------------------- */
-
-/* 프로필 페이지 홈 버튼 컨테이너 - 최강 규칙 */
-.absolute.top-4.left-4,
-.absolute.top-4.right-4 {
-  z-index: 50 !important;
-  pointer-events: auto !important;
-  position: absolute !important;
-  overflow: visible !important;
-  display: block !important;
-  visibility: visible !important;
-}
-
-/* 버튼 컨테이너 위치 명시적 설정 */
-.absolute.top-4.left-4 {
-  left: 16px !important;
-  top: 16px !important;
-}
-
-.absolute.top-4.right-4 {
-  right: 16px !important;
-  top: 16px !important;
-}
-
-/* 홈 버튼 및 설정 버튼 자체 */
-.absolute.top-4.left-4 button,
-.absolute.top-4.right-4 button,
-[data-testid="button-home"],
-[data-testid="button-settings"] {
-  pointer-events: auto !important;
-  z-index: 50 !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* 버튼 hover 상태 */
-.absolute.top-4.left-4 button:hover,
-.absolute.top-4.right-4 button:hover,
-[data-testid="button-home"]:hover,
-[data-testid="button-settings"]:hover {
-  pointer-events: auto !important;
-}
-
-/* 뱃지 볼륨감 */
-.rounded-full.bg-red-500,
-.rounded-full.bg-green-500,
-.rounded-full.bg-blue-500 {
-  box-shadow: 0 2px 6px currentColor;
-}
-
-/* 알림 뱃지 */
-.absolute.bg-red-500.text-white.rounded-full {
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-/* -----------------------------------------
-   11. Loading & Skeleton Styles
-   ----------------------------------------- */
-
-/* 스켈레톤 애니메이션 개선 */
-.animate-pulse {
-  animation: skeletonPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes skeletonPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* 로딩 스피너 */
-.animate-spin {
-  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
-}
-
-/* -----------------------------------------
-   12. Scroll & Container Styles
-   ----------------------------------------- */
-
-/* 커스텀 스크롤바 (웹킷) */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
-}
-
-/* -----------------------------------------
-   13. Toast / Notification Styles
-   ----------------------------------------- */
-
-/* 토스트 볼륨감 */
-[data-sonner-toast],
-[role="status"].bg-white {
-  box-shadow:
-    0 16px 40px rgba(15, 23, 42, 0.2),
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(148, 163, 184, 0.18) !important;
-  border: 1px solid rgba(100, 116, 139, 0.35) !important;
-}
-
-/* ================================================
-   Tourgether v3 Utility Classes
-   ================================================ */
-
-.tg-surface {
-  background: var(--surface-1);
-  border: 1px solid rgba(200,168,78,0.2);
-  box-shadow: 0 0 8px rgba(200,168,78,0.15);
-}
-
-.tg-surface-2 {
-  background: var(--surface-2);
-}
-
-.tg-glass {
-  background: rgba(17, 19, 26, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.tg-chip {
-  border-radius: 99px;
-  padding: 6px 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--stroke);
-  font-size: 13px;
-  color: var(--text-secondary);
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.tg-chip-active {
-  border-color: var(--accent-mint);
-  color: var(--accent-mint);
-}
-
-.tg-bottom-sheet {
-  border-radius: 28px 28px 0 0;
-  background: rgba(17,19,26,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(200,168,78,0.18);
-}
-
-.tg-btn-primary {
-  background: var(--accent-coral);
-  color: #fff;
-  border-radius: 99px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  transition: opacity 0.2s ease;
-}
-
-.tg-btn-primary:hover {
-  opacity: 0.9;
-}
-
-.tg-btn-ghost {
-  border: 1px solid var(--stroke);
-  color: var(--text-primary);
-  border-radius: 99px;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  transition: border-color 0.2s ease;
-}
-
-.tg-btn-ghost:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
