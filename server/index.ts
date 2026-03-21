@@ -129,7 +129,9 @@ app.set('trust proxy', 1);
 app.get('/map', (req, res) => res.redirect(301, '/'));
 
 // Rate limiting
-app.use('/api/', rateLimit({ windowMs: 60_000, max: 200 })); // 1분 200회 (일반 API)
+// 번역 API는 앱 로드 시 6언어×5네임스페이스=30개 동시 요청 발생 → 별도 완화 처리
+app.use('/api/translations/', rateLimit({ windowMs: 60_000, max: 600 })); // 번역 분당 600회 (언어×네임스페이스 버스트 허용)
+app.use('/api/', rateLimit({ windowMs: 60_000, max: 200, skip: (req) => req.path.startsWith('/translations/') })); // 1분 200회 (일반 API, 번역 제외)
 // 로그인/회원가입만 엄격하게, /me는 제외 (자주 호출됨)
 app.use('/api/auth/login', rateLimit({ windowMs: 60_000, max: 10 })); // 로그인 분당 10회
 app.use('/api/auth/register', rateLimit({ windowMs: 60_000, max: 10 })); // 회원가입 분당 10회

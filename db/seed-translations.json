@@ -14073,13 +14073,13 @@
     "namespace": "toast",
     "key": "error.generic",
     "locale": "es",
-    "value": "An error occurred. Please try again."
+    "value": "Se produjo un error. Por favor, inténtelo de nuevo."
   },
   {
     "namespace": "toast",
     "key": "error.generic",
     "locale": "fr",
-    "value": "An error occurred. Please try again."
+    "value": "Une erreur s'est produite. Veuillez réessayer."
   },
   {
     "namespace": "toast",
@@ -14109,13 +14109,13 @@
     "namespace": "toast",
     "key": "error.network",
     "locale": "es",
-    "value": "Network error. Please check your connection."
+    "value": "Error de red. Compruebe su conexión."
   },
   {
     "namespace": "toast",
     "key": "error.network",
     "locale": "fr",
-    "value": "Network error. Please check your connection."
+    "value": "Erreur réseau. Vérifiez votre connexion."
   },
   {
     "namespace": "toast",
@@ -14145,13 +14145,13 @@
     "namespace": "toast",
     "key": "error.notFound",
     "locale": "es",
-    "value": "The requested resource was not found."
+    "value": "No se encontró el recurso solicitado."
   },
   {
     "namespace": "toast",
     "key": "error.notFound",
     "locale": "fr",
-    "value": "The requested resource was not found."
+    "value": "La ressource demandée est introuvable."
   },
   {
     "namespace": "toast",
@@ -14181,13 +14181,13 @@
     "namespace": "toast",
     "key": "error.tooManyImages",
     "locale": "es",
-    "value": "You can upload up to 5 images."
+    "value": "Puede subir hasta 5 imágenes."
   },
   {
     "namespace": "toast",
     "key": "error.tooManyImages",
     "locale": "fr",
-    "value": "You can upload up to 5 images."
+    "value": "Vous pouvez télécharger jusqu'à 5 images."
   },
   {
     "namespace": "toast",
@@ -14217,13 +14217,13 @@
     "namespace": "toast",
     "key": "error.unauthorized",
     "locale": "es",
-    "value": "You are not authorized to perform this action."
+    "value": "No está autorizado a realizar esta acción."
   },
   {
     "namespace": "toast",
     "key": "error.unauthorized",
     "locale": "fr",
-    "value": "You are not authorized to perform this action."
+    "value": "Vous n'êtes pas autorisé à effectuer cette action."
   },
   {
     "namespace": "toast",
@@ -14253,13 +14253,13 @@
     "namespace": "toast",
     "key": "error.upload",
     "locale": "es",
-    "value": "Upload failed. Please try again."
+    "value": "Error de carga. Por favor, inténtelo de nuevo."
   },
   {
     "namespace": "toast",
     "key": "error.upload",
     "locale": "fr",
-    "value": "Upload failed. Please try again."
+    "value": "Échec du téléchargement. Veuillez réessayer."
   },
   {
     "namespace": "toast",
@@ -14289,13 +14289,13 @@
     "namespace": "toast",
     "key": "error.validation",
     "locale": "es",
-    "value": "Please check your input."
+    "value": "Por favor, compruebe sus datos."
   },
   {
     "namespace": "toast",
     "key": "error.validation",
     "locale": "fr",
-    "value": "Please check your input."
+    "value": "Veuillez vérifier votre saisie."
   },
   {
     "namespace": "toast",
@@ -14325,13 +14325,13 @@
     "namespace": "toast",
     "key": "info.loading",
     "locale": "es",
-    "value": "Loading..."
+    "value": "Cargando..."
   },
   {
     "namespace": "toast",
     "key": "info.loading",
     "locale": "fr",
-    "value": "Loading..."
+    "value": "Chargement..."
   },
   {
     "namespace": "toast",
@@ -14361,13 +14361,13 @@
     "namespace": "toast",
     "key": "info.processing",
     "locale": "es",
-    "value": "Processing..."
+    "value": "Procesando..."
   },
   {
     "namespace": "toast",
     "key": "info.processing",
     "locale": "fr",
-    "value": "Processing..."
+    "value": "Traitement..."
   },
   {
     "namespace": "toast",
@@ -14397,13 +14397,13 @@
     "namespace": "toast",
     "key": "info.saving",
     "locale": "es",
-    "value": "Saving..."
+    "value": "Guardando..."
   },
   {
     "namespace": "toast",
     "key": "info.saving",
     "locale": "fr",
-    "value": "Saving..."
+    "value": "Enregistrement..."
   },
   {
     "namespace": "toast",
@@ -14433,13 +14433,13 @@
     "namespace": "toast",
     "key": "info.uploading",
     "locale": "es",
-    "value": "Uploading..."
+    "value": "Subiendo..."
   },
   {
     "namespace": "toast",
     "key": "info.uploading",
     "locale": "fr",
-    "value": "Uploading..."
+    "value": "Téléchargement..."
   },
   {
     "namespace": "toast",
@@ -14469,13 +14469,13 @@
     "namespace": "toast",
     "key": "success.created",
     "locale": "es",
-    "value": "Successfully created!"
+    "value": "¡Creado con éxito!"
   },
   {
     "namespace": "toast",
     "key": "success.created",
     "locale": "fr",
-    "value": "Successfully created!"
+    "value": "Créé avec succès !"
   },
   {
     "namespace": "toast",
@@ -14505,13 +14505,13 @@
     "namespace": "toast",
     "key": "success.deleted",
     "locale": "es",
-    "value": "Successfully deleted!"
+    "value": "¡Eliminado con éxito!"
   },
   {
     "namespace": "toast",
     "key": "success.deleted",
     "locale": "fr",
-    "value": "Successfully deleted!"
+    "value": "Supprimé avec succès !"
   },
   {
     "namespace": "toast",
@@ -14541,13 +14541,13 @@
     "namespace": "toast",
     "key": "success.loggedIn",
     "locale": "es",
-    "value": "Login successful"
+    "value": "Inicio de sesión exitoso"
   },
   {
     "namespace": "toast",
     "key": "success.loggedIn",
     "locale": "fr",
-    "value": "Login successful"
+    "value": "Connexion réussie"
   },
   {
     "namespace": "toast",
@@ -14577,13 +14577,13 @@
     "namespace": "toast",
     "key": "success.registered",
     "locale": "es",
-    "value": "Registration completed"
+    "value": "Registro completado"
   },
   {
     "namespace": "toast",
     "key": "success.registered",
     "locale": "fr",
-    "value": "Registration completed"
+    "value": "Inscription terminée"
   },
   {
     "namespace": "toast",
@@ -14613,13 +14613,13 @@
     "namespace": "toast",
     "key": "success.reviewSubmitted",
     "locale": "es",
-    "value": "Thank you for your valuable review!"
+    "value": "¡Gracias por su valioso comentario!"
   },
   {
     "namespace": "toast",
     "key": "success.reviewSubmitted",
     "locale": "fr",
-    "value": "Thank you for your valuable review!"
+    "value": "Merci pour votre précieux avis !"
   },
   {
     "namespace": "toast",
@@ -14649,13 +14649,13 @@
     "namespace": "toast",
     "key": "success.sent",
     "locale": "es",
-    "value": "Message sent"
+    "value": "Mensaje enviado"
   },
   {
     "namespace": "toast",
     "key": "success.sent",
     "locale": "fr",
-    "value": "Message sent"
+    "value": "Message envoyé"
   },
   {
     "namespace": "toast",
@@ -14685,13 +14685,13 @@
     "namespace": "toast",
     "key": "success.updated",
     "locale": "es",
-    "value": "Successfully updated!"
+    "value": "¡Actualizado con éxito!"
   },
   {
     "namespace": "toast",
     "key": "success.updated",
     "locale": "fr",
-    "value": "Successfully updated!"
+    "value": "Mis à jour avec succès !"
   },
   {
     "namespace": "toast",
@@ -14721,13 +14721,13 @@
     "namespace": "toast",
     "key": "success.uploaded",
     "locale": "es",
-    "value": "Upload completed"
+    "value": "Carga completada"
   },
   {
     "namespace": "toast",
     "key": "success.uploaded",
     "locale": "fr",
-    "value": "Upload completed"
+    "value": "Téléchargement terminé"
   },
   {
     "namespace": "toast",
@@ -48183,13 +48183,13 @@
     "namespace": "validation",
     "key": "email.invalid",
     "locale": "es",
-    "value": "Please enter a valid email address (e.g., name@example.com)"
+    "value": "Por favor, ingrese una dirección de correo válida (p.ej., nombre@ejemplo.com)"
   },
   {
     "namespace": "validation",
     "key": "email.invalid",
     "locale": "fr",
-    "value": "Please enter a valid email address (e.g., name@example.com)"
+    "value": "Veuillez saisir une adresse e-mail valide (ex. : nom@exemple.com)"
   },
   {
     "namespace": "validation",
@@ -48219,13 +48219,13 @@
     "namespace": "validation",
     "key": "email.required",
     "locale": "es",
-    "value": "Email is required"
+    "value": "El correo electrónico es obligatorio"
   },
   {
     "namespace": "validation",
     "key": "email.required",
     "locale": "fr",
-    "value": "Email is required"
+    "value": "L'e-mail est requis"
   },
   {
     "namespace": "validation",
@@ -48255,13 +48255,13 @@
     "namespace": "validation",
     "key": "password.mismatch",
     "locale": "es",
-    "value": "Passwords do not match"
+    "value": "Las contraseñas no coinciden"
   },
   {
     "namespace": "validation",
     "key": "password.mismatch",
     "locale": "fr",
-    "value": "Passwords do not match"
+    "value": "Les mots de passe ne correspondent pas"
   },
   {
     "namespace": "validation",
@@ -48291,13 +48291,13 @@
     "namespace": "validation",
     "key": "password.required",
     "locale": "es",
-    "value": "Password is required"
+    "value": "La contraseña es obligatoria"
   },
   {
     "namespace": "validation",
     "key": "password.required",
     "locale": "fr",
-    "value": "Password is required"
+    "value": "Le mot de passe est requis"
   },
   {
     "namespace": "validation",
@@ -48327,13 +48327,13 @@
     "namespace": "validation",
     "key": "password.tooShort",
     "locale": "es",
-    "value": "Password must be at least 6 characters"
+    "value": "La contraseña debe tener al menos 6 caracteres"
   },
   {
     "namespace": "validation",
     "key": "password.tooShort",
     "locale": "fr",
-    "value": "Password must be at least 6 characters"
+    "value": "Le mot de passe doit comporter au moins 6 caractères"
   },
   {
     "namespace": "validation",
@@ -48363,13 +48363,13 @@
     "namespace": "validation",
     "key": "purchase.address",
     "locale": "es",
-    "value": "Please enter delivery address"
+    "value": "Por favor, ingrese la dirección de entrega"
   },
   {
     "namespace": "validation",
     "key": "purchase.address",
     "locale": "fr",
-    "value": "Please enter delivery address"
+    "value": "Veuillez saisir l'adresse de livraison"
   },
   {
     "namespace": "validation",
@@ -48399,13 +48399,13 @@
     "namespace": "validation",
     "key": "purchase.price",
     "locale": "es",
-    "value": "Please enter estimated price"
+    "value": "Por favor, ingrese el precio estimado"
   },
   {
     "namespace": "validation",
     "key": "purchase.price",
     "locale": "fr",
-    "value": "Please enter estimated price"
+    "value": "Veuillez saisir le prix estimé"
   },
   {
     "namespace": "validation",
@@ -48435,13 +48435,13 @@
     "namespace": "validation",
     "key": "purchase.productName",
     "locale": "es",
-    "value": "Please enter product name"
+    "value": "Por favor, ingrese el nombre del producto"
   },
   {
     "namespace": "validation",
     "key": "purchase.productName",
     "locale": "fr",
-    "value": "Please enter product name"
+    "value": "Veuillez saisir le nom du produit"
   },
   {
     "namespace": "validation",
@@ -48471,13 +48471,13 @@
     "namespace": "validation",
     "key": "purchase.quantity",
     "locale": "es",
-    "value": "Quantity must be at least 1"
+    "value": "La cantidad debe ser al menos 1"
   },
   {
     "namespace": "validation",
     "key": "purchase.quantity",
     "locale": "fr",
-    "value": "Quantity must be at least 1"
+    "value": "La quantité doit être d'au moins 1"
   },
   {
     "namespace": "validation",
@@ -48507,13 +48507,13 @@
     "namespace": "validation",
     "key": "required",
     "locale": "es",
-    "value": "This field is required"
+    "value": "Este campo es obligatorio"
   },
   {
     "namespace": "validation",
     "key": "required",
     "locale": "fr",
-    "value": "This field is required"
+    "value": "Ce champ est obligatoire"
   },
   {
     "namespace": "validation",
@@ -48543,13 +48543,13 @@
     "namespace": "validation",
     "key": "review.content",
     "locale": "es",
-    "value": "Please write your review content"
+    "value": "Por favor, escriba el contenido de su reseña"
   },
   {
     "namespace": "validation",
     "key": "review.content",
     "locale": "fr",
-    "value": "Please write your review content"
+    "value": "Veuillez rédiger votre avis"
   },
   {
     "namespace": "validation",
@@ -48579,13 +48579,13 @@
     "namespace": "validation",
     "key": "review.rating",
     "locale": "es",
-    "value": "Please select a rating"
+    "value": "Por favor, seleccione una calificación"
   },
   {
     "namespace": "validation",
     "key": "review.rating",
     "locale": "fr",
-    "value": "Please select a rating"
+    "value": "Veuillez sélectionner une note"
   },
   {
     "namespace": "validation",

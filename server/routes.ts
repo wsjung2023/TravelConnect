@@ -309,6 +309,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const translations = unflattenTranslations(flatTranslations);
       console.log(`[Translations API] Found ${Object.keys(flatTranslations).length} translations`);
       
+      // 번역은 자주 바뀌지 않으므로 5분 캐시 (CDN/브라우저 캐시 활용)
+      res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       res.json(translations);
     } catch (error) {
       console.error('Translation API error:', error);
