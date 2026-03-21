@@ -546,7 +546,7 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
     <div
       className="mobile-content"
       ref={containerRef}
-      style={{ height: 'calc(100vh - 72px)', overflow: 'auto', background: 'var(--app-bg)' }}
+      style={{ height: 'calc(100vh - 78px - env(safe-area-inset-bottom))', overflow: 'auto', background: 'var(--app-bg)' }}
     >
       <Seo
         title={t('feedPage.title')}

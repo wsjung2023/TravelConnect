@@ -77,7 +77,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [miniMeetLocation, setMiniMeetLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const longPressRef = useRef<number | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
-  const [isNearbyPanelCollapsed, setIsNearbyPanelCollapsed] = useState(false);
+  const [isNearbyPanelCollapsed, setIsNearbyPanelCollapsed] = useState(true);
   const [nearbyFilter, setNearbyFilter] = useState<'all' | 'posts' | 'experiences' | 'open_users'>('all');
 
   // 상태 변화 디버깅
@@ -1131,7 +1131,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       {onCreatePost && (
         <button
           onClick={() => onCreatePost({ latitude: mapCenter.lat, longitude: mapCenter.lng, name: '' })}
-          className="absolute bottom-24 right-4 z-10 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
+          className="absolute bottom-36 right-4 z-[35] w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
           data-testid="fab-create-post"
           aria-label="Create post"
         >
@@ -1588,13 +1588,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
       {/* 하단 Nearby Posts - 접기/펼치기 가능 */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg transition-all duration-300 flex flex-col max-h-[80vh] min-h-0 overflow-hidden pointer-events-auto ${
+        className={`absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg z-[25] transition-all duration-300 flex flex-col max-h-[80vh] min-h-0 overflow-hidden pointer-events-auto ${
           isNearbyPanelCollapsed ? 'p-2 rounded-t-3xl' : 'p-4 rounded-t-3xl'
         }`}
       >
         <button
           onClick={() => setIsNearbyPanelCollapsed(!isNearbyPanelCollapsed)}
-          className="w-full flex items-center justify-between mb-2 flex-shrink-0"
+          className="w-full flex items-center justify-between mb-2 flex-shrink-0 min-h-[44px]"
           data-testid="button-toggle-nearby-panel"
         >
           <div className="flex items-center gap-2">

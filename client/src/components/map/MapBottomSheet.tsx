@@ -58,14 +58,18 @@ export default function MapBottomSheet({ state, onStateChange, selectedUser, onC
     if (touchStartY.current === null) return;
     const dy = (e.changedTouches[0]?.clientY ?? 0) - touchStartY.current;
     const idx = SNAPS.indexOf(state);
-    if (dy < -50 && idx < SNAPS.length - 1) onStateChange(SNAPS[idx + 1]!);
-    else if (dy > 50 && idx > 0) onStateChange(SNAPS[idx - 1]!);
+    if (dy < -50 && idx < SNAPS.length - 1) {
+      onStateChange(SNAPS[idx + 1]!);
+    } else if (dy > 120) {
+      onStateChange('collapsed');
+    } else if (dy > 50 && idx > 0) {
+      onStateChange(SNAPS[idx - 1]!);
+    }
     touchStartY.current = null;
   };
 
   const handleHandleTap = () => {
-    const idx = SNAPS.indexOf(state);
-    if (idx < SNAPS.length - 1) onStateChange(SNAPS[idx + 1]!);
+    if (state === 'collapsed') onStateChange('half');
     else onStateChange('collapsed');
   };
 
@@ -76,12 +80,18 @@ export default function MapBottomSheet({ state, onStateChange, selectedUser, onC
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <button
-        onClick={handleHandleTap}
-        className="mx-auto mt-3 mb-2 flex-shrink-0 h-[5px] w-12 rounded-full cursor-pointer"
-        style={{ background: 'rgba(255,255,255,0.18)' }}
-        aria-label={t('common.back')}
-      />
+      <div className="flex w-full flex-shrink-0 items-center justify-center" style={{ height: 44 }}>
+        <button
+          onClick={handleHandleTap}
+          className="flex h-full w-full items-center justify-center"
+          aria-label={t('common.back')}
+        >
+          <div
+            className="w-12 rounded-full"
+            style={{ height: 5, background: 'rgba(255,255,255,0.18)' }}
+          />
+        </button>
+      </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
         {selectedUser ? (

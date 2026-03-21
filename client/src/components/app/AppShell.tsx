@@ -66,7 +66,7 @@ export default function AppShell() {
       className="mobile-container relative min-h-screen"
       style={{ background: 'var(--app-bg)' }}
     >
-      <div className="pb-[72px]">
+      <div style={{ paddingBottom: 'calc(78px + env(safe-area-inset-bottom))' }}>
         <Suspense fallback={<TabSpinner />}>
           {content}
         </Suspense>
