@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div
       className="relative overflow-hidden"
-      style={{ height: 'calc(100vh - 72px)', background: 'var(--app-bg)' }}
+      style={{ height: 'calc(100vh - 78px - env(safe-area-inset-bottom))', background: 'var(--app-bg)' }}
     >
       {/* Map fills full area — TopBar floats above it */}
       <div className="absolute inset-0">
