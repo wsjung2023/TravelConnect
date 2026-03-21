@@ -65,7 +65,7 @@ Translation data must be managed in the database (`translations` table), not har
   - All pages include `SeoHead` (react-helmet-async), `SeoFooter`, JSON-LD schemas (FAQPage), meta tags, Open Graph & Twitter Cards, AI-generated hero images, i18n support, sitemap, and robots.txt.
 - **Profile Management**: Redesigned edit modal with multi-select for languages/interests, Google Places integration, and enhanced validation.
 - **Simplified Onboarding**: Action-based role system, skippable onboarding, and optional profile setup.
-- **Internationalization (i18n)**: All user-facing text is DB-driven using a `translations` table, supporting 6 languages (en, ko, ja, zh, fr, es) across 5 namespaces.
+- **Internationalization (i18n)**: All user-facing text is DB-driven using a `translations` table, supporting 6 languages (en, ko, ja, zh, fr, es) across 5 namespaces (ui, toast, validation, billing, seo). ~10,075 entries total. Dev DB and production DB are fully synchronized as of 2026-03-21.
 - **Dispute Management System**: P2P transaction dispute resolution with 7 types, status transitions, SLA management, and escrow integration.
 - **Contract Split Payment**: Supports installment payments (deposit/milestones) for P2P contracts with payment plans and partial/full refund tracking.
 - **Host Settlement Batch System**: Automated daily settlement for hosts using PortOne Transfer API, with KYC verification and minimum payout conditions, managed by a cron scheduler.
@@ -76,6 +76,45 @@ Translation data must be managed in the database (`translations` table), not har
 - **AI Prompt Template Management**: `ai_prompt_templates` table for managing AI prompts (CineMap, Concierge, Mini Concierge, Translation) with version control, locale support (en/ko/ja/zh/fr/es/de), model configuration (temperature, max_tokens, top_p), and admin UI for template editing.
 - **Config Audit Logging**: `config_audit_logs` table tracks all system configuration changes with before/after values for compliance and debugging.
 - **User Analytics Schema**: `user_sessions`, `user_events`, `user_daily_metrics`, `platform_daily_metrics` tables for comprehensive user behavior tracking and analytics.
+
+## i18n 번역 운영 절차 (AI 에이전트 필독)
+
+### 구조 개요
+- 번역 소스: `server/seeds/seed-translations.json` (10,075개 항목)
+- DB 테이블: `translations` (locale, namespace, key, value)
+- 동기화 로직: `server/seeds/syncTranslations.ts` (SHA256 해시 체크)
+- 운영 환경 기본값: `STARTUP_SYNC_MODE` 없으면 `'off'` → 서버 시작해도 시드 실행 안 함
+- 개발 환경 기본값: `STARTUP_SYNC_MODE` 없으면 `'safe'` → 서버 시작 시 해시 체크 후 필요 시 upsert
+
+### 번역 추가/수정 절차
+
+**소규모 (키 몇 개 추가):**
+1. `seed-translations.json` 수정 또는 `node scripts/i18n-sync.mjs` 실행
+2. 서버 재시작 → 개발 DB 자동 반영
+3. 운영 반영: `POST /api/admin/i18n/sync` 호출 (관리자 계정 필요, 배포 불필요)
+
+**대규모 (seed 파일 대폭 변경):**
+1. `seed-translations.json` 수정
+2. Replit 운영 환경변수에 `STARTUP_SYNC_MODE=safe` 설정
+3. 배포 → 서버 기동 시 자동 upsert 실행
+4. 완료 후 `STARTUP_SYNC_MODE` 환경변수 삭제 (중요: 방치하면 매 배포마다 DB 쿼리 발생)
+
+### 환경변수 설정 방법
+```javascript
+// Replit 운영 환경에 설정
+await setEnvVars({ values: { "STARTUP_SYNC_MODE": "safe" }, environment: "production" });
+// 완료 후 삭제
+await deleteEnvVars({ keys: ["STARTUP_SYNC_MODE"], environment: "production" });
+```
+
+### SHA256 해시 체크 메커니즘
+- seed 파일 SHA256 → `system_config` 테이블 (`i18n.seed_hash` 키)에 저장
+- 해시 일치 시: DB 쿼리 1건으로 즉시 종료 (비용 없음)
+- 해시 불일치 시: 전체 upsert 실행 (신규 키만 추가, 기존 번역 덮어쓰기 안 함)
+
+### 누락 키 감지
+- 개발 서버 시작 시 `server/startup/auditI18nKeys.ts`가 자동 스캔
+- `[i18n Audit] ⚠️ N개 번역 누락 키 발견` 경고 → `node scripts/i18n-sync.mjs` 실행
 
 ## External Dependencies
 

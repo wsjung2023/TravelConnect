@@ -571,3 +571,59 @@ COUNT(DB행) >= COUNT(시드항목) → 즉시 return
 ### 주의
 - 현재 누락 키에 삽입된 비영어 번역은 영어 fallback 값이므로, 향후 OpenAI 또는 수동으로 교정 필요
 - admin.tsx는 720줄 — 가드레일 한도 초과이나 단일 페이지 특성상 분리 어려움
+
+---
+
+## [세션] 운영 번역 동기화 구조 확정 (2026-03-21)
+
+### 발견한 핵심 버그
+
+`server/index.ts`에 아래 코드가 있었음:
+```typescript
+const startupSyncMode = process.env.STARTUP_SYNC_MODE ||
+  (process.env.NODE_ENV === 'production' ? 'off' : 'safe');
+```
+→ 운영 환경에서 `STARTUP_SYNC_MODE` 환경 변수가 없으면 무조건 `'off'`  
+→ 배포해도 번역 시드 동기화가 실행되지 않아 운영 DB가 개발 DB와 계속 달랐음
+
+### 해결 구조 (확정)
+
+**시드 동기화 방법 2가지:**
+
+| 방법 | 사용 시점 | 절차 |
+|------|-----------|------|
+| **A. 환경변수 + 배포** | seed 파일 자체가 바뀐 경우 (새 번역 키 대규모 추가) | 1. `STARTUP_SYNC_MODE=safe` (production) 설정 → 2. 배포 → 3. 서버 기동 시 자동 upsert → 4. 완료 후 환경변수 삭제 |
+| **B. 관리자 API 호출** | 기존 seed 파일 그대로, 운영 DB만 갱신할 때 | `POST /api/admin/i18n/sync` (관리자 JWT 필요) |
+
+**SHA256 해시 체크 메커니즘:**
+- 서버 시작 시 `seed-translations.json` 파일의 SHA256을 `system_config` 테이블(`i18n.seed_hash`)에 저장된 값과 비교
+- 해시 일치 → DB 쿼리 1건으로 종료 (8,000+ upsert 완전 skip → 비용 없음)
+- 해시 불일치(seed 파일 변경됨) → 전체 upsert 실행
+
+**운영 환경 기본값**: `STARTUP_SYNC_MODE` 없으면 → `'off'` (절대 자동 실행 안 함)
+
+### 운영 DB 최종 동기화 완료 상태 (2026-03-21)
+
+| locale/namespace | 개수 |
+|-----------------|------|
+| en/ui | 1,264 |
+| ko/ui | 1,255 |
+| fr/ui | 1,264 |
+| ja/ui | 1,253 |
+| zh/ui | 1,253 |
+| es/ui | 1,256 |
+| */toast | 19 (6개 언어) |
+| */validation | 12 (6개 언어) |
+| */billing | 76 (6개 언어, 영어 fallback) |
+| */seo | en:376, 나머지:214~219 |
+
+**총계**: 개발 DB ≈ 운영 DB ≈ 10,075개 (완전 일치)
+
+### 향후 번역 추가 절차
+
+```
+1. server/seeds/seed-translations.json 수정 (또는 i18n-sync.mjs 실행)
+2. 개발에서 서버 재시작 → 자동 upsert (STARTUP_SYNC_MODE=safe 기본)
+3. 운영 반영: POST /api/admin/i18n/sync 호출 (배포 불필요)
+   └─ 대규모 변경이면: STARTUP_SYNC_MODE=safe → 배포 → 환경변수 삭제
+```
