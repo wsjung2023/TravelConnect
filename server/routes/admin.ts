@@ -554,4 +554,40 @@ router.get('/i18n/audit', authenticateHybrid, requireAdmin, async (req: AuthRequ
   }
 });
 
+// 번역 시드 파일을 DB에 강제 동기화합니다 (운영 환경에서도 작동).
+router.post('/i18n/sync', authenticateHybrid, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { db } = await import('../db');
+    const { systemConfig } = await import('@shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+
+    // 해시를 초기화하여 강제 재동기화 유발
+    await db
+      .update(systemConfig)
+      .set({ valueString: '' })
+      .where(and(eq(systemConfig.category, 'i18n'), eq(systemConfig.key, 'seed_hash')));
+
+    const { syncTranslations } = await import('../seeds/syncTranslations');
+    await syncTranslations();
+
+    // 동기화 후 통계 조회
+    const { sql } = await import('drizzle-orm');
+    const { translations } = await import('@shared/schema');
+    const stats = await db
+      .select({
+        locale: translations.locale,
+        namespace: translations.namespace,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(translations)
+      .groupBy(translations.locale, translations.namespace)
+      .orderBy(translations.locale, translations.namespace);
+
+    res.json({ success: true, message: '번역 동기화 완료', stats });
+  } catch (error) {
+    console.error('번역 동기화 오류:', error);
+    res.status(500).json({ error: 'Failed to sync translations', detail: String(error) });
+  }
+});
+
 export const adminRouter = router;
