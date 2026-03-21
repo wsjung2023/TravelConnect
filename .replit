@@ -51,7 +51,6 @@ PORTONE_KAKAOPAY_CHANNEL_KEY = "channel-key-c992e7c6-fd4f-4507-b73d-c2ee719d140c
 PORTONE_PAYPAL_CHANNEL_KEY = "channel-key-75462761-634f-4796-8759-62b36d656ae0"
 
 [userenv.production]
-STARTUP_SYNC_MODE = "safe"
 
 [postMerge]
 path = "scripts/post-merge.sh"
