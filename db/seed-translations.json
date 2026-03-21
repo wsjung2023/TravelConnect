@@ -14085,7 +14085,7 @@
     "namespace": "toast",
     "key": "error.generic",
     "locale": "ja",
-    "value": "An error occurred. Please try again."
+    "value": "エラーが発生しました。もう一度お試しください。"
   },
   {
     "namespace": "toast",
@@ -14097,7 +14097,7 @@
     "namespace": "toast",
     "key": "error.generic",
     "locale": "zh",
-    "value": "An error occurred. Please try again."
+    "value": "发生错误，请重试。"
   },
   {
     "namespace": "toast",
@@ -14121,7 +14121,7 @@
     "namespace": "toast",
     "key": "error.network",
     "locale": "ja",
-    "value": "Network error. Please check your connection."
+    "value": "ネットワークエラーが発生しました。接続をご確認ください。"
   },
   {
     "namespace": "toast",
@@ -14133,7 +14133,7 @@
     "namespace": "toast",
     "key": "error.network",
     "locale": "zh",
-    "value": "Network error. Please check your connection."
+    "value": "网络错误，请检查您的连接。"
   },
   {
     "namespace": "toast",
@@ -14157,7 +14157,7 @@
     "namespace": "toast",
     "key": "error.notFound",
     "locale": "ja",
-    "value": "The requested resource was not found."
+    "value": "要求されたリソースが見つかりません。"
   },
   {
     "namespace": "toast",
@@ -14169,7 +14169,7 @@
     "namespace": "toast",
     "key": "error.notFound",
     "locale": "zh",
-    "value": "The requested resource was not found."
+    "value": "找不到请求的资源。"
   },
   {
     "namespace": "toast",
@@ -14193,7 +14193,7 @@
     "namespace": "toast",
     "key": "error.tooManyImages",
     "locale": "ja",
-    "value": "You can upload up to 5 images."
+    "value": "画像は最大5枚までアップロードできます。"
   },
   {
     "namespace": "toast",
@@ -14205,7 +14205,7 @@
     "namespace": "toast",
     "key": "error.tooManyImages",
     "locale": "zh",
-    "value": "You can upload up to 5 images."
+    "value": "最多可以上传5张图片。"
   },
   {
     "namespace": "toast",
@@ -14229,7 +14229,7 @@
     "namespace": "toast",
     "key": "error.unauthorized",
     "locale": "ja",
-    "value": "You are not authorized to perform this action."
+    "value": "この操作を行う権限がありません。"
   },
   {
     "namespace": "toast",
@@ -14241,7 +14241,7 @@
     "namespace": "toast",
     "key": "error.unauthorized",
     "locale": "zh",
-    "value": "You are not authorized to perform this action."
+    "value": "您无权执行此操作。"
   },
   {
     "namespace": "toast",
@@ -14265,7 +14265,7 @@
     "namespace": "toast",
     "key": "error.upload",
     "locale": "ja",
-    "value": "Upload failed. Please try again."
+    "value": "アップロードに失敗しました。もう一度お試しください。"
   },
   {
     "namespace": "toast",
@@ -14277,7 +14277,7 @@
     "namespace": "toast",
     "key": "error.upload",
     "locale": "zh",
-    "value": "Upload failed. Please try again."
+    "value": "上传失败，请重试。"
   },
   {
     "namespace": "toast",
@@ -14301,7 +14301,7 @@
     "namespace": "toast",
     "key": "error.validation",
     "locale": "ja",
-    "value": "Please check your input."
+    "value": "入力内容をご確認ください。"
   },
   {
     "namespace": "toast",
@@ -14313,7 +14313,7 @@
     "namespace": "toast",
     "key": "error.validation",
     "locale": "zh",
-    "value": "Please check your input."
+    "value": "请检查您的输入内容。"
   },
   {
     "namespace": "toast",
@@ -14337,7 +14337,7 @@
     "namespace": "toast",
     "key": "info.loading",
     "locale": "ja",
-    "value": "Loading..."
+    "value": "読み込み中..."
   },
   {
     "namespace": "toast",
@@ -14349,7 +14349,7 @@
     "namespace": "toast",
     "key": "info.loading",
     "locale": "zh",
-    "value": "Loading..."
+    "value": "加载中..."
   },
   {
     "namespace": "toast",
@@ -14373,7 +14373,7 @@
     "namespace": "toast",
     "key": "info.processing",
     "locale": "ja",
-    "value": "Processing..."
+    "value": "処理中..."
   },
   {
     "namespace": "toast",
@@ -14385,7 +14385,7 @@
     "namespace": "toast",
     "key": "info.processing",
     "locale": "zh",
-    "value": "Processing..."
+    "value": "处理中..."
   },
   {
     "namespace": "toast",
@@ -14409,7 +14409,7 @@
     "namespace": "toast",
     "key": "info.saving",
     "locale": "ja",
-    "value": "Saving..."
+    "value": "保存中..."
   },
   {
     "namespace": "toast",
@@ -14421,7 +14421,7 @@
     "namespace": "toast",
     "key": "info.saving",
     "locale": "zh",
-    "value": "Saving..."
+    "value": "保存中..."
   },
   {
     "namespace": "toast",
@@ -14445,7 +14445,7 @@
     "namespace": "toast",
     "key": "info.uploading",
     "locale": "ja",
-    "value": "Uploading..."
+    "value": "アップロード中..."
   },
   {
     "namespace": "toast",
@@ -14457,7 +14457,7 @@
     "namespace": "toast",
     "key": "info.uploading",
     "locale": "zh",
-    "value": "Uploading..."
+    "value": "上传中..."
   },
   {
     "namespace": "toast",
@@ -14481,7 +14481,7 @@
     "namespace": "toast",
     "key": "success.created",
     "locale": "ja",
-    "value": "Successfully created!"
+    "value": "正常に作成されました！"
   },
   {
     "namespace": "toast",
@@ -14493,7 +14493,7 @@
     "namespace": "toast",
     "key": "success.created",
     "locale": "zh",
-    "value": "Successfully created!"
+    "value": "创建成功！"
   },
   {
     "namespace": "toast",
@@ -14517,7 +14517,7 @@
     "namespace": "toast",
     "key": "success.deleted",
     "locale": "ja",
-    "value": "Successfully deleted!"
+    "value": "正常に削除されました！"
   },
   {
     "namespace": "toast",
@@ -14529,7 +14529,7 @@
     "namespace": "toast",
     "key": "success.deleted",
     "locale": "zh",
-    "value": "Successfully deleted!"
+    "value": "删除成功！"
   },
   {
     "namespace": "toast",
@@ -14553,7 +14553,7 @@
     "namespace": "toast",
     "key": "success.loggedIn",
     "locale": "ja",
-    "value": "Login successful"
+    "value": "ログイン成功"
   },
   {
     "namespace": "toast",
@@ -14565,7 +14565,7 @@
     "namespace": "toast",
     "key": "success.loggedIn",
     "locale": "zh",
-    "value": "Login successful"
+    "value": "登录成功"
   },
   {
     "namespace": "toast",
@@ -14589,7 +14589,7 @@
     "namespace": "toast",
     "key": "success.registered",
     "locale": "ja",
-    "value": "Registration completed"
+    "value": "会員登録が完了しました"
   },
   {
     "namespace": "toast",
@@ -14601,7 +14601,7 @@
     "namespace": "toast",
     "key": "success.registered",
     "locale": "zh",
-    "value": "Registration completed"
+    "value": "注册完成"
   },
   {
     "namespace": "toast",
@@ -14625,7 +14625,7 @@
     "namespace": "toast",
     "key": "success.reviewSubmitted",
     "locale": "ja",
-    "value": "Thank you for your valuable review!"
+    "value": "貴重なレビューをありがとうございます！"
   },
   {
     "namespace": "toast",
@@ -14637,7 +14637,7 @@
     "namespace": "toast",
     "key": "success.reviewSubmitted",
     "locale": "zh",
-    "value": "Thank you for your valuable review!"
+    "value": "感谢您的宝贵评价！"
   },
   {
     "namespace": "toast",
@@ -14661,7 +14661,7 @@
     "namespace": "toast",
     "key": "success.sent",
     "locale": "ja",
-    "value": "Message sent"
+    "value": "メッセージを送信しました"
   },
   {
     "namespace": "toast",
@@ -14673,7 +14673,7 @@
     "namespace": "toast",
     "key": "success.sent",
     "locale": "zh",
-    "value": "Message sent"
+    "value": "消息已发送"
   },
   {
     "namespace": "toast",
@@ -14697,7 +14697,7 @@
     "namespace": "toast",
     "key": "success.updated",
     "locale": "ja",
-    "value": "Successfully updated!"
+    "value": "正常に更新されました！"
   },
   {
     "namespace": "toast",
@@ -14709,7 +14709,7 @@
     "namespace": "toast",
     "key": "success.updated",
     "locale": "zh",
-    "value": "Successfully updated!"
+    "value": "更新成功！"
   },
   {
     "namespace": "toast",
@@ -14733,7 +14733,7 @@
     "namespace": "toast",
     "key": "success.uploaded",
     "locale": "ja",
-    "value": "Upload completed"
+    "value": "アップロード完了"
   },
   {
     "namespace": "toast",
@@ -14745,7 +14745,7 @@
     "namespace": "toast",
     "key": "success.uploaded",
     "locale": "zh",
-    "value": "Upload completed"
+    "value": "上传完成"
   },
   {
     "namespace": "ui",
@@ -48195,7 +48195,7 @@
     "namespace": "validation",
     "key": "email.invalid",
     "locale": "ja",
-    "value": "Please enter a valid email address (e.g., name@example.com)"
+    "value": "有効なメールアドレスを入力してください（例：name@example.com）"
   },
   {
     "namespace": "validation",
@@ -48207,7 +48207,7 @@
     "namespace": "validation",
     "key": "email.invalid",
     "locale": "zh",
-    "value": "Please enter a valid email address (e.g., name@example.com)"
+    "value": "请输入有效的电子邮件地址（例如：name@example.com）"
   },
   {
     "namespace": "validation",
@@ -48231,7 +48231,7 @@
     "namespace": "validation",
     "key": "email.required",
     "locale": "ja",
-    "value": "Email is required"
+    "value": "メールアドレスを入力してください"
   },
   {
     "namespace": "validation",
@@ -48243,7 +48243,7 @@
     "namespace": "validation",
     "key": "email.required",
     "locale": "zh",
-    "value": "Email is required"
+    "value": "请输入电子邮件地址"
   },
   {
     "namespace": "validation",
@@ -48267,7 +48267,7 @@
     "namespace": "validation",
     "key": "password.mismatch",
     "locale": "ja",
-    "value": "Passwords do not match"
+    "value": "パスワードが一致しません"
   },
   {
     "namespace": "validation",
@@ -48279,7 +48279,7 @@
     "namespace": "validation",
     "key": "password.mismatch",
     "locale": "zh",
-    "value": "Passwords do not match"
+    "value": "密码不匹配"
   },
   {
     "namespace": "validation",
@@ -48303,7 +48303,7 @@
     "namespace": "validation",
     "key": "password.required",
     "locale": "ja",
-    "value": "Password is required"
+    "value": "パスワードを入力してください"
   },
   {
     "namespace": "validation",
@@ -48315,7 +48315,7 @@
     "namespace": "validation",
     "key": "password.required",
     "locale": "zh",
-    "value": "Password is required"
+    "value": "请输入密码"
   },
   {
     "namespace": "validation",
@@ -48339,7 +48339,7 @@
     "namespace": "validation",
     "key": "password.tooShort",
     "locale": "ja",
-    "value": "Password must be at least 6 characters"
+    "value": "パスワードは6文字以上で入力してください"
   },
   {
     "namespace": "validation",
@@ -48351,7 +48351,7 @@
     "namespace": "validation",
     "key": "password.tooShort",
     "locale": "zh",
-    "value": "Password must be at least 6 characters"
+    "value": "密码至少需要6个字符"
   },
   {
     "namespace": "validation",
@@ -48375,7 +48375,7 @@
     "namespace": "validation",
     "key": "purchase.address",
     "locale": "ja",
-    "value": "Please enter delivery address"
+    "value": "配送先住所を入力してください"
   },
   {
     "namespace": "validation",
@@ -48387,7 +48387,7 @@
     "namespace": "validation",
     "key": "purchase.address",
     "locale": "zh",
-    "value": "Please enter delivery address"
+    "value": "请输入配送地址"
   },
   {
     "namespace": "validation",
@@ -48411,7 +48411,7 @@
     "namespace": "validation",
     "key": "purchase.price",
     "locale": "ja",
-    "value": "Please enter estimated price"
+    "value": "予想価格を入力してください"
   },
   {
     "namespace": "validation",
@@ -48423,7 +48423,7 @@
     "namespace": "validation",
     "key": "purchase.price",
     "locale": "zh",
-    "value": "Please enter estimated price"
+    "value": "请输入预估价格"
   },
   {
     "namespace": "validation",
@@ -48447,7 +48447,7 @@
     "namespace": "validation",
     "key": "purchase.productName",
     "locale": "ja",
-    "value": "Please enter product name"
+    "value": "商品名を入力してください"
   },
   {
     "namespace": "validation",
@@ -48459,7 +48459,7 @@
     "namespace": "validation",
     "key": "purchase.productName",
     "locale": "zh",
-    "value": "Please enter product name"
+    "value": "请输入商品名称"
   },
   {
     "namespace": "validation",
@@ -48483,7 +48483,7 @@
     "namespace": "validation",
     "key": "purchase.quantity",
     "locale": "ja",
-    "value": "Quantity must be at least 1"
+    "value": "数量は1以上で入力してください"
   },
   {
     "namespace": "validation",
@@ -48495,7 +48495,7 @@
     "namespace": "validation",
     "key": "purchase.quantity",
     "locale": "zh",
-    "value": "Quantity must be at least 1"
+    "value": "数量至少为1"
   },
   {
     "namespace": "validation",
@@ -48519,7 +48519,7 @@
     "namespace": "validation",
     "key": "required",
     "locale": "ja",
-    "value": "This field is required"
+    "value": "この項目は必須です"
   },
   {
     "namespace": "validation",
@@ -48531,7 +48531,7 @@
     "namespace": "validation",
     "key": "required",
     "locale": "zh",
-    "value": "This field is required"
+    "value": "此字段为必填项"
   },
   {
     "namespace": "validation",
@@ -48555,7 +48555,7 @@
     "namespace": "validation",
     "key": "review.content",
     "locale": "ja",
-    "value": "Please write your review content"
+    "value": "レビュー内容を入力してください"
   },
   {
     "namespace": "validation",
@@ -48567,7 +48567,7 @@
     "namespace": "validation",
     "key": "review.content",
     "locale": "zh",
-    "value": "Please write your review content"
+    "value": "请填写评价内容"
   },
   {
     "namespace": "validation",
@@ -48591,7 +48591,7 @@
     "namespace": "validation",
     "key": "review.rating",
     "locale": "ja",
-    "value": "Please select a rating"
+    "value": "評価を選択してください"
   },
   {
     "namespace": "validation",
@@ -48603,7 +48603,7 @@
     "namespace": "validation",
     "key": "review.rating",
     "locale": "zh",
-    "value": "Please select a rating"
+    "value": "请选择评分"
   },
   {
     "namespace": "ui",
