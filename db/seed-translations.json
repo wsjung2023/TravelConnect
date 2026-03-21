@@ -60340,5 +60340,113 @@
     "key": "chat.translationFailed",
     "locale": "es",
     "value": "Translation failed"
+  },
+  {
+    "namespace": "ui",
+    "key": "navigation.meet",
+    "locale": "en",
+    "value": "Meet"
+  },
+  {
+    "namespace": "ui",
+    "key": "navigation.meet",
+    "locale": "ko",
+    "value": "미트"
+  },
+  {
+    "namespace": "ui",
+    "key": "navigation.meet",
+    "locale": "ja",
+    "value": "ミート"
+  },
+  {
+    "namespace": "ui",
+    "key": "navigation.meet",
+    "locale": "zh",
+    "value": "相遇"
+  },
+  {
+    "namespace": "ui",
+    "key": "navigation.meet",
+    "locale": "fr",
+    "value": "Rencontres"
+  },
+  {
+    "namespace": "ui",
+    "key": "navigation.meet",
+    "locale": "es",
+    "value": "Conocer"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.food",
+    "locale": "en",
+    "value": "Food"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.food",
+    "locale": "ko",
+    "value": "음식"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.food",
+    "locale": "ja",
+    "value": "グルメ"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.food",
+    "locale": "zh",
+    "value": "美食"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.food",
+    "locale": "fr",
+    "value": "Cuisine"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.food",
+    "locale": "es",
+    "value": "Comida"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.photography",
+    "locale": "en",
+    "value": "Photography"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.photography",
+    "locale": "ko",
+    "value": "사진"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.photography",
+    "locale": "ja",
+    "value": "フォト"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.photography",
+    "locale": "zh",
+    "value": "摄影"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.photography",
+    "locale": "fr",
+    "value": "Photo"
+  },
+  {
+    "namespace": "ui",
+    "key": "labels.photography",
+    "locale": "es",
+    "value": "Fotografía"
   }
 ]

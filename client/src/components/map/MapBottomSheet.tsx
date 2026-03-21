@@ -100,7 +100,8 @@ export default function MapBottomSheet({ state, onStateChange, selectedUser, onC
 
 function DefaultView({ state, focusedStoryLabel, onQuickMiniConcierge }: { state: MapSheetState; focusedStoryLabel?: string | null | undefined; onQuickMiniConcierge?: () => void }) {
   const { t } = useTranslation('ui');
-  const recommendationCards = t('map.sheet.recommendationCards', { returnObjects: true }) as Omit<RecCard, 'id' | 'accent'>[];
+  const rawCards = t('map.sheet.recommendationCards', { returnObjects: true });
+  const recommendationCards: Omit<RecCard, 'id' | 'accent'>[] = Array.isArray(rawCards) ? rawCards : [];
   const mockRecs: RecCard[] = recommendationCards.map((card, index) => ({
     id: index + 1,
     accent: REC_ACCENTS[index] ?? 'gold',
@@ -144,7 +145,7 @@ function DefaultView({ state, focusedStoryLabel, onQuickMiniConcierge }: { state
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {(t('map.sheet.heroTags', { returnObjects: true }) as string[]).map((chip) => (
+          {(Array.isArray(t('map.sheet.heroTags', { returnObjects: true })) ? t('map.sheet.heroTags', { returnObjects: true }) as string[] : []).map((chip) => (
             <span key={chip} className="tg-chip" style={{ fontSize: 11, padding: '6px 10px' }}>{chip}</span>
           ))}
         </div>
