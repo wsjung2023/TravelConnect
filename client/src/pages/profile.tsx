@@ -429,6 +429,7 @@ export default function Profile() {
             setPortfolioSwitchChecked(val);
             togglePortfolioModeMutation.mutate({ portfolioMode: val, publicProfileUrl });
           }}
+          isAdmin={currentUser?.role === 'admin'}
         />
       )}
 

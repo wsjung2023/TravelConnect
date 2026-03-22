@@ -1,6 +1,7 @@
 // 프로필 설정 섹션 — 프로필 톤에 맞춘 글래스 카드 + 토글/이동 row
-import { Bell, ChevronRight, Globe2, Lock, Sparkles } from 'lucide-react';
+import { Bell, ChevronRight, Globe2, Lock, Sparkles, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'wouter';
 import { Switch } from '@/components/ui/switch';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   onToggleOpenToMeet: (val: boolean) => void;
   portfolioMode: boolean;
   onTogglePortfolioMode: (val: boolean) => void;
+  isAdmin?: boolean;
 }
 
 interface RowProps {
@@ -63,8 +65,9 @@ function SettingsRow({ label, description, icon, right, onClick, bordered = true
   );
 }
 
-export default function ProfileSettingsSection({ openToMeet, onToggleOpenToMeet, portfolioMode, onTogglePortfolioMode }: Props) {
+export default function ProfileSettingsSection({ openToMeet, onToggleOpenToMeet, portfolioMode, onTogglePortfolioMode, isAdmin }: Props) {
   const { t } = useTranslation('ui');
+  const [, navigate] = useLocation();
   return (
     <div
       style={{
@@ -100,7 +103,21 @@ export default function ProfileSettingsSection({ openToMeet, onToggleOpenToMeet,
       />
       <SettingsRow icon={<Bell size={16} />} label={t('profile.settings.notifications')} description={t('profile.settings.notificationsDesc')} />
       <SettingsRow icon={<Lock size={16} />} label={t('profile.settings.privacy')} description={t('profile.settings.privacyDesc')} />
-      <SettingsRow icon={<Globe2 size={16} />} label={t('profile.settings.locale')} description={t('profile.settings.localeDesc')} bordered={false} />
+      <SettingsRow
+        icon={<Globe2 size={16} />}
+        label={t('profile.settings.locale')}
+        description={t('profile.settings.localeDesc')}
+        bordered={isAdmin}
+      />
+      {isAdmin && (
+        <SettingsRow
+          icon={<ShieldCheck size={16} />}
+          label={t('admin.panel') || '관리자 패널'}
+          description={t('admin.panelDesc') || '시스템 관리, DB, i18n, 설정'}
+          onClick={() => navigate('/admin')}
+          bordered={false}
+        />
+      )}
     </div>
   );
 }
