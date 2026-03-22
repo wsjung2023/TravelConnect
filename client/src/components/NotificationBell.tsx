@@ -232,17 +232,21 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {/* 알림 드롭다운 */}
-      {isOpen && (
+      {/* 알림 드롭다운 — Portal로 body에 렌더링 (MapTopBar z-index 스택 컨텍스트 탈출) */}
+      {isOpen && createPortal(
         <>
           {/* 배경 클릭으로 닫기 */}
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0"
+            style={{ zIndex: 9998 }}
             onClick={() => setIsOpen(false)}
           />
 
           {/* 알림 패널 */}
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border z-50 max-h-96 overflow-hidden">
+          <div
+            className="fixed w-80 bg-white rounded-lg shadow-lg border max-h-96 overflow-hidden"
+            style={{ top: panelPos.top, right: panelPos.right, zIndex: 9999 }}
+          >
             {/* 헤더 */}
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between">
@@ -379,7 +383,8 @@ export default function NotificationBell() {
               </div>
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* 애니메이션 스타일 */}
