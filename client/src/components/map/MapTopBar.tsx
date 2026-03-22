@@ -1,6 +1,6 @@
 // MapTopBar — floating premium overlay: city label, frosted search, bell, filter chips.
-import type { CSSProperties } from 'react';
-import { Bell, MapPin, Search } from 'lucide-react';
+import type { CSSProperties, ReactNode } from 'react';
+import { MapPin, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const FILTER_CHIPS = [
@@ -16,9 +16,11 @@ interface Props {
   city?: string;
   activeFilter: MapFilter;
   onFilterChange: (f: MapFilter) => void;
+  onSearchClick?: () => void;
+  bellNode?: ReactNode;
 }
 
-export default function MapTopBar({ city, activeFilter, onFilterChange }: Props) {
+export default function MapTopBar({ city, activeFilter, onFilterChange, onSearchClick, bellNode }: Props) {
   const { t } = useTranslation('ui');
   const resolvedCity = city || t('labels.location');
 
@@ -44,6 +46,9 @@ export default function MapTopBar({ city, activeFilter, onFilterChange }: Props)
         <div
           className="tg-glass-strong flex flex-1 items-center gap-2 rounded-full px-4 py-2.5 cursor-pointer"
           style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+          onClick={onSearchClick}
+          role="button"
+          aria-label={t('map.searchPlaceholder')}
         >
           <Search size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
           <span className="truncate" style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
@@ -51,13 +56,15 @@ export default function MapTopBar({ city, activeFilter, onFilterChange }: Props)
           </span>
         </div>
 
-        <button
-          className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full tg-glass-strong"
-          style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)' }}
-          aria-label={t('navigation.chat')}
-        >
-          <Bell size={17} />
-        </button>
+        <div className="shrink-0">
+          {bellNode ?? (
+            <button
+              className="flex items-center justify-center w-10 h-10 rounded-full tg-glass-strong"
+              style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-primary)' }}
+              aria-label={t('navigation.chat')}
+            />
+          )}
+        </div>
       </div>
 
       <div
