@@ -42,6 +42,7 @@ export default function Home() {
       <div className="absolute inset-0">
         <MapComponent
           className="h-full w-full"
+          hideNearbyPanel={true}
           onCreatePost={(location) => {
             if (location) {
               setPrefilledLocation({ lat: location.latitude, lng: location.longitude, name: location.name });

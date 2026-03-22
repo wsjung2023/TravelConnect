@@ -52,6 +52,8 @@ interface MapComponentProps {
     longitude: number;
   }) => void;
   onPostDetailClick?: (postId: number) => void;
+  /** true 시 내부 Nearby 바닥 패널을 렌더링하지 않음 (외부 MapBottomSheet를 쓸 때) */
+  hideNearbyPanel?: boolean;
 }
 
 // Google Maps 전역 선언
@@ -66,6 +68,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   className = '',
   onCreatePost,
   onPostDetailClick,
+  hideNearbyPanel = false,
 }) => {
   const { t } = useTranslation('ui');
   const [, setLocation] = useLocation();
@@ -1586,8 +1589,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* 하단 Nearby Posts - 접기/펼치기 가능 */}
-      <div 
+      {/* 하단 Nearby Posts - 접기/펼치기 가능 (hideNearbyPanel=true이면 렌더링 안 함) */}
+      {!hideNearbyPanel && <div 
         className={`absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg z-[25] transition-all duration-300 flex flex-col max-h-[80vh] min-h-0 overflow-hidden pointer-events-auto ${
           isNearbyPanelCollapsed ? 'p-2 rounded-t-3xl' : 'p-4 rounded-t-3xl'
         }`}
@@ -1744,7 +1747,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* MiniMeet 생성 모달 */}
       {showMiniMeetModal && miniMeetLocation && (
