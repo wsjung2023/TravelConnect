@@ -1,5 +1,6 @@
 // 알림 벨 — 읽지 않은 알림 수를 뱃지로 표시하고, 클릭 시 알림 목록을 드롭다운으로 보여준다.
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Bell,
   MapPin,
@@ -26,6 +27,19 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [, setLocation] = useLocation();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
+
+  const handleOpen = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPanelPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setIsOpen(!isOpen);
+  };
 
   // 새 알림이 올 때 애니메이션 효과
   useEffect(() => {
@@ -183,7 +197,8 @@ export default function NotificationBell() {
     <div className="relative">
       {/* 알림 벨 아이콘 */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={handleOpen}
         className={`
           relative p-2 rounded-full transition-all duration-200
           ${isAnimating ? 'animate-bounce bg-red-100' : 'hover:bg-gray-100'}
