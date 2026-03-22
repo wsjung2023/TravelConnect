@@ -54,6 +54,10 @@ interface MapComponentProps {
   onPostDetailClick?: (postId: number) => void;
   /** true 시 내부 Nearby 바닥 패널을 렌더링하지 않음 (외부 MapBottomSheet를 쓸 때) */
   hideNearbyPanel?: boolean;
+  /** 외부 바텀시트 상태. 'collapsed'일 때만 Nearby 패널 표시, 나머지는 숨김 */
+  mapSheetState?: 'collapsed' | 'half' | 'expanded';
+  /** Nearby 패널 bottom 오프셋(px). 외부 바텀시트 높이만큼 올릴 때 사용 */
+  nearbyBottomOffset?: number;
 }
 
 // Google Maps 전역 선언
@@ -69,6 +73,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
   onCreatePost,
   onPostDetailClick,
   hideNearbyPanel = false,
+  mapSheetState = 'collapsed',
+  nearbyBottomOffset = 0,
 }) => {
   const { t } = useTranslation('ui');
   const [, setLocation] = useLocation();
@@ -836,7 +842,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
-        clickableIcons: false, // 기본 POI 클릭 비활성화
+        clickableIcons: true, // 기본 구글 맵 POI 클릭 활성화
       });
 
       // 현재 위치 pulse 마커 (T6)
@@ -1405,8 +1411,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* POI 필터링 토글 - Apple/SaaS style */}
-      <div className="absolute top-4 left-4 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm z-10 max-w-xs">
+      {/* POI 필터링 토글 - MapTopBar(~114px) 아래에 위치 */}
+      <div className="absolute left-4 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm z-10 max-w-xs" style={{ top: '120px' }}>
         <button
           onClick={() => setIsFilterExpanded(!isFilterExpanded)}
           className="flex items-center justify-between gap-3 w-full px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-2xl transition-colors"
@@ -1589,15 +1595,22 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </div>
       )}
 
-      {/* 하단 Nearby Posts - 접기/펼치기 가능 (hideNearbyPanel=true이면 렌더링 안 함) */}
-      {!hideNearbyPanel && <div 
-        className={`absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg z-[25] transition-all duration-300 flex flex-col max-h-[80vh] min-h-0 overflow-hidden pointer-events-auto ${
-          isNearbyPanelCollapsed ? 'p-2 rounded-t-3xl' : 'p-4 rounded-t-3xl'
+      {/* 하단 Nearby Posts - mapSheetState=collapsed 시만 표시, nearbyBottomOffset만큼 위로 올림 */}
+      {!hideNearbyPanel && mapSheetState === 'collapsed' && <div 
+        className={`absolute left-0 right-0 z-[25] transition-all duration-300 flex flex-col max-h-[80vh] min-h-0 ${
+          isNearbyPanelCollapsed
+            ? 'pointer-events-none'
+            : 'bg-white border-t shadow-lg pointer-events-auto overflow-hidden p-4 rounded-t-3xl'
         }`}
+        style={{ bottom: nearbyBottomOffset }}
       >
         <button
           onClick={() => setIsNearbyPanelCollapsed(!isNearbyPanelCollapsed)}
-          className="w-full flex items-center justify-between mb-2 flex-shrink-0 min-h-[44px]"
+          className={`pointer-events-auto w-full flex items-center justify-between flex-shrink-0 min-h-[44px] ${
+            isNearbyPanelCollapsed
+              ? 'bg-white/90 border border-gray-200 shadow-lg rounded-2xl mx-4 px-4'
+              : 'mb-2'
+          }`}
           data-testid="button-toggle-nearby-panel"
         >
           <div className="flex items-center gap-2">
