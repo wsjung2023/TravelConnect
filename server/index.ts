@@ -140,7 +140,7 @@ app.use('/api/auth/demo-login', rateLimit({ windowMs: 60_000, max: 10 })); // Îç
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const startupSyncMode = process.env.STARTUP_SYNC_MODE || (process.env.NODE_ENV === 'production' ? 'off' : 'safe');
+const startupSyncMode = process.env.STARTUP_SYNC_MODE || 'off';
 
 function shouldRunStartupSync() {
   return startupSyncMode !== 'off';

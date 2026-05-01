@@ -26,6 +26,7 @@ import i18next from 'i18next';
 import * as i18nMiddleware from 'i18next-http-middleware';
 import i18nFsBackend from 'i18next-fs-backend';
 import { storage } from './storage';
+import cacheService from './services/cache';
 import { tripsRouter } from './routes/trips';
 import { translateText, detectLanguage, isTranslationEnabled } from './translate';
 import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } from './ai/concierge';
@@ -303,13 +304,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const namespace = req.params.namespace as string;
       const locale = (req.query.locale as string) || 'en';
-      
-      console.log(`[Translations API] Fetching namespace: ${namespace}, locale: ${locale}`);
+
+      // 서버 메모리 LRU 캐시 확인 (캐시 히트 시 DB 쿼리 없음)
+      const cached = cacheService.translation.get(namespace, locale);
+      if (cached) {
+        res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+        return res.json(cached);
+      }
+
       const flatTranslations = await storage.getTranslationsByNamespace(namespace, locale);
       const translations = unflattenTranslations(flatTranslations);
-      console.log(`[Translations API] Found ${Object.keys(flatTranslations).length} translations`);
-      
-      // 번역은 자주 바뀌지 않으므로 5분 캐시 (CDN/브라우저 캐시 활용)
+
+      // 결과를 메모리 LRU 캐시에 저장 (TTL 5분)
+      cacheService.translation.set(namespace, locale, translations);
+
       res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       res.json(translations);
     } catch (error) {
