@@ -188,6 +188,7 @@ export interface ISocialRepository {
   // 댓글
   createComment(comment: InsertComment): Promise<Comment>;
   getCommentsByPost(postId: number): Promise<Comment[]>;
+  getCommentById(commentId: number): Promise<Comment | null>;
   deleteComment(commentId: number, userId: string): Promise<boolean>;
   
   // 알림
@@ -331,6 +332,8 @@ export interface IBookingRepository {
   createReview(review: InsertReview): Promise<Review>;
   getReviewsByExperience(experienceId: number): Promise<Review[]>;
   getReviewsByHost(hostId: string): Promise<Review[]>;
+  getReviewById(reviewId: number): Promise<Review | null>;
+  updateReview(reviewId: number, updates: Record<string, any>): Promise<Review | null>;
 }
 
 // ============================================

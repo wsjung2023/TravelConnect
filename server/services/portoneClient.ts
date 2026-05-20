@@ -497,8 +497,11 @@ class PortOneClient {
       return { success: false, error: 'PortOne not configured' };
     }
 
+    // FIXME-TODO [Transfer실제송금]: TRANSFER_ENABLED=true 환경변수 미설정 시 Mock 모드 (실제 송금 없음).
+    // Replit 환경변수 설정 필요: TRANSFER_ENABLED=true, SETTLEMENT_ENABLED=true
+    // 미설정 상태에서 정산 배치가 실행되면 DB에는 정산 완료로 기록되지만 실제 송금은 이루어지지 않음.
     const transferEnabled = process.env.TRANSFER_ENABLED === 'true';
-    
+
     if (!transferEnabled) {
       console.log('[PortOne] Transfer API disabled - returning mock success');
       console.log(`[PortOne] Mock transfer: ${params.amount} KRW to ${params.bankCode} ${params.accountNumber.slice(-4)}`);

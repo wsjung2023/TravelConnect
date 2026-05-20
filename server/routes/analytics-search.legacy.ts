@@ -329,6 +329,8 @@ export function registerLegacyAnalyticsSearchRoutes(
     }
   });
 
+  // FIXME-TODO [사용자검색없음]: 통합 검색에 사용자(여행자/호스트) 검색이 누락됨.
+  // 구현 경로: socialRepository에 searchUsers(term) 추가 → 이 통합 검색 엔드포인트에 users 결과 포함.
   // 통합 검색 (포스트 + 체험)
   // GET /api/search?term=검색어&type=all|posts|experiences&limit=10&offset=0
   app.get('/api/search', async (req: Request, res: Response) => {

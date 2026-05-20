@@ -147,6 +147,9 @@ export function registerLegacyHostReviewsRoutes(
   });
 
   // 후기 작성 API
+  // FIXME-TODO [리뷰검증]: verifiedBooking 필드가 있으나 예약 완료 여부 검증 로직 없음.
+  // 수정 경로: reviewerId + experienceId로 bookings 테이블 조회 → status='completed' 확인 후 허용.
+  // 현재 누구나 임의 체험에 리뷰 작성 가능 (Replit에서 검토 후 수정 필요).
   app.post('/api/reviews', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
@@ -177,6 +180,35 @@ export function registerLegacyHostReviewsRoutes(
     } catch (error) {
       console.error('Error fetching reviews:', error);
       res.status(500).json({ message: 'Failed to fetch reviews' });
+    }
+  });
+
+  // 호스트 리뷰 답글 API
+  // PATCH /api/reviews/:id/response — 해당 체험의 호스트만 답글 작성 가능
+  app.patch('/api/reviews/:id/response', authenticateHybrid, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+
+      const reviewId = parseInt(req.params.id);
+      const { response } = req.body;
+
+      if (!response?.trim()) {
+        return res.status(400).json({ message: '답글 내용을 입력해주세요.' });
+      }
+
+      const review = await storage.getReviewById(reviewId);
+      if (!review) return res.status(404).json({ message: 'Review not found' });
+
+      const experience = await storage.getExperienceById((review as any).experienceId);
+      if (!experience || (experience as any).hostId !== req.user.id) {
+        return res.status(403).json({ message: '체험 호스트만 답글을 작성할 수 있습니다.' });
+      }
+
+      const updated = await storage.updateReview(reviewId, { responseFromHost: response.trim() });
+      res.json(updated);
+    } catch (error) {
+      console.error('Error adding host review response:', error);
+      res.status(500).json({ message: 'Failed to add response' });
     }
   });
 }

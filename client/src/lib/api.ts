@@ -1,4 +1,8 @@
 // API 클라이언트 유틸 — fetch 기반 공통 API 요청 함수와 인증 헤더 처리를 제공한다.
+// SECURITY-TODO [H-5]: localStorage 토큰 XSS 탈취 위험.
+// 마이그레이션 경로: server에서 Set-Cookie(httpOnly, SameSite=Lax) 발급,
+// client는 localStorage 대신 쿠키 기반으로 전환.
+// 선행 조건: /api/auth/* 전체 흐름 재설계, 세션 미들웨어 변경.
 export async function api(url: string, opts: { method?: string; body?: any; auth?: boolean } = {}) {
   const { method = "GET", body, auth = true } = opts;
   const token = localStorage.getItem('token');

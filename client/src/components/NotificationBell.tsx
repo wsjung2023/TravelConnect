@@ -199,6 +199,9 @@ export default function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={handleOpen}
+        aria-label={t('notification.title')}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
         className={`
           relative p-2 rounded-full transition-all duration-200
           ${isAnimating ? 'animate-bounce bg-red-100' : 'hover:bg-gray-100'}
@@ -240,6 +243,7 @@ export default function NotificationBell() {
             className="fixed inset-0"
             style={{ zIndex: 9998 }}
             onClick={() => setIsOpen(false)}
+            aria-hidden="true"
           />
 
           {/* 알림 패널 */}
@@ -318,11 +322,14 @@ export default function NotificationBell() {
                 notifications.slice(0, 10).map((notification) => (
                   <div
                     key={notification.id}
+                    role="button"
+                    tabIndex={0}
                     className={`
                       p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors
                       ${!notification.isRead ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}
                     `}
                     onClick={() => handleNotificationClick(notification)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleNotificationClick(notification)}
                     data-testid={`notification-item-${notification.id}`}
                   >
                     <div className="flex items-start gap-3">

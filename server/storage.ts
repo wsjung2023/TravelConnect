@@ -245,6 +245,7 @@ export interface IStorage {
   // Comment operations
   createComment(comment: InsertComment): Promise<Comment>;
   getCommentsByPost(postId: number): Promise<Comment[]>;
+  getCommentById(commentId: number): Promise<Comment | null>;
   getCommentReplies(parentId: number): Promise<Comment[]>;
   updateOfferStatus(commentId: number, status: string): Promise<Comment | undefined>;
   deleteComment(commentId: number, userId: string): Promise<boolean>;
@@ -306,6 +307,8 @@ export interface IStorage {
   createReview(review: InsertReview): Promise<Review>;
   getReviewsByExperience(experienceId: number): Promise<Review[]>;
   getReviewsByHost(hostId: string): Promise<Review[]>;
+  getReviewById(reviewId: number): Promise<Review | null>;
+  updateReview(reviewId: number, updates: Record<string, any>): Promise<Review | null>;
 
   // Guide Profile operations
   getGuideProfile(guideId: string): Promise<{
@@ -637,7 +640,6 @@ export interface IStorage {
   getPaymentLogsByUserId(userId: string, limit?: number): Promise<PaymentLog[]>;
 
   // --- Admin Repository Methods ---
-  executeSQL(query: string): Promise<any>;
   getPoiCategories(): Promise<PoiCategory[]>;
   getPoiCategoriesWithTypes(languageCode?: string): Promise<any[]>;
   createPoiCategory(category: InsertPoiCategory): Promise<PoiCategory>;

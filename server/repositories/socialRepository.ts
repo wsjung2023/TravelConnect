@@ -324,6 +324,25 @@ export async function createComment(comment: InsertComment): Promise<Comment> {
   return newComment;
 }
 
+export async function getCommentById(commentId: number): Promise<Comment | null> {
+  try {
+    const result = await db.execute(sql`
+      SELECT id, post_id as "postId", user_id as "userId", content,
+             parent_id as "parentId", is_offer as "isOffer",
+             offer_price as "offerPrice", offer_description as "offerDescription",
+             offer_duration as "offerDuration", offer_status as "offerStatus",
+             created_at as "createdAt"
+      FROM comments
+      WHERE id = ${commentId}
+      LIMIT 1
+    `);
+    return (result.rows[0] as any) ?? null;
+  } catch (error) {
+    console.error('댓글 단건 조회 오류:', error);
+    return null;
+  }
+}
+
 export async function getCommentsByPost(postId: number): Promise<Comment[]> {
   try {
     const result = await db.execute(sql`

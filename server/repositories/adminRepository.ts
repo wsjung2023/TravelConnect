@@ -88,18 +88,6 @@ export async function updateSystemSetting(
   return setting;
 }
 
-// SQL 실행 함수 (DB Admin용)
-export async function executeSQL(query: string): Promise<any> {
-  try {
-    const result = await db.execute(sql.raw(query));
-    return {
-      rows: result.rows || [],
-      rowCount: result.rowCount || 0,
-    };
-  } catch (error: any) {
-    throw new Error(`SQL 실행 오류: \${error.message}`);
-  }
-}
 
 // POI (Point of Interest) 시스템 메서드
 export async function getPoiCategories(): Promise<PoiCategory[]> {

@@ -192,6 +192,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Referrer Policy: 개인정보 보호
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
+    // SECURITY-TODO [H-3]: unsafe-inline, unsafe-eval 제거 검토 필요.
+    // Replit Dev에서 제거 후 Google AdSense/PortOne 결제 동작 확인 필요.
+    // 제거 가능 시 script-src, style-src에서 해당 지시어 삭제.
     // Content Security Policy: 다양한 공격 방지 (PortOne 결제 SDK 포함)
     res.setHeader('Content-Security-Policy', [
       "default-src 'self'",
@@ -420,55 +423,6 @@ COMMIT;
     }
   });
 
-  // SQL execution endpoint for DB admin - ADMIN ONLY
-  app.post('/api/sql', authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
-    try {
-      const { query } = req.body;
-
-      if (!query) {
-        return res.status(400).json({ error: 'Query is required' });
-      }
-
-      // 강화된 보안 검사 - DDL/DCL 전면 차단
-      const dangerousPatterns = [
-        // DDL (Data Definition Language) - 구조 변경
-        /\b(create|drop|alter)\s+(database|schema|table|index|view|sequence|function|procedure|trigger)/i,
-        /\b(truncate)\s+table/i,
-        
-        // DCL (Data Control Language) - 권한 관리
-        /\b(grant|revoke|deny)\b/i,
-        
-        // 위험한 DML 패턴
-        /\b(delete)\s+from\s+(?!.*where)/i, // WHERE 없는 DELETE
-        /\b(update)\s+.*set\s+(?!.*where)/i, // WHERE 없는 UPDATE
-        /\b(insert)\s+into\s+.*(users|auth|admin)/i, // 사용자 테이블 INSERT
-        
-        // 시스템 함수/명령어
-        /\b(exec|execute|sp_|xp_)/i,
-        /\b(shutdown|restart)/i,
-        
-        // 파일 시스템 접근
-        /\b(load_file|into\s+outfile|dumpfile)/i,
-        
-        // PostgreSQL 특화 위험 명령어
-        /\b(copy)\s+.*from\s+program/i,
-        /\b(\\\w+)/i, // PostgreSQL 메타명령어
-      ];
-
-      const isDangerous = dangerousPatterns.some((pattern) =>
-        pattern.test(query)
-      );
-      if (isDangerous) {
-        return res.status(403).json({ error: 'Dangerous query detected' });
-      }
-
-      const result = await storage.executeSQL(query);
-      res.json(result);
-    } catch (error: any) {
-      console.error('SQL execution error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
 
   // Commerce Admin API - ADMIN ONLY
   
@@ -1120,7 +1074,22 @@ COMMIT;
       if (!timeline) {
         return res.status(404).json({ message: 'Timeline not found' });
       }
-      res.json(timeline);
+
+      // 공개 타임라인은 누구나 열람 가능 (SNS 공유 목적)
+      if (timeline.isPublic) {
+        return res.json(timeline);
+      }
+
+      // 비공개 타임라인은 본인만 열람 가능
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return res.status(403).json({ message: '비공개 타임라인입니다.' });
+      }
+      const decoded = verifyToken(token);
+      if (!decoded || decoded.id !== timeline.userId) {
+        return res.status(403).json({ message: '접근 권한이 없습니다.' });
+      }
+      return res.json(timeline);
     } catch (error) {
       console.error('Error fetching timeline:', error);
       res.status(500).json({ message: 'Failed to fetch timeline' });
@@ -1681,16 +1650,27 @@ COMMIT;
     }
   });
 
-  // Offer status update
+  // Offer status update — 포스트 작성자(여행자)만 수락/거절 가능
   app.patch('/api/comments/:id/offer-status', authenticateToken, async (req: any, res) => {
     try {
       const commentId = parseInt(req.params.id);
       const { status } = req.body;
-      
+      const userId = req.user!.id;
+
       if (!['pending', 'accepted', 'declined'].includes(status)) {
         return res.status(400).json({ message: '잘못된 상태입니다.' });
       }
-      
+
+      const comment = await storage.getCommentById(commentId);
+      if (!comment) {
+        return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+      }
+
+      const post = await storage.getPostById(comment.postId);
+      if (!post || post.userId !== userId) {
+        return res.status(403).json({ message: '오퍼 상태는 포스트 작성자만 변경할 수 있습니다.' });
+      }
+
       const updated = await storage.updateOfferStatus(commentId, status);
       if (updated) {
         res.json(updated);

@@ -1,7 +1,9 @@
-// 세렌디피티 매칭 순간 페이지 — v3 (radial glow·수렴 애니·매칭카드·미니맵·CTA)
+// 세렌디피티 매칭 순간 페이지 — v4 (실제 API 연동)
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'wouter';
-import { ArrowLeft, MapPin, Globe, Heart, Sparkles } from 'lucide-react';
+import { ArrowLeft, MapPin, Globe, Heart, Sparkles, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface MatchUser {
   id: string;
@@ -14,16 +16,7 @@ interface MatchUser {
   mood?: string;
 }
 
-const DEMO_A: MatchUser = {
-  id: 'a1', name: 'Ji-eun', initials: 'JE',
-  location: 'Seoul', interests: ['photo', 'food', 'solo'],
-  languages: ['ko', 'en'], mood: 'explore',
-};
-const DEMO_B: MatchUser = {
-  id: 'b1', name: 'Marco', initials: 'MC',
-  location: 'Rome → Seoul', interests: ['food', 'history', 'solo'],
-  languages: ['it', 'en'], mood: 'chill',
-};
+type MatchStatus = 'loading' | 'matched' | 'no_match' | 'error';
 
 function AvatarCircle({ user, size = 64, glow = false }: { user: MatchUser; size?: number; glow?: boolean }) {
   return (
@@ -47,8 +40,69 @@ export default function SerendipityPage() {
   const { t } = useTranslation('ui');
   const [, setLocation] = useLocation();
 
-  const a = DEMO_A;
-  const b = DEMO_B;
+  const [matchStatus, setMatchStatus] = useState<MatchStatus>('loading');
+  const [selfUser, setSelfUser] = useState<MatchUser | null>(null);
+  const [matchedUser, setMatchedUser] = useState<MatchUser | null>(null);
+
+  useEffect(() => {
+    // 현재 사용자 기본 정보 (localStorage)
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        setSelfUser({
+          id: u.id ?? 'me',
+          name: u.firstName || u.username || '나',
+          avatarUrl: u.profileImageUrl ?? null,
+          initials: (u.firstName?.[0] || '?').toUpperCase(),
+          location: u.location ?? undefined,
+          interests: u.travelStyles ?? [],
+          languages: u.languages ?? [],
+        });
+      }
+    } catch { /* ignore */ }
+
+    // GPS → serendipity/check
+    if (!navigator.geolocation) {
+      setMatchStatus('error');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const data = await api('/api/serendipity/check', {
+            method: 'POST',
+            body: {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              radiusM: 150,
+            },
+          });
+
+          if (data.matched && data.nearbyUsers?.length > 0) {
+            const u = data.nearbyUsers[0];
+            setMatchedUser({
+              id: u.id,
+              name: u.firstName || t('serendipity.unknownTraveler'),
+              avatarUrl: u.profileImageUrl ?? null,
+              initials: (u.firstName?.[0] || '?').toUpperCase(),
+            });
+            setMatchStatus('matched');
+          } else {
+            setMatchStatus('no_match');
+          }
+        } catch {
+          setMatchStatus('error');
+        }
+      },
+      () => setMatchStatus('error'),
+      { timeout: 8000 }
+    );
+  }, [t]);
+
+  const a: MatchUser = selfUser ?? { id: 'me', name: '나', initials: '나' };
+  const b: MatchUser = matchedUser ?? { id: '?', name: '...', initials: '?' };
 
   const interestsA = new Set(a.interests ?? []);
   const commonInterests = (b.interests ?? []).filter(i => interestsA.has(i));
@@ -95,6 +149,7 @@ export default function SerendipityPage() {
       <div className="tg-glass" style={{ position: 'sticky', top: 0, zIndex: 30, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           onClick={() => setLocation('/')}
+          aria-label={t('common.back')}
           style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--surface-2)', border: '1px solid var(--stroke)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', flexShrink: 0 }}
         >
           <ArrowLeft size={18} />
@@ -104,178 +159,198 @@ export default function SerendipityPage() {
         </h1>
       </div>
 
-      <div style={{ padding: '24px 16px 0', position: 'relative', zIndex: 1 }}>
+      {/* ── 로딩 / 매칭 없음 / 에러 상태 ── */}
+      {matchStatus === 'loading' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px', gap: 16, position: 'relative', zIndex: 1 }}>
+          <Loader2 size={36} color="var(--accent-mint)" style={{ animation: 'spin 1s linear infinite' }} />
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', textAlign: 'center' }}>
+            {t('serendipity.searching')}
+          </p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
 
-        {/* ── Matching visualization ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
-
-          {/* Avatar row with ring overlap */}
-          <div style={{ position: 'relative', width: 200, height: 90, marginBottom: 12 }}>
-
-            {/* Shared mint ring in centre */}
-            <div className="srn-ring" style={{
-              position: 'absolute', left: '50%', top: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 80, height: 80, borderRadius: '50%',
-              border: '2px solid var(--accent-mint)',
-              background: 'rgba(124,231,214,0.06)',
-            }} />
-
-            {/* Avatar A (left) */}
-            <div className="srn-avatar-a" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }}>
-              <AvatarCircle user={a} size={72} glow />
-            </div>
-
-            {/* Avatar B (right) */}
-            <div className="srn-avatar-b" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
-              <AvatarCircle user={b} size={72} glow />
-            </div>
-          </div>
-
-          {/* Distance badge */}
-          <div className="srn-badge" style={{
-            display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99,
-            background: 'rgba(124,231,214,0.12)', border: '1px solid rgba(124,231,214,0.4)',
-          }}>
-            <MapPin size={12} color="var(--accent-mint)" />
-            <span style={{ fontSize: 12, color: 'var(--accent-mint)', fontWeight: 600 }}>
-              {t('serendipity.distance')}
-            </span>
-          </div>
-
-          {/* Match label */}
-          <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
-            {t('serendipity.matchLabel')}
+      {matchStatus === 'no_match' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px', gap: 12, position: 'relative', zIndex: 1 }}>
+          <span style={{ fontSize: 40 }}>🌏</span>
+          <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>
+            {t('serendipity.noMatch')}
+          </p>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
+            {t('serendipity.noMatchDesc')}
           </p>
         </div>
+      )}
 
-        {/* ── Match detail card ── */}
-        <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 }}>
+      {matchStatus === 'error' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px', gap: 12, position: 'relative', zIndex: 1 }}>
+          <span style={{ fontSize: 40 }}>📍</span>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', textAlign: 'center' }}>
+            {t('serendipity.locationError')}
+          </p>
+        </div>
+      )}
 
-          {/* User summaries */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
-            {[a, b].map((u, idx) => (
-              <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <AvatarCircle user={u} size={48} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{u.name}</span>
-                {u.location && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <MapPin size={11} color="var(--text-secondary)" />
-                    <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{u.location}</span>
-                  </div>
-                )}
+      {/* ── 매칭 성공 UI ── */}
+      {matchStatus === 'matched' && (
+        <div style={{ padding: '24px 16px 0', position: 'relative', zIndex: 1 }}>
+
+          {/* Matching visualization */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+
+            <div style={{ position: 'relative', width: 200, height: 90, marginBottom: 12 }}>
+              <div className="srn-ring" style={{
+                position: 'absolute', left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 80, height: 80, borderRadius: '50%',
+                border: '2px solid var(--accent-mint)',
+                background: 'rgba(124,231,214,0.06)',
+              }} />
+
+              <div className="srn-avatar-a" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                <AvatarCircle user={a} size={72} glow />
               </div>
-            ))}
+
+              <div className="srn-avatar-b" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                <AvatarCircle user={b} size={72} glow />
+              </div>
+            </div>
+
+            <div className="srn-badge" style={{
+              display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99,
+              background: 'rgba(124,231,214,0.12)', border: '1px solid rgba(124,231,214,0.4)',
+            }}>
+              <MapPin size={12} color="var(--accent-mint)" />
+              <span style={{ fontSize: 12, color: 'var(--accent-mint)', fontWeight: 600 }}>
+                {t('serendipity.distance')}
+              </span>
+            </div>
+
+            <p style={{ marginTop: 8, fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
+              {t('serendipity.matchLabel')}
+            </p>
           </div>
 
-          <div style={{ borderTop: '1px solid var(--stroke)', paddingTop: 12 }}>
+          {/* Match detail card */}
+          <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 }}>
 
-            {/* Common interests */}
-            {commonInterests.length > 0 && (
-              <div style={{ marginBottom: 10 }}>
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
-                  {t('serendipity.commonInterests')}
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {commonInterests.map((interest) => (
-                    <span key={interest} style={{
-                      padding: '4px 10px', borderRadius: 99, fontSize: 12, fontWeight: 500,
-                      background: 'rgba(124,231,214,0.10)', color: 'var(--accent-mint)',
-                      border: '1px solid rgba(124,231,214,0.25)',
-                    }}>
-                      {t(`serendipity.interest.${interest}`)}
-                    </span>
-                  ))}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+              {[a, b].map((u, idx) => (
+                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <AvatarCircle user={u} size={48} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{u.name}</span>
+                  {u.location && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <MapPin size={11} color="var(--text-secondary)" />
+                      <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{u.location}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-
-            {/* Languages */}
-            <div style={{ marginBottom: 10 }}>
-              <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
-                {t('serendipity.languages')}
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {Array.from(new Set([...(a.languages ?? []), ...(b.languages ?? [])])).map((lang) => (
-                  <span key={lang} style={{
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    padding: '4px 10px', borderRadius: 99, fontSize: 12,
-                    background: 'var(--surface-2)', color: 'var(--text-secondary)',
-                    border: '1px solid var(--stroke)',
-                  }}>
-                    <Globe size={10} />
-                    {t(`serendipity.lang.${lang}`)}
-                  </span>
-                ))}
-              </div>
+              ))}
             </div>
 
-            {/* Mood tags */}
-            <div>
-              <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
-                {t('serendipity.mood')}
-              </p>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[a.mood, b.mood].filter(Boolean).map((m, i) => (
-                  <span key={i} style={{
-                    padding: '4px 10px', borderRadius: 99, fontSize: 12,
-                    background: 'rgba(230,201,137,0.10)', color: 'var(--accent-gold)',
-                    border: '1px solid rgba(230,201,137,0.25)',
-                  }}>
-                    {t(`serendipity.moodTag.${m}`)}
-                  </span>
-                ))}
-              </div>
+            <div style={{ borderTop: '1px solid var(--stroke)', paddingTop: 12 }}>
+
+              {commonInterests.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                    {t('serendipity.commonInterests')}
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {commonInterests.map((interest) => (
+                      <span key={interest} style={{
+                        padding: '4px 10px', borderRadius: 99, fontSize: 12, fontWeight: 500,
+                        background: 'rgba(124,231,214,0.10)', color: 'var(--accent-mint)',
+                        border: '1px solid rgba(124,231,214,0.25)',
+                      }}>
+                        {t(`serendipity.interest.${interest}`)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(a.languages?.length || b.languages?.length) ? (
+                <div style={{ marginBottom: 10 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                    {t('serendipity.languages')}
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {Array.from(new Set([...(a.languages ?? []), ...(b.languages ?? [])])).map((lang) => (
+                      <span key={lang} style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '4px 10px', borderRadius: 99, fontSize: 12,
+                        background: 'var(--surface-2)', color: 'var(--text-secondary)',
+                        border: '1px solid var(--stroke)',
+                      }}>
+                        <Globe size={10} />
+                        {t(`serendipity.lang.${lang}`)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {(a.mood || b.mood) && (
+                <div>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                    {t('serendipity.mood')}
+                  </p>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {[a.mood, b.mood].filter(Boolean).map((m, i) => (
+                      <span key={i} style={{
+                        padding: '4px 10px', borderRadius: 99, fontSize: 12,
+                        background: 'rgba(230,201,137,0.10)', color: 'var(--accent-gold)',
+                        border: '1px solid rgba(230,201,137,0.25)',
+                      }}>
+                        {t(`serendipity.moodTag.${m}`)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* ── Mini map view ── */}
-        <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 14, marginBottom: 12 }}>
-          <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-            {t('serendipity.miniMap')}
-          </p>
-          <div style={{ position: 'relative', height: 110, borderRadius: 14, overflow: 'hidden', background: '#0d1520' }}>
-            {/* Grid lines */}
-            {[20, 40, 60, 80].map(p => (
-              <div key={p} style={{ position: 'absolute', left: 0, right: 0, top: `${p}%`, height: 1, background: 'rgba(255,255,255,0.04)' }} />
-            ))}
-            {[20, 40, 60, 80].map(p => (
-              <div key={p} style={{ position: 'absolute', top: 0, bottom: 0, left: `${p}%`, width: 1, background: 'rgba(255,255,255,0.04)' }} />
-            ))}
-
-            {/* Connecting line */}
-            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-              <line x1="28%" y1="42%" x2="72%" y2="58%" stroke="rgba(124,231,214,0.4)" strokeWidth="1.5" strokeDasharray="4 3" />
-            </svg>
-
-            {/* Dot A */}
-            <div className="srn-pulse" style={{
-              position: 'absolute', left: '26%', top: '38%',
-              transform: 'translate(-50%, -50%)',
-              width: 10, height: 10, borderRadius: '50%',
-              background: 'var(--accent-mint)',
-              boxShadow: '0 0 8px rgba(124,231,214,0.7)',
-            }} />
-            {/* Dot B */}
-            <div className="srn-pulse" style={{
-              position: 'absolute', left: '74%', top: '54%',
-              transform: 'translate(-50%, -50%)',
-              width: 10, height: 10, borderRadius: '50%',
-              background: 'var(--accent-coral)',
-              boxShadow: '0 0 8px rgba(255,138,112,0.7)',
-              animationDelay: '0.5s',
-            }} />
-
-            {/* Labels */}
-            <span style={{ position: 'absolute', left: '26%', top: 'calc(38% + 10px)', transform: 'translateX(-50%)', fontSize: 10, color: 'var(--accent-mint)', fontWeight: 600 }}>{a.name}</span>
-            <span style={{ position: 'absolute', left: '74%', top: 'calc(54% + 10px)', transform: 'translateX(-50%)', fontSize: 10, color: 'var(--accent-coral)', fontWeight: 600 }}>{b.name}</span>
+          {/* Mini map view */}
+          <div className="tg-surface" style={{ borderRadius: 'var(--radius-card)', padding: 14, marginBottom: 12 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+              {t('serendipity.miniMap')}
+            </p>
+            <div style={{ position: 'relative', height: 110, borderRadius: 14, overflow: 'hidden', background: '#0d1520' }}>
+              {[20, 40, 60, 80].map(p => (
+                <div key={p} style={{ position: 'absolute', left: 0, right: 0, top: `${p}%`, height: 1, background: 'rgba(255,255,255,0.04)' }} />
+              ))}
+              {[20, 40, 60, 80].map(p => (
+                <div key={p} style={{ position: 'absolute', top: 0, bottom: 0, left: `${p}%`, width: 1, background: 'rgba(255,255,255,0.04)' }} />
+              ))}
+              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                <line x1="28%" y1="42%" x2="72%" y2="58%" stroke="rgba(124,231,214,0.4)" strokeWidth="1.5" strokeDasharray="4 3" />
+              </svg>
+              <div className="srn-pulse" style={{
+                position: 'absolute', left: '26%', top: '38%',
+                transform: 'translate(-50%, -50%)',
+                width: 10, height: 10, borderRadius: '50%',
+                background: 'var(--accent-mint)',
+                boxShadow: '0 0 8px rgba(124,231,214,0.7)',
+              }} />
+              <div className="srn-pulse" style={{
+                position: 'absolute', left: '74%', top: '54%',
+                transform: 'translate(-50%, -50%)',
+                width: 10, height: 10, borderRadius: '50%',
+                background: 'var(--accent-coral)',
+                boxShadow: '0 0 8px rgba(255,138,112,0.7)',
+                animationDelay: '0.5s',
+              }} />
+              <span style={{ position: 'absolute', left: '26%', top: 'calc(38% + 10px)', transform: 'translateX(-50%)', fontSize: 10, color: 'var(--accent-mint)', fontWeight: 600 }}>{a.name}</span>
+              <span style={{ position: 'absolute', left: '74%', top: 'calc(54% + 10px)', transform: 'translateX(-50%)', fontSize: 10, color: 'var(--accent-coral)', fontWeight: 600 }}>{b.name}</span>
+            </div>
           </div>
+
         </div>
+      )}
 
-      </div>
-
-      {/* ── Sticky CTA bar ── */}
+      {/* Sticky CTA bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         background: 'rgba(17,19,26,0.95)', backdropFilter: 'blur(12px)',
@@ -283,13 +358,16 @@ export default function SerendipityPage() {
         padding: '12px 16px',
         display: 'flex', flexDirection: 'column', gap: 8,
       }}>
-        <button
-          className="tg-btn-primary"
-          style={{ width: '100%', padding: '15px 0', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-        >
-          <Heart size={17} fill="#fff" color="#fff" />
-          {t('serendipity.greetCTA')}
-        </button>
+        {matchStatus === 'matched' && (
+          <button
+            className="tg-btn-primary"
+            style={{ width: '100%', padding: '15px 0', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            onClick={() => matchedUser && setLocation(`/chat?userId=${matchedUser.id}`)}
+          >
+            <Heart size={17} fill="#fff" color="#fff" />
+            {t('serendipity.greetCTA')}
+          </button>
+        )}
         <button
           className="tg-btn-ghost"
           style={{ width: '100%', padding: '11px 0', fontSize: 14, cursor: 'pointer' }}

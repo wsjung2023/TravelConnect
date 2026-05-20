@@ -244,9 +244,12 @@ class EscrowService {
         return { success: false, error: 'Contract is not pending' };
       }
 
+      // FIXME-TODO [전자서명미구현]: termsAcceptedByGuide/Traveler는 boolean 플래그만 저장.
+      // 법적 효력 있는 전자서명(암호학적 서명값·서명 타임스탬프·서명자 IP 등) 없음.
+      // 장기 과제: DocuSign/Adobe Sign 또는 자체 RSA 서명 도입 필요.
       await db
         .update(contracts)
-        .set({ 
+        .set({
           status: 'confirmed',
           termsAcceptedByGuide: true,
           confirmedAt: new Date(),
@@ -373,6 +376,9 @@ class EscrowService {
   /**
    * 결제 완료 처리 (Webhook에서 호출)
    */
+  // FIXME-TODO [DB트랜잭션없음]: 결제 완료 처리(contractStage 업데이트 + escrowTransaction 생성 + 알림)
+  // 가 단일 DB 트랜잭션으로 묶이지 않음. 중간 실패 시 불일치 데이터 발생 가능.
+  // 수정 경로: Drizzle `db.transaction(async (tx) => { ... })` 으로 감싸 원자성 보장.
   async handlePaymentComplete(
     contractId: number,
     stageId: number,

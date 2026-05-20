@@ -119,6 +119,9 @@ router.post('/posts', authenticateToken, async (req: any, res: Response) => {
       return res.status(400).json({ error: 'Content is required' });
     }
 
+    // FIXME-TODO [자동모더레이션없음]: 포스트 생성 시 NSFW/스팸 감지 로직 없음.
+    // 구현 경로: OpenAI Moderation API(무료) 또는 자체 키워드 필터 → 위반 시 status='flagged' 설정.
+    // 선행: posts 테이블에 moderationStatus 컬럼 추가 필요.
     const post = await storage.createPost({
       userId: req.user.id,
       content: content || '',
@@ -129,6 +132,10 @@ router.post('/posts', authenticateToken, async (req: any, res: Response) => {
       theme: theme || null,
       visibility: visibility || 'public',
     });
+
+    if (post.content) {
+      await storage.parseAndLinkHashtags(post.id, post.content);
+    }
 
     res.status(201).json(post);
   } catch (error) {

@@ -124,7 +124,10 @@ router.post('/register', authLimiter, validateSchema(RegisterSchema), async (req
       firstName: firstName || '',
       lastName: lastName || '',
       authProvider: 'email',
-      isEmailVerified: true, // TODO: 프로덕션에서는 이메일 인증 구현 필요
+      // SECURITY-TODO [이메일인증미구현]: 현재 모든 회원가입 즉시 isEmailVerified=true 처리.
+      // 구현 경로: 회원가입 시 isEmailVerified=false → 인증 토큰 생성 → 이메일 발송(Nodemailer/Resend) →
+      // GET /api/auth/verify-email?token=xxx 클릭 시 true로 갱신. 선행: 이메일 서비스 환경변수 설정 필요.
+      isEmailVerified: true,
     });
 
     // JWT 토큰 생성 (7일 유효)
@@ -152,6 +155,10 @@ router.post('/register', authLimiter, validateSchema(RegisterSchema), async (req
 });
 
 // ============================================
+// FIXME-TODO [JWT리프레시없음]: 현재 Access Token만 발급 (7일 만료), Refresh Token 없음.
+// 7일 후 사용자가 자동 로그아웃됨. 탈취된 토큰을 7일간 폐기 불가.
+// 구현 경로: 로그인 시 shortLived accessToken(15분) + longLived refreshToken(30일, DB 저장) 발급.
+// POST /api/auth/refresh 엔드포인트로 accessToken 갱신.
 // 로그인 API
 // ============================================
 // POST /api/auth/login
@@ -360,6 +367,9 @@ router.get('/user', authenticateToken, async (req: any, res: Response) => {
 // POST /api/auth/generate-token
 // 현재 로그인한 사용자의 새 JWT 토큰을 발급합니다.
 // 토큰 갱신에 사용됩니다.
+// SECURITY-TODO [H-5]: 현재 토큰을 JSON body로 반환 → client가 localStorage에 저장.
+// 개선 방향: 이 엔드포인트에서 Set-Cookie(httpOnly, SameSite=Lax)로 발급하고
+// client에서는 Authorization 헤더 대신 쿠키를 사용하도록 전환.
 router.post('/generate-token', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {

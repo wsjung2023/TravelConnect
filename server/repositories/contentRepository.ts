@@ -135,6 +135,16 @@ export async function getReviewsByExperience(experienceId: number): Promise<Revi
     .orderBy(desc(reviews.createdAt));
 }
 
+export async function getReviewById(reviewId: number): Promise<Review | null> {
+  const [review] = await db.select().from(reviews).where(eq(reviews.id, reviewId)).limit(1);
+  return review || null;
+}
+
+export async function updateReview(reviewId: number, updates: Record<string, any>): Promise<Review | null> {
+  const [updated] = await db.update(reviews).set(updates).where(eq(reviews.id, reviewId)).returning();
+  return updated || null;
+}
+
 export async function getReviewsByHost(hostId: string): Promise<Review[]> {
   return await db
     .select({

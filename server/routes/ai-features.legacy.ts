@@ -93,6 +93,9 @@ export function registerLegacyAIFeaturesRoutes(
           content: msg.content,
         }));
 
+      // FIXME-TODO [ConciergeSSE미노출]: concierge.ts에 generateConciergeResponseStream() 구현됨.
+      // 현재 이 엔드포인트는 비스트리밍(단일 JSON 응답)만 제공. SSE 스트리밍 엔드포인트 별도 추가 필요.
+      // 구현 경로: POST /api/ai/concierge/stream → res.setHeader('Content-Type','text/event-stream') → onChunk로 청크 전송.
       const aiResponse = await generateConciergeResponse(
         userMessage.trim(),
         context,
@@ -493,12 +496,13 @@ export function registerLegacyAIFeaturesRoutes(
 
           console.log(`[CineMap] Storyboard generated successfully for job ${job.id}`);
 
-          // Update job with completed storyboard
+          // FIXME-TODO [CineMap영상렌더링미구현]: GPT 스토리보드 생성까지는 완료되나
+          // 실제 영상 파일 렌더링(FFmpeg/Remotion 등) 미구현. resultVideoUrl은 항상 null.
+          // 구현 경로: storyboard.stops의 사진 + 캡션을 ffmpeg/Remotion으로 편집 → 영상 파일 업로드 → URL 저장.
           await storage.updateCinemapJob(job.id, {
             status: 'completed',
             storyboard: storyboard as any,
-            // resultVideoUrl would be set by actual video rendering service
-            resultVideoUrl: null, // Placeholder - actual video rendering not implemented yet
+            resultVideoUrl: null,
           });
 
           console.log(`[CineMap] Job ${job.id} completed successfully`);

@@ -484,9 +484,12 @@ export function registerLegacyBillingRoutes(
 
       const { paymentId, txId, type, contractId, stageId } = req.body;
       
+      // FIXME-TODO [receiptUrl미저장]: PortOne 결제 확인 응답에서 receiptUrl을 파싱·저장하는 로직 없음.
+      // 수정 경로: paymentId로 portoneClient.getPaymentStatus() 호출 → 응답의 receiptUrl을
+      // payments 테이블 해당 레코드에 업데이트. trip_pass/subscription/contract 세 타입 모두 해당.
       if (type === 'trip_pass') {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: 'Trip Pass payment confirmed'
         });
       } else if (type === 'subscription') {

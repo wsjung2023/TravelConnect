@@ -21,6 +21,9 @@ import {
 
 export { getSchedulerHandles, stopScheduler, stopAllSchedulers, schedulerHandles };
 
+// FIXME-TODO [로그아웃세션인메모리]: loggedOutSessions가 인메모리 Set — 서버 재시작 시 초기화.
+// 재시작 후 로그아웃된 사용자가 이전 JWT(최대 7일 유효)로 재접근 가능.
+// 수정 경로: DB 또는 Redis에 블랙리스트 저장 → 토큰 검증 시 조회. JWT 리프레시 구현 시 함께 해결됨.
 // 글로벌 변수 초기화 (로그아웃 추적용)
 global.loggedOutSessions = new Set<string>();
 global.lastLogoutTime = 0;
@@ -57,6 +60,9 @@ if (!envValidation.valid) {
 const app = express();
 
 // Security headers with helmet - CSP configured for Google AdSense
+// SECURITY-TODO [H-3]: unsafe-inline, unsafe-eval 제거 검토 필요.
+// Replit Dev에서 제거 후 Google AdSense/PortOne 결제 동작 확인 필요.
+// 제거 가능 시 scriptSrc, styleSrc에서 해당 지시어 삭제.
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
