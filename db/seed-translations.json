@@ -54547,6 +54547,3174 @@
   },
   {
     "namespace": "ui",
+    "key": "purchaseProxy.commission",
+    "locale": "en",
+    "value": "Commission: {{rate}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commission",
+    "locale": "es",
+    "value": "Comisión: {{rate}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commission",
+    "locale": "fr",
+    "value": "Commission : {{rate}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commission",
+    "locale": "ja",
+    "value": "手数料: {{rate}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commission",
+    "locale": "ko",
+    "value": "수수료: {{rate}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commission",
+    "locale": "zh",
+    "value": "佣金: {{rate}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionLabel",
+    "locale": "en",
+    "value": "Commission *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionLabel",
+    "locale": "es",
+    "value": "Comisión *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionLabel",
+    "locale": "fr",
+    "value": "Commission *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionLabel",
+    "locale": "ja",
+    "value": "手数料 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionLabel",
+    "locale": "ko",
+    "value": "수수료 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionLabel",
+    "locale": "zh",
+    "value": "佣金 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionPlaceholder",
+    "locale": "en",
+    "value": "Purchase service fee"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionPlaceholder",
+    "locale": "es",
+    "value": "Tarifa de servicio de compra"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionPlaceholder",
+    "locale": "fr",
+    "value": "Frais de service d'achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionPlaceholder",
+    "locale": "ja",
+    "value": "購入サービス料"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionPlaceholder",
+    "locale": "ko",
+    "value": "구매대행 수수료"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.commissionPlaceholder",
+    "locale": "zh",
+    "value": "购买服务费"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressLabel",
+    "locale": "en",
+    "value": "Delivery Address *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressLabel",
+    "locale": "es",
+    "value": "Dirección de entrega *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressLabel",
+    "locale": "fr",
+    "value": "Adresse de livraison *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressLabel",
+    "locale": "ja",
+    "value": "配達先住所 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressLabel",
+    "locale": "ko",
+    "value": "배송 주소 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressLabel",
+    "locale": "zh",
+    "value": "送货地址 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressPlaceholder",
+    "locale": "en",
+    "value": "Enter the delivery address"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressPlaceholder",
+    "locale": "es",
+    "value": "Ingrese la dirección de entrega"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressPlaceholder",
+    "locale": "fr",
+    "value": "Entrez l'adresse de livraison"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressPlaceholder",
+    "locale": "ja",
+    "value": "配達先の住所を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressPlaceholder",
+    "locale": "ko",
+    "value": "배송받을 주소를 입력하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.deliveryAddressPlaceholder",
+    "locale": "zh",
+    "value": "输入送货地址"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyBuyerOrders",
+    "locale": "en",
+    "value": "No buyer orders yet"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyBuyerOrders",
+    "locale": "es",
+    "value": "No hay pedidos de compradores aún"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyBuyerOrders",
+    "locale": "fr",
+    "value": "Aucune commande d'acheteur pour le moment"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyBuyerOrders",
+    "locale": "ja",
+    "value": "まだバイヤーの注文はありません"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyBuyerOrders",
+    "locale": "ko",
+    "value": "아직 구매 주문이 없습니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyBuyerOrders",
+    "locale": "zh",
+    "value": "尚无买家订单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyMyRequests",
+    "locale": "en",
+    "value": "You have not sent any purchase requests yet"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyMyRequests",
+    "locale": "es",
+    "value": "No has enviado ninguna solicitud de compra aún."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyMyRequests",
+    "locale": "fr",
+    "value": "Vous n'avez pas encore envoyé de demandes d'achat."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyMyRequests",
+    "locale": "ja",
+    "value": "まだ購入リクエストを送信していません"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyMyRequests",
+    "locale": "ko",
+    "value": "아직 보낸 구매 요청이 없습니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyMyRequests",
+    "locale": "zh",
+    "value": "您还没有发送任何购买请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyReceivedRequests",
+    "locale": "en",
+    "value": "You have not received any purchase requests yet"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyReceivedRequests",
+    "locale": "es",
+    "value": "No has recibido ninguna solicitud de compra aún"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyReceivedRequests",
+    "locale": "fr",
+    "value": "Vous n'avez pas encore reçu de demandes d'achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyReceivedRequests",
+    "locale": "ja",
+    "value": "まだ購入リクエストは受け取っていません"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyReceivedRequests",
+    "locale": "ko",
+    "value": "아직 받은 구매 요청이 없습니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptyReceivedRequests",
+    "locale": "zh",
+    "value": "您尚未收到任何购买请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptySellerOrders",
+    "locale": "en",
+    "value": "No seller orders yet"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptySellerOrders",
+    "locale": "es",
+    "value": "No hay pedidos de vendedores aún"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptySellerOrders",
+    "locale": "fr",
+    "value": "Aucune commande de vendeur pour le moment"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptySellerOrders",
+    "locale": "ja",
+    "value": "まだセラーの注文はありません"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptySellerOrders",
+    "locale": "ko",
+    "value": "아직 판매 주문이 없습니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.emptySellerOrders",
+    "locale": "zh",
+    "value": "尚无卖家订单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryLabel",
+    "locale": "en",
+    "value": "Estimated Delivery *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryLabel",
+    "locale": "es",
+    "value": "Entrega estimada *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryLabel",
+    "locale": "fr",
+    "value": "Livraison estimée *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryLabel",
+    "locale": "ja",
+    "value": "推定配達日 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryLabel",
+    "locale": "ko",
+    "value": "예상 배송 기간 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryLabel",
+    "locale": "zh",
+    "value": "预计交货 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryPlaceholder",
+    "locale": "en",
+    "value": "3-5 days"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryPlaceholder",
+    "locale": "es",
+    "value": "3-5 días"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryPlaceholder",
+    "locale": "fr",
+    "value": "3-5 jours"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryPlaceholder",
+    "locale": "ja",
+    "value": "3-5日"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryPlaceholder",
+    "locale": "ko",
+    "value": "3-5일"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedDeliveryPlaceholder",
+    "locale": "zh",
+    "value": "3-5天"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedPriceLabel",
+    "locale": "en",
+    "value": "Estimated Price *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedPriceLabel",
+    "locale": "es",
+    "value": "Precio estimado *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedPriceLabel",
+    "locale": "fr",
+    "value": "Prix estimé *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedPriceLabel",
+    "locale": "ja",
+    "value": "推定価格 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedPriceLabel",
+    "locale": "ko",
+    "value": "예상 가격 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.estimatedPriceLabel",
+    "locale": "zh",
+    "value": "预计价格 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesLabel",
+    "locale": "en",
+    "value": "Additional Notes"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesLabel",
+    "locale": "es",
+    "value": "Notas adicionales"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesLabel",
+    "locale": "fr",
+    "value": "Notes supplémentaires"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesLabel",
+    "locale": "ja",
+    "value": "追加のメモ"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesLabel",
+    "locale": "ko",
+    "value": "추가 메모"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesLabel",
+    "locale": "zh",
+    "value": "附加说明"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesPlaceholder",
+    "locale": "en",
+    "value": "Additional notes about the quote"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesPlaceholder",
+    "locale": "es",
+    "value": "Notas adicionales sobre la cotización"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesPlaceholder",
+    "locale": "fr",
+    "value": "Notes supplémentaires sur le devis"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesPlaceholder",
+    "locale": "ja",
+    "value": "見積もりに関する追加のメモ"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesPlaceholder",
+    "locale": "ko",
+    "value": "견적에 대한 추가 설명"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.notesPlaceholder",
+    "locale": "zh",
+    "value": "关于报价的附加说明"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderDate",
+    "locale": "en",
+    "value": "Ordered: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderDate",
+    "locale": "es",
+    "value": "Pedido: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderDate",
+    "locale": "fr",
+    "value": "Commandé: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderDate",
+    "locale": "ja",
+    "value": "注文日: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderDate",
+    "locale": "ko",
+    "value": "주문일: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderDate",
+    "locale": "zh",
+    "value": "订购日期: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderNumber",
+    "locale": "en",
+    "value": "Order #: {{number}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderNumber",
+    "locale": "es",
+    "value": "Pedido #: {{number}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderNumber",
+    "locale": "fr",
+    "value": "Commande #: {{number}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderNumber",
+    "locale": "ja",
+    "value": "注文 #: {{number}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderNumber",
+    "locale": "ko",
+    "value": "주문번호: {{number}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.orderNumber",
+    "locale": "zh",
+    "value": "订单 #: {{number}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageDescription",
+    "locale": "en",
+    "value": "A safe purchase proxy service with local shopping experts"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageDescription",
+    "locale": "es",
+    "value": "Un servicio de proxy de compra seguro con expertos en compras locales"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageDescription",
+    "locale": "fr",
+    "value": "Un service de proxy d'achat sécurisé avec des experts en shopping locaux"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageDescription",
+    "locale": "ja",
+    "value": "現地のショッピング専門家と共にする安全な購入代理サービス"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageDescription",
+    "locale": "ko",
+    "value": "현지 쇼핑 전문가들과 함께하는 안전한 구매대행 서비스"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageDescription",
+    "locale": "zh",
+    "value": "与当地购物专家一起的安全购买代理服务"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageTitle",
+    "locale": "en",
+    "value": "Purchase Proxy Service"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageTitle",
+    "locale": "es",
+    "value": "Servicio de Compra por Proxy"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageTitle",
+    "locale": "fr",
+    "value": "Service de Proxy d'Achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageTitle",
+    "locale": "ja",
+    "value": "購入代理サービス"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageTitle",
+    "locale": "ko",
+    "value": "구매대행 서비스"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.pageTitle",
+    "locale": "zh",
+    "value": "购买代理服务"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentLabel",
+    "locale": "en",
+    "value": "Payment: {{status}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentLabel",
+    "locale": "es",
+    "value": "Pago: {{status}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentLabel",
+    "locale": "fr",
+    "value": "Paiement: {{status}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentLabel",
+    "locale": "ja",
+    "value": "支払い: {{status}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentLabel",
+    "locale": "ko",
+    "value": "결제: {{status}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentLabel",
+    "locale": "zh",
+    "value": "付款: {{status}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodLabel",
+    "locale": "en",
+    "value": "Payment Method *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodLabel",
+    "locale": "es",
+    "value": "Método de pago *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodLabel",
+    "locale": "fr",
+    "value": "Méthode de paiement *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodLabel",
+    "locale": "ja",
+    "value": "支払い方法 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodLabel",
+    "locale": "ko",
+    "value": "결제 방법 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodLabel",
+    "locale": "zh",
+    "value": "支付方式 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodPlaceholder",
+    "locale": "en",
+    "value": "PayPal, bank transfer, etc."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodPlaceholder",
+    "locale": "es",
+    "value": "PayPal, transferencia bancaria, etc."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodPlaceholder",
+    "locale": "fr",
+    "value": "PayPal, virement bancaire, etc."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodPlaceholder",
+    "locale": "ja",
+    "value": "PayPal、銀行振込など"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodPlaceholder",
+    "locale": "ko",
+    "value": "PayPal, 은행송금 등"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.paymentMethodPlaceholder",
+    "locale": "zh",
+    "value": "PayPal、银行转账等"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescLabel",
+    "locale": "en",
+    "value": "Product Description"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescLabel",
+    "locale": "es",
+    "value": "Descripción del producto"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescLabel",
+    "locale": "fr",
+    "value": "Description du produit"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescLabel",
+    "locale": "ja",
+    "value": "製品説明"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescLabel",
+    "locale": "ko",
+    "value": "상품 설명"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescLabel",
+    "locale": "zh",
+    "value": "产品描述"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescPlaceholder",
+    "locale": "en",
+    "value": "Enter a detailed description of the product"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescPlaceholder",
+    "locale": "es",
+    "value": "Ingrese una descripción detallada del producto"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescPlaceholder",
+    "locale": "fr",
+    "value": "Entrez une description détaillée du produit"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescPlaceholder",
+    "locale": "ja",
+    "value": "製品の詳細な説明を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescPlaceholder",
+    "locale": "ko",
+    "value": "상품에 대한 자세한 설명을 입력하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productDescPlaceholder",
+    "locale": "zh",
+    "value": "输入产品的详细描述"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNameLabel",
+    "locale": "en",
+    "value": "Product Name *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNameLabel",
+    "locale": "es",
+    "value": "Nombre del producto *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNameLabel",
+    "locale": "fr",
+    "value": "Nom du produit *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNameLabel",
+    "locale": "ja",
+    "value": "商品名 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNameLabel",
+    "locale": "ko",
+    "value": "상품명 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNameLabel",
+    "locale": "zh",
+    "value": "产品名称 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNamePlaceholder",
+    "locale": "en",
+    "value": "Enter the name of the product you want to buy"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNamePlaceholder",
+    "locale": "es",
+    "value": "Ingrese el nombre del producto que desea comprar"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNamePlaceholder",
+    "locale": "fr",
+    "value": "Entrez le nom du produit que vous souhaitez acheter"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNamePlaceholder",
+    "locale": "ja",
+    "value": "購入したい商品の名前を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNamePlaceholder",
+    "locale": "ko",
+    "value": "구매하고 싶은 상품명을 입력하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productNamePlaceholder",
+    "locale": "zh",
+    "value": "请输入您想购买的产品名称"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPriceLabel",
+    "locale": "en",
+    "value": "Product Price *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPriceLabel",
+    "locale": "es",
+    "value": "Precio del producto *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPriceLabel",
+    "locale": "fr",
+    "value": "Prix du produit *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPriceLabel",
+    "locale": "ja",
+    "value": "商品価格 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPriceLabel",
+    "locale": "ko",
+    "value": "상품 가격 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPriceLabel",
+    "locale": "zh",
+    "value": "产品价格 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPricePlaceholder",
+    "locale": "en",
+    "value": "Actual product price"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPricePlaceholder",
+    "locale": "es",
+    "value": "Precio real del producto"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPricePlaceholder",
+    "locale": "fr",
+    "value": "Prix réel du produit"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPricePlaceholder",
+    "locale": "ja",
+    "value": "実際の商品の価格"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPricePlaceholder",
+    "locale": "ko",
+    "value": "실제 상품 가격"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productPricePlaceholder",
+    "locale": "zh",
+    "value": "实际产品价格"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlLabel",
+    "locale": "en",
+    "value": "Product Link"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlLabel",
+    "locale": "es",
+    "value": "Enlace del producto"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlLabel",
+    "locale": "fr",
+    "value": "Lien du produit"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlLabel",
+    "locale": "ja",
+    "value": "製品リンク"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlLabel",
+    "locale": "ko",
+    "value": "상품 링크"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlLabel",
+    "locale": "zh",
+    "value": "产品链接"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlPlaceholder",
+    "locale": "en",
+    "value": "Product purchase link (optional)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlPlaceholder",
+    "locale": "es",
+    "value": "Enlace de compra del producto (opcional)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlPlaceholder",
+    "locale": "fr",
+    "value": "Lien d'achat du produit (facultatif)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlPlaceholder",
+    "locale": "ja",
+    "value": "商品購入リンク（オプション）"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlPlaceholder",
+    "locale": "ko",
+    "value": "상품 구매 링크 (선택사항)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.productUrlPlaceholder",
+    "locale": "zh",
+    "value": "产品购买链接（可选）"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.qtyAndEstimate",
+    "locale": "en",
+    "value": "Qty: {{quantity}} • Est. price: {{currency}} {{price}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.qtyAndEstimate",
+    "locale": "es",
+    "value": "Cantidad: {{quantity}} • Precio estimado: {{currency}} {{price}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.qtyAndEstimate",
+    "locale": "fr",
+    "value": "Qté : {{quantity}} • Prix estimé : {{currency}} {{price}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.qtyAndEstimate",
+    "locale": "ja",
+    "value": "数量: {{quantity}} • 推定価格: {{currency}} {{price}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.qtyAndEstimate",
+    "locale": "ko",
+    "value": "수량: {{quantity}}개 • 예상가격: {{currency}} {{price}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.qtyAndEstimate",
+    "locale": "zh",
+    "value": "数量: {{quantity}} • 预计价格: {{currency}} {{price}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quantityLabel",
+    "locale": "en",
+    "value": "Quantity *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quantityLabel",
+    "locale": "es",
+    "value": "Cantidad *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quantityLabel",
+    "locale": "fr",
+    "value": "Quantité *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quantityLabel",
+    "locale": "ja",
+    "value": "数量 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quantityLabel",
+    "locale": "ko",
+    "value": "수량 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quantityLabel",
+    "locale": "zh",
+    "value": "数量 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteDialogDesc",
+    "locale": "en",
+    "value": "Writing a quote for {{name}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteDialogDesc",
+    "locale": "es",
+    "value": "Escribiendo una cotización para {{name}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteDialogDesc",
+    "locale": "fr",
+    "value": "Rédaction d'un devis pour {{name}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteDialogDesc",
+    "locale": "ja",
+    "value": "{{name}}の見積もり作成"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteDialogDesc",
+    "locale": "ko",
+    "value": "{{name}}에 대한 견적을 작성합니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteDialogDesc",
+    "locale": "zh",
+    "value": "为{{name}}写报价"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteTitle",
+    "locale": "en",
+    "value": "Create Quote"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteTitle",
+    "locale": "es",
+    "value": "Crear Cotización"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteTitle",
+    "locale": "fr",
+    "value": "Créer un devis"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteTitle",
+    "locale": "ja",
+    "value": "見積もり作成"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteTitle",
+    "locale": "ko",
+    "value": "견적서 작성"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.quoteTitle",
+    "locale": "zh",
+    "value": "创建报价单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestButton",
+    "locale": "en",
+    "value": "Request Purchase"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestButton",
+    "locale": "es",
+    "value": "Solicitud de compra"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestButton",
+    "locale": "fr",
+    "value": "Demander un achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestButton",
+    "locale": "ja",
+    "value": "購入リクエスト"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestButton",
+    "locale": "ko",
+    "value": "구매 요청하기"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestButton",
+    "locale": "zh",
+    "value": "请求购买"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDate",
+    "locale": "en",
+    "value": "Requested: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDate",
+    "locale": "es",
+    "value": "Solicitado: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDate",
+    "locale": "fr",
+    "value": "Demandé : {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDate",
+    "locale": "ja",
+    "value": "リクエスト日: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDate",
+    "locale": "ko",
+    "value": "요청일: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDate",
+    "locale": "zh",
+    "value": "请求日期: {{date}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDialogDesc",
+    "locale": "en",
+    "value": "Sending a purchase request to {{name}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDialogDesc",
+    "locale": "es",
+    "value": "Enviando una solicitud de compra a {{name}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDialogDesc",
+    "locale": "fr",
+    "value": "Envoi d'une demande d'achat à {{name}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDialogDesc",
+    "locale": "ja",
+    "value": "{{name}}に購入リクエストを送信しています"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDialogDesc",
+    "locale": "ko",
+    "value": "{{name}}에게 구매 요청을 보냅니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestDialogDesc",
+    "locale": "zh",
+    "value": "向{{name}}发送购买请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestTitle",
+    "locale": "en",
+    "value": "Create Purchase Request"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestTitle",
+    "locale": "es",
+    "value": "Crear Solicitud de Compra"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestTitle",
+    "locale": "fr",
+    "value": "Créer une demande d'achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestTitle",
+    "locale": "ja",
+    "value": "購入リクエストを作成"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestTitle",
+    "locale": "ko",
+    "value": "구매 요청 생성"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.requestTitle",
+    "locale": "zh",
+    "value": "创建采购请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.reviewCount",
+    "locale": "en",
+    "value": "({{count}} reviews)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.reviewCount",
+    "locale": "es",
+    "value": "({{count}} reseñas)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.reviewCount",
+    "locale": "fr",
+    "value": "({{count}} avis)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.reviewCount",
+    "locale": "ja",
+    "value": "({{count}}件のレビュー)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.reviewCount",
+    "locale": "ko",
+    "value": "({{count}}개 리뷰)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.reviewCount",
+    "locale": "zh",
+    "value": "({{count}}条评论)"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionMyRequests",
+    "locale": "en",
+    "value": "Purchase Requests I Sent"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionMyRequests",
+    "locale": "es",
+    "value": "Solicitudes de compra que envié"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionMyRequests",
+    "locale": "fr",
+    "value": "Demandes d'achat que j'ai envoyées"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionMyRequests",
+    "locale": "ja",
+    "value": "私が送信した購入リクエスト"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionMyRequests",
+    "locale": "ko",
+    "value": "내가 보낸 구매 요청"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionMyRequests",
+    "locale": "zh",
+    "value": "我发送的采购请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionOrders",
+    "locale": "en",
+    "value": "Manage Orders"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionOrders",
+    "locale": "es",
+    "value": "Gestionar pedidos"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionOrders",
+    "locale": "fr",
+    "value": "Gérer les commandes"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionOrders",
+    "locale": "ja",
+    "value": "注文を管理"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionOrders",
+    "locale": "ko",
+    "value": "주문 관리"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionOrders",
+    "locale": "zh",
+    "value": "管理订单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionReceivedRequests",
+    "locale": "en",
+    "value": "Received Purchase Requests"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionReceivedRequests",
+    "locale": "es",
+    "value": "Solicitudes de compra recibidas"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionReceivedRequests",
+    "locale": "fr",
+    "value": "Demandes d'achat reçues"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionReceivedRequests",
+    "locale": "ja",
+    "value": "受け取った購入リクエスト"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionReceivedRequests",
+    "locale": "ko",
+    "value": "받은 구매 요청"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionReceivedRequests",
+    "locale": "zh",
+    "value": "收到的采购请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionServices",
+    "locale": "en",
+    "value": "Purchase Proxy Services"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionServices",
+    "locale": "es",
+    "value": "Compra de Servicios de Proxy"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionServices",
+    "locale": "fr",
+    "value": "Services de Proxy d'Achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionServices",
+    "locale": "ja",
+    "value": "購入代理サービス"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionServices",
+    "locale": "ko",
+    "value": "구매대행 서비스"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sectionServices",
+    "locale": "zh",
+    "value": "购买代理服务"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sendQuote",
+    "locale": "en",
+    "value": "Send Quote"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sendQuote",
+    "locale": "es",
+    "value": "Enviar Cotización"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sendQuote",
+    "locale": "fr",
+    "value": "Envoyer le devis"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sendQuote",
+    "locale": "ja",
+    "value": "見積もりを送信"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sendQuote",
+    "locale": "ko",
+    "value": "견적 보내기"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.sendQuote",
+    "locale": "zh",
+    "value": "发送报价"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingLabel",
+    "locale": "en",
+    "value": "Shipping Fee *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingLabel",
+    "locale": "es",
+    "value": "Costo de envío *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingLabel",
+    "locale": "fr",
+    "value": "Frais de livraison *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingLabel",
+    "locale": "ja",
+    "value": "送料 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingLabel",
+    "locale": "ko",
+    "value": "배송비 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingLabel",
+    "locale": "zh",
+    "value": "运费 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingPlaceholder",
+    "locale": "en",
+    "value": "International shipping fee"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingPlaceholder",
+    "locale": "es",
+    "value": "Tarifa de envío internacional"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingPlaceholder",
+    "locale": "fr",
+    "value": "Frais de livraison internationale"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingPlaceholder",
+    "locale": "ja",
+    "value": "国際送料"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingPlaceholder",
+    "locale": "ko",
+    "value": "국제배송비"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.shippingPlaceholder",
+    "locale": "zh",
+    "value": "国际运费"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialLabel",
+    "locale": "en",
+    "value": "Special Instructions"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialLabel",
+    "locale": "es",
+    "value": "Instrucciones Especiales"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialLabel",
+    "locale": "fr",
+    "value": "Instructions spéciales"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialLabel",
+    "locale": "ja",
+    "value": "特別な指示"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialLabel",
+    "locale": "ko",
+    "value": "특별 요청사항"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialLabel",
+    "locale": "zh",
+    "value": "特别请求事项"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialPlaceholder",
+    "locale": "en",
+    "value": "Enter any special instructions"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialPlaceholder",
+    "locale": "es",
+    "value": "Ingrese cualquier instrucción especial"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialPlaceholder",
+    "locale": "fr",
+    "value": "Entrez toutes instructions spéciales"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialPlaceholder",
+    "locale": "ja",
+    "value": "特別な指示を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialPlaceholder",
+    "locale": "ko",
+    "value": "특별한 요청사항이 있으면 입력하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialPlaceholder",
+    "locale": "zh",
+    "value": "输入任何特殊说明"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialtyAreas",
+    "locale": "en",
+    "value": "Specialty Areas:"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialtyAreas",
+    "locale": "es",
+    "value": "Áreas de especialidad:"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialtyAreas",
+    "locale": "fr",
+    "value": "Domaines de spécialité :"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialtyAreas",
+    "locale": "ja",
+    "value": "専門分野:"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialtyAreas",
+    "locale": "ko",
+    "value": "전문 분야:"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.specialtyAreas",
+    "locale": "zh",
+    "value": "专业领域："
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusAccepted",
+    "locale": "en",
+    "value": "Accepted"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusAccepted",
+    "locale": "es",
+    "value": "Aceptado"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusAccepted",
+    "locale": "fr",
+    "value": "Accepté"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusAccepted",
+    "locale": "ja",
+    "value": "承認されました"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusAccepted",
+    "locale": "ko",
+    "value": "승인됨"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusAccepted",
+    "locale": "zh",
+    "value": "已接受"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCancelled",
+    "locale": "en",
+    "value": "Cancelled"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCancelled",
+    "locale": "es",
+    "value": "Cancelado"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCancelled",
+    "locale": "fr",
+    "value": "Annulé"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCancelled",
+    "locale": "ja",
+    "value": "キャンセルされました"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCancelled",
+    "locale": "ko",
+    "value": "취소됨"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCancelled",
+    "locale": "zh",
+    "value": "已取消"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCompleted",
+    "locale": "en",
+    "value": "Completed"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCompleted",
+    "locale": "es",
+    "value": "Completado"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCompleted",
+    "locale": "fr",
+    "value": "Terminé"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCompleted",
+    "locale": "ja",
+    "value": "完了"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCompleted",
+    "locale": "ko",
+    "value": "완료"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusCompleted",
+    "locale": "zh",
+    "value": "完成"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusPending",
+    "locale": "en",
+    "value": "Pending"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusPending",
+    "locale": "es",
+    "value": "Pendiente"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusPending",
+    "locale": "fr",
+    "value": "En attente"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusPending",
+    "locale": "ja",
+    "value": "保留中"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusPending",
+    "locale": "ko",
+    "value": "대기중"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusPending",
+    "locale": "zh",
+    "value": "待处理"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusQuoted",
+    "locale": "en",
+    "value": "Quoted"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusQuoted",
+    "locale": "es",
+    "value": "Cotizado"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusQuoted",
+    "locale": "fr",
+    "value": "Cité"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusQuoted",
+    "locale": "ja",
+    "value": "見積もり済み"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusQuoted",
+    "locale": "ko",
+    "value": "견적됨"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.statusQuoted",
+    "locale": "zh",
+    "value": "报价完成"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitQuote",
+    "locale": "en",
+    "value": "Send Quote"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitQuote",
+    "locale": "es",
+    "value": "Enviar cotización"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitQuote",
+    "locale": "fr",
+    "value": "Envoyer le devis"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitQuote",
+    "locale": "ja",
+    "value": "見積もりを送信"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitQuote",
+    "locale": "ko",
+    "value": "견적서 보내기"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitQuote",
+    "locale": "zh",
+    "value": "发送报价"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitRequest",
+    "locale": "en",
+    "value": "Send Purchase Request"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitRequest",
+    "locale": "es",
+    "value": "Enviar solicitud de compra"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitRequest",
+    "locale": "fr",
+    "value": "Envoyer une demande d'achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitRequest",
+    "locale": "ja",
+    "value": "購入リクエストを送信"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitRequest",
+    "locale": "ko",
+    "value": "구매 요청 보내기"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submitRequest",
+    "locale": "zh",
+    "value": "发送采购请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingQuote",
+    "locale": "en",
+    "value": "Creating..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingQuote",
+    "locale": "es",
+    "value": "Creando..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingQuote",
+    "locale": "fr",
+    "value": "Création en cours..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingQuote",
+    "locale": "ja",
+    "value": "作成中..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingQuote",
+    "locale": "ko",
+    "value": "생성 중..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingQuote",
+    "locale": "zh",
+    "value": "正在创建..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingRequest",
+    "locale": "en",
+    "value": "Creating..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingRequest",
+    "locale": "es",
+    "value": "Creando..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingRequest",
+    "locale": "fr",
+    "value": "Création en cours..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingRequest",
+    "locale": "ja",
+    "value": "作成中..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingRequest",
+    "locale": "ko",
+    "value": "생성 중..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.submittingRequest",
+    "locale": "zh",
+    "value": "创建中..."
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabBuyerOrders",
+    "locale": "en",
+    "value": "Buyer Orders"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabBuyerOrders",
+    "locale": "es",
+    "value": "Pedidos de compradores"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabBuyerOrders",
+    "locale": "fr",
+    "value": "Commandes des acheteurs"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabBuyerOrders",
+    "locale": "ja",
+    "value": "バイヤーの注文"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabBuyerOrders",
+    "locale": "ko",
+    "value": "구매 주문"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabBuyerOrders",
+    "locale": "zh",
+    "value": "买家订单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabSellerOrders",
+    "locale": "en",
+    "value": "Seller Orders"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabSellerOrders",
+    "locale": "es",
+    "value": "Pedidos de vendedores"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabSellerOrders",
+    "locale": "fr",
+    "value": "Commandes des vendeurs"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabSellerOrders",
+    "locale": "ja",
+    "value": "セラーの注文"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabSellerOrders",
+    "locale": "ko",
+    "value": "판매 주문"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.subTabSellerOrders",
+    "locale": "zh",
+    "value": "卖家订单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabMyRequests",
+    "locale": "en",
+    "value": "My Requests"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabMyRequests",
+    "locale": "es",
+    "value": "Mis Solicitudes"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabMyRequests",
+    "locale": "fr",
+    "value": "Mes demandes"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabMyRequests",
+    "locale": "ja",
+    "value": "私のリクエスト"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabMyRequests",
+    "locale": "ko",
+    "value": "내 요청"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabMyRequests",
+    "locale": "zh",
+    "value": "我的请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabOrders",
+    "locale": "en",
+    "value": "Manage Orders"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabOrders",
+    "locale": "es",
+    "value": "Gestionar pedidos"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabOrders",
+    "locale": "fr",
+    "value": "Gérer les commandes"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabOrders",
+    "locale": "ja",
+    "value": "注文管理"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabOrders",
+    "locale": "ko",
+    "value": "주문 관리"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabOrders",
+    "locale": "zh",
+    "value": "管理订单"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabReceivedRequests",
+    "locale": "en",
+    "value": "Received Requests"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabReceivedRequests",
+    "locale": "es",
+    "value": "Solicitudes recibidas"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabReceivedRequests",
+    "locale": "fr",
+    "value": "Demandes reçues"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabReceivedRequests",
+    "locale": "ja",
+    "value": "受信したリクエスト"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabReceivedRequests",
+    "locale": "ko",
+    "value": "받은 요청"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabReceivedRequests",
+    "locale": "zh",
+    "value": "收到的请求"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabServices",
+    "locale": "en",
+    "value": "Find Services"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabServices",
+    "locale": "es",
+    "value": "Encontrar Servicios"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabServices",
+    "locale": "fr",
+    "value": "Trouver des services"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabServices",
+    "locale": "ja",
+    "value": "サービスを探す"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabServices",
+    "locale": "ko",
+    "value": "서비스 찾기"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.tabServices",
+    "locale": "zh",
+    "value": "查找服务"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteFail",
+    "locale": "en",
+    "value": "Failed to create quote"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteFail",
+    "locale": "es",
+    "value": "Error al crear la cotización"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteFail",
+    "locale": "fr",
+    "value": "Échec de la création du devis"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteFail",
+    "locale": "ja",
+    "value": "見積もりの作成に失敗しました"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteFail",
+    "locale": "ko",
+    "value": "견적 생성 실패"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteFail",
+    "locale": "zh",
+    "value": "创建报价失败"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteSuccess",
+    "locale": "en",
+    "value": "Quote created"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteSuccess",
+    "locale": "es",
+    "value": "Cotización creada"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteSuccess",
+    "locale": "fr",
+    "value": "Devis créé"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteSuccess",
+    "locale": "ja",
+    "value": "見積もりが作成されました"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteSuccess",
+    "locale": "ko",
+    "value": "견적이 생성되었습니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastQuoteSuccess",
+    "locale": "zh",
+    "value": "报价已创建"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestFail",
+    "locale": "en",
+    "value": "Failed to create purchase request"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestFail",
+    "locale": "es",
+    "value": "Error al crear la solicitud de compra"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestFail",
+    "locale": "fr",
+    "value": "Échec de la création de la demande d'achat"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestFail",
+    "locale": "ja",
+    "value": "購入リクエストの作成に失敗しました"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestFail",
+    "locale": "ko",
+    "value": "구매 요청 생성 실패"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestFail",
+    "locale": "zh",
+    "value": "创建购买请求失败"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestSuccess",
+    "locale": "en",
+    "value": "Purchase request created"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestSuccess",
+    "locale": "es",
+    "value": "Solicitud de compra creada"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestSuccess",
+    "locale": "fr",
+    "value": "Demande d'achat créée"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestSuccess",
+    "locale": "ja",
+    "value": "購入リクエストが作成されました"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestSuccess",
+    "locale": "ko",
+    "value": "구매 요청이 생성되었습니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.toastRequestSuccess",
+    "locale": "zh",
+    "value": "购买请求已创建"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalAmount",
+    "locale": "en",
+    "value": "Total: {{amount}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalAmount",
+    "locale": "es",
+    "value": "Total: {{amount}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalAmount",
+    "locale": "fr",
+    "value": "Total : {{amount}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalAmount",
+    "locale": "ja",
+    "value": "合計: {{amount}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalAmount",
+    "locale": "ko",
+    "value": "총 금액: {{amount}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalAmount",
+    "locale": "zh",
+    "value": "总计: {{amount}}"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalLabel",
+    "locale": "en",
+    "value": "Total Price *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalLabel",
+    "locale": "es",
+    "value": "Precio total *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalLabel",
+    "locale": "fr",
+    "value": "Prix total *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalLabel",
+    "locale": "ja",
+    "value": "合計金額 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalLabel",
+    "locale": "ko",
+    "value": "총 가격 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalLabel",
+    "locale": "zh",
+    "value": "总价格 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalPlaceholder",
+    "locale": "en",
+    "value": "Total payment amount"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalPlaceholder",
+    "locale": "es",
+    "value": "Monto total a pagar"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalPlaceholder",
+    "locale": "fr",
+    "value": "Montant total à payer"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalPlaceholder",
+    "locale": "ja",
+    "value": "総支払額"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalPlaceholder",
+    "locale": "ko",
+    "value": "총 결제 금액"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.totalPlaceholder",
+    "locale": "zh",
+    "value": "总支付金额"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.trackingNumber",
+    "locale": "en",
+    "value": "Tracking Number"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.trackingNumber",
+    "locale": "es",
+    "value": "Número de seguimiento"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.trackingNumber",
+    "locale": "fr",
+    "value": "Numéro de suivi"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.trackingNumber",
+    "locale": "ja",
+    "value": "追跡番号"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.trackingNumber",
+    "locale": "ko",
+    "value": "배송 추적번호"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.trackingNumber",
+    "locale": "zh",
+    "value": "追踪号码"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyFlexible",
+    "locale": "en",
+    "value": "Flexible"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyFlexible",
+    "locale": "es",
+    "value": "Flexible"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyFlexible",
+    "locale": "fr",
+    "value": "Flexible"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyFlexible",
+    "locale": "ja",
+    "value": "柔軟性"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyFlexible",
+    "locale": "ko",
+    "value": "여유있음"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyFlexible",
+    "locale": "zh",
+    "value": "灵活"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyLabel",
+    "locale": "en",
+    "value": "Urgency"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyLabel",
+    "locale": "es",
+    "value": "Urgencia"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyLabel",
+    "locale": "fr",
+    "value": "Urgence"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyLabel",
+    "locale": "ja",
+    "value": "緊急度"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyLabel",
+    "locale": "ko",
+    "value": "긴급도"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyLabel",
+    "locale": "zh",
+    "value": "紧急性"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyNormal",
+    "locale": "en",
+    "value": "Normal"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyNormal",
+    "locale": "es",
+    "value": "Normal"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyNormal",
+    "locale": "fr",
+    "value": "Normal"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyNormal",
+    "locale": "ja",
+    "value": "通常"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyNormal",
+    "locale": "ko",
+    "value": "보통"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyNormal",
+    "locale": "zh",
+    "value": "正常"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyPlaceholder",
+    "locale": "en",
+    "value": "Select urgency"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyPlaceholder",
+    "locale": "es",
+    "value": "Seleccione la urgencia"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyPlaceholder",
+    "locale": "fr",
+    "value": "Sélectionnez l'urgence"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyPlaceholder",
+    "locale": "ja",
+    "value": "緊急度を選択してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyPlaceholder",
+    "locale": "ko",
+    "value": "긴급도를 선택하세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyPlaceholder",
+    "locale": "zh",
+    "value": "选择紧急程度"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyUrgent",
+    "locale": "en",
+    "value": "Urgent"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyUrgent",
+    "locale": "es",
+    "value": "Urgente"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyUrgent",
+    "locale": "fr",
+    "value": "Urgent"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyUrgent",
+    "locale": "ja",
+    "value": "緊急"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyUrgent",
+    "locale": "ko",
+    "value": "긴급"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.urgencyUrgent",
+    "locale": "zh",
+    "value": "紧急"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationCommission",
+    "locale": "en",
+    "value": "Please enter the commission fee"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationCommission",
+    "locale": "es",
+    "value": "Por favor, ingrese la tarifa de comisión"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationCommission",
+    "locale": "fr",
+    "value": "Veuillez entrer les frais de commission"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationCommission",
+    "locale": "ja",
+    "value": "手数料を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationCommission",
+    "locale": "ko",
+    "value": "수수료를 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationCommission",
+    "locale": "zh",
+    "value": "请输入佣金费用"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationDeliveryAddress",
+    "locale": "en",
+    "value": "Please enter the delivery address"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationDeliveryAddress",
+    "locale": "es",
+    "value": "Por favor, ingrese la dirección de entrega"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationDeliveryAddress",
+    "locale": "fr",
+    "value": "Veuillez entrer l'adresse de livraison"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationDeliveryAddress",
+    "locale": "ja",
+    "value": "配送先住所を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationDeliveryAddress",
+    "locale": "ko",
+    "value": "배송 주소를 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationDeliveryAddress",
+    "locale": "zh",
+    "value": "请输入送货地址"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedDelivery",
+    "locale": "en",
+    "value": "Please enter the estimated delivery period"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedDelivery",
+    "locale": "es",
+    "value": "Por favor, ingrese el período de entrega estimado"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedDelivery",
+    "locale": "fr",
+    "value": "Veuillez entrer la période de livraison estimée"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedDelivery",
+    "locale": "ja",
+    "value": "推定配達期間を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedDelivery",
+    "locale": "ko",
+    "value": "예상 배송 기간을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedDelivery",
+    "locale": "zh",
+    "value": "请输入预计交货期"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedPrice",
+    "locale": "en",
+    "value": "Please enter the estimated price"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedPrice",
+    "locale": "es",
+    "value": "Por favor, ingrese el precio estimado"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedPrice",
+    "locale": "fr",
+    "value": "Veuillez entrer le prix estimé"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedPrice",
+    "locale": "ja",
+    "value": "推定価格を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedPrice",
+    "locale": "ko",
+    "value": "예상 가격을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationEstimatedPrice",
+    "locale": "zh",
+    "value": "请输入估计价格"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationPaymentMethod",
+    "locale": "en",
+    "value": "Please enter the payment method"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationPaymentMethod",
+    "locale": "es",
+    "value": "Por favor, ingrese el método de pago"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationPaymentMethod",
+    "locale": "fr",
+    "value": "Veuillez entrer le mode de paiement"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationPaymentMethod",
+    "locale": "ja",
+    "value": "支払い方法を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationPaymentMethod",
+    "locale": "ko",
+    "value": "결제 방법을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationPaymentMethod",
+    "locale": "zh",
+    "value": "请输入付款方式"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductName",
+    "locale": "en",
+    "value": "Please enter the product name"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductName",
+    "locale": "es",
+    "value": "Por favor, ingrese el nombre del producto"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductName",
+    "locale": "fr",
+    "value": "Veuillez entrer le nom du produit"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductName",
+    "locale": "ja",
+    "value": "商品名を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductName",
+    "locale": "ko",
+    "value": "상품명을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductName",
+    "locale": "zh",
+    "value": "请输入产品名称"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductPrice",
+    "locale": "en",
+    "value": "Please enter the product price"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductPrice",
+    "locale": "es",
+    "value": "Por favor, ingrese el precio del producto"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductPrice",
+    "locale": "fr",
+    "value": "Veuillez entrer le prix du produit"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductPrice",
+    "locale": "ja",
+    "value": "商品価格を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductPrice",
+    "locale": "ko",
+    "value": "상품 가격을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationProductPrice",
+    "locale": "zh",
+    "value": "请输入产品价格"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationQuantity",
+    "locale": "en",
+    "value": "Quantity must be at least 1"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationQuantity",
+    "locale": "es",
+    "value": "La cantidad debe ser al menos 1"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationQuantity",
+    "locale": "fr",
+    "value": "La quantité doit être d'au moins 1"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationQuantity",
+    "locale": "ja",
+    "value": "数量は1以上でなければなりません"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationQuantity",
+    "locale": "ko",
+    "value": "수량은 1개 이상이어야 합니다"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationQuantity",
+    "locale": "zh",
+    "value": "数量必须至少为1"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationShipping",
+    "locale": "en",
+    "value": "Please enter the shipping fee"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationShipping",
+    "locale": "es",
+    "value": "Por favor, ingrese el costo de envío"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationShipping",
+    "locale": "fr",
+    "value": "Veuillez entrer les frais d'expédition"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationShipping",
+    "locale": "ja",
+    "value": "送料を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationShipping",
+    "locale": "ko",
+    "value": "배송비를 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationShipping",
+    "locale": "zh",
+    "value": "请输入运费"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationTotalPrice",
+    "locale": "en",
+    "value": "Please enter the total price"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationTotalPrice",
+    "locale": "es",
+    "value": "Por favor, ingrese el precio total"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationTotalPrice",
+    "locale": "fr",
+    "value": "Veuillez entrer le prix total"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationTotalPrice",
+    "locale": "ja",
+    "value": "合計価格を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationTotalPrice",
+    "locale": "ko",
+    "value": "총 가격을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationTotalPrice",
+    "locale": "zh",
+    "value": "请输入总价格"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationValidUntil",
+    "locale": "en",
+    "value": "Please enter the quote valid-until date"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationValidUntil",
+    "locale": "es",
+    "value": "Por favor, ingrese la fecha de validez de la cotización"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationValidUntil",
+    "locale": "fr",
+    "value": "Veuillez entrer la date de validité du devis"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationValidUntil",
+    "locale": "ja",
+    "value": "見積もりの有効期限を入力してください"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationValidUntil",
+    "locale": "ko",
+    "value": "견적 유효 기간을 입력해주세요"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validationValidUntil",
+    "locale": "zh",
+    "value": "请输入报价有效期"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validUntilLabel",
+    "locale": "en",
+    "value": "Quote Valid Until *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validUntilLabel",
+    "locale": "es",
+    "value": "Cotización válida hasta *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validUntilLabel",
+    "locale": "fr",
+    "value": "Devis valable jusqu'au *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validUntilLabel",
+    "locale": "ja",
+    "value": "見積もり有効期限 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validUntilLabel",
+    "locale": "ko",
+    "value": "견적 유효 기간 *"
+  },
+  {
+    "namespace": "ui",
+    "key": "purchaseProxy.validUntilLabel",
+    "locale": "zh",
+    "value": "报价有效期 *"
+  },
+  {
+    "namespace": "ui",
     "key": "review.commentLabel",
     "locale": "en",
     "value": "Review content"
