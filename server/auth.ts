@@ -161,13 +161,15 @@ export const authenticateToken: RequestHandler = async (req, res, next) => {
   }
 
   // DB 영속화된 폐기 토큰 체크 (로그아웃 후 재사용 차단)
+  // M-A: fail-closed — 체크 자체가 실패하면 인증을 통과시키지 않는다.
   try {
     const { isAccessTokenRevoked } = await import('./services/tokenService');
     if (await isAccessTokenRevoked(token)) {
       return res.status(401).json({ message: 'Token revoked' });
     }
   } catch (revErr) {
-    console.warn('[AUTH] revoked check skipped:', revErr);
+    console.error('[AUTH] revoked check failed (fail-closed):', revErr);
+    return res.status(503).json({ message: 'Auth check unavailable' });
   }
 
   // 사용자 정보 확인
@@ -199,6 +201,18 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
     console.log(`[AUTH] JWT token found, verifying...`);
     const decoded = verifyToken(token);
     if (decoded) {
+      // M-A: 로그아웃으로 영속 폐기된 액세스 토큰이면 차단 (Hybrid도 동일).
+      // fail-closed — 체크 실패 시 인증 통과시키지 않는다.
+      try {
+        const { isAccessTokenRevoked } = await import('./services/tokenService');
+        if (await isAccessTokenRevoked(token)) {
+          console.log(`[AUTH] JWT revoked for user ${decoded.id}`);
+          return res.status(401).json({ message: 'Token revoked' });
+        }
+      } catch (revErr) {
+        console.error('[AUTH] revoked check failed (Hybrid, fail-closed):', revErr);
+        return res.status(503).json({ message: 'Auth check unavailable' });
+      }
       // JWT 토큰이 유효하면 사용자 정보 설정
       const user = await storage.getUser(decoded.id);
       if (user) {

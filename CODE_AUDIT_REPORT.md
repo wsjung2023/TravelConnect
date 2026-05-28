@@ -10,7 +10,49 @@
 
 ---
 
-## 🔄 2026-05-28 변경 요약 (이번 라운드)
+## 🔄 2026-05-28 (재검증·후속 라운드)
+
+> 보고서가 "A·B·C·D 카테고리 전체 처리 완료"를 주장했지만 코드 grep 결과 마커가 잔존해 실제 상태를 한 항목씩 재검증.
+
+### 13개 항목 실제 상태 (재검증 후)
+
+| ID | 항목 | 재검증 결과 |
+|----|------|------------|
+| T1 | C-2 `/db-admin?token=` | 서버는 Bearer 전용으로 처리 완료, 클라이언트의 `?token=` URL 빌더 잔존 → **이번 라운드에서 클라 제거 + 도구 임시 비활성** (전체 인증 흐름 재설계는 별도) |
+| T2 | i18n `lng: 'en'` 하드코딩 | 코드에 하드코딩 없음 — 오진. |
+| T3 | subscriptionScheduler 시작 | `SUBSCRIPTION_SCHEDULER_ENABLED=true` 게이트로 활성. ✅ |
+| T4 | receiptUrl 추출·저장 | billing.legacy.ts에서 추출·DB저장·응답 포함. ✅ |
+| T5 | 리뷰 verifiedBooking 검증 | host-reviews.legacy.ts에서 검증·차단. ✅ |
+| T6 | 사용자 검색 | analytics-search.legacy.ts → socialRepository.searchUsers. ✅ |
+| T7 | escrow DB 트랜잭션 | `escrowService.handlePaymentComplete`에 `db.transaction` 적용. ✅ |
+| T8 | 계약 취소 PortOne | `escrowService.cancelContract` → `portoneClient.cancelPayment`. ✅ |
+| T9 | 알림 N+1 | 기존 Promise.all → **이번 라운드에서 `createNotificationsBulk` 단일 INSERT로 전환** |
+| T10 | 패키지 N+1 | 보고서가 "완료"라 했으나 실제로는 N+1 잔존 → **이번 라운드에서 packages/my + portfolio 두 곳 모두 단일 IN 쿼리로 전환** |
+| T11 | 자동 모더레이션 | social.ts에서 OpenAI Moderation 호출 + 차단. ✅ |
+| T12 | AI Concierge SSE | `/api/ai/concierge/stream` 노출. ✅ |
+| T13 | 신고 API | 서버는 완료, 클라이언트는 토스트만 → **이번 라운드에서 feed.tsx → POST /api/reports 호출 연결** |
+
+### 마커 항목
+
+| 마커 | 재검증 결과 |
+|------|------------|
+| M-A `server/index.ts` 로그아웃 세션 인메모리 | `revoked_tokens` 테이블 + `tokenService`가 이미 있었으나 사용처가 없었음 → **이번 라운드에서 `authenticateToken`/`authenticateHybrid`에 `isAccessTokenRevoked` 적용 + `/api/logout`에서 `revokeAccessToken` 호출**. 글로벌 Set은 개발 자동로그인 분기 보조 신호로 명시. |
+| M-B `server/routes/auth.ts` JWT Refresh | `refreshTokens` 테이블·tokenService는 있었으나 `/api/auth/refresh` 엔드포인트 부재 → **이번 라운드에서 라우트 노출 + 로그인 응답에 `refreshToken` 추가**. 클라이언트 자동 갱신 통합·access 토큰 TTL 단축·로그아웃 시 refresh 전체 폐기는 잔여 작업. |
+| M-C `auth.ts` localStorage 토큰 | H-5: api.ts에 refresh 회전 흐름 도입됨(부분). 전면 httpOnly 쿠키 전환은 보류. |
+| M-D `ai-features` CineMap 영상 | FFmpeg/오케스트레이션 등 별도 인프라 필요 → 보류 유지. |
+| M-E `feed.tsx` 신고 클라 | T13에 흡수, 이번 라운드 완료. |
+
+### 이번 라운드 추가 보완 (architect 리뷰 반영)
+- **M-A 누락 경로 보강**: `verifyToken`을 직접 호출하던 3개 경로(`/db-admin`, 비공개 타임라인, WebSocket auth)에 모두 `isAccessTokenRevoked` 체크 추가.
+- **M-B 로그아웃 보강**: `/api/logout`에서 액세스 토큰 폐기와 함께 해당 사용자의 모든 refresh 토큰을 `revokeAllRefreshTokens(userId)`로 일괄 폐기.
+- **Fail-closed 정책 통일**: `authenticateToken` / `authenticateHybrid` / WebSocket auth의 revoked 체크가 DB 장애 등으로 실패할 경우 401/503/WS close로 차단 (이전엔 fail-open으로 통과시켰음).
+
+### 이번 라운드 잔여 작업
+- T1 후속: db-admin 도구를 React 페이지로 이전하거나 폐기, `/api/sql` 자체 보안 재설계(C-2 진짜 해결).
+- M-B 후속: 클라이언트(api.ts)에서 로그인 시 `refreshToken` 저장 + `/api/auth/refresh` 호출 시 body로 전송, access TTL 단축, 서버 zod 스키마에 reason enum 강제.
+- T13 후속: 신고 전용 모달(현재는 `window.prompt`)·관리자 처리 대시보드.
+
+---
 
 ### ✅ A·B·C·D 카테고리 전체 처리 완료
 이전까지 보류였던 **D 카테고리(이메일 인증·로그아웃 영속화·전자서명·refresh 토큰 등)** 코드 구현 완료.

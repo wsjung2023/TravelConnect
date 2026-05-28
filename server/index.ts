@@ -22,10 +22,11 @@ import { subscriptionScheduler } from './services/subscriptionScheduler';
 
 export { getSchedulerHandles, stopScheduler, stopAllSchedulers, schedulerHandles };
 
-// FIXME-TODO [로그아웃세션인메모리]: loggedOutSessions가 인메모리 Set — 서버 재시작 시 초기화.
-// 재시작 후 로그아웃된 사용자가 이전 JWT(최대 7일 유효)로 재접근 가능.
-// 수정 경로: DB 또는 Redis에 블랙리스트 저장 → 토큰 검증 시 조회. JWT 리프레시 구현 시 함께 해결됨.
-// 글로벌 변수 초기화 (로그아웃 추적용)
+// M-A [해결됨]: 액세스 토큰 영속 폐기 흐름은 services/tokenService.ts(revoked_tokens 테이블)로 일원화됨.
+// authenticateToken/authenticateHybrid는 매 요청마다 isAccessTokenRevoked로 차단.
+// /api/logout은 Bearer 토큰을 revokeAccessToken으로 DB에 등록한다.
+// 아래 글로벌 Set/timestamp는 개발 환경 자동로그인(server/auth.ts:222 분기)에서만 사용되는 보조 신호이며,
+// 운영 보안 경로(JWT 검증)와는 무관하다. 서버 재시작 시 초기화되어도 운영 영향 없음.
 global.loggedOutSessions = new Set<string>();
 global.lastLogoutTime = 0;
 

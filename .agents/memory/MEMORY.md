@@ -2,6 +2,7 @@
 - [Tourgether 가드레일](tourgether-guardrails.md) — `server/routes.ts`는 거의 frozen, 새 엔드포인트는 `server/routes/` 하위 모듈로. 새 파일 1줄 상단 주석 필수. 250줄 분리 검토/400줄 강제 분리.
 - [Tourgether bookings 조회](tourgether-bookings-role.md) — `getBookingsByUser(userId, role)` role 필수 ('guest' | 'host'). 호출 시 누락하면 잘못된 컬럼으로 매칭됨.
 - [Tourgether payments.intentId](tourgether-payments-intentid.md) — 스키마에 컬럼은 있으나 일부 결제 흐름에서 insert 시 채워지지 않음. receiptUrl 업데이트는 best-effort로 처리하고 응답에 직접 포함하는 게 안전.
+- [Tourgether 액세스 토큰 폐기](tourgether-access-token-revocation.md) — verifyToken 직접 호출 시 isAccessTokenRevoked 체크 필수. 로그아웃에서 access+refresh 둘 다 폐기.
 - [Tourgether refresh 토큰 회전](tourgether-refresh-rotation.md) — rotateRefreshToken은 트랜잭션 + 조건부 UPDATE(revokedAt IS NULL)로 race 방지 + reuse 감지 시 사용자 전체 폐기. cookie-parser 미설치 환경이므로 raw cookie 헤더 파싱 사용.
 - [Tourgether HMAC 서명 secret](tourgether-sig-secret.md) — `signatureService`는 SIG_SECRET 누락 시 운영에선 throw, 개발에선 폴백 키 + 경고. 운영 배포 전 반드시 `SIG_SECRET` (또는 JWT_SECRET) 설정 필요.
 - [Tourgether 사용자 응답 sanitize](tourgether-user-response-sanitize.md) — users row를 응답에 직접 노출하면 `password` 해시까지 빠져나감. `server/utils/sanitizeUser.ts` 헬퍼로 항상 제거.

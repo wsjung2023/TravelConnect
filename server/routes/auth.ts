@@ -40,6 +40,7 @@ import {
   AuthRequest,
 } from '../auth';
 import { LoginSchema, RegisterSchema, OnboardingSchema } from '@shared/api/schema';
+import { issueRefreshToken, rotateRefreshToken, generateAccessToken } from '../services/tokenService';
 
 // ============================================
 // 라우터 초기화
@@ -169,10 +170,10 @@ router.post('/register', authLimiter, validateSchema(RegisterSchema), async (req
 });
 
 // ============================================
-// FIXME-TODO [JWT리프레시없음]: 현재 Access Token만 발급 (7일 만료), Refresh Token 없음.
-// 7일 후 사용자가 자동 로그아웃됨. 탈취된 토큰을 7일간 폐기 불가.
-// 구현 경로: 로그인 시 shortLived accessToken(15분) + longLived refreshToken(30일, DB 저장) 발급.
-// POST /api/auth/refresh 엔드포인트로 accessToken 갱신.
+// M-B [부분완료]: POST /api/auth/refresh 엔드포인트 노출 + 로그인 응답에 refreshToken 추가.
+// 잔여 작업: (1) 클라이언트가 refreshToken을 저장/사용해 자동 갱신하도록 통합,
+// (2) 로그아웃 시 refresh/access 토큰 폐기(revokeAllRefreshTokens + revokeAccessToken) 호출.
+// 현재 access token TTL은 7일로 유지(기존 호환). 단축은 클라이언트 통합 후 별도 작업.
 // 로그인 API
 // ============================================
 // POST /api/auth/login
@@ -207,9 +208,19 @@ router.post('/login', authLimiter, validateSchema(LoginSchema), async (req: any,
       role: user.role || 'user',
     });
 
+    // M-B: Refresh 토큰 발급(영속). 기존 access token 응답은 호환 유지.
+    // 클라이언트가 refreshToken을 저장하지 않으면 기존 7일 만료 흐름 그대로 동작.
+    let refreshToken: string | undefined;
+    try {
+      refreshToken = await issueRefreshToken(user.id);
+    } catch (e) {
+      console.warn('[Auth] refresh 토큰 발급 실패(로그인은 계속 진행):', e);
+    }
+
     res.json({
       message: '로그인 성공',
       token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -221,6 +232,45 @@ router.post('/login', authLimiter, validateSchema(LoginSchema), async (req: any,
   } catch (error) {
     console.error('로그인 오류:', error);
     res.status(500).json({ message: '로그인 중 오류가 발생했습니다' });
+  }
+});
+
+// ============================================
+// M-B: JWT Refresh 엔드포인트
+// ============================================
+// POST /api/auth/refresh
+// refreshToken을 받아 회전(폐기+신규 발급) 후 새 accessToken과 refreshToken을 반환합니다.
+// 폐기된 토큰 재사용 감지 시 사용자의 모든 refresh 토큰을 강제 폐기합니다(tokenService).
+router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body || {};
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      return res.status(400).json({ message: 'refreshToken이 필요합니다' });
+    }
+
+    const rotated = await rotateRefreshToken(refreshToken);
+    if (!rotated) {
+      return res.status(401).json({ message: 'Refresh 토큰이 유효하지 않거나 만료되었습니다' });
+    }
+
+    const user = await storage.getUser(rotated.userId);
+    if (!user) {
+      return res.status(401).json({ message: '사용자를 찾을 수 없습니다' });
+    }
+
+    const accessToken = generateAccessToken({
+      id: user.id,
+      email: user.email || '',
+      role: user.role || 'user',
+    });
+
+    res.json({
+      token: accessToken,
+      refreshToken: rotated.newRefreshToken,
+    });
+  } catch (error) {
+    console.error('[Auth] /refresh 처리 오류:', error);
+    res.status(500).json({ message: 'Refresh 처리 중 오류가 발생했습니다' });
   }
 });
 

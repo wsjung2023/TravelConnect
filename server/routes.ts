@@ -413,6 +413,12 @@ COMMIT;
         return res.status(403).json({ message: 'Admin access required' });
       }
 
+      // M-A: 폐기된 액세스 토큰 차단 (manual verifyToken 사용처 보강)
+      const { isAccessTokenRevoked: isRevokedDbAdmin } = await import('./services/tokenService');
+      if (await isRevokedDbAdmin(token)) {
+        return res.status(401).json({ message: 'Token revoked' });
+      }
+
       console.log(`[DB-ADMIN] Admin access granted to ${decoded.email} (${decoded.id})`);
       res.sendFile(path.join(process.cwd(), 'db-admin.html'));
     } catch (error) {
@@ -628,18 +634,17 @@ COMMIT;
               ? `${updatedUser.firstName} ${updatedUser.lastName}` 
               : updatedUser.firstName || '여행자');
 
-          // H-6 N+1 수정: 순차 await → 병렬 Promise.all
+          // T9: N+1 제거 — 단일 INSERT로 일괄 저장
           const targets = nearbyUsers.filter(u => u.id !== userId);
-          const created = await Promise.all(targets.map(u =>
-            storage.createNotification({
-              userId: u.id,
-              type: 'open_to_meet',
-              title: '근처에 새로운 여행자!',
-              message: `${displayName}님이 만남을 열었습니다`,
-              location: updatedUser.location || undefined,
-              relatedUserId: userId,
-            })
-          ));
+          const { createNotificationsBulk } = await import('./repositories/notificationRepository');
+          const created = await createNotificationsBulk(targets.map(u => ({
+            userId: u.id,
+            type: 'open_to_meet',
+            title: '근처에 새로운 여행자!',
+            message: `${displayName}님이 만남을 열었습니다`,
+            location: updatedUser.location || undefined,
+            relatedUserId: userId,
+          })));
           const sendNotificationToUser = (app as any).sendNotificationToUser;
           if (sendNotificationToUser) {
             for (let i = 0; i < targets.length; i++) {
@@ -734,9 +739,28 @@ COMMIT;
   });
 
   // 로그아웃 엔드포인트
-  app.get('/api/logout', (req, res) => {
+  app.get('/api/logout', async (req, res) => {
     console.log(`[LOGOUT] Logout request received`);
-    
+
+    // M-A: Bearer 액세스 토큰이 있으면 DB 영속 폐기(revoked_tokens).
+    // authenticateToken/authenticateHybrid가 매 요청마다 isAccessTokenRevoked로 차단.
+    // M-B 후속: 동시에 해당 사용자의 모든 refresh 토큰도 폐기 → 잔존 refresh로 access 재발급 차단.
+    try {
+      const authHeader = req.headers.authorization;
+      const accessToken = authHeader && authHeader.split(' ')[1];
+      if (accessToken) {
+        const { revokeAccessToken, revokeAllRefreshTokens } = await import('./services/tokenService');
+        const { verifyToken: vt } = await import('./auth');
+        await revokeAccessToken(accessToken);
+        const decoded = vt(accessToken);
+        if (decoded?.id) {
+          await revokeAllRefreshTokens(decoded.id);
+        }
+      }
+    } catch (revErr) {
+      console.warn('[LOGOUT] revoke 실패(계속 진행):', revErr);
+    }
+
     // 세션이 있으면 파기
     if (req.session) {
       const sessionId = req.sessionID;
@@ -834,18 +858,17 @@ COMMIT;
             100 // 최대 100명
           );
 
-          // H-6 N+1 수정: 순차 await → 병렬 Promise.all
+          // T9: N+1 제거 — 단일 INSERT로 일괄 저장
           const expTargets = nearbyUsers.filter(u => u.id !== userId);
-          const expCreated = await Promise.all(expTargets.map(u =>
-            storage.createNotification({
-              userId: u.id,
-              type: 'event_nearby',
-              title: '근처에 새로운 이벤트!',
-              message: `${hostDisplayName}님이 "${experience.title}" 이벤트를 개설했습니다`,
-              location: experience.location || undefined,
-              relatedUserId: userId,
-            })
-          ));
+          const { createNotificationsBulk: createNotifBulkExp } = await import('./repositories/notificationRepository');
+          const expCreated = await createNotifBulkExp(expTargets.map(u => ({
+            userId: u.id,
+            type: 'event_nearby',
+            title: '근처에 새로운 이벤트!',
+            message: `${hostDisplayName}님이 "${experience.title}" 이벤트를 개설했습니다`,
+            location: experience.location || undefined,
+            relatedUserId: userId,
+          })));
           const sendNotificationToUser = (app as any).sendNotificationToUser;
           if (sendNotificationToUser) {
             for (let i = 0; i < expTargets.length; i++) {
@@ -1086,6 +1109,11 @@ COMMIT;
       const decoded = verifyToken(token);
       if (!decoded || decoded.id !== timeline.userId) {
         return res.status(403).json({ message: '접근 권한이 없습니다.' });
+      }
+      // M-A: 폐기된 액세스 토큰 차단
+      const { isAccessTokenRevoked: isRevokedTL } = await import('./services/tokenService');
+      if (await isRevokedTL(token)) {
+        return res.status(401).json({ message: 'Token revoked' });
       }
       return res.json(timeline);
     } catch (error) {
@@ -2274,18 +2302,19 @@ COMMIT;
       
       const packages = await storage.getServicePackagesByCreator(req.user.id);
 
-      // T10: N+1 제거 — 모든 패키지 아이템을 한 번에 조회한 뒤 템플릿도 단일 IN 쿼리로 일괄 fetch
-      const allItems = packages.length > 0
-        ? (await Promise.all(packages.map((p: any) => storage.getPackageItemsByPackage(p.id)))).flat()
+      // T10: 진짜 N+1 제거 — 패키지 아이템도 단일 IN 쿼리로 일괄 fetch.
+      const { db } = await import('./db');
+      const { packageItems, serviceTemplates } = await import('@shared/schema');
+      const { inArray } = await import('drizzle-orm');
+      const packageIds = packages.map((p: any) => p.id);
+      const allItems = packageIds.length > 0
+        ? await db.select().from(packageItems).where(inArray(packageItems.packageId, packageIds))
         : [];
       const templateIds = Array.from(new Set(
         allItems.filter((it: any) => it.itemType === 'template').map((it: any) => it.itemId)
       ));
       const templateMap = new Map<any, any>();
       if (templateIds.length > 0) {
-        const { db } = await import('./db');
-        const { serviceTemplates } = await import('@shared/schema');
-        const { inArray } = await import('drizzle-orm');
         const templates = await db.select().from(serviceTemplates).where(inArray(serviceTemplates.id, templateIds as number[]));
         templates.forEach((t: any) => templateMap.set(t.id, t));
       }
@@ -2324,39 +2353,49 @@ COMMIT;
       // 활성화된 패키지만 조회 (공개 필드만)
       const packages = await storage.getServicePackagesByCreator(user.id);
       const activePackagesData = packages.filter((pkg: any) => pkg.isActive && pkg.creatorId === user.id);
-      
-      const activePackages = await Promise.all(
-        activePackagesData.map(async (pkg: any) => {
-          const items = await storage.getPackageItemsByPackage(pkg.id);
-          const itemsWithTemplates = await Promise.all(
-            items.map(async (item: any) => {
-              if (item.itemType === 'template') {
-                const template = await storage.getServiceTemplateById(item.itemId);
-                return {
-                  templateId: item.itemId,
-                  quantity: item.quantity,
-                  template: template ? {
-                    id: template.id,
-                    title: template.title,
-                    basePrice: template.basePrice,
-                    templateType: template.templateType,
-                  } : null,
-                };
-              }
-              return null;
-            })
-          );
-          return {
-            id: pkg.id,
-            name: pkg.name,
-            description: pkg.description,
-            totalPrice: pkg.totalPrice,
-            discountPercentage: pkg.discountPercentage,
-            isActive: pkg.isActive,
-            packageItems: itemsWithTemplates.filter(item => item !== null),
-          };
-        })
-      );
+
+      // T10: 중첩 N+1 제거 — 패키지 아이템과 템플릿을 각각 단일 IN 쿼리로 일괄 fetch.
+      const { db: dbP } = await import('./db');
+      const { packageItems: piTbl, serviceTemplates: stTbl } = await import('@shared/schema');
+      const { inArray: inArrP } = await import('drizzle-orm');
+      const pkgIds = activePackagesData.map((p: any) => p.id);
+      const allPkgItems = pkgIds.length > 0
+        ? await dbP.select().from(piTbl).where(inArrP(piTbl.packageId, pkgIds))
+        : [];
+      const tplIds = Array.from(new Set(
+        allPkgItems.filter((it: any) => it.itemType === 'template').map((it: any) => it.itemId)
+      )) as number[];
+      const tplMap = new Map<number, any>();
+      if (tplIds.length > 0) {
+        const tpls = await dbP.select().from(stTbl).where(inArrP(stTbl.id, tplIds));
+        tpls.forEach((t: any) => tplMap.set(t.id, t));
+      }
+      const activePackages = activePackagesData.map((pkg: any) => {
+        const itemsWithTemplates = allPkgItems
+          .filter((it: any) => it.packageId === pkg.id && it.itemType === 'template')
+          .map((item: any) => {
+            const template = tplMap.get(item.itemId);
+            return {
+              templateId: item.itemId,
+              quantity: item.quantity,
+              template: template ? {
+                id: template.id,
+                title: template.title,
+                basePrice: template.basePrice,
+                templateType: template.templateType,
+              } : null,
+            };
+          });
+        return {
+          id: pkg.id,
+          name: pkg.name,
+          description: pkg.description,
+          totalPrice: pkg.totalPrice,
+          discountPercentage: pkg.discountPercentage,
+          isActive: pkg.isActive,
+          packageItems: itemsWithTemplates,
+        };
+      });
       
       console.log(`[GET /api/packages/portfolio/${publicProfileUrl}] 성공: ${activePackages.length}개 패키지`);
       res.json(activePackages);
@@ -2416,7 +2455,21 @@ COMMIT;
             ws.close(4001, 'Invalid authentication token');
             return;
           }
-          
+
+          // M-A: 폐기된 액세스 토큰으로는 WebSocket 인증 불가. fail-closed.
+          try {
+            const { isAccessTokenRevoked: isRevokedWs } = await import('./services/tokenService');
+            if (await isRevokedWs(token)) {
+              console.error('WebSocket: Revoked token');
+              ws.close(4001, 'Token revoked');
+              return;
+            }
+          } catch (revErr) {
+            console.error('[WS] revoked check failed (fail-closed):', revErr);
+            ws.close(4001, 'Auth check unavailable');
+            return;
+          }
+
           userId = decoded.id;
           clients.set(userId, ws);
           console.log(`WebSocket: User ${userId} authenticated successfully`);

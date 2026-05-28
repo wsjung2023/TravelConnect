@@ -405,15 +405,36 @@ export default function Feed({ onBack, initialPostId }: FeedProps = {}) {
     }
   };
 
-  const handleReportPost = (post: Post) => {
-    // FIXME-TODO [신고API미구현]: reports 테이블 미정의, 서버 엔드포인트 없음.
-    // 구현 경로: shared/schema.ts에 reports 테이블 추가 → db:push → POST /api/reports →
-    // 관리자 패널에 신고 처리 대시보드. 완전 신규 개발 필요.
-    // TODO: Implement report functionality
-    toast({
-      title: t('feedPage.reported'),
-      description: t('feedPage.reportedDesc', { title: post.title }),
-    });
+  const handleReportPost = async (post: Post) => {
+    // T13/M-E: POST /api/reports 호출로 실제 접수. UX(전용 모달)는 추후 별도 작업.
+    const reasonInput = window.prompt(
+      '신고 사유를 선택해 입력하세요: spam / harassment / inappropriate / fraud / other',
+      'inappropriate'
+    );
+    if (!reasonInput) return;
+    const reason = reasonInput.trim().toLowerCase();
+    const allowed = ['spam', 'harassment', 'inappropriate', 'fraud', 'other'];
+    if (!allowed.includes(reason)) {
+      toast({ title: '잘못된 사유', description: `허용값: ${allowed.join(', ')}`, variant: 'destructive' });
+      return;
+    }
+    const description = window.prompt('상세 설명(선택 사항)', '') || undefined;
+    try {
+      await api('/api/reports', {
+        method: 'POST',
+        body: { targetType: 'post', targetId: String(post.id), reason, description },
+      });
+      toast({
+        title: t('feedPage.reported'),
+        description: t('feedPage.reportedDesc', { title: post.title }),
+      });
+    } catch (err: any) {
+      toast({
+        title: '신고 실패',
+        description: err?.message || '잠시 후 다시 시도해 주세요.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEditPost = (post: Post) => {

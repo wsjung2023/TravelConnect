@@ -483,21 +483,26 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* T1: ?token= 쿼리 빌더 제거 (브라우저 히스토리/로그 토큰 노출 차단).
+                      db-admin.html + /api/sql 전체 인증 흐름 재설계는 별도 작업으로 분리. */}
                   <Button
                     onClick={() => {
-                      const token = localStorage.getItem('token');
-                      const url = token ? `/db-admin?token=${encodeURIComponent(token)}` : '/db-admin';
-                      window.open(url, '_blank');
+                      toast({
+                        title: '잠시 비활성화',
+                        description:
+                          'DB 관리 도구는 보안 재설계 중입니다. 인증 흐름이 통합된 새 페이지로 곧 제공됩니다.',
+                      });
                     }}
                     className="w-full justify-start"
                     variant="outline"
+                    disabled
                     data-testid="button-db-admin"
                   >
                     <Database className="w-4 h-4 mr-2" />
                     {t('admin.databaseTool')}
                   </Button>
                   <p className="text-sm text-muted-foreground">
-                    {t('admin.databaseToolDesc')}
+                    {t('admin.databaseToolDesc')} (보안 재설계 중 — 임시 비활성)
                   </p>
                 </div>
               </CardContent>

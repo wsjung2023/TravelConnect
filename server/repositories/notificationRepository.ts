@@ -11,6 +11,12 @@ export async function createNotification(notification: InsertNotification): Prom
   return newNotification!;
 }
 
+// T9: 알림 N+1 제거 — 다건 알림을 단일 INSERT로 일괄 저장
+export async function createNotificationsBulk(items: InsertNotification[]): Promise<Notification[]> {
+  if (items.length === 0) return [];
+  return await db.insert(notifications).values(items).returning();
+}
+
 export async function getNotificationsByUser(userId: string): Promise<Notification[]> {
   return await db
     .select()
