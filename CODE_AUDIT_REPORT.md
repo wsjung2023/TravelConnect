@@ -10,6 +10,40 @@
 
 ---
 
+## ✅ 2026-05-28 (최종 검증 — 새 Session Plan T1~T15 grep 일괄 확인)
+
+새 Session Plan(A: T1~T8, B: T9~T13, C: T14~T15)에 대해 실제 코드 grep으로 일괄 재검증:
+
+| ID | grep 결과 | 상태 |
+|----|----------|------|
+| T1 | `client/src/**` 기준 `db-admin?token=` 없음 (서버는 Bearer 전용) — 빌드 산출물(`dist/`)은 다음 배포에서 갱신 | ✅ |
+| T2 | `server/routes.ts:168` `lng: 'en'` 존재 → 제거(LanguageDetector가 요청별 결정), 라인 삭제 | ✅ |
+| T3 | `server/index.ts:218` `SUBSCRIPTION_SCHEDULER_ENABLED` 게이트 활성 | ✅ |
+| T4 | `billing.legacy.ts:503-539` receiptUrl 추출·payments 테이블 update·응답 포함 | ✅ |
+| T5 | `host-reviews.legacy.ts:163-184` verifiedBooking 검증·차단 | ✅ |
+| T6 | `analytics-search.legacy.ts:360` socialRepository.searchUsers 호출 | ✅ |
+| T7 | `escrowService.ts:428` `db.transaction` 적용 | ✅ |
+| T8 | `escrowService.ts:659` `portoneClient.cancelPayment` 호출 | ✅ |
+| T9 | `routes.ts:639, 863` `createNotificationsBulk` 단일 INSERT 적용 | ✅ |
+| T10 | `routes.ts:2305-2331` `inArray()` 단일 IN 쿼리로 패키지+템플릿 일괄 fetch | ✅ |
+| T11 | `social.ts:126` OpenAI Moderation API 호출 + 차단 | ✅ |
+| T12 | `ai-features.legacy.ts:127` `POST /api/ai/concierge/stream` SSE 노출 | ✅ |
+| T13 | `feed.tsx:423` `api('/api/reports', ...)` 실제 호출 | ✅ |
+| T14 | CSP `unsafe-inline` — PortOne/AdSense 호환 위해 의도적 유지 (H-3에 명시) | ⚠️ 보류(의도) |
+| T15 | `auth.ts:173, 241` `POST /api/auth/refresh` + `refreshTokens` 테이블 적용 | ✅ |
+
+**D 카테고리 보류 사유** (이미 보고서에 명시되어 있음):
+- 이메일 인증: ✅ 이미 완료(`emailVerificationTokens` + 24h 토큰) — D에서 제외 가능
+- localStorage→httpOnly 쿠키 전환: 전면 인증 흐름 재설계 필요 (H-5)
+- 로그아웃 세션 DB 영속화: ✅ 이미 완료(`revoked_tokens` 테이블) — D에서 제외 가능
+- CineMap 실제 영상 렌더링: FFmpeg/오케스트레이션 등 별도 인프라 필요 (M-D)
+- 전자서명 암호학적 구현: ✅ 이미 완료(HMAC-SHA256 + 감사 로그) — D에서 제외 가능
+- 관리자 신고 처리 대시보드: ✅ `/admin/reports` 이미 완료 — D에서 제외 가능
+
+**서버 정상 기동 확인**: `Start application` workflow RUNNING, `/api/auth/me`, `/api/posts`, `/api/experiences` 등 정상 응답.
+
+---
+
 ## 🔄 2026-05-28 (재검증·후속 라운드)
 
 > 보고서가 "A·B·C·D 카테고리 전체 처리 완료"를 주장했지만 코드 grep 결과 마커가 잔존해 실제 상태를 한 항목씩 재검증.

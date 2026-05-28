@@ -198,11 +198,11 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
               name="templateType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>템플릿 종류</FormLabel>
+                  <FormLabel>{t('serviceTemplate.typeLabel')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-template-type">
-                        <SelectValue placeholder="제공하고 싶은 서비스 종류를 선택하세요" />
+                        <SelectValue placeholder={t('serviceTemplate.typePlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -236,10 +236,10 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>템플릿 제목</FormLabel>
+                    <FormLabel>{t('serviceTemplate.titleLabel')}</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="예: 부산 현지인 맛집 투어"
+                        placeholder={t('serviceTemplate.titlePlaceholder')}
                         data-testid="input-template-title"
                         {...field} 
                       />
@@ -254,7 +254,7 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
                 name="basePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>기본 가격 (원)</FormLabel>
+                    <FormLabel>{t('serviceTemplate.priceLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number"
@@ -274,10 +274,10 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>상세 설명</FormLabel>
+                  <FormLabel>{t('serviceTemplate.descLabel')}</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="이 템플릿으로 어떤 서비스를 제공하는지 자세히 설명해주세요..."
+                      placeholder={t('serviceTemplate.descPlaceholder')}
                       className="min-h-[100px]"
                       data-testid="textarea-template-description"
                       {...field} 
@@ -295,7 +295,7 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
                 name="durationHours"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>예상 소요 시간 (시간)</FormLabel>
+                    <FormLabel>{t('serviceTemplate.durationLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number"
@@ -315,7 +315,7 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
                 name="maxParticipants"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>최대 참가자 수</FormLabel>
+                    <FormLabel>{t('serviceTemplate.maxParticipantsLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number"
@@ -333,10 +333,10 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
 
             {/* 포함 사항 */}
             <div className="space-y-2">
-              <FormLabel>포함 사항</FormLabel>
+              <FormLabel>{t('serviceTemplate.includesLabel')}</FormLabel>
               <div className="flex space-x-2">
                 <Input 
-                  placeholder="예: 맛집 리스트, 예약 대행"
+                  placeholder={t('serviceTemplate.includesPlaceholder')}
                   value={newInclude}
                   onChange={(e) => setNewInclude(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newInclude, setIncludesTags, includesTags, setNewInclude))}
@@ -369,10 +369,10 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
 
             {/* 필수 조건 */}
             <div className="space-y-2">
-              <FormLabel>필수 조건</FormLabel>
+              <FormLabel>{t('serviceTemplate.requirementsLabel')}</FormLabel>
               <div className="flex space-x-2">
                 <Input 
-                  placeholder="예: 사전 예약 필수, 현금 준비"
+                  placeholder={t('serviceTemplate.requirementsPlaceholder')}
                   value={newRequirement}
                   onChange={(e) => setNewRequirement(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newRequirement, setRequirementsTags, requirementsTags, setNewRequirement))}
@@ -405,10 +405,10 @@ export default function ServiceTemplateForm({ isOpen, onClose, template }: Servi
 
             {/* 샘플 결과물 */}
             <div className="space-y-2">
-              <FormLabel>샘플 결과물</FormLabel>
+              <FormLabel>{t('serviceTemplate.samplesLabel')}</FormLabel>
               <div className="flex space-x-2">
                 <Input 
-                  placeholder="예: 개인별 맞춤 맛집 지도, 예약 확정서"
+                  placeholder={t('serviceTemplate.samplesPlaceholder')}
                   value={newSample}
                   onChange={(e) => setNewSample(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag(newSample, setSampleTags, sampleTags, setNewSample))}

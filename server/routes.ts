@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     .use(i18nFsBackend)
     .use(i18nMiddleware.LanguageDetector)
     .init({
-      lng: 'en',
+      // T2: lng 하드코딩 제거 — LanguageDetector(header/querystring)가 요청별로 언어 결정.
       fallbackLng: 'en',
       preload: ['en', 'ko', 'ja', 'zh', 'fr', 'es'],
       backend: {

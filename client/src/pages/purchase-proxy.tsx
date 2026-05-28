@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Package, ShoppingCart, Clock, CheckCircle, AlertCircle, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 // 폼 스키마 정의
 const createRequestSchema = z.object({
@@ -116,6 +117,7 @@ interface PurchaseOrder {
 }
 
 export default function PurchaseProxyPage() {
+  const { t } = useTranslation('ui');
   const [activeTab, setActiveTab] = useState('services');
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
@@ -316,12 +318,12 @@ export default function PurchaseProxyPage() {
                           data-testid={`button-request-${service.id}`}
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
-                          구매 요청하기
+                          {t('purchaseProxy.requestButton')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>구매 요청 생성</DialogTitle>
+                          <DialogTitle>{t('purchaseProxy.requestTitle')}</DialogTitle>
                           <DialogDescription>
                             {selectedService?.title}에게 구매 요청을 보냅니다
                           </DialogDescription>
@@ -334,9 +336,9 @@ export default function PurchaseProxyPage() {
                               name="productName"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>상품명 *</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.productNameLabel')}</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="구매하고 싶은 상품명을 입력하세요" {...field} data-testid="input-product-name" />
+                                    <Input placeholder={t('purchaseProxy.productNamePlaceholder')} {...field} data-testid="input-product-name" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -348,9 +350,9 @@ export default function PurchaseProxyPage() {
                               name="productDescription"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>상품 설명</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.productDescLabel')}</FormLabel>
                                   <FormControl>
-                                    <Textarea placeholder="상품에 대한 자세한 설명을 입력하세요" {...field} data-testid="textarea-product-description" />
+                                    <Textarea placeholder={t('purchaseProxy.productDescPlaceholder')} {...field} data-testid="textarea-product-description" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -362,9 +364,9 @@ export default function PurchaseProxyPage() {
                               name="productUrl"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>상품 링크</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.productUrlLabel')}</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="상품 구매 링크 (선택사항)" {...field} data-testid="input-product-url" />
+                                    <Input placeholder={t('purchaseProxy.productUrlPlaceholder')} {...field} data-testid="input-product-url" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -377,7 +379,7 @@ export default function PurchaseProxyPage() {
                                 name="estimatedPrice"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>예상 가격 *</FormLabel>
+                                    <FormLabel>{t('purchaseProxy.estimatedPriceLabel')}</FormLabel>
                                     <FormControl>
                                       <Input placeholder="100000" {...field} data-testid="input-estimated-price" />
                                     </FormControl>
@@ -391,7 +393,7 @@ export default function PurchaseProxyPage() {
                                 name="quantity"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>수량 *</FormLabel>
+                                    <FormLabel>{t('purchaseProxy.quantityLabel')}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         type="number" 
@@ -412,17 +414,17 @@ export default function PurchaseProxyPage() {
                               name="urgency"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>긴급도</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.urgencyLabel')}</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                       <SelectTrigger data-testid="select-urgency">
-                                        <SelectValue placeholder="긴급도를 선택하세요" />
+                                        <SelectValue placeholder={t('purchaseProxy.urgencyPlaceholder')} />
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      <SelectItem value="urgent">긴급</SelectItem>
-                                      <SelectItem value="normal">보통</SelectItem>
-                                      <SelectItem value="flexible">여유있음</SelectItem>
+                                      <SelectItem value="urgent">{t('purchaseProxy.urgencyUrgent')}</SelectItem>
+                                      <SelectItem value="normal">{t('purchaseProxy.urgencyNormal')}</SelectItem>
+                                      <SelectItem value="flexible">{t('purchaseProxy.urgencyFlexible')}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -435,9 +437,9 @@ export default function PurchaseProxyPage() {
                               name="deliveryAddress"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>배송 주소 *</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.deliveryAddressLabel')}</FormLabel>
                                   <FormControl>
-                                    <Textarea placeholder="배송받을 주소를 입력하세요" {...field} data-testid="textarea-delivery-address" />
+                                    <Textarea placeholder={t('purchaseProxy.deliveryAddressPlaceholder')} {...field} data-testid="textarea-delivery-address" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -449,9 +451,9 @@ export default function PurchaseProxyPage() {
                               name="specialInstructions"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>특별 요청사항</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.specialLabel')}</FormLabel>
                                   <FormControl>
-                                    <Textarea placeholder="특별한 요청사항이 있으면 입력하세요" {...field} data-testid="textarea-special-instructions" />
+                                    <Textarea placeholder={t('purchaseProxy.specialPlaceholder')} {...field} data-testid="textarea-special-instructions" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -460,7 +462,7 @@ export default function PurchaseProxyPage() {
 
                             <DialogFooter>
                               <Button type="submit" disabled={createRequestMutation.isPending} data-testid="button-submit-request">
-                                {createRequestMutation.isPending ? '생성 중...' : '구매 요청 보내기'}
+                                {createRequestMutation.isPending ? t('purchaseProxy.submittingRequest') : t('purchaseProxy.submitRequest')}
                               </Button>
                             </DialogFooter>
                           </form>
@@ -561,12 +563,12 @@ export default function PurchaseProxyPage() {
                           }}
                           data-testid={`button-quote-${request.id}`}
                         >
-                          견적 보내기
+                          {t('purchaseProxy.sendQuote')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>견적서 작성</DialogTitle>
+                          <DialogTitle>{t('purchaseProxy.quoteTitle')}</DialogTitle>
                           <DialogDescription>
                             {selectedRequest?.productName}에 대한 견적을 작성합니다
                           </DialogDescription>
@@ -580,9 +582,9 @@ export default function PurchaseProxyPage() {
                                 name="productPrice"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>상품 가격 *</FormLabel>
+                                    <FormLabel>{t('purchaseProxy.productPriceLabel')}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="실제 상품 가격" {...field} data-testid="input-product-price" />
+                                      <Input placeholder={t('purchaseProxy.productPricePlaceholder')} {...field} data-testid="input-product-price" />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -594,9 +596,9 @@ export default function PurchaseProxyPage() {
                                 name="commissionFee"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>수수료 *</FormLabel>
+                                    <FormLabel>{t('purchaseProxy.commissionLabel')}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="구매대행 수수료" {...field} data-testid="input-commission-fee" />
+                                      <Input placeholder={t('purchaseProxy.commissionPlaceholder')} {...field} data-testid="input-commission-fee" />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -610,9 +612,9 @@ export default function PurchaseProxyPage() {
                                 name="shippingFee"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>배송비 *</FormLabel>
+                                    <FormLabel>{t('purchaseProxy.shippingLabel')}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="국제배송비" {...field} data-testid="input-shipping-fee" />
+                                      <Input placeholder={t('purchaseProxy.shippingPlaceholder')} {...field} data-testid="input-shipping-fee" />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -624,9 +626,9 @@ export default function PurchaseProxyPage() {
                                 name="totalPrice"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>총 가격 *</FormLabel>
+                                    <FormLabel>{t('purchaseProxy.totalLabel')}</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="총 결제 금액" {...field} data-testid="input-total-price" />
+                                      <Input placeholder={t('purchaseProxy.totalPlaceholder')} {...field} data-testid="input-total-price" />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -639,9 +641,9 @@ export default function PurchaseProxyPage() {
                               name="estimatedDelivery"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>예상 배송 기간 *</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.estimatedDeliveryLabel')}</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="3-5일" {...field} data-testid="input-estimated-delivery" />
+                                    <Input placeholder={t('purchaseProxy.estimatedDeliveryPlaceholder')} {...field} data-testid="input-estimated-delivery" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -653,9 +655,9 @@ export default function PurchaseProxyPage() {
                               name="paymentMethod"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>결제 방법 *</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.paymentMethodLabel')}</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="PayPal, 은행송금 등" {...field} data-testid="input-payment-method" />
+                                    <Input placeholder={t('purchaseProxy.paymentMethodPlaceholder')} {...field} data-testid="input-payment-method" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -667,7 +669,7 @@ export default function PurchaseProxyPage() {
                               name="validUntil"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>견적 유효 기간 *</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.validUntilLabel')}</FormLabel>
                                   <FormControl>
                                     <Input type="datetime-local" {...field} data-testid="input-valid-until" />
                                   </FormControl>
@@ -681,9 +683,9 @@ export default function PurchaseProxyPage() {
                               name="notes"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>추가 메모</FormLabel>
+                                  <FormLabel>{t('purchaseProxy.notesLabel')}</FormLabel>
                                   <FormControl>
-                                    <Textarea placeholder="견적에 대한 추가 설명" {...field} data-testid="textarea-notes" />
+                                    <Textarea placeholder={t('purchaseProxy.notesPlaceholder')} {...field} data-testid="textarea-notes" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -692,7 +694,7 @@ export default function PurchaseProxyPage() {
 
                             <DialogFooter>
                               <Button type="submit" disabled={createQuoteMutation.isPending} data-testid="button-submit-quote">
-                                {createQuoteMutation.isPending ? '생성 중...' : '견적서 보내기'}
+                                {createQuoteMutation.isPending ? t('purchaseProxy.submittingQuote') : t('purchaseProxy.submitQuote')}
                               </Button>
                             </DialogFooter>
                           </form>
@@ -750,7 +752,7 @@ export default function PurchaseProxyPage() {
                     <CardContent>
                       {order.trackingNumber && (
                         <p className="text-sm mb-2">
-                          <strong>배송 추적번호:</strong> {order.trackingNumber}
+                          <strong>{t('purchaseProxy.trackingNumber')}:</strong> {order.trackingNumber}
                         </p>
                       )}
                       <div className="text-xs text-muted-foreground">
@@ -797,7 +799,7 @@ export default function PurchaseProxyPage() {
                     <CardContent>
                       {order.trackingNumber && (
                         <p className="text-sm mb-2">
-                          <strong>배송 추적번호:</strong> {order.trackingNumber}
+                          <strong>{t('purchaseProxy.trackingNumber')}:</strong> {order.trackingNumber}
                         </p>
                       )}
                       <div className="text-xs text-muted-foreground">

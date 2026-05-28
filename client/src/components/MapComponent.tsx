@@ -1054,7 +1054,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         const response = await fetch(`/api/search?term=${encodeURIComponent(query)}&type=all&limit=20`);
         
         if (!response.ok) {
-          throw new Error('검색 API 오류');
+          throw new Error(t('mapComponent.searchApiError'));
         }
 
         const data = await response.json();
@@ -1190,7 +1190,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                   <MapPin size={16} />
-                  <span>서울특별시</span>
+                  <span>{t('mapComponent.seoul')}</span>
                 </div>
                 <p className="text-gray-700 leading-relaxed">
                   {selectedPOI.description ||
@@ -1246,7 +1246,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   <div className="mb-4 space-y-2">
                     <input
                       type="text"
-                      placeholder="제목이나 내용으로 검색..."
+                      placeholder={t('mapComponent.searchPlaceholder')}
                       className="w-full px-3 py-2 border rounded-lg text-sm"
                       onChange={(e) => {
                         // 검색 기능 구현
@@ -1263,13 +1263,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     />
                     <div className="flex gap-2 text-xs">
                       <select className="border rounded px-2 py-1">
-                        <option>전체 사용자</option>
-                        <option>특정 사용자</option>
+                        <option>{t('mapComponent.filterAllUsers')}</option>
+                        <option>{t('mapComponent.filterSpecificUser')}</option>
                       </select>
                       <select className="border rounded px-2 py-1">
-                        <option>전체 기간</option>
-                        <option>최근 1주일</option>
-                        <option>최근 1개월</option>
+                        <option>{t('mapComponent.filterAllPeriod')}</option>
+                        <option>{t('mapComponent.filterWeek')}</option>
+                        <option>{t('mapComponent.filterMonth')}</option>
                       </select>
                     </div>
                   </div>
@@ -1929,7 +1929,7 @@ const CreateMiniMeetModal: React.FC<CreateMiniMeetModalProps> = ({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="예: 커피 한 잔 하실래요?"
+              placeholder={t('mapComponent.meetTitlePlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               required
               maxLength={50}

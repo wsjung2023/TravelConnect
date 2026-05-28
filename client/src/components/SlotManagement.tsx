@@ -114,6 +114,7 @@ interface SlotFormProps {
 }
 
 function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
+  const { t } = useTranslation('ui');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -246,9 +247,9 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="title"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>제목 *</FormLabel>
+                    <FormLabel>{t('slotForm.titleLabel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="예: 홍대 맛집 투어" {...field} data-testid="input-slot-title" />
+                      <Input placeholder={t('slotForm.titlePlaceholder')} {...field} data-testid="input-slot-title" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -260,10 +261,10 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="description"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>설명</FormLabel>
+                    <FormLabel>{t('slotForm.descLabel')}</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="슬롯에 대한 자세한 설명을 입력하세요..." 
+                        placeholder={t('slotForm.descPlaceholder')} 
                         {...field} 
                         data-testid="textarea-slot-description"
                       />
@@ -278,7 +279,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>날짜 *</FormLabel>
+                    <FormLabel>{t('slotForm.dateLabel')}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -290,7 +291,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                             {field.value ? (
                               format(field.value, 'PPP', { locale: ko })
                             ) : (
-                              <span>날짜 선택</span>
+                              <span>{t('slotForm.dateSelect')}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -316,11 +317,11 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="timezone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>시간대 *</FormLabel>
+                    <FormLabel>{t('slotForm.timezoneLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-timezone">
-                          <SelectValue placeholder="시간대 선택" />
+                          <SelectValue placeholder={t('slotForm.timezoneSelect')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -341,7 +342,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="startTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>시작 시간 *</FormLabel>
+                    <FormLabel>{t('slotForm.startTimeLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="time" 
@@ -359,7 +360,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="endTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>종료 시간 *</FormLabel>
+                    <FormLabel>{t('slotForm.endTimeLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="time" 
@@ -377,11 +378,11 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>카테고리 *</FormLabel>
+                    <FormLabel>{t('slotForm.categoryLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-category">
-                          <SelectValue placeholder="카테고리 선택" />
+                          <SelectValue placeholder={t('slotForm.categorySelect')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -402,11 +403,11 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="serviceType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>서비스 타입 *</FormLabel>
+                    <FormLabel>{t('slotForm.serviceTypeLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-service-type">
-                          <SelectValue placeholder="서비스 타입 선택" />
+                          <SelectValue placeholder={t('slotForm.serviceTypeSelect')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -427,10 +428,10 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="location"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>위치</FormLabel>
+                    <FormLabel>{t('slotForm.locationLabel')}</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="예: 서울특별시 마포구 홍대입구역" 
+                        placeholder={t('slotForm.locationPlaceholder')} 
                         {...field} 
                         data-testid="input-location"
                       />
@@ -445,7 +446,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="maxParticipants"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>최대 참가자 *</FormLabel>
+                    <FormLabel>{t('slotForm.maxParticipantsLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -466,7 +467,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="basePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>가격 (KRW) *</FormLabel>
+                    <FormLabel>{t('slotForm.priceLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -488,9 +489,9 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>승인 필요</FormLabel>
+                      <FormLabel>{t('slotForm.requiresApprovalLabel')}</FormLabel>
                       <div className="text-sm text-gray-500">
-                        예약 시 수동 승인이 필요합니다
+                        {t('slotForm.requiresApprovalDesc')}
                       </div>
                     </div>
                     <FormControl>
@@ -510,9 +511,9 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>자동 확정</FormLabel>
+                      <FormLabel>{t('slotForm.autoConfirmLabel')}</FormLabel>
                       <div className="text-sm text-gray-500">
-                        예약 시 자동으로 확정됩니다
+                        {t('slotForm.autoConfirmDesc')}
                       </div>
                     </div>
                     <FormControl>
@@ -531,10 +532,10 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
                 name="cancellationPolicy"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>취소 정책</FormLabel>
+                    <FormLabel>{t('slotForm.cancellationLabel')}</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="취소 정책을 입력하세요..." 
+                        placeholder={t('slotForm.cancellationPlaceholder')} 
                         {...field} 
                         data-testid="textarea-cancellation-policy"
                       />
@@ -547,14 +548,14 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
-                취소
+                {t('slotForm.cancel')}
               </Button>
               <Button 
                 type="submit" 
                 disabled={createSlotMutation.isPending || updateSlotMutation.isPending}
                 data-testid="button-save-slot"
               >
-                {createSlotMutation.isPending || updateSlotMutation.isPending ? '저장 중...' : '저장'}
+                {createSlotMutation.isPending || updateSlotMutation.isPending ? t('slotForm.saving') : t('slotForm.save')}
               </Button>
             </div>
           </form>
@@ -674,8 +675,8 @@ export function SlotManagement() {
       {!slots || slots.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p>아직 생성된 슬롯이 없습니다.</p>
-          <p className="text-sm mt-2">첫 번째 슬롯을 생성해보세요!</p>
+          <p>{t('slotManagement.empty')}</p>
+          <p className="text-sm mt-2">{t('slotManagement.emptyHint')}</p>
         </div>
       ) : (
         <div className="grid gap-4" data-testid="slots-list">

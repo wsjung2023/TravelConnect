@@ -62,15 +62,12 @@ interface ServicePackageFormProps {
   package?: ServicePackage;
 }
 
-export default function ServicePackageForm({ ...$INIT$ }: any) {
-  const { t } = useTranslation('ui');
-  return _ServicePackageForm({ ...$INIT$ });
-}
-function _ServicePackageForm({ 
+export default function ServicePackageForm({ 
   isOpen, 
   onClose, 
   package: existingPackage 
 }: ServicePackageFormProps) {
+  const { t } = useTranslation('ui');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedItems, setSelectedItems] = useState<PackageItem[]>([]);
@@ -257,11 +254,11 @@ function _ServicePackageForm({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>패키지 제목</FormLabel>
+                    <FormLabel>{t('servicePackage.titleLabel')}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
-                        placeholder="예: 부산 완전정복 패키지"
+                        placeholder={t('servicePackage.titlePlaceholder')}
                         data-testid="input-package-title"
                       />
                     </FormControl>
@@ -275,11 +272,11 @@ function _ServicePackageForm({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>패키지 설명</FormLabel>
+                    <FormLabel>{t('servicePackage.descLabel')}</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="이 패키지에 포함된 서비스들과 특별한 혜택을 설명해주세요..."
+                        placeholder={t('servicePackage.descPlaceholder')}
                         rows={3}
                         data-testid="textarea-package-description"
                       />
@@ -295,7 +292,7 @@ function _ServicePackageForm({
                   name="totalPrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>총 가격 (원)</FormLabel>
+                      <FormLabel>{t('servicePackage.totalPriceLabel')}</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -314,7 +311,7 @@ function _ServicePackageForm({
                   name="discountPercentage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>할인율 (%)</FormLabel>
+                      <FormLabel>{t('servicePackage.discountLabel')}</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -342,7 +339,7 @@ function _ServicePackageForm({
                     addItem(type as 'experience' | 'template', parseInt(id));
                   }}>
                     <SelectTrigger className="w-48" data-testid="select-add-item">
-                      <SelectValue placeholder="서비스/템플릿 추가" />
+                      <SelectValue placeholder={t('servicePackage.addItemPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {templates.length > 0 && (
@@ -381,7 +378,7 @@ function _ServicePackageForm({
               {selectedItems.length === 0 ? (
                 <Card className="p-6 text-center text-gray-500">
                   <ShoppingBag className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>패키지에 포함할 서비스나 템플릿을 선택해주세요</p>
+                  <p>{t('servicePackage.emptyText')}</p>
                 </Card>
               ) : (
                 <div className="space-y-3">
