@@ -56887,6 +56887,42 @@
   },
   {
     "namespace": "ui",
+    "key": "serendipity.locationError",
+    "locale": "en",
+    "value": "Location Error"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.locationError",
+    "locale": "es",
+    "value": "Error de ubicación"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.locationError",
+    "locale": "fr",
+    "value": "Erreur de localisation"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.locationError",
+    "locale": "ja",
+    "value": "位置エラー"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.locationError",
+    "locale": "ko",
+    "value": "위치 오류"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.locationError",
+    "locale": "zh",
+    "value": "位置错误"
+  },
+  {
+    "namespace": "ui",
     "key": "serendipity.matchLabel",
     "locale": "en",
     "value": "You're nearby right now!"
@@ -57064,6 +57100,150 @@
     "key": "serendipity.moodTag.explore",
     "locale": "zh",
     "value": "探索"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatch",
+    "locale": "en",
+    "value": "No Match"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatch",
+    "locale": "es",
+    "value": "Sin coincidencias"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatch",
+    "locale": "fr",
+    "value": "Aucun résultat"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatch",
+    "locale": "ja",
+    "value": "一致する項目がありません"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatch",
+    "locale": "ko",
+    "value": "일치하는 항목 없음"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatch",
+    "locale": "zh",
+    "value": "没有匹配项"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatchDesc",
+    "locale": "en",
+    "value": "No Match Desc"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatchDesc",
+    "locale": "es",
+    "value": "No hay coincidencias. Intenta con otros criterios."
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatchDesc",
+    "locale": "fr",
+    "value": "Aucun résultat. Veuillez réessayer avec d'autres critères."
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatchDesc",
+    "locale": "ja",
+    "value": "一致する項目がありません。別の条件で再試行してください。"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatchDesc",
+    "locale": "ko",
+    "value": "일치하는 항목이 없습니다. 다른 조건으로 다시 시도해 보세요."
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.noMatchDesc",
+    "locale": "zh",
+    "value": "没有匹配项。请尝试其他条件。"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.searching",
+    "locale": "en",
+    "value": "Searching"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.searching",
+    "locale": "es",
+    "value": "Buscando"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.searching",
+    "locale": "fr",
+    "value": "Recherche en cours"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.searching",
+    "locale": "ja",
+    "value": "検索中"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.searching",
+    "locale": "ko",
+    "value": "검색 중"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.searching",
+    "locale": "zh",
+    "value": "搜索中"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.unknownTraveler",
+    "locale": "en",
+    "value": "Unknown Traveler"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.unknownTraveler",
+    "locale": "es",
+    "value": "Viajero desconocido"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.unknownTraveler",
+    "locale": "fr",
+    "value": "Voyageur inconnu"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.unknownTraveler",
+    "locale": "ja",
+    "value": "不明な旅行者"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.unknownTraveler",
+    "locale": "ko",
+    "value": "알 수 없는 여행자"
+  },
+  {
+    "namespace": "ui",
+    "key": "serendipity.unknownTraveler",
+    "locale": "zh",
+    "value": "未知的旅行者"
   },
   {
     "namespace": "ui",
