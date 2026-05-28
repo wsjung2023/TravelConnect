@@ -62,7 +62,11 @@ interface ServicePackageFormProps {
   package?: ServicePackage;
 }
 
-export default function ServicePackageForm({ 
+export default function ServicePackageForm({ ...$INIT$ }: any) {
+  const { t } = useTranslation('ui');
+  return _ServicePackageForm({ ...$INIT$ });
+}
+function _ServicePackageForm({ 
   isOpen, 
   onClose, 
   package: existingPackage 

@@ -89,6 +89,7 @@ const templateTypes = [
 ];
 
 export default function ServiceTemplateForm({ isOpen, onClose, template }: ServiceTemplateFormProps) {
+  const { t } = useTranslation('ui');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [includesTags, setIncludesTags] = useState<string[]>(template?.includes || []);

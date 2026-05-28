@@ -19,6 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import {
   Clock,
   Plus,
@@ -564,6 +565,7 @@ function SlotForm({ slot, isOpen, onClose }: SlotFormProps) {
 }
 
 export function SlotManagement() {
+  const { t } = useTranslation('ui');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<Slot | null>(null);
   const { toast } = useToast();

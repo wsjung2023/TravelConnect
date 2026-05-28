@@ -29527,6 +29527,78 @@
   },
   {
     "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "en",
+    "value": "Tourgether acts as a mail-order intermediary and is not a party to any transaction."
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "es",
+    "value": "Descargo de responsabilidad"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "fr",
+    "value": "Avertissement"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "ja",
+    "value": "免責事項"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "ko",
+    "value": "투게더는 통신판매중개자로서 거래 당사자가 아닙니다."
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "zh",
+    "value": "免责声明"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "en",
+    "value": "Valencia | Business Reg: 124-51-71915 | Mail-Order Sales: 2014-Seoul Gangnam-03505"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "es",
+    "value": "Información"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "fr",
+    "value": "Info"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "ja",
+    "value": "情報"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "ko",
+    "value": "발렌시아 | 사업자등록번호: 124-51-71915 | 통신판매업: 제2014-서울강남-03505호"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "zh",
+    "value": "信息"
+  },
+  {
+    "namespace": "ui",
     "key": "guide.categoryActivity",
     "locale": "en",
     "value": "Activity"
@@ -35500,6 +35572,42 @@
     "key": "labels.title",
     "locale": "zh",
     "value": "标题"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "en",
+    "value": "Tourgether - Map-based Travel SNS | Travel with Locals"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "es",
+    "value": "Título SEO"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "fr",
+    "value": "Titre SEO"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "ja",
+    "value": "SEOタイトル"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "ko",
+    "value": "투어게더(Tourgether) - 지도 기반 여행 SNS | 로컬과 함께하는 여행"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "zh",
+    "value": "SEO标题"
   },
   {
     "namespace": "ui",
@@ -45400,6 +45508,438 @@
     "key": "onboarding.userTypes.traveler.title",
     "locale": "zh",
     "value": "旅行者"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "en",
+    "value": "Activate"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "es",
+    "value": "Activar"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "fr",
+    "value": "Activer"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "ja",
+    "value": "アクティブ化"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "ko",
+    "value": "활성화"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "zh",
+    "value": "激活"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "en",
+    "value": "Active hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "es",
+    "value": "Etiqueta de horas activas"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "fr",
+    "value": "Étiquette des heures actives"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "ja",
+    "value": "アクティブ時間ラベル"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "ko",
+    "value": "활성 시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "zh",
+    "value": "活动时间标签"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "en",
+    "value": "Auto-filling from current location..."
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "es",
+    "value": "Relleno automático"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "fr",
+    "value": "Remplissage automatique"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "ja",
+    "value": "自動入力"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "ko",
+    "value": "현재 위치로 자동 채움 중…"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "zh",
+    "value": "自动填充"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "en",
+    "value": "Cancel"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "es",
+    "value": "Cancelar"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "fr",
+    "value": "Annuler"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "ja",
+    "value": "キャンセル"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "ko",
+    "value": "취소"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "zh",
+    "value": "取消"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "en",
+    "value": "12 hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "es",
+    "value": "Horas12"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "fr",
+    "value": "Heures12"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "ja",
+    "value": "12時間"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "ko",
+    "value": "12시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "zh",
+    "value": "12小时"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "en",
+    "value": "24 hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "es",
+    "value": "Horas24"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "fr",
+    "value": "Heures24"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "ja",
+    "value": "24時間"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "ko",
+    "value": "24시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "zh",
+    "value": "24小时"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "en",
+    "value": "6 hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "es",
+    "value": "Horas6"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "fr",
+    "value": "Heures6"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "ja",
+    "value": "6時間"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "ko",
+    "value": "6시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "zh",
+    "value": "6小时"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "en",
+    "value": "Search neighborhood, city, or place (e.g. Gangnam-gu, Shinjuku, Le Marais)"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "es",
+    "value": "Marcador de posición"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "fr",
+    "value": "Espace réservé"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "ja",
+    "value": "プレースホルダー"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "ko",
+    "value": "동네·도시·장소 검색 (예: 강남구, Shinjuku, Le Marais)"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "zh",
+    "value": "占位符"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "en",
+    "value": "Use current location"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "es",
+    "value": "Usar ubicación actual"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "fr",
+    "value": "Utiliser la position actuelle"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "ja",
+    "value": "現在地を使用"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "ko",
+    "value": "현재 위치 사용"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "zh",
+    "value": "使用当前位置"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "en",
+    "value": "Delete the '{{title}}' package?"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "es",
+    "value": "Confirmar eliminación"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "fr",
+    "value": "Confirmer la suppression"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "ja",
+    "value": "削除確認"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "ko",
+    "value": "'{{title}}' 패키지를 삭제하시겠습니까?"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "zh",
+    "value": "确认删除"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "en",
+    "value": "This action cannot be undone."
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "es",
+    "value": "Eliminación irreversible"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "fr",
+    "value": "Suppression irréversible"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "ja",
+    "value": "削除は取り消せません"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "ko",
+    "value": "이 작업은 되돌릴 수 없습니다."
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "zh",
+    "value": "删除不可逆"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "en",
+    "value": "Delete Package"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "es",
+    "value": "Título de eliminación"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "fr",
+    "value": "Titre de suppression"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "ja",
+    "value": "削除タイトル"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "ko",
+    "value": "패키지 삭제"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "zh",
+    "value": "删除标题"
   },
   {
     "namespace": "ui",
@@ -57247,6 +57787,150 @@
   },
   {
     "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "en",
+    "value": "Failed to load slots."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "es",
+    "value": "Error de carga"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "fr",
+    "value": "Erreur de chargement"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "ja",
+    "value": "読み込みエラー"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "ko",
+    "value": "슬롯을 불러오는데 실패했습니다."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "zh",
+    "value": "加载错误"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "en",
+    "value": "Loading slots..."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "es",
+    "value": "Cargando"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "fr",
+    "value": "Chargement"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "ja",
+    "value": "読み込み中"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "ko",
+    "value": "슬롯을 불러오는 중..."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "zh",
+    "value": "加载中"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "en",
+    "value": "Available Slots"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "es",
+    "value": "Título"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "fr",
+    "value": "Titre"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "ja",
+    "value": "タイトル"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "ko",
+    "value": "예약 가능한 슬롯"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "zh",
+    "value": "标题"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "en",
+    "value": "{{count}} slot(s) in total"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "es",
+    "value": "Total"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "fr",
+    "value": "Nombre total"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "ja",
+    "value": "合計数"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "ko",
+    "value": "총 {{count}}개의 슬롯"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "zh",
+    "value": "总计"
+  },
+  {
+    "namespace": "ui",
     "key": "sreq.budget.label",
     "locale": "en",
     "value": "Budget"
@@ -60199,6 +60883,114 @@
   },
   {
     "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "en",
+    "value": "One-line note"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "es",
+    "value": "Etiqueta"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "fr",
+    "value": "Étiquette"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "ja",
+    "value": "ラベル"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "ko",
+    "value": "한 줄 기록"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "zh",
+    "value": "标签"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "en",
+    "value": "Sum up your day in one line..."
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "es",
+    "value": "Marcador de posición"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "fr",
+    "value": "Espace réservé"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "ja",
+    "value": "プレースホルダー"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "ko",
+    "value": "오늘 하루를 한 줄로 표현해보세요..."
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "zh",
+    "value": "占位符"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "en",
+    "value": "Upload progress"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "es",
+    "value": "Progreso de carga"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "fr",
+    "value": "Progression de l'upload"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "ja",
+    "value": "アップロード進行状況"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "ko",
+    "value": "업로드 진행률"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "zh",
+    "value": "上传进度"
+  },
+  {
+    "namespace": "ui",
     "key": "trending.title",
     "locale": "en",
     "value": "Trending"
@@ -60664,269 +61456,5 @@
     "key": "review.rating",
     "locale": "zh",
     "value": "请选择评分"
-  },
-  {
-    "namespace": "ui",
-    "key": "footer.legal.info",
-    "locale": "ko",
-    "value": "발렌시아 | 사업자등록번호: 124-51-71915 | 통신판매업: 제2014-서울강남-03505호"
-  },
-  {
-    "namespace": "ui",
-    "key": "footer.legal.info",
-    "locale": "en",
-    "value": "Valencia | Business Reg: 124-51-71915 | Mail-Order Sales: 2014-Seoul Gangnam-03505"
-  },
-  {
-    "namespace": "ui",
-    "key": "footer.legal.disclaimer",
-    "locale": "ko",
-    "value": "투게더는 통신판매중개자로서 거래 당사자가 아닙니다."
-  },
-  {
-    "namespace": "ui",
-    "key": "footer.legal.disclaimer",
-    "locale": "en",
-    "value": "Tourgether acts as a mail-order intermediary and is not a party to any transaction."
-  },
-  {
-    "namespace": "ui",
-    "key": "packageList.deleteTitle",
-    "locale": "ko",
-    "value": "패키지 삭제"
-  },
-  {
-    "namespace": "ui",
-    "key": "packageList.deleteTitle",
-    "locale": "en",
-    "value": "Delete Package"
-  },
-  {
-    "namespace": "ui",
-    "key": "packageList.deleteConfirm",
-    "locale": "ko",
-    "value": "'{{title}}' 패키지를 삭제하시겠습니까?"
-  },
-  {
-    "namespace": "ui",
-    "key": "packageList.deleteConfirm",
-    "locale": "en",
-    "value": "Delete the '{{title}}' package?"
-  },
-  {
-    "namespace": "ui",
-    "key": "packageList.deleteIrreversible",
-    "locale": "ko",
-    "value": "이 작업은 되돌릴 수 없습니다."
-  },
-  {
-    "namespace": "ui",
-    "key": "packageList.deleteIrreversible",
-    "locale": "en",
-    "value": "This action cannot be undone."
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.title",
-    "locale": "ko",
-    "value": "예약 가능한 슬롯"
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.title",
-    "locale": "en",
-    "value": "Available Slots"
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.loading",
-    "locale": "ko",
-    "value": "슬롯을 불러오는 중..."
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.loading",
-    "locale": "en",
-    "value": "Loading slots..."
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.loadError",
-    "locale": "ko",
-    "value": "슬롯을 불러오는데 실패했습니다."
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.loadError",
-    "locale": "en",
-    "value": "Failed to load slots."
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.totalCount",
-    "locale": "ko",
-    "value": "총 {{count}}개의 슬롯"
-  },
-  {
-    "namespace": "ui",
-    "key": "slotBrowser.totalCount",
-    "locale": "en",
-    "value": "{{count}} slot(s) in total"
-  },
-  {
-    "namespace": "ui",
-    "key": "timelineCard.label",
-    "locale": "ko",
-    "value": "한 줄 기록"
-  },
-  {
-    "namespace": "ui",
-    "key": "timelineCard.label",
-    "locale": "en",
-    "value": "One-line note"
-  },
-  {
-    "namespace": "ui",
-    "key": "timelineCard.placeholder",
-    "locale": "ko",
-    "value": "오늘 하루를 한 줄로 표현해보세요..."
-  },
-  {
-    "namespace": "ui",
-    "key": "timelineCard.placeholder",
-    "locale": "en",
-    "value": "Sum up your day in one line..."
-  },
-  {
-    "namespace": "ui",
-    "key": "timelineCreate.uploadProgress",
-    "locale": "ko",
-    "value": "업로드 진행률"
-  },
-  {
-    "namespace": "ui",
-    "key": "timelineCreate.uploadProgress",
-    "locale": "en",
-    "value": "Upload progress"
-  },
-  {
-    "namespace": "ui",
-    "key": "landing.seoTitle",
-    "locale": "ko",
-    "value": "투어게더(Tourgether) - 지도 기반 여행 SNS | 로컬과 함께하는 여행"
-  },
-  {
-    "namespace": "ui",
-    "key": "landing.seoTitle",
-    "locale": "en",
-    "value": "Tourgether - Map-based Travel SNS | Travel with Locals"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.autoFilling",
-    "locale": "ko",
-    "value": "현재 위치로 자동 채움 중…"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.autoFilling",
-    "locale": "en",
-    "value": "Auto-filling from current location..."
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.placeholder",
-    "locale": "ko",
-    "value": "동네·도시·장소 검색 (예: 강남구, Shinjuku, Le Marais)"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.placeholder",
-    "locale": "en",
-    "value": "Search neighborhood, city, or place (e.g. Gangnam-gu, Shinjuku, Le Marais)"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.useCurrentLocation",
-    "locale": "ko",
-    "value": "현재 위치 사용"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.useCurrentLocation",
-    "locale": "en",
-    "value": "Use current location"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.activeHoursLabel",
-    "locale": "ko",
-    "value": "활성 시간"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.activeHoursLabel",
-    "locale": "en",
-    "value": "Active hours"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.hours6",
-    "locale": "ko",
-    "value": "6시간"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.hours6",
-    "locale": "en",
-    "value": "6 hours"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.hours12",
-    "locale": "ko",
-    "value": "12시간"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.hours12",
-    "locale": "en",
-    "value": "12 hours"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.hours24",
-    "locale": "ko",
-    "value": "24시간"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.hours24",
-    "locale": "en",
-    "value": "24 hours"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.activate",
-    "locale": "ko",
-    "value": "활성화"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.activate",
-    "locale": "en",
-    "value": "Activate"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.cancelBtn",
-    "locale": "ko",
-    "value": "취소"
-  },
-  {
-    "namespace": "ui",
-    "key": "openToMeet.cancelBtn",
-    "locale": "en",
-    "value": "Cancel"
   }
 ]
