@@ -61,20 +61,11 @@ export function useWebSocket() {
         console.log('WebSocket 연결됨');
         reconnectAttemptsRef.current = 0; // 연결 성공 시 재연결 카운터 리셋
         
-        // JWT 토큰으로 인증 메시지 전송 (보안 강화)
+        // Task #9: WebSocket 인증을 쿠키 기반으로 전환.
+        // 서버는 upgrade 요청의 tg_access 쿠키로 자동 인증한다. 클라이언트는 명시적 인증 메시지를 보낼 필요 없음.
         if (ws.current && user?.id) {
           try {
-            const token = localStorage.getItem('token');
-            if (token) {
-              ws.current.send(JSON.stringify({
-                type: 'auth',
-                token: token
-              }));
-            } else {
-              console.error('JWT 토큰이 없어 WebSocket 인증 실패');
-              ws.current.close();
-              return;
-            }
+            ws.current.send(JSON.stringify({ type: 'auth' }));
           } catch (sendError) {
             console.error('WebSocket 인증 메시지 전송 실패:', sendError);
             return;

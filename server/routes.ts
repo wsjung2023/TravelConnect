@@ -2448,14 +2448,17 @@ COMMIT;
         const message = JSON.parse(data.toString());
 
         if (message.type === 'auth') {
-          // JWT 토큰 검증으로 보안 강화
-          const token = message.token;
+          // Task #9: WebSocket 인증을 쿠키 기반으로 전환.
+          // 우선 upgrade 요청의 tg_access 쿠키에서 토큰을 읽고, 없으면 (레거시) message.token 사용.
+          const { readCookie, COOKIE_ACCESS } = await import('./utils/cookies');
+          const cookieToken = readCookie(req as any, COOKIE_ACCESS);
+          const token = cookieToken || message.token;
           if (!token) {
-            console.error('WebSocket: Missing authentication token');
-            ws.close(4001, 'Missing authentication token');
+            console.error('WebSocket: Missing authentication cookie/token');
+            ws.close(4001, 'Missing authentication');
             return;
           }
-          
+
           const decoded = verifyToken(token);
           if (!decoded) {
             console.error('WebSocket: Invalid authentication token');
@@ -2479,7 +2482,7 @@ COMMIT;
 
           userId = decoded.id;
           clients.set(userId, ws);
-          console.log(`WebSocket: User ${userId} authenticated successfully`);
+          console.log(`WebSocket: User ${userId} authenticated via ${cookieToken ? 'cookie' : 'legacy-bearer'}`);
           ws.send(JSON.stringify({ type: 'auth_success', userId }));
           return;
         }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'wouter';
 import { ArrowLeft, MapPin, Globe, Heart, Sparkles, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MatchUser {
   id: string;
@@ -40,28 +41,27 @@ export default function SerendipityPage() {
   const { t } = useTranslation('ui');
   const [, setLocation] = useLocation();
 
+  const { user: authUser } = useAuth();
   const [matchStatus, setMatchStatus] = useState<MatchStatus>('loading');
   const [selfUser, setSelfUser] = useState<MatchUser | null>(null);
   const [matchedUser, setMatchedUser] = useState<MatchUser | null>(null);
 
+  // Task #9: localStorage('user') 대신 useAuth() 훅(서버 /api/auth/me)을 신뢰원으로 사용.
   useEffect(() => {
-    // 현재 사용자 기본 정보 (localStorage)
-    try {
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        setSelfUser({
-          id: u.id ?? 'me',
-          name: u.firstName || u.username || '나',
-          avatarUrl: u.profileImageUrl ?? null,
-          initials: (u.firstName?.[0] || '?').toUpperCase(),
-          location: u.location ?? undefined,
-          interests: u.travelStyles ?? [],
-          languages: u.languages ?? [],
-        });
-      }
-    } catch { /* ignore */ }
+    if (!authUser) return;
+    const u: any = authUser;
+    setSelfUser({
+      id: u.id ?? 'me',
+      name: u.firstName || u.username || '나',
+      avatarUrl: u.profileImageUrl ?? null,
+      initials: (u.firstName?.[0] || '?').toUpperCase(),
+      location: u.location ?? undefined,
+      interests: u.travelStyles ?? [],
+      languages: u.languages ?? [],
+    });
+  }, [authUser]);
 
+  useEffect(() => {
     // GPS → serendipity/check
     if (!navigator.geolocation) {
       setMatchStatus('error');

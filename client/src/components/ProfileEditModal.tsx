@@ -136,12 +136,13 @@ export default function ProfileEditModal({
         formData.append('image', imageFile);
 
         try {
+          // Task #9: 쿠키 전용 인증. credentials:'include' + X-CSRF-Token 헤더 송신.
+          const { withCsrfHeader } = await import('@/lib/csrf');
           const uploadRes = await fetch('/api/upload/image', {
             method: 'POST',
             body: formData,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
+            credentials: 'include',
+            headers: withCsrfHeader(),
           });
 
           if (!uploadRes.ok) {

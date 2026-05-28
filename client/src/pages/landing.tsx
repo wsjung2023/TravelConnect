@@ -54,9 +54,9 @@ export default function Landing() {
   };
 
   useEffect(() => {
+    // Task #9: OAuth URL 토큰 → 쿠키 교환은 useAuth.fetchAuthUser에서 처리.
+    // 이 페이지에서는 OAuth 에러 메시지만 표시.
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const userParam = urlParams.get('user');
     const error = urlParams.get('error');
 
     if (error) {
@@ -77,20 +77,6 @@ export default function Landing() {
 
       alert(errorMessage);
       window.history.replaceState({}, document.title, '/');
-      return;
-    }
-
-    if (token && userParam) {
-      try {
-        const user = JSON.parse(decodeURIComponent(userParam));
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        window.history.replaceState({}, document.title, '/');
-        window.location.reload();
-      } catch (error) {
-        console.error('구글 OAuth 콜백 처리 오류:', error);
-        alert('로그인 데이터 처리 중 오류가 발생했습니다');
-      }
     }
   }, []);
 

@@ -157,11 +157,13 @@ export const authenticateToken: RequestHandler = async (req, res, next) => {
   const cookieToken = readCookie(req, COOKIE_ACCESS);
   const { isAccessTokenRevoked } = await import('./services/tokenService');
 
-  // H-5: 후보 토큰을 순서대로 시도 — (1) Bearer (있고 유효하면 우선) (2) 쿠키 폴백.
-  // stale Bearer가 유효한 쿠키를 가리지 않도록 둘 다 시도한다(점진 마이그레이션 안정성).
+  // Task #9: 쿠키 우선. Bearer는 OAuth URL 토큰 → 쿠키 교환(/api/auth/refresh/issue) 등 잔존 호환 경로용으로만 허용 (DEPRECATED).
   const candidates: Array<{ token: string; viaCookie: boolean }> = [];
-  if (bearer) candidates.push({ token: bearer, viaCookie: false });
-  if (cookieToken && cookieToken !== bearer) candidates.push({ token: cookieToken, viaCookie: true });
+  if (cookieToken) candidates.push({ token: cookieToken, viaCookie: true });
+  if (bearer && bearer !== cookieToken) {
+    console.warn(`[AUTH][DEPRECATED] Bearer header used on ${req.method} ${req.path} — migrate to cookie auth.`);
+    candidates.push({ token: bearer, viaCookie: false });
+  }
 
   if (candidates.length === 0) {
     return res.status(401).json({ message: 'Access token required' });
@@ -203,7 +205,7 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   console.log(`[AUTH] Session user:`, req.user ? 'PRESENT' : 'NOT PRESENT');
   console.log(`[AUTH] Authorization header:`, req.headers.authorization ? 'PRESENT' : 'NOT PRESENT');
   
-  // 1. JWT Bearer + 쿠키 토큰 후보 수집 (둘 중 하나라도 유효하면 통과 — stale Bearer가 쿠키 인증을 가리지 않게)
+  // Task #9: 쿠키 우선. Bearer는 OAuth 토큰 교환 등 잔존 호환 경로용으로만 (DEPRECATED).
   const authHeader = req.headers.authorization;
   let bearer = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
   if (bearer === 'null' || bearer === 'undefined' || bearer === '') bearer = undefined as any;
@@ -212,8 +214,11 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   const cookieToken = readCookie(req, COOKIE_ACCESS);
 
   const candidates: Array<{ token: string; viaCookie: boolean }> = [];
-  if (bearer) candidates.push({ token: bearer, viaCookie: false });
-  if (cookieToken && cookieToken !== bearer) candidates.push({ token: cookieToken, viaCookie: true });
+  if (cookieToken) candidates.push({ token: cookieToken, viaCookie: true });
+  if (bearer && bearer !== cookieToken) {
+    console.warn(`[AUTH][DEPRECATED] Bearer header used on ${req.method} ${req.path} (Hybrid) — migrate to cookie auth.`);
+    candidates.push({ token: bearer, viaCookie: false });
+  }
 
   if (candidates.length > 0) {
     for (const cand of candidates) {

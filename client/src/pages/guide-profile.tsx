@@ -87,12 +87,11 @@ export default function GuideProfile() {
 
     setIsSendingMessage(true);
     try {
+      // Task #9: 쿠키 전용 인증 + CSRF.
+      const { withCsrfHeader } = await import('@/lib/csrf');
       const response = await fetch('/api/conversations', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         credentials: 'include',
         body: JSON.stringify({ participant2Id: guideId }),
       });

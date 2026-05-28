@@ -95,10 +95,12 @@ export default function AdminPage() {
   // POI 시딩 뮤테이션
   const poiSeedMutation = useMutation({
     mutationFn: async () => {
-      const token = localStorage.getItem('token');
+      // Task #9: 쿠키 전용 인증 + CSRF.
+      const { withCsrfHeader } = await import('@/lib/csrf');
       const res = await fetch('/api/poi/seed', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+        headers: withCsrfHeader(),
       });
       if (!res.ok) throw new Error('POI seed failed');
       return res.json();
@@ -121,10 +123,8 @@ export default function AdminPage() {
   }>({
     queryKey: ['/api/admin/i18n/audit'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/admin/i18n/audit', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      // Task #9: 쿠키 전용 인증.
+      const res = await fetch('/api/admin/i18n/audit', { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to fetch i18n audit');
       return res.json();
     },
@@ -134,10 +134,12 @@ export default function AdminPage() {
   // i18n 동기화 뮤테이션
   const i18nSyncMutation = useMutation({
     mutationFn: async () => {
-      const token = localStorage.getItem('token');
+      // Task #9: 쿠키 전용 인증 + CSRF.
+      const { withCsrfHeader } = await import('@/lib/csrf');
       const res = await fetch('/api/admin/i18n/sync', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+        headers: withCsrfHeader(),
       });
       if (!res.ok) throw new Error('i18n sync failed');
       return res.json();

@@ -196,12 +196,12 @@ function LegalDocumentViewer({ documentType }: { documentType: DocumentType }) {
 
     try {
       setSaving(true);
+      // Task #9: 쿠키 전용 인증 + CSRF.
+      const { withCsrfHeader } = await import('@/lib/csrf');
       const response = await fetch(`/api/legal/${documentType}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        credentials: 'include',
+        headers: withCsrfHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ content: editContent }),
       });
 

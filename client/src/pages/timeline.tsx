@@ -106,9 +106,6 @@ export default function TimelinePage() {
     queryFn: async () => {
       const response = await fetch(`/api/timelines/${selectedTimelineId}/media`, {
         credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
       });
       if (!response.ok) throw new Error('Failed to fetch timeline media');
       return response.json();
@@ -122,9 +119,6 @@ export default function TimelinePage() {
     queryFn: async () => {
       const response = await fetch(`/api/cinemap/jobs/timeline/${selectedTimelineId}`, {
         credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
       });
       if (!response.ok) {
         if (response.status === 404) return [];

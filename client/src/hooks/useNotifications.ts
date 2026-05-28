@@ -72,17 +72,9 @@ export function useNotifications() {
 
     ws.onopen = () => {
       console.log('WebSocket 연결됨');
-      // JWT 토큰으로 인증 (useWebSocket과 동일한 방식)
-      const token = localStorage.getItem('token');
-      if (token) {
-        ws.send(JSON.stringify({
-          type: 'auth',
-          token: token
-        }));
-      } else {
-        console.error('JWT 토큰이 없어 WebSocket 인증 실패');
-        ws.close();
-      }
+      // Task #9: WebSocket 인증을 쿠키 기반으로 전환.
+      // 서버는 upgrade 요청의 tg_access 쿠키로 자동 인증한다.
+      ws.send(JSON.stringify({ type: 'auth' }));
     };
 
     ws.onmessage = (event) => {

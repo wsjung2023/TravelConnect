@@ -33,10 +33,11 @@ export default function SavedPostsTab() {
       setSavedPostIds((prev) => new Set(prev).add(postId));
     }
     try {
-      const token = localStorage.getItem('token');
+      // Task #9: 쿠키 전용 인증 + CSRF.
+      const { withCsrfHeader } = await import('@/lib/csrf');
       const response = await fetch(`/api/posts/${postId}/save`, {
         method: isSaved ? 'DELETE' : 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: withCsrfHeader(),
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to update bookmark');
