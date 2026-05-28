@@ -2165,12 +2165,14 @@ COMMIT;
       if (interests !== undefined) updateData.interests = interests;
       if (languages !== undefined) updateData.languages = languages;
 
-      console.log(`[PATCH /api/user/profile] Updating user ${userId} with:`, updateData);
+      // updateData를 로그로 찍을 때 password 같은 민감 키를 우회 출력하지 않도록 키 목록만 노출
+      console.log(`[PATCH /api/user/profile] Updating user ${userId} fields=${Object.keys(updateData).join(',')}`);
 
       const user = await storage.upsertUser(updateData);
-      
+
       console.log(`[PATCH /api/user/profile] Successfully updated user ${userId}`);
-      res.json(user);
+      const { sanitizeUser } = await import('./utils/sanitizeUser');
+      res.json(sanitizeUser(user));
     } catch (error: any) {
       console.error('[PATCH /api/user/profile] Error updating profile:', {
         error: error.message,

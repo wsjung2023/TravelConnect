@@ -483,65 +483,62 @@ export function registerLegacyBillingRoutes(
       }
 
       const { paymentId, txId, type, contractId, stageId } = req.body;
-
-      // T4: PortOne 결제 상세 조회 → receiptUrl 확보. 응답에 포함하여 클라이언트가 즉시 영수증 링크 사용 가능.
-      // 추가로 payments.intentId 매칭 row 발견 시 DB도 업데이트 (best-effort; 일부 흐름은 intentId 미저장 → 0건 정상).
-      let receiptUrl: string | undefined;
-      try {
-        const { portoneClient } = await import('../services/portoneClient');
-        const payInfo = await portoneClient.getPayment(paymentId);
-        if (payInfo.success && payInfo.receiptUrl) {
-          receiptUrl = payInfo.receiptUrl;
-          try {
-            const { db } = await import('../db');
-            const { payments } = await import('@shared/schema');
-            const { eq } = await import('drizzle-orm');
-            const updated = await db
-              .update(payments)
-              .set({ receiptUrl, updatedAt: new Date() })
-              .where(eq(payments.intentId, paymentId))
-              .returning({ id: payments.id });
-            console.log(`[Billing] receiptUrl: paymentId=${paymentId}, db_updated=${updated.length}건`);
-          } catch (dbErr) {
-            console.warn('[Billing] receiptUrl DB 저장 실패 (응답에는 포함됨):', dbErr);
-          }
-        }
-      } catch (receiptErr) {
-        console.warn('[Billing] PortOne getPayment 실패 (결제 처리는 계속):', receiptErr);
+      if (!paymentId) {
+        return res.status(400).json({ message: 'paymentId required' });
       }
-      // 응답에 receiptUrl 포함 (모든 type 공통)
-      (res as any).locals = (res as any).locals || {};
-      (res as any).locals.receiptUrl = receiptUrl;
+
+      // SECURITY: PortOne 서버 검증 — status==='PAID' 필수. 통과 못하면 어떤 type이든 거절.
+      const { portoneClient } = await import('../services/portoneClient');
+      const payInfo = await portoneClient.getPayment(String(paymentId));
+      if (!payInfo.success) {
+        console.warn(`[Billing] confirm-payment lookup 실패 user=${req.user.id} paymentId=${paymentId} err=${payInfo.error}`);
+        return res.status(400).json({ success: false, verified: false, message: payInfo.error || 'Payment lookup failed' });
+      }
+      const isPaid = payInfo.status === 'PAID' || payInfo.status === 'paid';
+      if (!isPaid) {
+        console.warn(`[Billing] confirm-payment 비-PAID status user=${req.user.id} paymentId=${paymentId} status=${payInfo.status}`);
+        return res.status(400).json({ success: false, verified: false, status: payInfo.status, message: 'Payment is not in PAID state' });
+      }
+
+      // receiptUrl 보존 + payments row가 있으면 amount 정합성 확인(서버 측 원장)
+      let receiptUrl: string | undefined = payInfo.receiptUrl;
+      try {
+        const { db } = await import('../db');
+        const { payments } = await import('@shared/schema');
+        const { eq } = await import('drizzle-orm');
+        const rows = await db.select().from(payments).where(eq(payments.intentId, String(paymentId))).limit(1);
+        if (rows.length > 0) {
+          const expected = Number(rows[0].amount);
+          if (payInfo.amount !== undefined && expected && payInfo.amount !== expected) {
+            console.warn(`[Billing] 금액 불일치 user=${req.user.id} paymentId=${paymentId} expected=${expected} actual=${payInfo.amount}`);
+            return res.status(400).json({ success: false, verified: false, message: 'Amount mismatch', expected, actual: payInfo.amount });
+          }
+          await db.update(payments)
+            .set({ receiptUrl: receiptUrl ?? rows[0].receiptUrl, status: 'captured', updatedAt: new Date() })
+            .where(eq(payments.intentId, String(paymentId)));
+        }
+      } catch (dbErr) {
+        console.warn('[Billing] payments 원장 검증/업데이트 실패 (PortOne 검증은 통과):', dbErr);
+      }
 
       if (type === 'trip_pass') {
-        res.json({
-          success: true,
-          message: 'Trip Pass payment confirmed'
-        });
+        return res.json({ success: true, verified: true, receiptUrl, message: 'Trip Pass payment confirmed' });
       } else if (type === 'subscription') {
-        res.json({ 
-          success: true, 
-          message: 'Subscription payment confirmed'
-        });
+        return res.json({ success: true, verified: true, receiptUrl, message: 'Subscription payment confirmed' });
       } else if (type === 'contract' && contractId && stageId) {
         const { escrowService } = await import('../services/escrowService');
         const result = await escrowService.handlePaymentComplete({
           contractId,
           stageId,
           portonePaymentId: paymentId,
-          paidAmount: 0,
+          paidAmount: payInfo.amount ?? 0,
         });
-        
         if (!result.success) {
-          return res.status(400).json({ message: result.error });
+          return res.status(400).json({ success: false, message: result.error });
         }
-        
-        res.json({ 
-          success: true, 
-          message: 'Contract payment confirmed'
-        });
+        return res.json({ success: true, verified: true, receiptUrl, message: 'Contract payment confirmed' });
       } else {
-        res.status(400).json({ message: 'Invalid payment type' });
+        return res.status(400).json({ message: 'Invalid payment type' });
       }
     } catch (error) {
       console.error('Error confirming payment:', error);

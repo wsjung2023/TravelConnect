@@ -368,7 +368,9 @@ router.get('/user', authenticateToken, async (req: any, res: Response) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     const user = await storage.getUser(req.user.id);
-    res.json(user);
+    // 비밀번호 해시 등 민감 필드는 응답에서 제거
+    const { sanitizeUser } = await import('../utils/sanitizeUser');
+    res.json(sanitizeUser(user));
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Failed to fetch user' });

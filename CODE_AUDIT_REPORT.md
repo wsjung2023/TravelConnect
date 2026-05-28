@@ -1,11 +1,57 @@
 # TravelConnect 전수검사 — 현재 문제점 분석 보고서
 
-> 초안 작성일: 2026-05-20  
-> 재검증·수정일: 2026-05-21  
+> 초안 작성일: 2026-05-20
+> 재검증·수정일: 2026-05-21
+> **최신 갱신: 2026-05-28** — D 카테고리 전체 구현 + 신규 Critical 2건 즉시 수정
 > 범위: 백엔드(Express), 프론트엔드(React/Vite), 공유 스키마, 설정 파일, 비즈니스 로직 전체
 
-> **재검증 방법**: 각 항목을 실제 코드 기준으로 재분류 — `오진(false positive)` / `과장(overstated)` / `실제문제(confirmed)`.  
+> **재검증 방법**: 각 항목을 실제 코드 기준으로 재분류 — `오진(false positive)` / `과장(overstated)` / `실제문제(confirmed)`.
 > 오진·과장 항목은 건드리지 않음. 실제 문제 중 안전한 것은 즉시 수정, 위험하거나 큰 것은 `FIXME-TODO` / `SECURITY-TODO` 마커 삽입.
+
+---
+
+## 🔄 2026-05-28 변경 요약 (이번 라운드)
+
+### ✅ A·B·C·D 카테고리 전체 처리 완료
+이전까지 보류였던 **D 카테고리(이메일 인증·로그아웃 영속화·전자서명·refresh 토큰 등)** 코드 구현 완료.
+상세는 `docs/AUDIT_FIXME_REPORT.md` 참조. 핵심 변경:
+
+- **JWT Refresh Token (H-1, T15)** — `refreshTokens`/`revokedTokens` 테이블 + 회전 트랜잭션 + 재사용 탐지 시 사용자 전체 폐기
+- **로그아웃 세션 영속화 (H-2)** — 인메모리 `Set` → `revoked_tokens` 테이블, `authenticateToken`에서 매 요청 검증
+- **이메일 인증 (auth.ts:127)** — `emailVerificationTokens` + 가입 시 `isEmailVerified=false` + 24h 토큰
+- **전자서명 (escrowService.ts:247)** — `contractSignatures` HMAC-SHA256 + IP/UA/timestamp 감사 로그
+- **신고 시스템 (T13)** — `reports` 테이블 + CRUD API + `/admin/reports` 대시보드
+- **N+1 패키지 (H-6, T10)** — 단일 IN 쿼리로 일괄 fetch
+- **Transfer 송금 3중 게이트** — `TRANSFER_ENABLED + SETTLEMENT_ENABLED + kycVerified`
+
+### 🚨 이번 라운드에 신규 발견된 Critical (즉시 수정 완료)
+
+| ID | 항목 | 파일 | 수정 내용 |
+|----|------|------|-----------|
+| C-5 | **password hash 응답 노출** | `server/routes/auth.ts:371`, `server/routes.ts:2173` | `server/utils/sanitizeUser.ts` 신설, 두 엔드포인트에서 `password`/`passwordHash` 제거 후 응답 |
+| C-6 | **결제 검증 가짜 응답** (`/api/billing/confirm-payment`) | `server/routes/billing.legacy.ts:479` (active), `server/routes/billing.ts:358` (mirror) | PortOne `getPayment` 호출 → `status==='PAID'` 필수, `payments.intentId` 매칭 시 DB 원장 amount와 일치 검증, 통과 시에만 `verified:true` 반환 |
+
+### ⚠️ 여전히 미수정 (이전 보고서 항목, 별도 작업 필요)
+| ID | 항목 | 사유 |
+|----|------|------|
+| C-1 | IDOR 댓글 오퍼 상태 권한 검증 | 별도 작업 |
+| C-2 | Admin Raw SQL 엔드포인트 (SQL 인젝션) | 화이트리스트 재설계 별도 작업 |
+| C-3 | 타임라인 무인증 조회 (`GET /api/timelines/:id`) | 별도 작업 |
+| H-3 | CSP `unsafe-inline`/`unsafe-eval` | PortOne/AdSense 호환 위해 의도적 유지 — nonce 전환은 빌드 파이프라인 변경 작업 |
+| H-5 | localStorage 토큰 저장 | refresh 회전으로 위험 완화, 완전 쿠키 전환은 별도 |
+
+### 🔍 가짜 구현 잔존 항목 (조사 결과, 2026-05-28 기준)
+- `server/services/disputeService.ts` — 분쟁 해결 메서드 5건 모두 `success:true` 반환 stub
+- `server/services/portoneClient.ts` Transfer (`TRANSFER_ENABLED` 미설정 시 mock — 운영에선 거절 게이트 추가됨)
+- `server/routes/ai-features.legacy.ts` CineMap 영상 합성 (스토리보드까지만)
+- `server/routes/analytics-search.legacy.ts` `/api/me/saved-posts` 항상 `[]` 반환
+- 정량 합계: TODO/FIXME 50+건, 가짜 응답 12건, stub 5건, Mock 8건, setTimeout 가짜 2건
+
+### 📍 기능 작동 검증 (2026-05-28)
+- **채팅 (DM/채널)**: ✅ 완전 작동 (WebSocket 인증·DB 저장·실시간 전달·재연결 모두 구현)
+- **위치 기반 탐색 / Open to Meet**: ✅ 완전 작동 (위치 업로드, Haversine 반경 알림, 지도 마커, DM 연결)
+- **세렌디피티 매칭**: ⚠️ 부분 — 매칭 로직은 있으나 일부 퀘스트 UI 미완
+- **mini-meet (근처 모임)**: `enabled:false`로 의도적 비활성
 
 ---
 

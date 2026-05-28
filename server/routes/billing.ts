@@ -352,12 +352,42 @@ router.post('/confirm-payment', authenticateHybrid, requirePaymentEnv, async (re
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { paymentId, impUid } = req.body;
+    const { paymentId, impUid, expectedAmount } = req.body;
+    const lookupId = paymentId || impUid;
+    if (!lookupId) {
+      return res.status(400).json({ message: 'paymentId or impUid required' });
+    }
 
-    // PortOne API로 결제 검증
-    // TODO: 실제 PortOne API 호출 구현
-    
-    res.json({ success: true, paymentId, verified: true });
+    // PortOne API로 실제 결제 상태/금액 검증 (서버 측 변조 방지)
+    const { portoneClient } = await import('../services/portoneClient');
+    const payment = await portoneClient.getPayment(String(lookupId));
+
+    if (!payment.success) {
+      console.warn(`[Billing] confirm-payment 검증 실패 user=${req.user.id} paymentId=${lookupId} err=${payment.error}`);
+      return res.status(400).json({ success: false, verified: false, error: payment.error || 'Payment lookup failed' });
+    }
+
+    const verified = payment.status === 'PAID' || payment.status === 'paid';
+    if (!verified) {
+      return res.status(400).json({ success: false, verified: false, status: payment.status, error: 'Payment is not in PAID state' });
+    }
+
+    // 금액이 클라이언트가 주장한 expectedAmount와 일치하는지 추가 검증 (전달된 경우)
+    if (expectedAmount !== undefined && payment.amount !== Number(expectedAmount)) {
+      console.warn(`[Billing] 금액 불일치 user=${req.user.id} expected=${expectedAmount} actual=${payment.amount}`);
+      return res.status(400).json({ success: false, verified: false, error: 'Amount mismatch', expected: expectedAmount, actual: payment.amount });
+    }
+
+    console.log(`[Billing] confirm-payment OK user=${req.user.id} paymentId=${lookupId} amount=${payment.amount}`);
+    res.json({
+      success: true,
+      verified: true,
+      paymentId: payment.paymentId,
+      status: payment.status,
+      amount: payment.amount,
+      paidAt: payment.paidAt,
+      receiptUrl: payment.receiptUrl,
+    });
   } catch (error) {
     console.error('결제 확인 오류:', error);
     res.status(500).json({ error: 'Failed to confirm payment' });
