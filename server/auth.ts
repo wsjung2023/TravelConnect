@@ -160,6 +160,16 @@ export const authenticateToken: RequestHandler = async (req, res, next) => {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 
+  // DB 영속화된 폐기 토큰 체크 (로그아웃 후 재사용 차단)
+  try {
+    const { isAccessTokenRevoked } = await import('./services/tokenService');
+    if (await isAccessTokenRevoked(token)) {
+      return res.status(401).json({ message: 'Token revoked' });
+    }
+  } catch (revErr) {
+    console.warn('[AUTH] revoked check skipped:', revErr);
+  }
+
   // 사용자 정보 확인
   const user = await storage.getUser(decoded.id);
   if (!user) {

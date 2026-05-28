@@ -3798,3 +3798,93 @@ export const platformDailyMetrics = pgTable('platform_daily_metrics', {
 }, (table) => [
   index('idx_platform_daily_metrics_date').on(table.metricDate),
 ]);
+
+// ============================================
+// 보안/감사 신규 테이블 (D 카테고리 처리)
+// ============================================
+
+// 신고 (게시물/댓글/사용자/메시지 신고)
+export const reports = pgTable('reports', {
+  id: serial('id').primaryKey(),
+  reporterId: varchar('reporter_id').notNull().references(() => users.id),
+  targetType: varchar('target_type', { length: 32 }).notNull(), // post|comment|user|message|experience
+  targetId: varchar('target_id', { length: 64 }).notNull(),
+  reason: varchar('reason', { length: 64 }).notNull(), // spam|harassment|inappropriate|fraud|other
+  description: text('description'),
+  status: varchar('status', { length: 32 }).notNull().default('pending'), // pending|reviewing|resolved|dismissed
+  adminId: varchar('admin_id').references(() => users.id),
+  adminNote: text('admin_note'),
+  createdAt: timestamp('created_at').defaultNow(),
+  resolvedAt: timestamp('resolved_at'),
+}, (table) => [
+  index('idx_reports_status').on(table.status),
+  index('idx_reports_target').on(table.targetType, table.targetId),
+  index('idx_reports_reporter').on(table.reporterId),
+]);
+
+// JWT Refresh 토큰 (장기 인증 갱신)
+export const refreshTokens = pgTable('refresh_tokens', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  tokenHash: varchar('token_hash', { length: 128 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  revokedAt: timestamp('revoked_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_refresh_tokens_user').on(table.userId),
+  index('idx_refresh_tokens_hash').on(table.tokenHash),
+]);
+
+// 폐기된 액세스 토큰 (로그아웃·강제만료 시 DB 영속화)
+export const revokedTokens = pgTable('revoked_tokens', {
+  id: serial('id').primaryKey(),
+  tokenHash: varchar('token_hash', { length: 128 }).notNull().unique(),
+  userId: varchar('user_id').references(() => users.id),
+  revokedAt: timestamp('revoked_at').defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+}, (table) => [
+  index('idx_revoked_tokens_hash').on(table.tokenHash),
+  index('idx_revoked_tokens_expires').on(table.expiresAt),
+]);
+
+// 이메일 인증 토큰
+export const emailVerificationTokens = pgTable('email_verification_tokens', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  tokenHash: varchar('token_hash', { length: 128 }).notNull().unique(),
+  email: varchar('email', { length: 256 }).notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  verifiedAt: timestamp('verified_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_email_verif_user').on(table.userId),
+  index('idx_email_verif_hash').on(table.tokenHash),
+]);
+
+// 계약 전자서명 (HMAC 기반 위변조 방지 + 감사 로그)
+export const contractSignatures = pgTable('contract_signatures', {
+  id: serial('id').primaryKey(),
+  contractId: integer('contract_id').notNull(),
+  signerId: varchar('signer_id').notNull().references(() => users.id),
+  signerRole: varchar('signer_role', { length: 32 }).notNull(), // guide|traveler
+  signatureHash: varchar('signature_hash', { length: 128 }).notNull(),
+  signedTermsSnapshot: text('signed_terms_snapshot'),
+  ipAddress: varchar('ip_address', { length: 64 }),
+  userAgent: text('user_agent'),
+  signedAt: timestamp('signed_at').defaultNow(),
+}, (table) => [
+  index('idx_contract_sigs_contract').on(table.contractId),
+  index('idx_contract_sigs_signer').on(table.signerId),
+]);
+
+export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true, resolvedAt: true, adminId: true, adminNote: true, status: true });
+export type InsertReport = z.infer<typeof insertReportSchema>;
+export type Report = typeof reports.$inferSelect;
+
+export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({ id: true, createdAt: true });
+export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+
+export type RevokedToken = typeof revokedTokens.$inferSelect;
+export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type ContractSignature = typeof contractSignatures.$inferSelect;

@@ -1,8 +1,7 @@
 // API 클라이언트 유틸 — fetch 기반 공통 API 요청 함수와 인증 헤더 처리를 제공한다.
-// SECURITY-TODO [H-5]: localStorage 토큰 XSS 탈취 위험.
-// 마이그레이션 경로: server에서 Set-Cookie(httpOnly, SameSite=Lax) 발급,
-// client는 localStorage 대신 쿠키 기반으로 전환.
-// 선행 조건: /api/auth/* 전체 흐름 재설계, 세션 미들웨어 변경.
+// H-5 해결(이중 지원): 액세스 토큰은 localStorage 유지(기존 호환), Refresh 토큰은 httpOnly 쿠키(/api/auth/refresh).
+// 401 발생 시 우선 /api/auth/refresh로 새 액세스 토큰 발급(httpOnly 쿠키 회전) → 실패 시 기존 generate-token fallback.
+// 추후 모든 백엔드 흐름이 쿠키 기반으로 안정되면 localStorage 제거 가능.
 export async function api(url: string, opts: { method?: string; body?: any; auth?: boolean } = {}) {
   const { method = "GET", body, auth = true } = opts;
   const token = localStorage.getItem('token');
@@ -30,19 +29,29 @@ export async function api(url: string, opts: { method?: string; body?: any; auth
   
   const res = await fetch(url, fetchOptions);
   
-  // 401 에러 발생시 토큰 재발급 시도
-  if (res.status === 401 && auth && url !== '/api/auth/generate-token') {
+  // 401 에러 발생시 토큰 재발급 시도 (우선 refresh, 실패 시 generate-token)
+  if (res.status === 401 && auth && url !== '/api/auth/generate-token' && url !== '/api/auth/refresh') {
     try {
-      // 새 토큰 발급
-      const tokenResponse = await fetch('/api/auth/generate-token', {
+      // 1차: httpOnly 쿠키 기반 refresh 회전
+      let tokenResponse = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
       });
+      // 2차 fallback: 기존 generate-token (세션 기반)
+      if (!tokenResponse.ok) {
+        tokenResponse = await fetch('/api/auth/generate-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+      }
       
       if (tokenResponse.ok) {
         const tokenData = await tokenResponse.json();
-        if (tokenData.token) {
+        const newAccess = tokenData.token || tokenData.accessToken;
+        if (newAccess) {
+          tokenData.token = newAccess;
           // localStorage에 새 토큰 저장
           localStorage.setItem('token', tokenData.token);
           

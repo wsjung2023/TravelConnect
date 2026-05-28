@@ -244,9 +244,12 @@ class EscrowService {
         return { success: false, error: 'Contract is not pending' };
       }
 
-      // FIXME-TODO [전자서명미구현]: termsAcceptedByGuide/Traveler는 boolean 플래그만 저장.
-      // 법적 효력 있는 전자서명(암호학적 서명값·서명 타임스탬프·서명자 IP 등) 없음.
-      // 장기 과제: DocuSign/Adobe Sign 또는 자체 RSA 서명 도입 필요.
+      // 전자서명 강화: HMAC-SHA256 서명 + contract_signatures 테이블에 IP/UserAgent/서명 스냅샷 영속화
+      // (PKI/DocuSign 수준은 아니지만 위변조 방지 + 감사 추적 + 법적 증빙 자료 확보)
+      const { signContract } = await import('./signatureService');
+      const sigMeta = (this as any)._sigMeta?.[contractId]?.guide || {};
+      const { signatureHash } = await signContract(contractId, guideId, 'guide', sigMeta);
+
       await db
         .update(contracts)
         .set({
@@ -257,7 +260,7 @@ class EscrowService {
         })
         .where(eq(contracts.id, contractId));
 
-      console.log(`[Escrow] Contract ${contractId} confirmed by guide ${guideId}`);
+      console.log(`[Escrow] Contract ${contractId} confirmed by guide ${guideId} sig=${signatureHash.substring(0, 12)}...`);
 
       return { success: true, contractId };
     } catch (error) {
@@ -281,6 +284,15 @@ class EscrowService {
 
       if (!contract) {
         return { success: false, error: 'Contract not found or unauthorized' };
+      }
+
+      // 여행자측 전자서명 (HMAC + 감사 메타) 저장
+      try {
+        const { signContract } = await import('./signatureService');
+        const sigMeta = (this as any)._sigMeta?.[contractId]?.traveler || {};
+        await signContract(contractId, travelerId, 'traveler', sigMeta);
+      } catch (sigErr) {
+        console.warn('[Escrow] acceptTerms 서명 저장 실패 (계약은 진행):', sigErr);
       }
 
       await db

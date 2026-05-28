@@ -52,6 +52,7 @@ const TimelinePage = lazy(() => import('@/pages/timeline'));
 const TimelineCreatePage = lazy(() => import('@/pages/TimelineCreate'));
 const VideoTestPage = lazy(() => import('@/pages/video-test'));
 const Admin = lazy(() => import('@/pages/admin'));
+const AdminReports = lazy(() => import('@/pages/admin/Reports'));
 const Host = lazy(() => import('@/pages/host'));
 const ErrorTest = lazy(() => import('@/pages/ErrorTestPage'));
 const Marketplace = lazy(() => import('@/pages/marketplace'));
@@ -278,6 +279,16 @@ function Router() {
             <AuthGate>
               <Suspense fallback={<LoadingSpinner />}>
                 <Admin />
+              </Suspense>
+            </AuthGate>
+          )}
+        />
+        <Route
+          path="/admin/reports"
+          component={() => (
+            <AuthGate>
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminReports />
               </Suspense>
             </AuthGate>
           )}

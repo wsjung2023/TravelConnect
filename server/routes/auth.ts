@@ -124,11 +124,25 @@ router.post('/register', authLimiter, validateSchema(RegisterSchema), async (req
       firstName: firstName || '',
       lastName: lastName || '',
       authProvider: 'email',
-      // SECURITY-TODO [이메일인증미구현]: 현재 모든 회원가입 즉시 isEmailVerified=true 처리.
-      // 구현 경로: 회원가입 시 isEmailVerified=false → 인증 토큰 생성 → 이메일 발송(Nodemailer/Resend) →
-      // GET /api/auth/verify-email?token=xxx 클릭 시 true로 갱신. 선행: 이메일 서비스 환경변수 설정 필요.
-      isEmailVerified: true,
+      // 이메일 인증 시스템 활성화: 가입 시 false → /api/auth/email/verify/send로 토큰 발급 → /api/auth/email/verify로 확인
+      // 실 발송은 SMTP/SendGrid 연동 필요 (현재 콘솔 출력 + 개발 모드 응답에 verifyUrl 노출)
+      isEmailVerified: false,
     });
+
+    // 이메일 인증 토큰 자동 발급 (회원가입 직후)
+    try {
+      const crypto = await import('crypto');
+      const { db } = await import('../db');
+      const { emailVerificationTokens } = await import('@shared/schema');
+      const rawToken = crypto.randomBytes(32).toString('base64url');
+      const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+      const expiresAt = new Date(Date.now() + 24 * 3600 * 1000);
+      await db.insert(emailVerificationTokens).values({ userId: user.id, tokenHash, email: user.email || '', expiresAt });
+      const verifyUrl = `${req.protocol}://${req.get('host')}/api/auth/email/verify?token=${rawToken}`;
+      console.log(`[Signup→EmailVerify] ${user.email} → ${verifyUrl}`);
+    } catch (verifErr) {
+      console.warn('[Signup] 이메일 인증 토큰 발급 실패 (가입은 진행):', verifErr);
+    }
 
     // JWT 토큰 생성 (7일 유효)
     const token = generateToken({

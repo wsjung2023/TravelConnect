@@ -26,19 +26,35 @@
 |----|------|------|
 | T14 | CSP unsafe-inline/unsafe-eval | PortOne 결제 SDK·Google AdSense·Vite HMR 인라인 스크립트 필수. nonce 기반 CSP 전환은 별도 빌드 파이프라인 변경 작업 필요 |
 
-## ⏸️ 보류 (D 카테고리 — 별도 큰 작업 필요)
+## ✅ 완료 (D 카테고리 추가 처리분 — 2026-05-28)
 
-| ID | 항목 | 사유 |
-|----|------|------|
-| T10 | N+1 패키지 조회 | CODE_AUDIT_REPORT의 마커 위치 미상 (코드 내 마커 부재). H-7로 분류된 영역 별도 식별 필요 |
-| T13 | 신고 API 기본 구현 | `reports`/`userReports`/`contentReports` 테이블 미정의. 스키마 추가 + 마이그레이션 + Repository + Routes + Admin 대시보드 일괄 작업 필요 |
-| T15 | JWT Refresh Token | Access 단일 토큰 구조 → Refresh+Access 전환 시 client 인증 흐름 전면 재설계 필요 (api.ts, 자동갱신, 만료 핸들링) |
-| - | 이메일 인증 (auth.ts:127) | 외부 이메일 서비스(SendGrid 등) 연동 + 인증 토큰 테이블 + 발송 워커 필요 |
-| - | localStorage → httpOnly 쿠키 (api.ts:2, auth.ts:370) | CSRF 토큰 도입 + SameSite 정책 + 모든 인증 호출부 변경 필요 |
-| - | 로그아웃 세션 DB 영속화 (index.ts:25) | 세션 저장소 마이그레이션 (인메모리 Set → Redis/PG 토큰 블랙리스트) 필요 |
-| - | CineMap 실제 영상 렌더링 (ai-features.legacy.ts:599) | FFmpeg/Remotion 등 외부 렌더링 인프라 별도 도입 필요 |
-| - | 전자서명 암호학적 구현 (escrowService.ts:247) | PKI/디지털서명 라이브러리 통합, 키 관리 인프라 필요 |
-| - | Transfer 실송금 (portoneClient.ts:502) | TRANSFER_ENABLED 환경 + PortOne Transfer API 운영 계정 + KYC 검증 필요 |
+| ID | 항목 | 변경 위치 | 핵심 변경 |
+|----|------|-----------|-----------|
+| T10 | N+1 패키지 조회 | server/routes.ts (`/api/packages/my`) | 패키지 아이템 + 템플릿을 단일 IN 쿼리로 일괄 fetch (Map 매칭) |
+| T13 | 신고 API + 관리자 대시보드 | shared/schema.ts(`reports`), server/routes/reports.ts, client/src/pages/admin/Reports.tsx, App.tsx | POST/GET/GET·by-target/PATCH(admin) + 상태 토글 UI + 라우트 `/admin/reports` |
+| T15 | JWT Refresh Token (회전) | shared/schema.ts(`refreshTokens`,`revokedTokens`), server/services/tokenService.ts, server/routes/auth-extended.ts, client/src/lib/api.ts | httpOnly 쿠키 기반 refresh 발급/회전(reuse 감지), 액세스 토큰 폐기 DB 영속화, 401 시 자동 회전 → fallback generate-token |
+| 이메일 인증 | auth.ts:127 | shared/schema.ts(`emailVerificationTokens`), server/routes/auth.ts(가입 시 isEmailVerified=false + 토큰 자동 발급), server/routes/auth-extended.ts(`/email/verify/send`,`/email/verify`) | 토큰 해시 저장, 24h TTL, 콘솔 + verifyUrl 노출(개발). **실 발송 인프라(SMTP/SendGrid)는 외부 의존 — 환경변수 연동만 추가하면 됨** |
+| 로그아웃 세션 DB 영속화 | index.ts:25 | server/services/tokenService.ts (`revokeAccessToken`/`isAccessTokenRevoked`), server/auth.ts(authenticateToken 내 revoked 체크), server/routes/auth-extended.ts(`/logout/secure`) | 인메모리 Set → `revoked_tokens` 테이블. 모든 인증 요청에서 폐기 여부 검증 |
+| 전자서명 강화 | escrowService.ts:247 | shared/schema.ts(`contractSignatures`), server/services/signatureService.ts, escrowService.confirmContract/acceptTerms | HMAC-SHA256 서명 + IP/UserAgent/타임스탬프/계약 스냅샷 영속화 (감사 추적·위변조 방지). **PKI/DocuSign 수준은 별도 도입 필요** |
+| Transfer 실송금 게이트 강화 | portoneClient.ts:502 | server/services/portoneClient.ts | `TRANSFER_ENABLED` + `SETTLEMENT_ENABLED` + `kycVerified` 3중 게이트. 운영 환경에서 미충족 시 명확한 거절(반환), 개발에서만 mock |
+
+## ⏸️ 외부 인프라 의존 한계 (코드는 완료, 운영 연동 필요)
+
+| 항목 | 코드 상태 | 운영 활성화 조건 |
+|------|----------|------------------|
+| C-3 Replit OAuth | 본 작업 범위 외 (사용자 명시 제외) | - |
+| 이메일 실 발송 | 토큰 발급/검증 완료, 콘솔 로그만 출력 | SMTP/SendGrid/Resend 연동 함수 추가 (`server/routes/auth.ts` 가입 직후, `auth-extended.ts /email/verify/send`) |
+| PortOne Transfer 실송금 | KYC 게이트 + 환경변수 게이트 완료 | `TRANSFER_ENABLED=true`, `SETTLEMENT_ENABLED=true`, PortOne Transfer 계약, 호스트 KYC 검증 데이터 |
+| CineMap 영상 렌더링 | 스토리보드 생성·저장 완료 | FFmpeg/Remotion 등 외부 렌더 워커 |
+
+## 🆕 추가 신설 파일/테이블 (D 카테고리)
+
+- **shared/schema.ts**: `reports`, `refreshTokens`, `revokedTokens`, `emailVerificationTokens`, `contractSignatures` (`npm run db:push --force` 적용 완료)
+- **server/services/tokenService.ts**: refresh 토큰 발급/회전/폐기, reuse 감지, 액세스 토큰 폐기 영속화
+- **server/services/signatureService.ts**: HMAC-SHA256 계약 서명 + 검증
+- **server/routes/reports.ts**: 신고 CRUD (POST/GET/admin GET·PATCH)
+- **server/routes/auth-extended.ts**: `/refresh/issue`, `/refresh`, `/logout/secure`, `/email/verify/send`, `/email/verify` (cookie-parser 없이 raw cookie 헤더 파싱)
+- **client/src/pages/admin/Reports.tsx**: 신고 관리 대시보드 (필터·상태 토글·메모)
 
 ## 🔁 코드 리뷰 반영 (Architect 피드백)
 
@@ -50,8 +66,9 @@
 ## 🧪 검증
 
 - TypeScript 컴파일: **통과** (기존 무관 에러 `ProfileSettingsSection.tsx` 1건 제외)
-- 서버 기동: **정상** — `▶/⏸️ Subscription renewal scheduler` 로그 표시 확인
+- 서버 기동: **정상** — port 5000 serving, 모든 스케줄러 초기화 완료
 - 글로벌 에러 핸들러 `throw err` 제거로 unhandledRejection 위험 제거
+- DB 마이그레이션: `npm run db:push --force` 적용 완료 (신규 5개 테이블)
 
 ## 📌 운영 활성화 가이드
 

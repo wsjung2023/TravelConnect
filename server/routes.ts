@@ -43,6 +43,8 @@ import {
   AuthRequest,
 } from './auth';
 import { authRouter } from './routes/auth';
+import reportsRouter from './routes/reports';
+import authExtendedRouter from './routes/auth-extended';
 import { registerLegacyModules } from './routes/legacyRegistrations';
 import { registerLegacyNotificationRoutes } from './routes/notifications.legacy';
 import { checkAiUsage, getUserAiUsageStats } from './middleware/checkAiUsage';
@@ -563,6 +565,8 @@ COMMIT;
 
   // Auth routes moved to server/routes/auth.ts
   app.use('/api/auth', authRouter);
+  app.use('/api/auth', authExtendedRouter); // refresh + email verify + secure logout
+  app.use('/api/reports', reportsRouter);
   // 프로필 만남 상태 업데이트
   app.patch('/api/profile/open', authenticateHybrid, apiLimiter, validateSchema(UpdateProfileOpenSchema), async (req: AuthRequest, res) => {
     try {
@@ -2267,30 +2271,33 @@ COMMIT;
       console.log(`[GET /api/packages/my] 사용자 ${req.user.id}의 패키지 조회`);
       
       const packages = await storage.getServicePackagesByCreator(req.user.id);
-      
-      // 패키지 아이템 정보를 포함하여 반환
-      const packagesWithDetails = await Promise.all(
-        packages.map(async (pkg: any) => {
-          const items = await storage.getPackageItemsByPackage(pkg.id);
-          const itemsWithTemplates = await Promise.all(
-            items.map(async (item: any) => {
-              // itemType이 'template'인 경우 템플릿 정보를 가져옴
-              if (item.itemType === 'template') {
-                const template = await storage.getServiceTemplateById(item.itemId);
-                return {
-                  ...item,
-                  template,
-                };
-              }
-              return item;
-            })
-          );
-          return {
-            ...pkg,
-            packageItems: itemsWithTemplates,
-          };
-        })
-      );
+
+      // T10: N+1 제거 — 모든 패키지 아이템을 한 번에 조회한 뒤 템플릿도 단일 IN 쿼리로 일괄 fetch
+      const allItems = packages.length > 0
+        ? (await Promise.all(packages.map((p: any) => storage.getPackageItemsByPackage(p.id)))).flat()
+        : [];
+      const templateIds = Array.from(new Set(
+        allItems.filter((it: any) => it.itemType === 'template').map((it: any) => it.itemId)
+      ));
+      const templateMap = new Map<any, any>();
+      if (templateIds.length > 0) {
+        const { db } = await import('./db');
+        const { serviceTemplates } = await import('@shared/schema');
+        const { inArray } = await import('drizzle-orm');
+        const templates = await db.select().from(serviceTemplates).where(inArray(serviceTemplates.id, templateIds as number[]));
+        templates.forEach((t: any) => templateMap.set(t.id, t));
+      }
+      const itemsByPackage = new Map<number, any[]>();
+      for (const pkg of packages) {
+        const pkgItems = allItems.filter((it: any) => it.packageId === pkg.id).map((item: any) =>
+          item.itemType === 'template' ? { ...item, template: templateMap.get(item.itemId) } : item
+        );
+        itemsByPackage.set(pkg.id, pkgItems);
+      }
+      const packagesWithDetails = packages.map((pkg: any) => ({
+        ...pkg,
+        packageItems: itemsByPackage.get(pkg.id) || [],
+      }));
       
       console.log(`[GET /api/packages/my] 성공: ${packagesWithDetails.length}개 패키지`);
       res.json(packagesWithDetails);
