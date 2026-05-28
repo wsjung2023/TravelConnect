@@ -41,17 +41,22 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const token = localStorage.getItem('token');
+    // H-5: 쿠키 우선. credentials:'include'로 tg_access 자동 송신. GET이라 CSRF 불필요.
+    // 레거시 localStorage Bearer는 쿠키 인증이 401일 때만 폴백으로 사용 (점진 마이그레이션).
     const headers: HeadersInit = {};
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const res = await fetch(queryKey.join('/') as string, {
+    let res = await fetch(queryKey.join('/') as string, {
       headers,
       credentials: 'include',
     });
+    if (res.status === 401) {
+      const legacy = (() => { try { return localStorage.getItem('token'); } catch { return null; } })();
+      if (legacy) {
+        res = await fetch(queryKey.join('/') as string, {
+          headers: { Authorization: `Bearer ${legacy}` },
+          credentials: 'include',
+        });
+      }
+    }
 
     if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;

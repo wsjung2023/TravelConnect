@@ -7,4 +7,5 @@
 - [Tourgether refresh 토큰 회전](tourgether-refresh-rotation.md) — rotateRefreshToken은 트랜잭션 + 조건부 UPDATE(revokedAt IS NULL)로 race 방지 + reuse 감지 시 사용자 전체 폐기. cookie-parser 미설치 환경이므로 raw cookie 헤더 파싱 사용.
 - [Tourgether HMAC 서명 secret](tourgether-sig-secret.md) — `signatureService`는 SIG_SECRET 누락 시 운영에선 throw, 개발에선 폴백 키 + 경고. 운영 배포 전 반드시 `SIG_SECRET` (또는 JWT_SECRET) 설정 필요.
 - [Tourgether 사용자 응답 sanitize](tourgether-user-response-sanitize.md) — users row를 응답에 직접 노출하면 `password` 해시까지 빠져나감. `server/utils/sanitizeUser.ts` 헬퍼로 항상 제거.
+- [Tourgether 인증 쿠키 + CSRF](tourgether-auth-cookies.md) — login/refresh가 tg_access(HttpOnly,/)+tg_refresh(HttpOnly,/api/auth)+tg_csrf(non-HttpOnly) 셋을 함께 발급. 쿠키 인증일 때만 X-CSRF-Token 검사, Bearer는 면제. localStorage Bearer는 호환용 잔존.
 - [Tourgether 결제 서버검증](tourgether-payment-server-verify.md) — `/api/billing/confirm-payment`는 PortOne `getPayment`로 status='PAID' + amount 일치를 서버에서 재확인해야 함. 클라이언트의 success 주장만 믿고 통과시키면 안 됨.

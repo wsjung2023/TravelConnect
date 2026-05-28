@@ -31,45 +31,69 @@ function handleOAuthCallback(): string | null {
 }
 
 // 인증 정보 가져오기 함수 (단일 요청)
+// H-5: 쿠키 우선. tg_access 쿠키가 자동 송신되므로 Authorization 헤더는 레거시 localStorage 토큰이 있을 때만 폴백.
+// 레거시 Bearer 성공 시 /api/auth/refresh/issue 호출로 쿠키 발급 → 이후 요청은 쿠키만 사용 (강제 로그아웃 없는 점진 마이그레이션).
+let migrationInFlight = false;
+async function migrateLegacyTokenToCookies(legacyToken: string): Promise<void> {
+  if (migrationInFlight) return;
+  migrationInFlight = true;
+  try {
+    const resp = await fetch('/api/auth/refresh/issue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${legacyToken}` },
+      credentials: 'include',
+    });
+    if (resp.ok) {
+      try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {}
+    }
+  } catch {
+    // 실패 시 다음 401 사이클에서 재시도되므로 조용히 무시
+  } finally {
+    migrationInFlight = false;
+  }
+}
+
 async function fetchAuthUser(): Promise<any> {
-  // OAuth 콜백에서 토큰 처리
-  const token = handleOAuthCallback();
-  
-  // 단일 요청으로 통합 - JWT 우선, 세션 쿠키 포함
-  const response = await fetch('/api/auth/me', {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    credentials: 'include',
-  });
+  // OAuth 콜백 처리 (레거시: URL 쿼리스트링 토큰 → localStorage. 후속 OAuth 마이그레이션에서 정리 예정)
+  const legacyToken = handleOAuthCallback();
+
+  // 1차: 쿠키만으로 요청
+  let response = await fetch('/api/auth/me', { credentials: 'include' });
+
+  // 401이고 레거시 토큰이 있으면 Bearer로 폴백
+  if (response.status === 401 && legacyToken) {
+    response = await fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${legacyToken}` },
+      credentials: 'include',
+    });
+    if (response.ok) {
+      // 레거시 Bearer가 살아있음 — 백그라운드로 쿠키 발급 받아 마이그레이션
+      void migrateLegacyTokenToCookies(legacyToken);
+    } else if (response.status === 401) {
+      // 레거시 토큰이 만료되었으면 강제 로그아웃 전에 마지막으로 refresh 시도(쿠키 기반)
+      // refresh가 성공하면 새 쿠키가 발급되므로 한 번 더 /me 요청.
+      try {
+        const refreshRes = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (refreshRes.ok) {
+          response = await fetch('/api/auth/me', { credentials: 'include' });
+        }
+      } catch {}
+    }
+  }
 
   if (!response.ok) {
-    // 401인 경우 토큰 정리
-    if (response.status === 401 && token) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    // 인증 실패 시에만 레거시 토큰 정리 (재발급 경로를 모두 시도한 뒤)
+    if (response.status === 401 && legacyToken) {
+      try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {}
     }
-    return null; // 인증되지 않음
+    return null;
   }
 
-  const userData = await response.json();
-  
-  // 세션 인증 성공 but JWT 없으면 토큰 생성 (백그라운드)
-  if (!token && userData) {
-    fetch('/api/auth/generate-token', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data?.token) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-      })
-      .catch(() => {}); // 조용히 실패
-  }
-
-  return userData;
+  return await response.json();
 }
 
 export function useAuth() {

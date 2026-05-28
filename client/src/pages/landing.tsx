@@ -34,8 +34,7 @@ export default function Landing() {
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // H-5: 데모 로그인도 쿠키로 발급되므로 localStorage 저장 불필요.
 
       toast({
         title: t('ui:landingPage.demoLoginSuccess'),

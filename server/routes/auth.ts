@@ -41,6 +41,7 @@ import {
 } from '../auth';
 import { LoginSchema, RegisterSchema, OnboardingSchema } from '@shared/api/schema';
 import { issueRefreshToken, rotateRefreshToken, generateAccessToken } from '../services/tokenService';
+import { setAuthCookies, clearAuthCookies, generateCsrfToken, readCookie, COOKIE_REFRESH } from '../utils/cookies';
 
 // ============================================
 // 라우터 초기화
@@ -152,9 +153,20 @@ router.post('/register', authLimiter, validateSchema(RegisterSchema), async (req
       role: user.role || 'user',
     });
 
+    // H-5: httpOnly 액세스/리프레시 쿠키 + CSRF 토큰 발급 (localStorage 의존 제거 점진 마이그레이션)
+    let refreshToken: string | undefined;
+    try {
+      refreshToken = await issueRefreshToken(user.id);
+    } catch (e) {
+      console.warn('[Auth/register] refresh 토큰 발급 실패:', e);
+    }
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(res, { accessToken: token, refreshToken, csrfToken });
+
+    // H-5: token/refreshToken/csrfToken을 JSON 본문에 노출하지 않는다 (XSS 토큰 탈취 방지).
+    // 클라이언트는 httpOnly 쿠키(tg_access/tg_refresh)와 JS-readable 쿠키(tg_csrf)로 충분.
     res.status(201).json({
       message: '회원가입이 완료되었습니다',
-      token,
       user: {
         id: user.id,
         email: user.email,
@@ -217,10 +229,13 @@ router.post('/login', authLimiter, validateSchema(LoginSchema), async (req: any,
       console.warn('[Auth] refresh 토큰 발급 실패(로그인은 계속 진행):', e);
     }
 
+    // H-5: httpOnly 액세스/리프레시 쿠키 + CSRF 토큰 발급
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(res, { accessToken: token, refreshToken, csrfToken });
+
+    // H-5: token/refreshToken/csrfToken은 쿠키로만 전달 (JSON 본문 노출 금지).
     res.json({
       message: '로그인 성공',
-      token,
-      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -243,13 +258,26 @@ router.post('/login', authLimiter, validateSchema(LoginSchema), async (req: any,
 // 폐기된 토큰 재사용 감지 시 사용자의 모든 refresh 토큰을 강제 폐기합니다(tokenService).
 router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body || {};
+    // H-5: 우선 httpOnly 쿠키(tg_refresh)에서 읽고, 없으면 body로 폴백(기존 호환)
+    const cookieToken = readCookie(req, COOKIE_REFRESH);
+    const bodyToken = (req.body || {}).refreshToken;
+    const refreshToken = cookieToken || bodyToken;
     if (!refreshToken || typeof refreshToken !== 'string') {
-      return res.status(400).json({ message: 'refreshToken이 필요합니다' });
+      return res.status(401).json({ message: 'refreshToken이 필요합니다' });
+    }
+    // H-5: 쿠키 기반 refresh는 상태 변경 작업 → X-CSRF-Token 검증 필수 (CSRF 방지).
+    // Bearer/body 기반 refresh는 자동 송신되지 않으므로 CSRF 면제.
+    if (cookieToken) {
+      const { validateCsrf } = await import('../utils/cookies');
+      if (!validateCsrf(req)) {
+        clearAuthCookies(res);
+        return res.status(403).json({ message: 'CSRF 검증 실패' });
+      }
     }
 
     const rotated = await rotateRefreshToken(refreshToken);
     if (!rotated) {
+      clearAuthCookies(res);
       return res.status(401).json({ message: 'Refresh 토큰이 유효하지 않거나 만료되었습니다' });
     }
 
@@ -264,10 +292,12 @@ router.post('/refresh', authLimiter, async (req: Request, res: Response) => {
       role: user.role || 'user',
     });
 
-    res.json({
-      token: accessToken,
-      refreshToken: rotated.newRefreshToken,
-    });
+    // H-5: 새 액세스/리프레시 쿠키 + CSRF 토큰 회전 발급
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(res, { accessToken, refreshToken: rotated.newRefreshToken, csrfToken });
+
+    // H-5: 새 토큰들은 쿠키로만 전달 (JSON 본문 노출 금지).
+    res.json({ success: true });
   } catch (error) {
     console.error('[Auth] /refresh 처리 오류:', error);
     res.status(500).json({ message: 'Refresh 처리 중 오류가 발생했습니다' });
@@ -339,9 +369,15 @@ router.post('/demo-login', authLimiter, async (req: Request, res: Response) => {
       role: user.role || 'user',
     });
 
+    // H-5: httpOnly 액세스/리프레시 + CSRF 쿠키 발급
+    let refreshToken: string | undefined;
+    try { refreshToken = await issueRefreshToken(user.id); } catch {}
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(res, { accessToken: token, refreshToken, csrfToken });
+
+    // H-5: token/csrfToken은 쿠키로만 전달.
     res.json({
       message: '데모 로그인 성공',
-      token,
       user: {
         id: user.id,
         email: user.email,

@@ -48,8 +48,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // H-5: 액세스/리프레시/CSRF는 서버가 httpOnly 쿠키로 발급. localStorage 저장하지 않음.
       onSuccess(data.token, data.user);
       toast({ title: t('login.signInSuccess'), description: data.message });
       onClose();
@@ -82,8 +81,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // H-5: 회원가입도 쿠키 기반 발급. localStorage 저장하지 않음.
       onSuccess(data.token, data.user);
       toast({ title: t('login.signUpSuccess'), description: data.message });
       onClose();

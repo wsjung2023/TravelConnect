@@ -747,16 +747,23 @@ COMMIT;
     // M-B 후속: 동시에 해당 사용자의 모든 refresh 토큰도 폐기 → 잔존 refresh로 access 재발급 차단.
     try {
       const authHeader = req.headers.authorization;
-      const accessToken = authHeader && authHeader.split(' ')[1];
-      if (accessToken) {
+      const bearer = authHeader && authHeader.split(' ')[1];
+      const { readCookie, COOKIE_ACCESS, clearAuthCookies } = await import('./utils/cookies');
+      const cookieAccess = readCookie(req, COOKIE_ACCESS);
+      const tokensToRevoke = [bearer, cookieAccess].filter((t): t is string => !!t);
+      if (tokensToRevoke.length > 0) {
         const { revokeAccessToken, revokeAllRefreshTokens } = await import('./services/tokenService');
         const { verifyToken: vt } = await import('./auth');
-        await revokeAccessToken(accessToken);
-        const decoded = vt(accessToken);
-        if (decoded?.id) {
-          await revokeAllRefreshTokens(decoded.id);
+        for (const t of tokensToRevoke) {
+          await revokeAccessToken(t);
+          const decoded = vt(t);
+          if (decoded?.id) {
+            await revokeAllRefreshTokens(decoded.id);
+          }
         }
       }
+      // H-5: 인증 쿠키 만료 (tg_access / tg_refresh / tg_csrf)
+      clearAuthCookies(res);
     } catch (revErr) {
       console.warn('[LOGOUT] revoke 실패(계속 진행):', revErr);
     }

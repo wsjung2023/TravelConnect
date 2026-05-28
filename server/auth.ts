@@ -149,37 +149,47 @@ export async function comparePassword(
 // 성공 시 req.user에 사용자 정보 설정
 export const authenticateToken: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  let bearer = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  // H-5: 레거시 클라이언트가 'Bearer null'/'Bearer undefined'/'Bearer ' 를 송신하는 경우를 "헤더 없음"으로 간주
+  if (bearer === 'null' || bearer === 'undefined' || bearer === '') bearer = undefined as any;
 
-  if (!token) {
+  const { readCookie, COOKIE_ACCESS, isStateChangingMethod, validateCsrf } = await import('./utils/cookies');
+  const cookieToken = readCookie(req, COOKIE_ACCESS);
+  const { isAccessTokenRevoked } = await import('./services/tokenService');
+
+  // H-5: 후보 토큰을 순서대로 시도 — (1) Bearer (있고 유효하면 우선) (2) 쿠키 폴백.
+  // stale Bearer가 유효한 쿠키를 가리지 않도록 둘 다 시도한다(점진 마이그레이션 안정성).
+  const candidates: Array<{ token: string; viaCookie: boolean }> = [];
+  if (bearer) candidates.push({ token: bearer, viaCookie: false });
+  if (cookieToken && cookieToken !== bearer) candidates.push({ token: cookieToken, viaCookie: true });
+
+  if (candidates.length === 0) {
     return res.status(401).json({ message: 'Access token required' });
   }
 
-  const decoded = verifyToken(token);
-  if (!decoded) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
-
-  // DB 영속화된 폐기 토큰 체크 (로그아웃 후 재사용 차단)
-  // M-A: fail-closed — 체크 자체가 실패하면 인증을 통과시키지 않는다.
-  try {
-    const { isAccessTokenRevoked } = await import('./services/tokenService');
-    if (await isAccessTokenRevoked(token)) {
-      return res.status(401).json({ message: 'Token revoked' });
+  let lastError: 'invalid' | 'revoked' | null = null;
+  for (const cand of candidates) {
+    const decoded = verifyToken(cand.token);
+    if (!decoded) { lastError = 'invalid'; continue; }
+    try {
+      if (await isAccessTokenRevoked(cand.token)) { lastError = 'revoked'; continue; }
+    } catch (revErr) {
+      console.error('[AUTH] revoked check failed (fail-closed):', revErr);
+      return res.status(503).json({ message: 'Auth check unavailable' });
     }
-  } catch (revErr) {
-    console.error('[AUTH] revoked check failed (fail-closed):', revErr);
-    return res.status(503).json({ message: 'Auth check unavailable' });
+    const user = await storage.getUser(decoded.id);
+    if (!user) { lastError = 'invalid'; continue; }
+    // 쿠키 기반 인증으로 통과시키려는 시점에 CSRF 검증 — 실패는 하드 403 (다른 후보로 우회 금지)
+    if (cand.viaCookie && isStateChangingMethod(req.method) && !validateCsrf(req)) {
+      return res.status(403).json({ message: 'CSRF token missing or invalid' });
+    }
+    req.user = decoded;
+    return next();
   }
 
-  // 사용자 정보 확인
-  const user = await storage.getUser(decoded.id);
-  if (!user) {
-    return res.status(401).json({ message: 'User not found' });
-  }
-
-  req.user = decoded;
-  next();
+  return res.status(401).json({
+    message: lastError === 'revoked' ? 'Token revoked' : 'Invalid or expired token',
+  });
 };
 
 // ============================================
@@ -193,35 +203,41 @@ export const authenticateHybrid: RequestHandler = async (req, res, next) => {
   console.log(`[AUTH] Session user:`, req.user ? 'PRESENT' : 'NOT PRESENT');
   console.log(`[AUTH] Authorization header:`, req.headers.authorization ? 'PRESENT' : 'NOT PRESENT');
   
-  // 1. JWT Bearer 토큰 확인
+  // 1. JWT Bearer + 쿠키 토큰 후보 수집 (둘 중 하나라도 유효하면 통과 — stale Bearer가 쿠키 인증을 가리지 않게)
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  let bearer = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  if (bearer === 'null' || bearer === 'undefined' || bearer === '') bearer = undefined as any;
 
-  if (token) {
-    console.log(`[AUTH] JWT token found, verifying...`);
-    const decoded = verifyToken(token);
-    if (decoded) {
-      // M-A: 로그아웃으로 영속 폐기된 액세스 토큰이면 차단 (Hybrid도 동일).
-      // fail-closed — 체크 실패 시 인증 통과시키지 않는다.
+  const { readCookie, COOKIE_ACCESS, isStateChangingMethod, validateCsrf } = await import('./utils/cookies');
+  const cookieToken = readCookie(req, COOKIE_ACCESS);
+
+  const candidates: Array<{ token: string; viaCookie: boolean }> = [];
+  if (bearer) candidates.push({ token: bearer, viaCookie: false });
+  if (cookieToken && cookieToken !== bearer) candidates.push({ token: cookieToken, viaCookie: true });
+
+  if (candidates.length > 0) {
+    for (const cand of candidates) {
+      const decoded = verifyToken(cand.token);
+      if (!decoded) continue;
       try {
         const { isAccessTokenRevoked } = await import('./services/tokenService');
-        if (await isAccessTokenRevoked(token)) {
-          console.log(`[AUTH] JWT revoked for user ${decoded.id}`);
-          return res.status(401).json({ message: 'Token revoked' });
-        }
+        if (await isAccessTokenRevoked(cand.token)) continue;
       } catch (revErr) {
         console.error('[AUTH] revoked check failed (Hybrid, fail-closed):', revErr);
         return res.status(503).json({ message: 'Auth check unavailable' });
       }
-      // JWT 토큰이 유효하면 사용자 정보 설정
       const user = await storage.getUser(decoded.id);
-      if (user) {
-        console.log(`[AUTH] JWT authentication successful for user ${decoded.id}`);
-        req.user = decoded;
-        return next();
+      if (!user) continue;
+      // 쿠키 인증 + 상태 변경 메서드 → CSRF 검증 (실패 시 하드 403, 다른 후보로 우회 금지)
+      if (cand.viaCookie && isStateChangingMethod(req.method) && !validateCsrf(req)) {
+        console.log(`[AUTH] CSRF check failed for cookie-auth ${req.method} ${req.path}`);
+        return res.status(403).json({ message: 'CSRF token missing or invalid' });
       }
+      console.log(`[AUTH] JWT authentication successful for user ${decoded.id} via ${cand.viaCookie ? 'cookie' : 'bearer'}`);
+      req.user = decoded;
+      return next();
     }
-    console.log(`[AUTH] JWT authentication failed`);
+    console.log(`[AUTH] All token candidates failed`);
   }
 
   // 2. 세션 기반 인증 확인 (OIDC 또는 기존 세션)

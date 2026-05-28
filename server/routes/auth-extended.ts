@@ -12,39 +12,29 @@ import {
   revokeAccessToken,
   revokeAllRefreshTokens,
 } from '../services/tokenService';
+import {
+  setAuthCookies,
+  clearAuthCookies,
+  generateCsrfToken,
+  readCookie,
+  COOKIE_REFRESH,
+} from '../utils/cookies';
 
 const router = Router();
-
-const REFRESH_COOKIE_NAME = 'tg_refresh';
-const REFRESH_COOKIE_OPTS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  path: '/api/auth',
-  maxAge: 30 * 86400 * 1000,
-};
 
 function hashToken(t: string): string {
   return crypto.createHash('sha256').update(t).digest('hex');
 }
 
-// cookie-parser 없이 raw cookie 헤더에서 특정 쿠키 추출
-function readCookie(req: any, name: string): string | undefined {
-  const raw = req.headers?.cookie as string | undefined;
-  if (!raw) return undefined;
-  for (const part of raw.split(';')) {
-    const [k, ...rest] = part.trim().split('=');
-    if (k === name) return decodeURIComponent(rest.join('='));
-  }
-  return undefined;
-}
-
-// Refresh 토큰 발급 (로그인 직후 호출 권장)
+// Refresh 토큰 발급 (로그인 직후 호출 권장) — H-5: 액세스 + CSRF 쿠키도 함께 발급
 router.post('/refresh/issue', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
     const refreshToken = await issueRefreshToken(req.user.id);
-    res.cookie(REFRESH_COOKIE_NAME, refreshToken, REFRESH_COOKIE_OPTS);
+    const accessToken = generateAccessToken({ id: req.user.id, email: req.user.email || '', role: req.user.role || 'user' });
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(res, { accessToken, refreshToken, csrfToken });
+    // H-5: csrfToken을 응답 본문에 노출하지 않음. 클라이언트는 tg_csrf 쿠키에서 직접 읽음.
     res.json({ success: true });
   } catch (err) {
     console.error('[Auth] refresh/issue 오류:', err);
@@ -52,35 +42,52 @@ router.post('/refresh/issue', authenticateHybrid, async (req: AuthRequest, res: 
   }
 });
 
-// 액세스 토큰 갱신 (회전)
+// 액세스 토큰 갱신 (회전) — H-5: 새 액세스/CSRF 쿠키도 함께 재발급
+// NOTE: routes/auth.ts에서도 동일한 /api/auth/refresh를 등록하며, authRouter가 먼저 마운트되어 그쪽이 우선 매칭됨.
+// 이 핸들러는 authRouter 변경 실패 시 폴백 경로로 남겨두고 동일한 쿠키 동작을 유지한다.
 router.post('/refresh', async (req, res: Response) => {
   try {
-    const rawToken = readCookie(req, REFRESH_COOKIE_NAME) || req.body?.refreshToken;
+    const cookieToken = readCookie(req, COOKIE_REFRESH);
+    const rawToken = cookieToken || req.body?.refreshToken;
     if (!rawToken) return res.status(401).json({ message: 'No refresh token' });
+    // H-5: 쿠키 기반 refresh는 CSRF 검증 필수.
+    if (cookieToken) {
+      const { validateCsrf } = await import('../utils/cookies');
+      if (!validateCsrf(req)) {
+        clearAuthCookies(res);
+        return res.status(403).json({ message: 'CSRF validation failed' });
+      }
+    }
     const rotated = await rotateRefreshToken(rawToken);
     if (!rotated) {
-      res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth' });
+      clearAuthCookies(res);
       return res.status(401).json({ message: 'Invalid or expired refresh token' });
     }
     const [user] = await db.select().from(users).where(eq(users.id, rotated.userId)).limit(1);
     if (!user) return res.status(401).json({ message: 'User not found' });
     const accessToken = generateAccessToken({ id: user.id, email: user.email || '', role: user.role || 'user' });
-    res.cookie(REFRESH_COOKIE_NAME, rotated.newRefreshToken, REFRESH_COOKIE_OPTS);
-    res.json({ success: true, accessToken });
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(res, { accessToken, refreshToken: rotated.newRefreshToken, csrfToken });
+    // H-5: 토큰은 쿠키로만 전달.
+    res.json({ success: true });
   } catch (err) {
     console.error('[Auth] refresh 오류:', err);
     res.status(500).json({ message: 'Failed to refresh token' });
   }
 });
 
-// 로그아웃 (DB 영속화: 액세스 토큰 폐기 + refresh 전체 폐기)
+// 로그아웃 (DB 영속화: 액세스 토큰 폐기 + refresh 전체 폐기 + 모든 인증 쿠키 만료)
 router.post('/logout-secure', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
-    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-    if (accessToken) await revokeAccessToken(accessToken, req.user?.id);
+    const bearer = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    // 쿠키에 액세스 토큰이 있으면 그것도 함께 폐기
+    const { COOKIE_ACCESS } = await import('../utils/cookies');
+    const cookieAccess = readCookie(req, COOKIE_ACCESS);
+    if (bearer) await revokeAccessToken(bearer, req.user?.id);
+    if (cookieAccess && cookieAccess !== bearer) await revokeAccessToken(cookieAccess, req.user?.id);
     if (req.user?.id) await revokeAllRefreshTokens(req.user.id);
-    res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth' });
+    clearAuthCookies(res);
     res.json({ success: true });
   } catch (err) {
     console.error('[Auth] logout-secure 오류:', err);
