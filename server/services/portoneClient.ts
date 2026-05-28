@@ -54,6 +54,7 @@ export interface PaymentResult {
   status?: string;
   paidAt?: string;
   amount?: number;
+  receiptUrl?: string;
   error?: string;
   errorCode?: string;
 }
@@ -202,6 +203,7 @@ class PortOneClient {
         status: data.status,
         paidAt: data.paidAt,
         amount: data.amount?.total,
+        receiptUrl: data.receiptUrl,
       };
     } catch (error) {
       console.error('[PortOne] getPayment error:', error);

@@ -294,9 +294,8 @@ router.post('/:id/complete', authenticateHybrid, async (req: AuthRequest, res: R
 // ============================================
 // POST /api/contracts/:id/cancel
 // 계약을 취소합니다. 취소 정책에 따라 환불이 진행됩니다.
-// FIXME-TODO [환불PortOne미연결]: escrowService.cancelContract()가 portoneClient.cancelPayment()를
-// 실제로 호출하는지 확인 필요. portoneClient.ts:365에 cancelPayment()는 구현됨.
-// Replit Dev에서 취소 흐름 테스트 후, 실제 PortOne 취소 API 호출 여부 검증 필수.
+// T8 해결: escrowService.cancelContract()가 funded 상태 escrowTransactions을 조회하여
+// portoneClient.cancelPayment()로 자동 환불 처리하고 결과를 [Escrow] 로그로 기록함.
 router.post('/:id/cancel', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.id) {

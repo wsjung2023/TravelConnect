@@ -119,6 +119,38 @@ export async function searchPosts(
 }
 
 // ============================================
+// 사용자 검색 (T6) — 닉네임/이름/위치 ILIKE 매칭
+// ============================================
+export async function searchUsers(
+  term: string,
+  options: { limit?: number; offset?: number } = {}
+): Promise<any[]> {
+  const { limit = 20, offset = 0 } = options;
+  const searchPattern = `%${term}%`;
+
+  const result = await db.execute(sql`
+    SELECT 
+      u.id, u.nickname, u.first_name, u.last_name, u.profile_image_url,
+      u.location, u.user_type, u.host_status, u.languages, u.interests
+    FROM users u
+    WHERE (
+      u.nickname ILIKE ${searchPattern}
+      OR u.first_name ILIKE ${searchPattern}
+      OR u.last_name ILIKE ${searchPattern}
+      OR u.location ILIKE ${searchPattern}
+    )
+    AND u.is_active = true
+    ORDER BY 
+      CASE WHEN u.host_status = 'approved' THEN 1 ELSE 0 END DESC,
+      u.id DESC
+    LIMIT ${limit}
+    OFFSET ${offset}
+  `);
+
+  return result.rows as any[];
+}
+
+// ============================================
 // 체험 검색 (ILIKE 패턴 매칭)
 // ============================================
 // 제목, 설명, 위치, 카테고리에서 검색어 매칭

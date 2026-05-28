@@ -119,9 +119,39 @@ router.post('/posts', authenticateToken, async (req: any, res: Response) => {
       return res.status(400).json({ error: 'Content is required' });
     }
 
-    // FIXME-TODO [자동모더레이션없음]: 포스트 생성 시 NSFW/스팸 감지 로직 없음.
-    // 구현 경로: OpenAI Moderation API(무료) 또는 자체 키워드 필터 → 위반 시 status='flagged' 설정.
-    // 선행: posts 테이블에 moderationStatus 컬럼 추가 필요.
+    // T11: OpenAI Moderation API 호출 (무료, OPENAI_API_KEY 있을 때만)
+    // 위반 항목 발견 시 422로 차단. moderationStatus 컬럼이 없으므로 차단 방식 채택.
+    if (process.env.OPENAI_API_KEY && content && content.length > 0) {
+      try {
+        const modResp = await fetch('https://api.openai.com/v1/moderations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({ input: content, model: 'omni-moderation-latest' }),
+        });
+        if (modResp.ok) {
+          const modData = await modResp.json();
+          const result = modData.results?.[0];
+          if (result?.flagged) {
+            const flaggedCategories = Object.entries(result.categories || {})
+              .filter(([_, v]) => v === true)
+              .map(([k]) => k);
+            console.warn(`[Moderation] 포스트 차단: user=${req.user.id}, categories=${flaggedCategories.join(',')}`);
+            return res.status(422).json({
+              error: 'Content violates community guidelines',
+              code: 'CONTENT_FLAGGED',
+              categories: flaggedCategories,
+            });
+          }
+        }
+      } catch (modErr) {
+        // 모더레이션 실패 시 게시는 허용 (가용성 우선)
+        console.error('[Moderation] OpenAI Moderation 호출 실패:', modErr);
+      }
+    }
+
     const post = await storage.createPost({
       userId: req.user.id,
       content: content || '',

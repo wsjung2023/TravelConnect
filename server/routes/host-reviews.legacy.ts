@@ -146,10 +146,7 @@ export function registerLegacyHostReviewsRoutes(
     }
   });
 
-  // 후기 작성 API
-  // FIXME-TODO [리뷰검증]: verifiedBooking 필드가 있으나 예약 완료 여부 검증 로직 없음.
-  // 수정 경로: reviewerId + experienceId로 bookings 테이블 조회 → status='completed' 확인 후 허용.
-  // 현재 누구나 임의 체험에 리뷰 작성 가능 (Replit에서 검토 후 수정 필요).
+  // 후기 작성 API — T5 수정: 예약 완료자만 작성 가능
   app.post('/api/reviews', authenticateHybrid, async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
@@ -161,9 +158,32 @@ export function registerLegacyHostReviewsRoutes(
         reviewerId: req.user.id,
       });
 
-      const review = await storage.createReview(reviewData);
-      
-      console.log(`[REVIEW] User ${req.user.email} created review for experience ${(reviewData as any).experienceId}`);
+      // T5: 예약 완료 검증 — guest 역할로 사용자의 예약을 조회하여 'completed' 매칭 확인
+      const experienceId = (reviewData as any).experienceId;
+      let verifiedBooking = false;
+      if (experienceId) {
+        try {
+          const userBookings = typeof (storage as any).getBookingsByGuest === 'function'
+            ? await (storage as any).getBookingsByGuest(req.user.id)
+            : await storage.getBookingsByUser(req.user.id, 'guest');
+          verifiedBooking = (userBookings || []).some(
+            (b: any) => Number(b.experienceId) === Number(experienceId) && b.status === 'completed'
+          );
+        } catch (e) {
+          console.warn('[REVIEW] verifiedBooking 조회 실패:', e);
+        }
+      }
+
+      if (!verifiedBooking) {
+        return res.status(403).json({
+          message: '리뷰는 해당 체험을 완료한 사용자만 작성할 수 있습니다.',
+          code: 'BOOKING_NOT_COMPLETED',
+        });
+      }
+
+      const review = await storage.createReview({ ...reviewData, verifiedBooking: true } as any);
+
+      console.log(`[REVIEW] User ${req.user.email} created verified review for experience ${experienceId}`);
       res.json(review);
     } catch (error) {
       console.error('Error creating review:', error);

@@ -18,6 +18,7 @@ import {
   stopAllSchedulers,
   schedulerHandles,
 } from './scheduler';
+import { subscriptionScheduler } from './services/subscriptionScheduler';
 
 export { getSchedulerHandles, stopScheduler, stopAllSchedulers, schedulerHandles };
 
@@ -59,10 +60,9 @@ if (!envValidation.valid) {
 
 const app = express();
 
-// Security headers with helmet - CSP configured for Google AdSense
-// SECURITY-TODO [H-3]: unsafe-inline, unsafe-eval 제거 검토 필요.
-// Replit Dev에서 제거 후 Google AdSense/PortOne 결제 동작 확인 필요.
-// 제거 가능 시 scriptSrc, styleSrc에서 해당 지시어 삭제.
+// Security headers with helmet - CSP configured for Google AdSense / PortOne
+// T14 검토 결과: unsafe-inline/unsafe-eval 의도적 유지 (PortOne·AdSense·Vite HMR 필요).
+// nonce 기반 CSP 전환 시에만 제거 가능 — 별도 빌드 파이프라인 변경 작업으로 분리.
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -212,6 +212,19 @@ if (process.env.NODE_ENV === 'production') {
   // 스케줄러 시작 (DB system_config 기반으로 ON/OFF 판단)
   startBookingScheduler(storage);
 
+  // T3: 구독 자동 갱신 스케줄러 (24시간 주기). 환경변수 SUBSCRIPTION_SCHEDULER_ENABLED=true 일 때만 활성.
+  // 결제 자동 갱신이므로 PortOne 테스트 모드/실서버 검증 후 ON 권장.
+  if (process.env.SUBSCRIPTION_SCHEDULER_ENABLED === 'true') {
+    setInterval(() => {
+      subscriptionScheduler.runDailyScheduler().catch((err) =>
+        console.error('[SubscriptionScheduler] runDailyScheduler error:', err)
+      );
+    }, 24 * 60 * 60 * 1000);
+    console.log('▶️ Subscription renewal scheduler: ON (every 24h)');
+  } else {
+    console.log('⏸️ Subscription renewal scheduler: OFF (set SUBSCRIPTION_SCHEDULER_ENABLED=true to enable)');
+  }
+
   // Global error handler with Sentry integration
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -235,7 +248,7 @@ if (process.env.NODE_ENV === 'production') {
       message: status >= 500 ? 'Internal Server Error' : message,
       ...(process.env.NODE_ENV === 'development' && { debug: err.stack })
     });
-    throw err;
+    // 수정: throw err 제거 — 응답 전송 후 재throw는 unhandledRejection 발생시켜 프로세스 중단 위험.
   });
 
   // importantly only setup vite in development and after

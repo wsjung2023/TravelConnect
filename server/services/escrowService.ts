@@ -375,10 +375,8 @@ class EscrowService {
 
   /**
    * 결제 완료 처리 (Webhook에서 호출)
+   * T7 수정: 모든 DB 변경 작업을 단일 트랜잭션으로 묶어 원자성 보장.
    */
-  // FIXME-TODO [DB트랜잭션없음]: 결제 완료 처리(contractStage 업데이트 + escrowTransaction 생성 + 알림)
-  // 가 단일 DB 트랜잭션으로 묶이지 않음. 중간 실패 시 불일치 데이터 발생 가능.
-  // 수정 경로: Drizzle `db.transaction(async (tx) => { ... })` 으로 감싸 원자성 보장.
   async handlePaymentComplete(
     contractId: number,
     stageId: number,
@@ -408,51 +406,52 @@ class EscrowService {
         return { success: false, error: 'Contract not found' };
       }
 
-      // 금액 검증
       const expectedAmount = parseInt(stage.amount);
       if (paidAmount !== expectedAmount) {
         console.error(`[Escrow] Amount mismatch: expected ${expectedAmount}, got ${paidAmount}`);
         return { success: false, error: 'Amount mismatch' };
       }
 
-      // 에스크로 트랜잭션 생성
-      const [escrowTx] = await db.insert(escrowTransactions).values({
-        contractId: contract.id,
-        milestoneType: stage.name as 'deposit' | 'midterm' | 'final',
-        amount: paidAmount.toString(),
-        currency: 'USD',
-        status: 'funded',
-        paymentId: portonePaymentId,
-        fundedAt: new Date(),
-      }).returning();
+      // T7: DB 트랜잭션으로 escrowTransaction 생성 + 단계 갱신 + 계약 갱신을 원자화
+      const escrowTx = await db.transaction(async (tx) => {
+        const [created] = await tx.insert(escrowTransactions).values({
+          contractId: contract.id,
+          milestoneType: stage.name as 'deposit' | 'midterm' | 'final',
+          amount: paidAmount.toString(),
+          currency: 'USD',
+          status: 'funded',
+          paymentId: portonePaymentId,
+          fundedAt: new Date(),
+        }).returning();
 
-      if (!escrowTx) {
-        return { success: false, error: 'Failed to create escrow transaction' };
-      }
+        if (!created) {
+          throw new Error('Failed to create escrow transaction');
+        }
 
-      // 단계 상태 업데이트
-      await db
-        .update(contractStages)
-        .set({
-          status: 'paid',
-          paidAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(contractStages.id, stageId));
-
-      // 계약 상태 업데이트
-      if (stage.name === 'deposit') {
-        await db
-          .update(contracts)
+        await tx
+          .update(contractStages)
           .set({
-            status: 'in_progress',
-            startedAt: new Date(),
+            status: 'paid',
+            paidAt: new Date(),
             updatedAt: new Date(),
           })
-          .where(eq(contracts.id, contractId));
-      }
+          .where(eq(contractStages.id, stageId));
 
-      console.log(`[Escrow] Payment complete: Contract ${contractId}, Stage ${stage.name}, Amount ${paidAmount}`);
+        if (stage.name === 'deposit') {
+          await tx
+            .update(contracts)
+            .set({
+              status: 'in_progress',
+              startedAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(contracts.id, contractId));
+        }
+
+        return created;
+      });
+
+      console.log(`[Escrow] Payment complete (TX): Contract ${contractId}, Stage ${stage.name}, Amount ${paidAmount}`);
 
       return {
         success: true,
@@ -627,6 +626,47 @@ class EscrowService {
           eq(contractStages.contractId, contractId),
           eq(contractStages.status, 'pending')
         ));
+
+      // T8: 이미 결제된(funded) 에스크로 자금에 대한 자동 환불 처리 + 로그
+      const fundedTxs = await db
+        .select()
+        .from(escrowTransactions)
+        .where(and(
+          eq(escrowTransactions.contractId, contractId),
+          eq(escrowTransactions.status, 'funded')
+        ));
+
+      console.log(`[Escrow] Contract ${contractId} cancel: ${fundedTxs.length}건 환불 대상 발견`);
+
+      for (const tx of fundedTxs) {
+        if (!tx.paymentId) {
+          console.warn(`[Escrow] Skip refund tx ${tx.id} — paymentId 없음`);
+          continue;
+        }
+        try {
+          const refundResult = await portoneClient.cancelPayment(
+            tx.paymentId,
+            `Contract cancelled: ${reason}`,
+            parseInt(tx.amount)
+          );
+          if (refundResult.success) {
+            await db
+              .update(escrowTransactions)
+              .set({
+                status: 'refunded',
+                refundReason: `Contract cancelled: ${reason}`,
+                refundedAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .where(eq(escrowTransactions.id, tx.id));
+            console.log(`[Escrow] ✅ Refund OK: contract=${contractId}, tx=${tx.id}, amount=${tx.amount}`);
+          } else {
+            console.error(`[Escrow] ❌ Refund FAILED: contract=${contractId}, tx=${tx.id}, error=${refundResult.error}`);
+          }
+        } catch (refundError) {
+          console.error(`[Escrow] ❌ Refund EXCEPTION: contract=${contractId}, tx=${tx.id}:`, refundError);
+        }
+      }
 
       console.log(`[Escrow] Contract ${contractId} cancelled by ${cancelledBy}`);
 

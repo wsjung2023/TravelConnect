@@ -329,10 +329,8 @@ export function registerLegacyAnalyticsSearchRoutes(
     }
   });
 
-  // FIXME-TODO [사용자검색없음]: 통합 검색에 사용자(여행자/호스트) 검색이 누락됨.
-  // 구현 경로: socialRepository에 searchUsers(term) 추가 → 이 통합 검색 엔드포인트에 users 결과 포함.
-  // 통합 검색 (포스트 + 체험)
-  // GET /api/search?term=검색어&type=all|posts|experiences&limit=10&offset=0
+  // T6: 통합 검색 (포스트 + 체험 + 사용자)
+  // GET /api/search?term=검색어&type=all|posts|experiences|users&limit=10&offset=0
   app.get('/api/search', async (req: Request, res: Response) => {
     try {
       const term = req.query.term as string;
@@ -348,15 +346,20 @@ export function registerLegacyAnalyticsSearchRoutes(
         return res.status(400).json({ error: 'Search term must be at least 2 characters' });
       }
 
-      const results: { posts?: any[]; experiences?: any[] } = {};
+      const results: { posts?: any[]; experiences?: any[]; users?: any[] } = {};
 
-      // 타입에 따라 검색 수행
       if (type === 'all' || type === 'posts') {
         results.posts = await storage.searchPosts(term.trim(), { limit, offset });
       }
 
       if (type === 'all' || type === 'experiences') {
         results.experiences = await storage.searchExperiences(term.trim(), { limit, offset });
+      }
+
+      if (type === 'all' || type === 'users') {
+        // T6: 사용자 검색 — socialRepository.searchUsers 직접 사용
+        const { searchUsers } = await import('../repositories/socialRepository');
+        results.users = await searchUsers(term.trim(), { limit, offset });
       }
 
       res.json({

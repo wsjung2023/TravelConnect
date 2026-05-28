@@ -93,9 +93,7 @@ export function registerLegacyAIFeaturesRoutes(
           content: msg.content,
         }));
 
-      // FIXME-TODO [ConciergeSSE미노출]: concierge.ts에 generateConciergeResponseStream() 구현됨.
-      // 현재 이 엔드포인트는 비스트리밍(단일 JSON 응답)만 제공. SSE 스트리밍 엔드포인트 별도 추가 필요.
-      // 구현 경로: POST /api/ai/concierge/stream → res.setHeader('Content-Type','text/event-stream') → onChunk로 청크 전송.
+      // T12: SSE 스트리밍 엔드포인트는 아래 /api/ai/concierge/stream 으로 별도 노출됨.
       const aiResponse = await generateConciergeResponse(
         userMessage.trim(),
         context,
@@ -121,6 +119,126 @@ export function registerLegacyAIFeaturesRoutes(
       }
       
       res.status(500).json({ message: 'Failed to get AI response' });
+    }
+  });
+
+  // T12: AI Concierge SSE 스트리밍 엔드포인트
+  // POST /api/ai/concierge/stream — 청크 단위 실시간 응답 (text/event-stream)
+  app.post('/api/ai/concierge/stream', authenticateToken, requireAiEnv, checkAiUsage('concierge'), async (req: AuthRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+      if (!isConciergeEnabled()) {
+        return res.status(503).json({ message: 'AI Concierge service not available' });
+      }
+
+      const { userMessage, channelId } = req.body;
+      if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+        return res.status(400).json({ message: 'userMessage is required' });
+      }
+
+      const userId = req.user.id;
+      const userProfile = await storage.getUser(userId);
+      const nearbyExperiences = userProfile?.lastLatitude && userProfile?.lastLongitude
+        ? await storage.getNearbyExperiences(
+            parseFloat(userProfile.lastLatitude as any),
+            parseFloat(userProfile.lastLongitude as any),
+            10,
+            5
+          )
+        : [];
+
+      const context: ConciergeContext = {
+        userId,
+        userProfile: userProfile ? {
+          firstName: userProfile.firstName || undefined,
+          lastName: userProfile.lastName || undefined,
+          location: userProfile.location || undefined,
+          interests: (userProfile.interests as any) || [],
+          languages: (userProfile.languages as any) || [],
+          preferredLanguage: (userProfile as any).preferredLanguage || 'en',
+        } : undefined,
+        nearbyExperiences: nearbyExperiences.map((e: any) => ({
+          id: e.id, title: e.title, category: e.category,
+          location: e.location, price: e.price,
+        })),
+      };
+
+      // T12 보안: channelId 사용 시 멤버십 확인 (IDOR 방지)
+      let validChannelId: number | undefined;
+      if (channelId) {
+        const parsed = parseInt(channelId);
+        if (!Number.isNaN(parsed)) {
+          try {
+            const members = await storage.getChannelMembers(parsed);
+            const isMember = members.some((m: any) => m.userId === userId);
+            if (!isMember) {
+              return res.status(403).json({ message: 'Not a member of this channel' });
+            }
+            validChannelId = parsed;
+          } catch (memErr) {
+            console.warn('[Concierge SSE] 채널 멤버십 조회 실패:', memErr);
+          }
+        }
+      }
+
+      let conversationHistory: Array<{ role: string; content: string }> = [];
+      if (validChannelId) {
+        const previousMessages = await storage.getMessagesByChannel(validChannelId, 10);
+        conversationHistory = previousMessages
+          .filter(msg => msg.senderId === userId || msg.senderId === null)
+          .map(msg => ({
+            role: msg.senderId === userId ? 'user' : 'assistant',
+            content: msg.content,
+          }));
+      }
+
+      // SSE 헤더
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders?.();
+
+      let fullText = '';
+      const { generateConciergeResponseStream } = await import('../ai/concierge');
+      await generateConciergeResponseStream(
+        userMessage.trim(),
+        context,
+        conversationHistory,
+        (chunk: string) => {
+          fullText += chunk;
+          res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+        }
+      );
+
+      // 채널이 지정된 경우(멤버십 검증 통과) 최종 메시지 DB 저장
+      if (validChannelId && fullText) {
+        try {
+          await storage.createChannelMessage({
+            channelId: validChannelId,
+            senderId: null,
+            content: fullText,
+            messageType: 'text',
+          });
+        } catch (saveErr) {
+          console.error('[Concierge SSE] DB 저장 실패:', saveErr);
+        }
+      }
+
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    } catch (error: any) {
+      console.error('AI Concierge SSE error:', error);
+      try {
+        res.write(`data: ${JSON.stringify({ error: error.message || 'stream failed' })}\n\n`);
+        res.end();
+      } catch {
+        // 헤더가 아직 안 보내진 경우
+        if (!res.headersSent) {
+          res.status(500).json({ message: 'Failed to stream AI response' });
+        }
+      }
     }
   });
 

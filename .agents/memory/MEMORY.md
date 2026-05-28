@@ -1,0 +1,4 @@
+- [Tourgether 라우트 이중성](tourgether-route-duplication.md) — `/api/posts` 등 일부 엔드포인트가 `server/routes.ts`(활성)와 `server/routes/social.ts`(미연결) 양쪽에 존재. 신규 보안 검사는 routes.ts 쪽에 반드시 추가.
+- [Tourgether 가드레일](tourgether-guardrails.md) — `server/routes.ts`는 거의 frozen, 새 엔드포인트는 `server/routes/` 하위 모듈로. 새 파일 1줄 상단 주석 필수. 250줄 분리 검토/400줄 강제 분리.
+- [Tourgether bookings 조회](tourgether-bookings-role.md) — `getBookingsByUser(userId, role)` role 필수 ('guest' | 'host'). 호출 시 누락하면 잘못된 컬럼으로 매칭됨.
+- [Tourgether payments.intentId](tourgether-payments-intentid.md) — 스키마에 컬럼은 있으나 일부 결제 흐름에서 insert 시 채워지지 않음. receiptUrl 업데이트는 best-effort로 처리하고 응답에 직접 포함하는 게 안전.

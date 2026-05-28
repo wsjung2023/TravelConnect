@@ -1,7 +1,6 @@
 // 구독 스케줄러 — 만료 예정 구독의 자동 갱신 결제와 만료 처리를 주기적으로 실행한다.
-// FIXME-TODO [스케줄러미실행]: 이 파일은 완전 구현되었으나 server/index.ts에서 import/실행되지 않음.
-// 활성화 방법: server/index.ts에서 import { startSubscriptionScheduler } 후 앱 시작 시 호출.
-// 주의: 결제 자동 갱신 로직이므로 Replit Dev에서 PortOne 테스트 모드로 먼저 검증 필수.
+// T3 해결: server/index.ts 에서 환경변수 SUBSCRIPTION_SCHEDULER_ENABLED=true 일 때 24h 주기로 기동.
+// 주의: 결제 자동 갱신 로직이므로 PortOne 테스트 모드 검증 후 운영 환경에서 ON 권장.
 /**
  * 구독 스케줄러 서비스
  *

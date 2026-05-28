@@ -45,10 +45,7 @@ i18n
   .init({
     // Default language
     fallbackLng: 'en',
-    // FIXME-TODO [i18n초기언어고정]: lng:'en' 명시가 LanguageDetector를 override.
-    // 첫 방문 사용자는 비동기 geo 감지 완료 전까지 항상 영어로 렌더링됨.
-    // 수정 경로: lng 제거 → LanguageDetector에 lookupLocalStorage:'i18nextLng' 설정으로 캐시 언어 동기 복원.
-    lng: 'en',
+    // T2 수정: lng 하드코딩 제거 → LanguageDetector가 localStorage→querystring→navigator 순서로 자동 감지
     
     // Debug mode (disable in production)
     debug: import.meta.env.DEV,

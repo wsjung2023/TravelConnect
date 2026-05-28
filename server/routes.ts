@@ -192,9 +192,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Referrer Policy: 개인정보 보호
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
-    // SECURITY-TODO [H-3]: unsafe-inline, unsafe-eval 제거 검토 필요.
-    // Replit Dev에서 제거 후 Google AdSense/PortOne 결제 동작 확인 필요.
-    // 제거 가능 시 script-src, style-src에서 해당 지시어 삭제.
+    // T14 검토 결과: unsafe-inline/unsafe-eval 의도적 유지.
+    //   - PortOne 결제 SDK: 인라인 스크립트 주입 필수 (체크아웃 위젯)
+    //   - Google AdSense: 광고 슬롯 인라인 초기화 필수
+    //   - Vite Dev HMR: 개발 모드 인라인 스크립트 필요
+    //   완전 제거는 nonce 기반 CSP 전환 후 가능 (전면적 빌드 파이프라인 변경 필요).
     // Content Security Policy: 다양한 공격 방지 (PortOne 결제 SDK 포함)
     res.setHeader('Content-Security-Policy', [
       "default-src 'self'",
@@ -393,21 +395,15 @@ COMMIT;
     }
   });
 
-  // DB Admin interface - ADMIN ONLY (with query token support)
+  // DB Admin interface - ADMIN ONLY (Bearer 헤더 전용)
+  // C-2 보안 수정: ?token= 쿼리 파라미터 제거 (브라우저 히스토리/로그 노출 차단)
   app.get('/db-admin', async (req: Request, res: Response) => {
     try {
-      // 먼저 쿼리에서 토큰 확인
-      const queryToken = req.query.token as string;
       const authHeader = req.headers.authorization;
-      
-      let token = '';
-      if (queryToken) {
-        token = queryToken;
-      } else if (authHeader?.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-      } else {
-        return res.status(401).json({ message: 'No token provided' });
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Bearer token required (URL token deprecated)' });
       }
+      const token = authHeader.substring(7);
 
       // JWT 토큰 검증
       const decoded = verifyToken(token);
@@ -628,27 +624,26 @@ COMMIT;
               ? `${updatedUser.firstName} ${updatedUser.lastName}` 
               : updatedUser.firstName || '여행자');
 
-          for (const nearbyUser of nearbyUsers) {
-            if (nearbyUser.id !== userId) {
-              // 알림 생성
-              const notification = await storage.createNotification({
-                userId: nearbyUser.id,
-                type: 'open_to_meet',
-                title: '근처에 새로운 여행자!',
-                message: `${displayName}님이 만남을 열었습니다`,
-                location: updatedUser.location || undefined,
-                relatedUserId: userId,
-              });
-
-              // WebSocket으로 실시간 알림 전송
-              const sendNotificationToUser = (app as any).sendNotificationToUser;
-              if (sendNotificationToUser) {
-                sendNotificationToUser(nearbyUser.id, notification);
-              }
+          // H-6 N+1 수정: 순차 await → 병렬 Promise.all
+          const targets = nearbyUsers.filter(u => u.id !== userId);
+          const created = await Promise.all(targets.map(u =>
+            storage.createNotification({
+              userId: u.id,
+              type: 'open_to_meet',
+              title: '근처에 새로운 여행자!',
+              message: `${displayName}님이 만남을 열었습니다`,
+              location: updatedUser.location || undefined,
+              relatedUserId: userId,
+            })
+          ));
+          const sendNotificationToUser = (app as any).sendNotificationToUser;
+          if (sendNotificationToUser) {
+            for (let i = 0; i < targets.length; i++) {
+              sendNotificationToUser(targets[i].id, created[i]);
             }
           }
 
-          console.log(`[PATCH /api/profile/open] ${nearbyUsers.length - 1}명의 근처 사용자에게 알림 발송 완료`);
+          console.log(`[PATCH /api/profile/open] ${targets.length}명의 근처 사용자에게 알림 발송 완료`);
         } catch (notifyError) {
           console.error('[PATCH /api/profile/open] 근처 사용자 알림 발송 오류:', notifyError);
           // 알림 실패는 메인 응답에 영향 주지 않음
@@ -835,27 +830,26 @@ COMMIT;
             100 // 최대 100명
           );
 
-          // 자신을 제외한 근처 사용자들에게 알림 발송
-          for (const nearbyUser of nearbyUsers) {
-            if (nearbyUser.id !== userId) {
-              const notification = await storage.createNotification({
-                userId: nearbyUser.id,
-                type: 'event_nearby',
-                title: '근처에 새로운 이벤트!',
-                message: `${hostDisplayName}님이 "${experience.title}" 이벤트를 개설했습니다`,
-                location: experience.location || undefined,
-                relatedUserId: userId,
-              });
-
-              // WebSocket으로 실시간 알림 전송
-              const sendNotificationToUser = (app as any).sendNotificationToUser;
-              if (sendNotificationToUser) {
-                sendNotificationToUser(nearbyUser.id, notification);
-              }
+          // H-6 N+1 수정: 순차 await → 병렬 Promise.all
+          const expTargets = nearbyUsers.filter(u => u.id !== userId);
+          const expCreated = await Promise.all(expTargets.map(u =>
+            storage.createNotification({
+              userId: u.id,
+              type: 'event_nearby',
+              title: '근처에 새로운 이벤트!',
+              message: `${hostDisplayName}님이 "${experience.title}" 이벤트를 개설했습니다`,
+              location: experience.location || undefined,
+              relatedUserId: userId,
+            })
+          ));
+          const sendNotificationToUser = (app as any).sendNotificationToUser;
+          if (sendNotificationToUser) {
+            for (let i = 0; i < expTargets.length; i++) {
+              sendNotificationToUser(expTargets[i].id, expCreated[i]);
             }
           }
 
-          console.log(`[POST /api/experiences] ${nearbyUsers.length - 1}명의 근처 사용자에게 알림 발송 완료`);
+          console.log(`[POST /api/experiences] ${expTargets.length}명의 근처 사용자에게 알림 발송 완료`);
         } catch (notifyError) {
           console.error('[POST /api/experiences] 근처 사용자 알림 발송 오류:', notifyError);
           // 알림 실패는 메인 응답에 영향 주지 않음
@@ -1440,6 +1434,38 @@ COMMIT;
         ...req.body,
         userId,
       });
+
+      // T11: OpenAI Moderation API (활성 라우트). OPENAI_API_KEY 있을 때만, 위반 시 422 차단.
+      const modContent = (postData as any).content;
+      if (process.env.OPENAI_API_KEY && modContent && typeof modContent === 'string' && modContent.length > 0) {
+        try {
+          const modResp = await fetch('https://api.openai.com/v1/moderations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({ input: modContent, model: 'omni-moderation-latest' }),
+          });
+          if (modResp.ok) {
+            const modData = await modResp.json();
+            const flagged = modData.results?.[0];
+            if (flagged?.flagged) {
+              const cats = Object.entries(flagged.categories || {})
+                .filter(([_, v]) => v === true)
+                .map(([k]) => k);
+              console.warn(`[Moderation] /api/posts 차단: user=${userId}, categories=${cats.join(',')}`);
+              return res.status(422).json({
+                error: 'Content violates community guidelines',
+                code: 'CONTENT_FLAGGED',
+                categories: cats,
+              });
+            }
+          }
+        } catch (modErr) {
+          console.error('[Moderation] OpenAI 호출 실패 (게시 허용):', modErr);
+        }
+      }
       
       // Day 자동 계산 로직 (EXIF → Day/시간/위치 자동화)
       let calculatedDay = 1;

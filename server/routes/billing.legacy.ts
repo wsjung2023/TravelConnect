@@ -483,10 +483,36 @@ export function registerLegacyBillingRoutes(
       }
 
       const { paymentId, txId, type, contractId, stageId } = req.body;
-      
-      // FIXME-TODO [receiptUrl미저장]: PortOne 결제 확인 응답에서 receiptUrl을 파싱·저장하는 로직 없음.
-      // 수정 경로: paymentId로 portoneClient.getPaymentStatus() 호출 → 응답의 receiptUrl을
-      // payments 테이블 해당 레코드에 업데이트. trip_pass/subscription/contract 세 타입 모두 해당.
+
+      // T4: PortOne 결제 상세 조회 → receiptUrl 확보. 응답에 포함하여 클라이언트가 즉시 영수증 링크 사용 가능.
+      // 추가로 payments.intentId 매칭 row 발견 시 DB도 업데이트 (best-effort; 일부 흐름은 intentId 미저장 → 0건 정상).
+      let receiptUrl: string | undefined;
+      try {
+        const { portoneClient } = await import('../services/portoneClient');
+        const payInfo = await portoneClient.getPayment(paymentId);
+        if (payInfo.success && payInfo.receiptUrl) {
+          receiptUrl = payInfo.receiptUrl;
+          try {
+            const { db } = await import('../db');
+            const { payments } = await import('@shared/schema');
+            const { eq } = await import('drizzle-orm');
+            const updated = await db
+              .update(payments)
+              .set({ receiptUrl, updatedAt: new Date() })
+              .where(eq(payments.intentId, paymentId))
+              .returning({ id: payments.id });
+            console.log(`[Billing] receiptUrl: paymentId=${paymentId}, db_updated=${updated.length}건`);
+          } catch (dbErr) {
+            console.warn('[Billing] receiptUrl DB 저장 실패 (응답에는 포함됨):', dbErr);
+          }
+        }
+      } catch (receiptErr) {
+        console.warn('[Billing] PortOne getPayment 실패 (결제 처리는 계속):', receiptErr);
+      }
+      // 응답에 receiptUrl 포함 (모든 type 공통)
+      (res as any).locals = (res as any).locals || {};
+      (res as any).locals.receiptUrl = receiptUrl;
+
       if (type === 'trip_pass') {
         res.json({
           success: true,
