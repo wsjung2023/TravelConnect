@@ -99,7 +99,7 @@ export default function Landing() {
     <div className="w-full bg-[var(--landing-bg-light)] min-h-screen">
       <Helmet>
         {/* SEO 최적화 - 한글/영어 브랜드명 병기 */}
-        <title>투어게더(Tourgether) - 지도 기반 여행 SNS | 로컬과 함께하는 여행</title>
+        <title>{t('landing.seoTitle')}</title>
         <meta name="description" content="투어게더(Tourgether)는 여행자와 로컬을 연결하는 지도 기반 여행 SNS입니다. 여행 일정 공유, 여행 타임라인 기록, 현지 추천과 매칭까지 한 번에 경험하세요. Travel SNS connecting travelers with locals." />
         <meta name="keywords" content="투어게더, Tourgether, 여행 SNS, 지도 기반 여행, 여행 타임라인, 로컬 가이드, 여행 일정 공유, 현지 추천, 여행 경험 공유, travel SNS, local guide, travel app" />
         <link rel="canonical" href="https://tourgether.io/" />

@@ -292,7 +292,7 @@ export default function TimelineCreate() {
         {isUploading && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span>업로드 진행률</span>
+              <span>{t('timelineCreate.uploadProgress')}</span>
               <span>{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} className="w-full" />

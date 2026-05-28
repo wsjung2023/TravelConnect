@@ -60664,5 +60664,269 @@
     "key": "review.rating",
     "locale": "zh",
     "value": "请选择评分"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "ko",
+    "value": "발렌시아 | 사업자등록번호: 124-51-71915 | 통신판매업: 제2014-서울강남-03505호"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.info",
+    "locale": "en",
+    "value": "Valencia | Business Reg: 124-51-71915 | Mail-Order Sales: 2014-Seoul Gangnam-03505"
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "ko",
+    "value": "투게더는 통신판매중개자로서 거래 당사자가 아닙니다."
+  },
+  {
+    "namespace": "ui",
+    "key": "footer.legal.disclaimer",
+    "locale": "en",
+    "value": "Tourgether acts as a mail-order intermediary and is not a party to any transaction."
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "ko",
+    "value": "패키지 삭제"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteTitle",
+    "locale": "en",
+    "value": "Delete Package"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "ko",
+    "value": "'{{title}}' 패키지를 삭제하시겠습니까?"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteConfirm",
+    "locale": "en",
+    "value": "Delete the '{{title}}' package?"
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "ko",
+    "value": "이 작업은 되돌릴 수 없습니다."
+  },
+  {
+    "namespace": "ui",
+    "key": "packageList.deleteIrreversible",
+    "locale": "en",
+    "value": "This action cannot be undone."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "ko",
+    "value": "예약 가능한 슬롯"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.title",
+    "locale": "en",
+    "value": "Available Slots"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "ko",
+    "value": "슬롯을 불러오는 중..."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loading",
+    "locale": "en",
+    "value": "Loading slots..."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "ko",
+    "value": "슬롯을 불러오는데 실패했습니다."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.loadError",
+    "locale": "en",
+    "value": "Failed to load slots."
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "ko",
+    "value": "총 {{count}}개의 슬롯"
+  },
+  {
+    "namespace": "ui",
+    "key": "slotBrowser.totalCount",
+    "locale": "en",
+    "value": "{{count}} slot(s) in total"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "ko",
+    "value": "한 줄 기록"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.label",
+    "locale": "en",
+    "value": "One-line note"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "ko",
+    "value": "오늘 하루를 한 줄로 표현해보세요..."
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCard.placeholder",
+    "locale": "en",
+    "value": "Sum up your day in one line..."
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "ko",
+    "value": "업로드 진행률"
+  },
+  {
+    "namespace": "ui",
+    "key": "timelineCreate.uploadProgress",
+    "locale": "en",
+    "value": "Upload progress"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "ko",
+    "value": "투어게더(Tourgether) - 지도 기반 여행 SNS | 로컬과 함께하는 여행"
+  },
+  {
+    "namespace": "ui",
+    "key": "landing.seoTitle",
+    "locale": "en",
+    "value": "Tourgether - Map-based Travel SNS | Travel with Locals"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "ko",
+    "value": "현재 위치로 자동 채움 중…"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.autoFilling",
+    "locale": "en",
+    "value": "Auto-filling from current location..."
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "ko",
+    "value": "동네·도시·장소 검색 (예: 강남구, Shinjuku, Le Marais)"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.placeholder",
+    "locale": "en",
+    "value": "Search neighborhood, city, or place (e.g. Gangnam-gu, Shinjuku, Le Marais)"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "ko",
+    "value": "현재 위치 사용"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.useCurrentLocation",
+    "locale": "en",
+    "value": "Use current location"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "ko",
+    "value": "활성 시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activeHoursLabel",
+    "locale": "en",
+    "value": "Active hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "ko",
+    "value": "6시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours6",
+    "locale": "en",
+    "value": "6 hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "ko",
+    "value": "12시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours12",
+    "locale": "en",
+    "value": "12 hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "ko",
+    "value": "24시간"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.hours24",
+    "locale": "en",
+    "value": "24 hours"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "ko",
+    "value": "활성화"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.activate",
+    "locale": "en",
+    "value": "Activate"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "ko",
+    "value": "취소"
+  },
+  {
+    "namespace": "ui",
+    "key": "openToMeet.cancelBtn",
+    "locale": "en",
+    "value": "Cancel"
   }
 ]

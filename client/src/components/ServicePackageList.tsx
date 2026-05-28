@@ -24,10 +24,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import ServicePackageForm from './ServicePackageForm';
 import type { ServicePackage } from '@shared/schema';
 
 export default function ServicePackageList() {
+  const { t } = useTranslation('ui');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -290,10 +292,10 @@ export default function ServicePackageList() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>패키지 삭제</AlertDialogTitle>
+            <AlertDialogTitle>{t('packageList.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              '{deletingPackage?.title}' 패키지를 삭제하시겠습니까?
-              <br />이 작업은 되돌릴 수 없습니다.
+              {t('packageList.deleteConfirm', { title: deletingPackage?.title })}
+              <br />{t('packageList.deleteIrreversible')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

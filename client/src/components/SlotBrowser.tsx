@@ -1,10 +1,12 @@
 // 슬롯 탐색 UI — 여행자가 날짜·위치·서비스 유형으로 슬롯을 검색하고 예약 가능 여부를 확인하는 컴포넌트.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import type { Slot } from '@shared/schema';
 import SlotBookingModal from './SlotBookingModal';
 
 export default function SlotBrowser() {
+  const { t } = useTranslation('ui');
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
@@ -46,26 +48,26 @@ export default function SlotBrowser() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6" data-testid="slot-browser">
-      <h1 className="text-2xl font-bold">예약 가능한 슬롯</h1>
+      <h1 className="text-2xl font-bold">{t('slotBrowser.title')}</h1>
       
       {/* 로딩 상태 */}
       {isLoading && (
         <div className="text-center py-8">
-          <p>슬롯을 불러오는 중...</p>
+          <p>{t('slotBrowser.loading')}</p>
         </div>
       )}
 
       {/* 에러 상태 */}
       {error && (
         <div className="text-center py-8">
-          <p className="text-red-600">슬롯을 불러오는데 실패했습니다.</p>
+          <p className="text-red-600">{t('slotBrowser.loadError')}</p>
         </div>
       )}
 
       {/* 슬롯 목록 */}
       {!isLoading && !error && (
         <div data-testid="slots-grid">
-          <p className="text-sm text-gray-600 mb-4">총 {slots.length}개의 슬롯</p>
+          <p className="text-sm text-gray-600 mb-4">{t('slotBrowser.totalCount', { count: slots.length })}</p>
           
           {slots.length === 0 ? (
             <div className="text-center py-12">

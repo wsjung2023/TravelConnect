@@ -1,7 +1,9 @@
 // 사이트 푸터 — 페이지 하단에 표시되는 서비스 정보·링크·저작권 표시 컴포넌트.
 import { Link } from 'wouter';
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
+  const { t } = useTranslation('ui');
   const currentYear = new Date().getFullYear();
 
   const legalLinks = [
@@ -41,8 +43,8 @@ export default function Footer() {
         </div>
         
         <div className="mt-6 pt-4 border-t border-gray-200 text-center text-xs text-gray-400 space-y-1">
-          <p>발렌시아 | 사업자등록번호: 124-51-71915 | 통신판매업: 제2014-서울강남-03505호</p>
-          <p className="text-gray-300">투게더는 통신판매중개자로서 거래 당사자가 아닙니다.</p>
+          <p>{t('footer.legal.info')}</p>
+          <p className="text-gray-300">{t('footer.legal.disclaimer')}</p>
         </div>
       </div>
     </footer>

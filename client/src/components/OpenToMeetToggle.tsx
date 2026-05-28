@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Clock, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
@@ -18,6 +19,7 @@ export default function OpenToMeetToggle({
   compact = false, 
   className = '' 
 }: OpenToMeetToggleProps) {
+  const { t } = useTranslation('ui');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [region, setRegion] = useState('');
@@ -254,29 +256,29 @@ export default function OpenToMeetToggle({
               {isAutoFilling && (
                 <span className="flex items-center gap-1 text-gray-400">
                   <Loader2 size={10} className="animate-spin" />
-                  현재 위치로 자동 채움 중…
+                  {t('openToMeet.autoFilling')}
                 </span>
               )}
             </label>
             <LocationSearchInput
               value={region}
               onChange={(v) => setRegion(v)}
-              placeholder="동네·도시·장소 검색 (예: 강남구, Shinjuku, Le Marais)"
+              placeholder={t('openToMeet.placeholder')}
               className="text-xs"
-              useCurrentLocationText="현재 위치 사용"
+              useCurrentLocationText={t('openToMeet.useCurrentLocation')}
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-600 mb-1">활성 시간</label>
+            <label className="block text-xs text-gray-600 mb-1">{t('openToMeet.activeHoursLabel')}</label>
             <select
               value={hours}
               onChange={(e) => setHours(Number(e.target.value))}
               className="w-full p-2 rounded border text-xs"
               data-testid="select-open-to-meet-hours"
             >
-              <option value={6}>6시간</option>
-              <option value={12}>12시간</option>
-              <option value={24}>24시간</option>
+              <option value={6}>{t('openToMeet.hours6')}</option>
+              <option value={12}>{t('openToMeet.hours12')}</option>
+              <option value={24}>{t('openToMeet.hours24')}</option>
             </select>
           </div>
           <div className="flex gap-2">
@@ -285,13 +287,13 @@ export default function OpenToMeetToggle({
               className="flex-1 px-3 py-1.5 bg-primary text-white rounded text-xs"
               disabled={toggleMutation.isPending}
             >
-              활성화
+              {t('openToMeet.activate')}
             </button>
             <button
               onClick={() => setShowSettings(false)}
               className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-xs"
             >
-              취소
+              {t('openToMeet.cancelBtn')}
             </button>
           </div>
         </div>

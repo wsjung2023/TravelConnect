@@ -1,6 +1,7 @@
 // 타임라인 카드 — 여행 타임라인의 각 항목을 카드 형태로 표시하는 컴포넌트.
 import { useState } from 'react';
 import { Calendar, Camera, MapPin, Heart, Cloud, Edit3, Check, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ export function TimelineCard({
   onUpdateCard,
   isEditable = true
 }: TimelineCardProps) {
+  const { t } = useTranslation('ui');
   const [isEditing, setIsEditing] = useState(false);
   const [tempComment, setTempComment] = useState(comment);
   const [tempShape, setTempShape] = useState<'heart' | 'cloud'>(shape);
@@ -179,12 +181,12 @@ export function TimelineCard({
 
       {/* 코멘트 입력/표시 */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">한 줄 기록</p>
+        <p className="text-sm font-medium text-gray-700">{t('timelineCard.label')}</p>
         {isEditing ? (
           <Input
             value={tempComment}
             onChange={(e) => setTempComment(e.target.value)}
-            placeholder="오늘 하루를 한 줄로 표현해보세요..."
+            placeholder={t('timelineCard.placeholder')}
             className="text-sm"
             maxLength={100}
             data-testid={`comment-input-${dayId}`}

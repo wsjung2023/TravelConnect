@@ -311,7 +311,7 @@ export default function PublicPortfolio({ publicProfileUrl }: PublicPortfolioPro
 
         {/* Footer */}
         <div className="mt-12 text-center text-gray-500 text-sm">
-          <p>Powered by Tourgether - 로컬과 여행자를 연결하는 플랫폼</p>
+          <p>Powered by Tourgether</p>
         </div>
       </div>
     </div>
