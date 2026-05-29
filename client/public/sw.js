@@ -1,5 +1,5 @@
 // Tourgether 서비스 워커 - PWA 오프라인 지원
-const CACHE_NAME = 'tourgether-v1';
+const CACHE_NAME = 'tourgether-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

@@ -17,15 +17,26 @@ createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
-// PWA 서비스 워커 등록
+// PWA 서비스 워커 — 운영에서만 등록. 개발에서는 기존 워커/캐시를 정리해
+// "새로고침해도 안 풀리는 흰 화면"(stale SW 캐시) 문제를 방지한다.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered:', registration.scope);
-      })
-      .catch((error) => {
-        console.log('SW registration failed:', error);
-      });
-  });
+  if (import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('SW registration failed:', error);
+        });
+    });
+  } else {
+    // 개발 환경: 이전에 등록된 서비스 워커와 캐시를 제거
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => registration.unregister());
+    });
+    if ('caches' in window) {
+      caches.keys().then((names) => names.forEach((name) => caches.delete(name)));
+    }
+  }
 }
