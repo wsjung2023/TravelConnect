@@ -9,3 +9,4 @@
 - [Tourgether 사용자 응답 sanitize](tourgether-user-response-sanitize.md) — users row를 응답에 직접 노출하면 `password` 해시까지 빠져나감. `server/utils/sanitizeUser.ts` 헬퍼로 항상 제거.
 - [Tourgether 인증 쿠키 + CSRF](tourgether-auth-cookies.md) — login/refresh가 tg_access(HttpOnly,/)+tg_refresh(HttpOnly,/api/auth)+tg_csrf(non-HttpOnly) 셋을 함께 발급. 쿠키 인증일 때만 X-CSRF-Token 검사, Bearer는 면제. localStorage Bearer는 호환용 잔존.
 - [Tourgether 결제 서버검증](tourgether-payment-server-verify.md) — `/api/billing/confirm-payment`는 PortOne `getPayment`로 status='PAID' + amount 일치를 서버에서 재확인해야 함. 클라이언트의 success 주장만 믿고 통과시키면 안 됨.
+- [Tourgether Critical 검증](tourgether-critical-verified.md) — C-1/C-2/C-3은 보고서 표기와 달리 이미 해결됨(2026-05-29 확인). 재추적 금지. 옛 라인번호(1685/424/1116) 신뢰 금지.

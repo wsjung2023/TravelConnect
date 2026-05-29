@@ -2,11 +2,26 @@
 
 > 초안 작성일: 2026-05-20
 > 재검증·수정일: 2026-05-21
-> **최신 갱신: 2026-05-28** — D 카테고리 전체 구현 + 신규 Critical 2건 즉시 수정
+> **최신 갱신: 2026-05-29** — Critical 3건(C-1/C-2/C-3) 실제 코드 재검증 결과 모두 해결 확인 (이전 "미수정" 표기는 stale)
+> **이전 갱신: 2026-05-28** — D 카테고리 전체 구현 + 신규 Critical 2건 즉시 수정
 > 범위: 백엔드(Express), 프론트엔드(React/Vite), 공유 스키마, 설정 파일, 비즈니스 로직 전체
 
 > **재검증 방법**: 각 항목을 실제 코드 기준으로 재분류 — `오진(false positive)` / `과장(overstated)` / `실제문제(confirmed)`.
 > 오진·과장 항목은 건드리지 않음. 실제 문제 중 안전한 것은 즉시 수정, 위험하거나 큰 것은 `FIXME-TODO` / `SECURITY-TODO` 마커 삽입.
+
+---
+
+## ✅ 2026-05-29 (Critical 3건 실제 코드 재검증)
+
+이전 보고서가 C-1/C-2/C-3을 "❌ 미수정"으로 표기했으나, 현재 코드 기준 grep·정독 결과 **3건 모두 이미 해결**되어 있음을 확인. 표기 stale.
+
+| ID | 항목 | 실제 코드 상태 | 위치 |
+|----|------|--------------|------|
+| C-1 | 댓글 오퍼 IDOR | ✅ 해결 — 포스트 작성자 검증(`post.userId !== userId` → 403) 존재 | `server/routes.ts:1734-1737` |
+| C-2 | Admin Raw SQL / db-admin | ✅ 해결 — 운영 환경 미들웨어 차단(`/db-admin`,`/api/sql`,`/download_backup`,`/simple_download`), dev는 Bearer admin 인증+폐기토큰 차단, `sql.raw` 실행 핸들러 자체가 코드에 없음 | `server/index.ts:191-208`, `server/routes.ts:402-428` |
+| C-3 | 타임라인 무인증 조회 | ✅ 해결 — 공개/비공개 분기 + 본인 검증(`decoded.id !== timeline.userId` → 403) + 폐기토큰 차단 | `server/routes.ts:1098-1130` |
+
+**서버 정상 기동 확인**: `Start application` workflow RUNNING.
 
 ---
 
@@ -110,11 +125,11 @@
 ### ⚠️ 여전히 미수정 (이전 보고서 항목, 별도 작업 필요)
 | ID | 항목 | 사유 |
 |----|------|------|
-| C-1 | IDOR 댓글 오퍼 상태 권한 검증 | 별도 작업 |
-| C-2 | Admin Raw SQL 엔드포인트 (SQL 인젝션) | 화이트리스트 재설계 별도 작업 |
-| C-3 | 타임라인 무인증 조회 (`GET /api/timelines/:id`) | 별도 작업 |
+| ~~C-1~~ | ~~IDOR 댓글 오퍼 상태 권한 검증~~ | ✅ **2026-05-29 해결 확인** — 포스트 작성자 검증 존재 (`routes.ts:1734-1737`) |
+| ~~C-2~~ | ~~Admin Raw SQL 엔드포인트 (SQL 인젝션)~~ | ✅ **2026-05-29 해결 확인** — 운영 차단 미들웨어 + raw SQL 핸들러 부재 |
+| ~~C-3~~ | ~~타임라인 무인증 조회 (`GET /api/timelines/:id`)~~ | ✅ **2026-05-29 해결 확인** — 공개/비공개 분기 + 본인 검증 존재 |
 | H-3 | CSP `unsafe-inline`/`unsafe-eval` | PortOne/AdSense 호환 위해 의도적 유지 — nonce 전환은 빌드 파이프라인 변경 작업 |
-| H-5 | localStorage 토큰 저장 | refresh 회전으로 위험 완화, 완전 쿠키 전환은 별도 |
+| H-5 | localStorage 토큰 저장 | ✅ httpOnly 쿠키 전환 완료 (tg_access/tg_refresh/tg_csrf) — 잔여는 OAuth 콜백 통일뿐 |
 
 ### 🔍 가짜 구현 잔존 항목 (조사 결과, 2026-05-28 기준)
 - `server/services/disputeService.ts` — 분쟁 해결 메서드 5건 모두 `success:true` 반환 stub
@@ -172,19 +187,19 @@
 ### 🔴 Critical — 즉시 수정 대상
 
 #### C-1. IDOR: 댓글 오퍼 상태 권한 검증 없음
-- **파일**: `server/routes.ts:1685`, `server/repositories/socialRepository.ts:365`
+- **파일**: `server/routes.ts:1719-1749`
 - **문제**: `PATCH /api/comments/:id/offer-status` — 로그인한 사용자 누구나 타인의 댓글 오퍼 상태 변경 가능
-- **상태**: ❌ 미수정 — Replit에서 검토 필요
+- **상태**: ✅ **해결 확인 (2026-05-29)** — 핸들러가 댓글→포스트 조회 후 `post.userId !== userId`이면 403 반환. 포스트 작성자만 변경 가능.
 
 #### C-2. SQL Injection: Admin Raw SQL 엔드포인트
-- **파일**: `server/routes.ts:424`, `server/repositories/adminRepository.ts:92`
+- **파일**: `server/index.ts:191-208`, `server/routes.ts:402-428`
 - **문제**: `db.execute(sql.raw(query))` — Regex 필터는 주석·대소문자 혼용·UNION으로 우회 가능
-- **상태**: ❌ 미수정 — Replit에서 해당 엔드포인트 제거 또는 화이트리스트 방식으로 교체 필요
+- **상태**: ✅ **해결 확인 (2026-05-29)** — `/db-admin`,`/api/sql`,`/download_backup`,`/simple_download`는 운영 환경 미들웨어에서 403 차단. dev `/db-admin`은 Bearer admin 인증+폐기토큰 차단. `sql.raw` 실행 핸들러 자체가 현재 코드에 존재하지 않음.
 
 #### C-3. 인증 없는 타임라인 조회
-- **파일**: `server/routes.ts:1116`
+- **파일**: `server/routes.ts:1098-1130`
 - **문제**: `GET /api/timelines/:id` — `authenticateToken` 없음, 개인 여행 기록 무방비 노출
-- **상태**: ❌ 미수정 — Replit에서 검토 필요
+- **상태**: ✅ **해결 확인 (2026-05-29)** — 공개 타임라인만 무인증 열람 허용. 비공개는 토큰 필수 + `decoded.id !== timeline.userId`이면 403 + 폐기토큰 차단.
 
 #### C-4. Dead Code 570줄 번들 포함
 - **파일**: `client/src/pages/feed.tsx:568`
@@ -479,7 +494,7 @@
 
 | 영역 | 완성도 | 핵심 문제 |
 |------|--------|-----------|
-| **보안** | 55% | Critical 3개 미수정 (C-1/C-2/C-3), 이메일 인증 없음 |
+| **보안** | 82% | Critical 3건(C-1/C-2/C-3) 해결 + 쿠키 인증 전환 완료. 잔여: 이메일 인증, CSP nonce(H-3 의도 보류) |
 | **SNS 기본 기능** (팔로우·댓글·DM) | 92% | 알림 자동 push 약함 |
 | **검색** | 65% | 사용자 검색만 없음 (포스트·경험 검색은 구현됨) |
 | **체험 예약 흐름** | 72% | 슬롯 미흡, 리뷰 검증 없음 |
@@ -501,9 +516,9 @@ grep -r "SECURITY-TODO" server/ client/
 ```
 
 **배포 전 필수 수정 사항 (우선순위 순)**:
-1. C-1 IDOR 댓글 오퍼 권한 검증 — 즉시 수정
-2. C-2 SQL Injection Admin 엔드포인트 — 즉시 제거
-3. C-3 타임라인 무인증 조회 — 즉시 수정
-4. 이메일 인증 하드코딩 (`isEmailVerified: true`) — 스팸 봇 방지
+1. ~~C-1 IDOR 댓글 오퍼 권한 검증~~ — ✅ 해결 (2026-05-29)
+2. ~~C-2 SQL Injection Admin 엔드포인트~~ — ✅ 해결 (운영 차단 + 핸들러 부재)
+3. ~~C-3 타임라인 무인증 조회~~ — ✅ 해결 (공개/비공개 분기 + 본인 검증)
+4. 이메일 인증 하드코딩 (`isEmailVerified: true`) — 스팸 봇 방지 (외부 이메일 서비스 연동 필요, 보류)
 5. PortOne Transfer `TRANSFER_ENABLED=true` 환경변수 설정 — 실제 정산 송금
-6. 정기결제 스케줄러 `server/index.ts`에서 실행 등록
+6. 정기결제 스케줄러: `SUBSCRIPTION_SCHEDULER_ENABLED=true` 환경변수로 활성 (코드는 `server/index.ts:218`에 이미 연결됨)
