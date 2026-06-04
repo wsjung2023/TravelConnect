@@ -2,6 +2,32 @@
 
 ---
 
+## [세션] Replit/Vite 호환성 — Vite는 v6 고정 (2026-06-03)
+
+### Replit/Vite Compatibility Note (⚠️ 절대 위반 금지)
+**이 프로젝트는 당분간 Vite 6.x에 머물러야 한다. Vite 7/8로 올리지 말 것.**
+
+**이유:**
+Replit preview/runtime 플러그인(`@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`)과 `@tailwindcss/vite`는 현재 Vite 5–6만 지원한다. 프로젝트가 Vite 8을 쓰자 preview iframe이 무한 에러 루프에 빠졌다:
+
+```
+Cannot read properties of undefined (reading 'send')
+  at Object.send (/@vite/client:438)
+  at sendError (/@vite/client:480)
+```
+
+이로 인해 CPU 스파이크, preview 동작 느려짐, 지도 화면 로딩 문제가 발생했다.
+
+**규칙:**
+- 아래 패키지는 **한 세트**로 본다 — 하나만 올리면 나머지가 못 따라와 또 터진다:
+  `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`, `@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`
+- Replit/Vite/Tailwind 플러그인이 모두 명시적으로 지원하기 전에는 Vite 7/8로 올리지 않는다.
+- 버전 변경은 **패키지 매니저로만** (package.json 직접 수정 금지).
+- 올리기 전 반드시 확인: ① Replit plugin이 해당 버전 지원하는지 ② `npm ls vite`에 `invalid` 경고 없는지 ③ Preview CPU 루프 없는지.
+- 현재 안정 버전: **Vite 6.4.3** (Replit/Tailwind plugin도 현재 호환 버전 그대로 유지)
+
+---
+
 ## [세션] Task #3: 글쓰기 진입점 복원 (2026-03-16)
 
 ### 작업 결과

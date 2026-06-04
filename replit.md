@@ -22,6 +22,7 @@ Translation data must be managed in the database (`translations` table), not har
 - **ì¶ì¸¡ ê¸ì§**: ë¡ê·¸ íì¸ ìì´ ìì¸ ë¨ì  ê¸ì§. ë¶íì¤íë©´ ìì íì§ ë§ê³  ì§ë¬¸íë¤.
 - **ëê·ëª¨ ë³ê²½ ê¸ì§**: ì¬ì©ì íì¸ ìì´ íì¼ ëë ìì±/ì­ì  ê¸ì§. ê¸°ì¡´ êµ¬ì¡° ë¬´ìí ë¦¬í©í ë§ ê¸ì§.
 - **ë©ëª¨ ì ì§**: ì¤ìí ê²°ì /ë°ê²¬ì `docs/AI_MEMO.md`ì ì¦ì ê¸°ë¡.
+- **Vite 버전 상한**: `vite`는 `^6`(현재 6.4.3) 고정. v7/v8로 올리면 Replit 플러그인의 `hot.send()`가 undefined가 되어 preview iframe 무한 에러 루프(CPU 스파이크·preview 느려짐·지도 로딩 문제) 발생. `vite`/`@vitejs/plugin-react`/`@tailwindcss/vite`/`@replit/vite-plugin-*`는 한 세트로 본다. 버전 변경은 패키지 매니저로만(package.json 직접 수정 금지), 올리기 전 `npm ls vite`에 `invalid` 없는지·Preview CPU 루프 없는지 확인. 상세: `docs/AI_MEMO.md`.
 
 ## System Architecture
 
