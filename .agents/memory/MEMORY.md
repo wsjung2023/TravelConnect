@@ -2,6 +2,7 @@
 - [Tourgether 가드레일](tourgether-guardrails.md) — `server/routes.ts`는 거의 frozen, 새 엔드포인트는 `server/routes/` 하위 모듈로. 새 파일 1줄 상단 주석 필수. 250줄 분리 검토/400줄 강제 분리.
 - [Tourgether bookings 조회](tourgether-bookings-role.md) — `getBookingsByUser(userId, role)` role 필수 ('guest' | 'host'). 호출 시 누락하면 잘못된 컬럼으로 매칭됨.
 - [Tourgether payments.intentId](tourgether-payments-intentid.md) — 스키마에 컬럼은 있으나 일부 결제 흐름에서 insert 시 채워지지 않음. receiptUrl 업데이트는 best-effort로 처리하고 응답에 직접 포함하는 게 안전.
+- [Start application "failed(no output)"](tourgether-workflow-zombie-port.md) — 좀비 dev 서버 손자 node PID가 포트5000 점유 시 재시작 실패+preview 안뜸. 손자 PID까지 kill 후 restart.
 - [Tourgether Vite 버전 상한](tourgether-vite-version.md) — vite는 `^6` 고정. v7/v8로 올리면 Replit 플러그인 hot.send() undefined → 프리뷰 무한 에러 루프(CPU 100%).
 - [Tourgether i18n sync](tourgether-i18n-sync.md) — 신규 t() 키 30+ 시 임시 ko/en seed 스크립트 먼저 → i18n-sync.mjs는 비영어만. humanizeKey 품질 트랩 회피.
 - [Tourgether 액세스 토큰 폐기](tourgether-access-token-revocation.md) — verifyToken 직접 호출 시 isAccessTokenRevoked 체크 필수. 로그아웃에서 access+refresh 둘 다 폐기.
