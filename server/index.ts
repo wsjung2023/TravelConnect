@@ -113,7 +113,9 @@ app.use(helmet({
         "*.googlesyndication.com",
         "*.google.com",
         "*.portone.io",
-        "api.portone.io"
+        "api.portone.io",
+        "*.iamport.co",
+        "checkout-service.prod.iamport.co"
       ],
       mediaSrc: ["'self'", "data:", "blob:"],
       objectSrc: ["'none'"],
@@ -122,7 +124,8 @@ app.use(helmet({
         "*.googlesyndication.com",
         "*.doubleclick.net",
         "*.portone.io",
-        "checkout.portone.io"
+        "checkout.portone.io",
+        "*.iamport.co"
       ]
     }
   }
@@ -143,6 +146,17 @@ app.use('/api/', rateLimit({ windowMs: 60_000, max: 200, skip: (req) => req.path
 app.use('/api/auth/login', rateLimit({ windowMs: 60_000, max: 10 })); // 로그인 분당 10회
 app.use('/api/auth/register', rateLimit({ windowMs: 60_000, max: 10 })); // 회원가입 분당 10회
 app.use('/api/auth/demo-login', rateLimit({ windowMs: 60_000, max: 10 })); // 데모 로그인 분당 10회
+
+// Capture raw body for Paddle webhook signature verification
+app.use('/api/webhooks/paddle', (req, _res, next) => {
+  let data = '';
+  req.setEncoding('utf8');
+  req.on('data', (chunk: string) => { data += chunk; });
+  req.on('end', () => {
+    (req as any).rawBody = data;
+    next();
+  });
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

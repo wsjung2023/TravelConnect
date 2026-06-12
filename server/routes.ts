@@ -44,6 +44,7 @@ import {
 } from './auth';
 import { authRouter } from './routes/auth';
 import reportsRouter from './routes/reports';
+import paddleWebhookRouter from './routes/webhooks/paddle';
 import authExtendedRouter from './routes/auth-extended';
 import { registerLegacyModules } from './routes/legacyRegistrations';
 import { registerLegacyNotificationRoutes } from './routes/notifications.legacy';
@@ -179,41 +180,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // I18n 미들웨어 적용
   app.use(i18nMiddleware.handle(i18next));
-
-  // 보안 헤더 추가 - CSP, XSS 보호 등
-  app.use((req, res, next) => {
-    // X-Frame-Options: 클릭재킹 공격 방지
-    res.setHeader('X-Frame-Options', 'DENY');
-    
-    // X-Content-Type-Options: MIME 스니핑 방지
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    
-    // X-XSS-Protection: XSS 공격 방지
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    
-    // Referrer Policy: 개인정보 보호
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
-    // T14 검토 결과: unsafe-inline/unsafe-eval 의도적 유지.
-    //   - PortOne 결제 SDK: 인라인 스크립트 주입 필수 (체크아웃 위젯)
-    //   - Google AdSense: 광고 슬롯 인라인 초기화 필수
-    //   - Vite Dev HMR: 개발 모드 인라인 스크립트 필요
-    //   완전 제거는 nonce 기반 CSP 전환 후 가능 (전면적 빌드 파이프라인 변경 필요).
-    // Content Security Policy: 다양한 공격 방지 (PortOne 결제 SDK 포함)
-    res.setHeader('Content-Security-Policy', [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googleapis.com *.gstatic.com *.googlesyndication.com *.google.com *.doubleclick.net cdn.portone.io *.portone.io",
-      "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com",
-      "font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com data:",
-      "img-src 'self' data: blob: https: *.unsplash.com *.googleusercontent.com *.googlesyndication.com *.doubleclick.net",
-      "connect-src 'self' wss: ws: *.googleapis.com *.replit.app *.replit.dev *.googlesyndication.com *.google.com *.portone.io api.portone.io *.iamport.co checkout-service.prod.iamport.co",
-      "media-src 'self' data: blob:",
-      "object-src 'none'",
-      "frame-src 'self' *.googlesyndication.com *.doubleclick.net *.portone.io checkout.portone.io *.iamport.co"
-    ].join('; '));
-    
-    next();
-  });
 
   // Test error endpoint for Sentry testing (development only)
   if (process.env.NODE_ENV === 'development') {
@@ -568,6 +534,9 @@ COMMIT;
   } catch {
     console.warn('⚠️ Google OAuth module not found. Skipping /api/auth/google routes.');
   }
+
+  // Paddle webhook — must be registered before JSON body parser consumes the stream
+  app.use('/api/webhooks/paddle', paddleWebhookRouter);
 
   // Auth routes moved to server/routes/auth.ts
   app.use('/api/auth', authRouter);
