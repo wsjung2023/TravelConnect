@@ -85,6 +85,11 @@ PADDLE_LIVE_CLIENT_TOKEN
 PADDLE_LIVE_WEBHOOK_SECRET
 ```
 
+**절대 금지: 서버 프로세스 직접 재시작**
+- `kill`, `pkill` 등으로 서버 프로세스를 죽이지 말 것
+- Replit이 시작한 서버에는 Secrets가 주입되어 있음. 직접 재시작하면 secrets 없이 뜨고 결제/DB 등 모든 연동이 깨짐
+- 서버 재시작이 필요하면 반드시 사용자에게 Replit Stop → Run 요청할 것
+
 **주의: 이중 라우트 함정**
 - `server/routes/billing.ts` (billingRouter) — 현재 `mountRouters()`가 호출되지 않아 **미사용**
 - `server/routes/billing.legacy.ts` — `registerLegacyBillingRoutes()`로 실제 동작 중
