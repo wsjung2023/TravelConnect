@@ -285,7 +285,7 @@ export const payments = pgTable('payments', {
   bookingId: integer('booking_id')
     .notNull()
     .references(() => bookings.id),
-  provider: varchar('provider').notNull(), // 'paypal', 'toss', 'mock'
+  provider: varchar('provider').notNull(), // 'paddle' (default) | 'portone'
   intentId: varchar('intent_id'), // 결제 프로바이더의 결제 Intent ID
   chargeId: varchar('charge_id'), // 실제 차지 ID
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
