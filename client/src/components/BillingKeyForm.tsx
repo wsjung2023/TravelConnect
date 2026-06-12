@@ -46,54 +46,17 @@ export default function BillingKeyForm({
   const { toast } = useToast();
   const { t } = useTranslation('billing');
   const queryClient = useQueryClient();
-  const { requestBillingKey, registerBillingKey, isLoading } = usePayment();
+  const { openCustomerPortal, isLoading } = usePayment();
 
   const { data: billingKeys = [], isLoading: loadingKeys } = useQuery<BillingKey[]>({
     queryKey: ['/api/billing/billing-keys'],
     enabled: !!user,
   });
 
-  const { data: config } = useQuery<{ storeId: string; channelKey: string }>({
-    queryKey: ['/api/billing/config'],
-    enabled: !!user,
-  });
-
   const handleAddCard = async () => {
-    if (!user || !config) {
-      toast({
-        title: t('error_title'),
-        description: t('card_config_load_error'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setIsAdding(true);
-
     try {
-      const response = await requestBillingKey(
-        {
-          customerId: user.id.toString(),
-          customerName: user.displayName || user.email || 'Guest',
-          customerEmail: user.email || '',
-          customerPhone: user.phoneNumber || '010-0000-0000',
-        },
-        config.storeId,
-        config.channelKey
-      );
-
-      if (response.code) {
-        throw new Error(response.message || t('card_registration_failed'));
-      }
-
-      if (response.billingKey) {
-        await registerBillingKey(response.billingKey);
-        queryClient.invalidateQueries({ queryKey: ['/api/billing/billing-keys'] });
-        toast({
-          title: t('card_registration_success_title'),
-          description: t('card_registration_success_description'),
-        });
-      }
+      await openCustomerPortal();
     } catch (error: any) {
       toast({
         title: t('card_registration_error_title'),

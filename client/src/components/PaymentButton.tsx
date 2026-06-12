@@ -1,37 +1,19 @@
-// 결제 버튼 — PortOne 결제 SDK를 호출해 결제 창을 여는 버튼 컴포넌트.
+// 결제 버튼 — Paddle Checkout overlay를 열어 결제를 처리하는 버튼 컴포넌트.
 import { useState } from 'react';
-import { CreditCard, Loader2, Wallet } from 'lucide-react';
-import { SiKakaotalk, SiPaypal } from 'react-icons/si';
+import { CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePayment } from '@/hooks/usePayment';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 
-type PayMethodType = 'CARD' | 'KAKAO' | 'PAYPAL';
-
-const getPayMethodIcon = (payMethod: PayMethodType) => {
-  switch (payMethod) {
-    case 'KAKAO':
-      return <SiKakaotalk className="w-4 h-4 mr-2" />;
-    case 'PAYPAL':
-      return <SiPaypal className="w-4 h-4 mr-2" />;
-    case 'CARD':
-    default:
-      return <CreditCard className="w-4 h-4 mr-2" />;
-  }
-};
-
 interface PaymentButtonProps {
   type: 'trip_pass' | 'subscription' | 'contract';
-  amount: number;
-  orderName: string;
-  payMethod?: PayMethodType | undefined;
+  priceId?: string | undefined;
   planId?: number | undefined;
   tripPassId?: number | undefined;
   contractId?: number | undefined;
   stageId?: string | undefined;
-  billingKeyId?: number | undefined;
   disabled?: boolean | undefined;
   onSuccess?: (() => void) | undefined;
   onError?: ((error: string) => void) | undefined;
@@ -41,14 +23,11 @@ interface PaymentButtonProps {
 
 export default function PaymentButton({
   type,
-  amount,
-  orderName,
-  payMethod = 'CARD',
+  priceId,
   planId,
   tripPassId,
   contractId,
   stageId,
-  billingKeyId,
   disabled = false,
   onSuccess,
   onError,
@@ -59,14 +38,7 @@ export default function PaymentButton({
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation('billing');
-  const { 
-    preparePayment, 
-    requestPayment, 
-    confirmPayment,
-    createSubscription,
-    isLoading,
-    getErrorMessage,
-  } = usePayment();
+  const { openCheckout, openSubscriptionCheckout, confirmPayment, isLoading } = usePayment();
 
   const handlePayment = async () => {
     if (!user) {
@@ -78,76 +50,33 @@ export default function PaymentButton({
       return;
     }
 
+    const resolvedPriceId = priceId || import.meta.env.VITE_PADDLE_TRIP_PASS_PRICE_ID || 'pri_placeholder';
+
     setProcessing(true);
-
     try {
-      if (type === 'subscription' && billingKeyId && planId) {
-        const result = await createSubscription(planId, billingKeyId);
-        if (result.success) {
-          onSuccess?.();
-        } else {
-          onError?.(result.error || t('subscription_processing_failed'));
-        }
-        return;
-      }
+      const metadata: Record<string, string> = {};
+      if (planId !== undefined) metadata.planId = String(planId);
+      if (tripPassId !== undefined) metadata.tripPassId = String(tripPassId);
+      if (contractId !== undefined) metadata.contractId = String(contractId);
+      if (stageId !== undefined) metadata.stageId = stageId;
 
-      const prepareData: any = { amount, payMethod };
-      if (planId) prepareData.planId = planId;
-      if (tripPassId) prepareData.tripPassId = tripPassId;
-      if (contractId) prepareData.contractId = contractId;
-      if (stageId) prepareData.stageId = stageId;
-
-      const prepareResult = await preparePayment(type, prepareData);
-
-      const paymentResponse = await requestPayment(
-        {
-          paymentId: prepareResult.paymentId,
-          orderName,
-          totalAmount: amount,
-          customerName: user.displayName || user.email || 'Guest',
-          customerEmail: user.email || '',
-          payMethod,
-        },
-        prepareResult.storeId,
-        prepareResult.channelKey
-      );
-
-      if (paymentResponse.code) {
-        const errorMsg = getErrorMessage(paymentResponse.code);
-        toast({
-          title: t('payment_failed'),
-          description: errorMsg,
-          variant: 'destructive',
-        });
-        onError?.(errorMsg);
-        return;
-      }
-
-      if (paymentResponse.txId) {
-        const additionalData: { contractId?: number; stageId?: string } = {};
+      const onComplete = async (transactionId: string) => {
+        const additionalData: Record<string, unknown> = {};
         if (contractId !== undefined) additionalData.contractId = contractId;
         if (stageId !== undefined) additionalData.stageId = stageId;
-        
-        await confirmPayment(
-          paymentResponse.paymentId,
-          paymentResponse.txId,
-          type,
-          additionalData
-        );
-
-        toast({
-          title: t('payment_success_title'),
-          description: t('payment_success_description'),
-        });
+        await confirmPayment(transactionId, type, additionalData);
+        toast({ title: t('payment_success_title'), description: t('payment_success_description') });
         onSuccess?.();
+      };
+
+      if (type === 'subscription') {
+        await openSubscriptionCheckout(resolvedPriceId, metadata);
+      } else {
+        await openCheckout(resolvedPriceId, metadata, onComplete);
       }
     } catch (error: any) {
       const message = error.message || t('payment_processing_error');
-      toast({
-        title: t('payment_error_title'),
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: t('payment_error_title'), description: message, variant: 'destructive' });
       onError?.(message);
     } finally {
       setProcessing(false);
@@ -170,8 +99,8 @@ export default function PaymentButton({
         </>
       ) : (
         <>
-          {getPayMethodIcon(payMethod)}
-          {children || t('pay_amount', { amount: amount.toLocaleString() })}
+          <CreditCard className="w-4 h-4 mr-2" />
+          {children || t('pay_now')}
         </>
       )}
     </Button>
