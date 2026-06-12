@@ -436,10 +436,20 @@ export function registerLegacyBillingRoutes(
   // 결제 설정 정보 (프론트엔드용)
   app.get('/api/billing/config', authenticateHybrid, async (req: AuthRequest, res: Response) => {
     try {
-      res.json({
-        storeId: process.env.PORTONE_STORE_ID || 'store_test',
-        channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
-      });
+      const provider = process.env.PAYMENT_PROVIDER || 'paddle';
+      if (provider === 'portone') {
+        res.json({
+          provider: 'portone',
+          storeId: process.env.PORTONE_STORE_ID || 'store_test',
+          channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
+        });
+      } else {
+        const paddleEnv = process.env.PADDLE_ENVIRONMENT || 'sandbox';
+        const clientToken = paddleEnv === 'production'
+          ? process.env.PADDLE_LIVE_CLIENT_TOKEN || ''
+          : process.env.PADDLE_SANDBOX_CLIENT_TOKEN || '';
+        res.json({ provider: 'paddle', environment: paddleEnv, clientToken });
+      }
     } catch (error) {
       console.error('Error fetching billing config:', error);
       res.status(500).json({ message: 'Failed to fetch billing config' });
@@ -456,19 +466,20 @@ export function registerLegacyBillingRoutes(
       const { type, planId, tripPassId, contractId, stageId, amount, payMethod } = req.body;
       
       const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      let channelKey = process.env.PORTONE_CHANNEL_KEY || 'channel_test';
-      if (payMethod === 'KAKAO') {
-        channelKey = process.env.PORTONE_KAKAOPAY_CHANNEL_KEY || channelKey;
-      } else if (payMethod === 'PAYPAL') {
-        channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
+      const provider = process.env.PAYMENT_PROVIDER || 'paddle';
+
+      if (provider === 'portone') {
+        let channelKey = process.env.PORTONE_CHANNEL_KEY || 'channel_test';
+        if (payMethod === 'KAKAO') channelKey = process.env.PORTONE_KAKAOPAY_CHANNEL_KEY || channelKey;
+        else if (payMethod === 'PAYPAL') channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
+        res.json({ paymentId, storeId: process.env.PORTONE_STORE_ID || 'store_test', channelKey });
+      } else {
+        const paddleEnv = process.env.PADDLE_ENVIRONMENT || 'sandbox';
+        const clientToken = paddleEnv === 'production'
+          ? process.env.PADDLE_LIVE_CLIENT_TOKEN || ''
+          : process.env.PADDLE_SANDBOX_CLIENT_TOKEN || '';
+        res.json({ paymentId, provider: 'paddle', environment: paddleEnv, clientToken });
       }
-      
-      res.json({
-        paymentId,
-        storeId: process.env.PORTONE_STORE_ID || 'store_test',
-        channelKey,
-      });
     } catch (error) {
       console.error('Error preparing payment:', error);
       res.status(500).json({ message: 'Failed to prepare payment' });
