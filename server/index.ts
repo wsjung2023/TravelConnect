@@ -79,7 +79,8 @@ app.use(helmet({
         "*.google.com",
         "*.doubleclick.net",
         "cdn.portone.io",
-        "*.portone.io"
+        "*.portone.io",
+        "cdn.paddle.com"
       ],
       styleSrc: [
         "'self'",
@@ -115,7 +116,9 @@ app.use(helmet({
         "*.portone.io",
         "api.portone.io",
         "*.iamport.co",
-        "checkout-service.prod.iamport.co"
+        "checkout-service.prod.iamport.co",
+        "api.paddle.com",
+        "sandbox-api.paddle.com"
       ],
       mediaSrc: ["'self'", "data:", "blob:"],
       objectSrc: ["'none'"],
@@ -125,7 +128,9 @@ app.use(helmet({
         "*.doubleclick.net",
         "*.portone.io",
         "checkout.portone.io",
-        "*.iamport.co"
+        "*.iamport.co",
+        "cdn.paddle.com",
+        "checkout.paddle.com"
       ]
     }
   }
