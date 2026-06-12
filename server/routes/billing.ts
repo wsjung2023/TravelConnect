@@ -284,10 +284,20 @@ router.get('/trip-pass/history', authenticateHybrid, async (req: AuthRequest, re
 // 프론트엔드에서 PortOne SDK 초기화에 사용
 router.get('/config', authenticateHybrid, async (req: AuthRequest, res: Response) => {
   try {
-    res.json({
-      storeId: process.env.PORTONE_STORE_ID || 'store_test',
-      channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
-    });
+    const provider = process.env.PAYMENT_PROVIDER || 'paddle';
+    if (provider === 'portone') {
+      res.json({
+        provider: 'portone',
+        storeId: process.env.PORTONE_STORE_ID || 'store_test',
+        channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
+      });
+    } else {
+      res.json({
+        provider: 'paddle',
+        environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+        clientToken: process.env.VITE_PADDLE_CLIENT_TOKEN || '',
+      });
+    }
   } catch (error) {
     console.error('빌링 설정 조회 오류:', error);
     res.status(500).json({ error: 'Failed to fetch billing config' });
@@ -312,29 +322,23 @@ router.post('/prepare-payment', authenticateHybrid, requirePaymentEnv, async (re
     // 결제 ID 생성
     const paymentId = `pay_${Date.now()}_${req.user.id}`;
 
-    // 결제 수단에 따라 채널 키 선택
-    let channelKey = process.env.PORTONE_CHANNEL_KEY || 'channel_test';
-    console.log('[prepare-payment] payMethod:', payMethod, 'Default channelKey:', channelKey?.substring(0, 30));
-    
-    if (payMethod === 'KAKAO') {
-      channelKey = process.env.PORTONE_KAKAOPAY_CHANNEL_KEY || channelKey;
-      console.log('[prepare-payment] Using KAKAO channelKey:', channelKey?.substring(0, 30));
-    } else if (payMethod === 'PAYPAL') {
-      channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
-      console.log('[prepare-payment] Using PAYPAL channelKey:', channelKey?.substring(0, 30));
+    const provider = process.env.PAYMENT_PROVIDER || 'paddle';
+    if (provider === 'portone') {
+      let channelKey = process.env.PORTONE_CHANNEL_KEY || 'channel_test';
+      if (payMethod === 'KAKAO') channelKey = process.env.PORTONE_KAKAOPAY_CHANNEL_KEY || channelKey;
+      else if (payMethod === 'PAYPAL') channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
+      res.json({ paymentId, amount, productName, productType, payMethod: payMethod || 'CARD', storeId: process.env.PORTONE_STORE_ID || 'store_test', channelKey });
+    } else {
+      res.json({
+        paymentId,
+        amount,
+        productName,
+        productType,
+        provider: 'paddle',
+        clientToken: process.env.VITE_PADDLE_CLIENT_TOKEN || '',
+        environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
+      });
     }
-
-    console.log('[prepare-payment] Final channelKey:', channelKey?.substring(0, 30));
-
-    res.json({
-      paymentId,
-      amount,
-      productName,
-      productType,
-      payMethod: payMethod || 'CARD',
-      storeId: process.env.PORTONE_STORE_ID || 'store_test',
-      channelKey,
-    });
   } catch (error) {
     console.error('결제 준비 오류:', error);
     res.status(500).json({ error: 'Failed to prepare payment' });
@@ -358,35 +362,28 @@ router.post('/confirm-payment', authenticateHybrid, requirePaymentEnv, async (re
       return res.status(400).json({ message: 'paymentId or impUid required' });
     }
 
-    // PortOne API로 실제 결제 상태/금액 검증 (서버 측 변조 방지)
-    const { portoneClient } = await import('../services/portoneClient');
-    const payment = await portoneClient.getPayment(String(lookupId));
-
-    if (!payment.success) {
-      console.warn(`[Billing] confirm-payment 검증 실패 user=${req.user.id} paymentId=${lookupId} err=${payment.error}`);
-      return res.status(400).json({ success: false, verified: false, error: payment.error || 'Payment lookup failed' });
+    const { getPaymentService } = await import('../services/payment/PaymentService');
+    const paymentService = getPaymentService();
+    let result;
+    try {
+      result = await paymentService.confirmPayment(
+        String(lookupId),
+        expectedAmount !== undefined ? Number(expectedAmount) * 100 : undefined
+      );
+    } catch (err: any) {
+      console.warn(`[Billing] confirm-payment failed user=${req.user?.id} id=${lookupId}: ${err.message}`);
+      return res.status(400).json({ success: false, verified: false, error: err.message });
     }
 
-    const verified = payment.status === 'PAID' || payment.status === 'paid';
-    if (!verified) {
-      return res.status(400).json({ success: false, verified: false, status: payment.status, error: 'Payment is not in PAID state' });
-    }
-
-    // 금액이 클라이언트가 주장한 expectedAmount와 일치하는지 추가 검증 (전달된 경우)
-    if (expectedAmount !== undefined && payment.amount !== Number(expectedAmount)) {
-      console.warn(`[Billing] 금액 불일치 user=${req.user.id} expected=${expectedAmount} actual=${payment.amount}`);
-      return res.status(400).json({ success: false, verified: false, error: 'Amount mismatch', expected: expectedAmount, actual: payment.amount });
-    }
-
-    console.log(`[Billing] confirm-payment OK user=${req.user.id} paymentId=${lookupId} amount=${payment.amount}`);
+    console.log(`[Billing] confirm-payment OK user=${req.user?.id} id=${lookupId} amount=${result.amount}`);
     res.json({
       success: true,
       verified: true,
-      paymentId: payment.paymentId,
-      status: payment.status,
-      amount: payment.amount,
-      paidAt: payment.paidAt,
-      receiptUrl: payment.receiptUrl,
+      paymentId: result.transactionId,
+      status: result.status,
+      amount: result.amount,
+      paidAt: result.paidAt,
+      receiptUrl: result.receiptUrl,
     });
   } catch (error) {
     console.error('결제 확인 오류:', error);
@@ -427,6 +424,10 @@ router.post('/billing-key', authenticateHybrid, requirePaymentEnv, async (req: A
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
+    if ((process.env.PAYMENT_PROVIDER || 'paddle') !== 'portone') {
+      return res.status(501).json({ message: 'Billing key management is not available with the current payment provider.' });
+    }
+
     const { billingKey, cardName, cardNumber, cardType } = req.body;
 
     const result = await storage.createBillingKey({
@@ -455,6 +456,10 @@ router.delete('/billing-keys/:id', authenticateHybrid, async (req: AuthRequest, 
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if ((process.env.PAYMENT_PROVIDER || 'paddle') !== 'portone') {
+      return res.status(501).json({ message: 'Billing key management is not available with the current payment provider.' });
     }
 
     const idParam = req.params.id;
