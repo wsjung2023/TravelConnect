@@ -234,7 +234,9 @@ if (process.env.NODE_ENV === 'production') {
 
   // T3: 구독 자동 갱신 스케줄러 (24시간 주기). 환경변수 SUBSCRIPTION_SCHEDULER_ENABLED=true 일 때만 활성.
   // 결제 자동 갱신이므로 PortOne 테스트 모드/실서버 검증 후 ON 권장.
-  if (process.env.SUBSCRIPTION_SCHEDULER_ENABLED === 'true') {
+  const schedulerEnabled = process.env.SUBSCRIPTION_SCHEDULER_ENABLED === 'true';
+  const isPaddle = (process.env.PAYMENT_PROVIDER || 'paddle') === 'paddle';
+  if (schedulerEnabled && !isPaddle) {
     setInterval(() => {
       subscriptionScheduler.runDailyScheduler().catch((err) =>
         console.error('[SubscriptionScheduler] runDailyScheduler error:', err)
@@ -242,7 +244,8 @@ if (process.env.NODE_ENV === 'production') {
     }, 24 * 60 * 60 * 1000);
     console.log('▶️ Subscription renewal scheduler: ON (every 24h)');
   } else {
-    console.log('⏸️ Subscription renewal scheduler: OFF (set SUBSCRIPTION_SCHEDULER_ENABLED=true to enable)');
+    const reason = isPaddle ? 'Paddle manages renewals automatically' : 'SUBSCRIPTION_SCHEDULER_ENABLED is not true';
+    console.log(`⏸️ Subscription renewal scheduler: OFF (${reason})`);
   }
 
   // Global error handler with Sentry integration
