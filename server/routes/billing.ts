@@ -292,11 +292,11 @@ router.get('/config', authenticateHybrid, async (req: AuthRequest, res: Response
         channelKey: process.env.PORTONE_CHANNEL_KEY || 'channel_test',
       });
     } else {
-      res.json({
-        provider: 'paddle',
-        environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
-        clientToken: process.env.VITE_PADDLE_CLIENT_TOKEN || '',
-      });
+      const paddleEnv = process.env.PADDLE_ENVIRONMENT || 'sandbox';
+      const clientToken = paddleEnv === 'production'
+        ? process.env.PADDLE_LIVE_CLIENT_TOKEN || ''
+        : process.env.PADDLE_SANDBOX_CLIENT_TOKEN || '';
+      res.json({ provider: 'paddle', environment: paddleEnv, clientToken });
     }
   } catch (error) {
     console.error('빌링 설정 조회 오류:', error);
@@ -329,15 +329,11 @@ router.post('/prepare-payment', authenticateHybrid, requirePaymentEnv, async (re
       else if (payMethod === 'PAYPAL') channelKey = process.env.PORTONE_PAYPAL_CHANNEL_KEY || channelKey;
       res.json({ paymentId, amount, productName, productType, payMethod: payMethod || 'CARD', storeId: process.env.PORTONE_STORE_ID || 'store_test', channelKey });
     } else {
-      res.json({
-        paymentId,
-        amount,
-        productName,
-        productType,
-        provider: 'paddle',
-        clientToken: process.env.VITE_PADDLE_CLIENT_TOKEN || '',
-        environment: process.env.PADDLE_ENVIRONMENT || 'sandbox',
-      });
+      const paddleEnv = process.env.PADDLE_ENVIRONMENT || 'sandbox';
+      const clientToken = paddleEnv === 'production'
+        ? process.env.PADDLE_LIVE_CLIENT_TOKEN || ''
+        : process.env.PADDLE_SANDBOX_CLIENT_TOKEN || '';
+      res.json({ paymentId, amount, productName, productType, provider: 'paddle', clientToken, environment: paddleEnv });
     }
   } catch (error) {
     console.error('결제 준비 오류:', error);

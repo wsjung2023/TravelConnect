@@ -12,13 +12,22 @@ const isSandbox = process.env.PADDLE_ENVIRONMENT !== 'production';
 const PADDLE_API_BASE = isSandbox
   ? 'https://sandbox-api.paddle.com'
   : 'https://api.paddle.com';
+const PADDLE_API_KEY = isSandbox
+  ? process.env.PADDLE_SANDBOX_API_KEY
+  : process.env.PADDLE_LIVE_API_KEY;
+const PADDLE_WEBHOOK_SECRET = isSandbox
+  ? process.env.PADDLE_SANDBOX_WEBHOOK_SECRET
+  : process.env.PADDLE_LIVE_WEBHOOK_SECRET;
+const PADDLE_CLIENT_TOKEN = isSandbox
+  ? process.env.PADDLE_SANDBOX_CLIENT_TOKEN
+  : process.env.PADDLE_LIVE_CLIENT_TOKEN;
 
 async function paddleRequest<T>(
   method: string,
   path: string,
   body?: unknown
 ): Promise<T> {
-  const apiKey = process.env.PADDLE_API_KEY;
+  const apiKey = PADDLE_API_KEY;
   if (!apiKey) throw new Error('PADDLE_API_KEY is not set');
 
   const res = await fetch(`${PADDLE_API_BASE}${path}`, {
@@ -40,7 +49,7 @@ async function paddleRequest<T>(
 
 export class PaddleProvider implements IPaymentProvider {
   async createCheckout(_params: CheckoutParams): Promise<CheckoutSession> {
-    const clientToken = process.env.VITE_PADDLE_CLIENT_TOKEN;
+    const clientToken = PADDLE_CLIENT_TOKEN;
     return { clientToken } as CheckoutSession;
   }
 
@@ -117,7 +126,7 @@ export class PaddleProvider implements IPaymentProvider {
   }
 
   verifyWebhook(payload: string, headers: Record<string, string>): boolean {
-    const secret = process.env.PADDLE_WEBHOOK_SECRET;
+    const secret = PADDLE_WEBHOOK_SECRET;
     if (!secret) return false;
 
     const signatureHeader = headers['paddle-signature'];

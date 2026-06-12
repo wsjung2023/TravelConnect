@@ -44,7 +44,9 @@ export function loadPaddle(): Promise<any> {
 
 function initPaddle(Paddle: any): void {
   const env = import.meta.env.VITE_PADDLE_ENVIRONMENT || 'sandbox';
-  const token = import.meta.env.VITE_PADDLE_CLIENT_TOKEN;
+  const token = env === 'sandbox'
+    ? import.meta.env.VITE_PADDLE_SANDBOX_CLIENT_TOKEN
+    : import.meta.env.VITE_PADDLE_LIVE_CLIENT_TOKEN;
 
   if (env === 'sandbox') {
     Paddle.Environment.set('sandbox');
