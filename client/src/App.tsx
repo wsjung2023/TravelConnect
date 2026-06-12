@@ -16,6 +16,7 @@ import LegalPage from '@/pages/legal';
 import { useAuth, AUTH_QUERY_KEY } from '@/hooks/useAuth';
 import InAppBrowserRedirect from '@/components/InAppBrowserRedirect';
 import { OnboardingModal } from '@/components/OnboardingModal';
+import { WebSocketProvider } from '@/contexts/WebSocketContext';
 
 // SEO 랜딩페이지 (공개 - 로그인 불필요)
 const TravelItinerary = lazy(() => import('@/pages/seo/TravelItinerary'));
@@ -253,15 +254,12 @@ function Router() {
             </AuthGate>
           )}
         />
-        {/* Redirect /conversations to /chat */}
+        {/* /conversations는 AppShell 내 pathToTab에서 chat 탭으로 처리됨 */}
         <Route
           path="/conversations"
           component={() => (
             <AuthGate>
-              {(() => {
-                window.location.href = '/chat';
-                return <LoadingSpinner />;
-              })()}
+              <AppShell />
             </AuthGate>
           )}
         />
@@ -419,13 +417,15 @@ function App() {
     <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <div className="mobile-container">
-              <InAppBrowserRedirect />
-              <Toaster />
-              <Router />
-            </div>
-          </TooltipProvider>
+          <WebSocketProvider>
+            <TooltipProvider>
+              <div className="mobile-container">
+                <InAppBrowserRedirect />
+                <Toaster />
+                <Router />
+              </div>
+            </TooltipProvider>
+          </WebSocketProvider>
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>

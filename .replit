@@ -39,6 +39,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "bash scripts/setup-claude-auth.sh"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 

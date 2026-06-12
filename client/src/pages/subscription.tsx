@@ -25,7 +25,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePayment } from '@/hooks/usePayment';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import BillingKeyForm from '@/components/BillingKeyForm';
 import PaymentButton from '@/components/PaymentButton';
 import {
   AlertDialog,
@@ -102,7 +101,6 @@ interface PaymentHistory {
 }
 
 export default function SubscriptionPage() {
-  const [selectedBillingKeyId, setSelectedBillingKeyId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, i18n } = useTranslation('billing');
@@ -548,7 +546,6 @@ export default function SubscriptionPage() {
                               orderName={plan.name}
                               payMethod="CARD"
                               planId={plan.id}
-                              billingKeyId={selectedBillingKeyId || undefined}
                               onSuccess={() => {
                                 queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
                                 queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
@@ -564,7 +561,6 @@ export default function SubscriptionPage() {
                               orderName={plan.name}
                               payMethod="KAKAO"
                               planId={plan.id}
-                              billingKeyId={selectedBillingKeyId || undefined}
                               onSuccess={() => {
                                 queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
                                 queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
@@ -580,7 +576,6 @@ export default function SubscriptionPage() {
                               orderName={plan.name}
                               payMethod="PAYPAL"
                               planId={plan.id}
-                              billingKeyId={selectedBillingKeyId || undefined}
                               onSuccess={() => {
                                 queryClient.invalidateQueries({ queryKey: ['/api/billing/subscription'] });
                                 queryClient.invalidateQueries({ queryKey: ['/api/billing/trip-passes'] });
@@ -601,11 +596,17 @@ export default function SubscriptionPage() {
           </TabsContent>
 
           <TabsContent value="payment">
-            <BillingKeyForm
-              onSelect={setSelectedBillingKeyId}
-              selectedId={selectedBillingKeyId || undefined}
-              showSelection={false}
-            />
+            <Card>
+              <CardContent className="p-6 text-center">
+                <CreditCard className="w-12 h-12 mx-auto mb-4 text-blue-500" />
+                <h3 className="text-lg font-semibold mb-2">
+                  {t('payment_methods_title') || 'Payment Methods'}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {t('payment_methods_description') || 'Card information is managed securely through our payment processor during checkout.'}
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">

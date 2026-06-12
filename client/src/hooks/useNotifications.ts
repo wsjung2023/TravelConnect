@@ -1,8 +1,10 @@
 // 알림 훅 — 알림 목록 조회, 읽음 처리, 삭제 뮤테이션을 제공하는 훅.
-import { useCallback, useEffect, useRef } from 'react';
+// WebSocket 수신은 공유 WebSocketContext를 통해 처리 (독립 연결 생성 제거).
+import { useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useWebSocketContext } from '@/contexts/WebSocketContext';
 
 // 데이터베이스 스키마와 일치하도록 수정된 Notification 인터페이스
 export interface Notification {
@@ -36,7 +38,7 @@ export interface NotificationCounts {
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const wsRef = useRef<WebSocket | null>(null);
+  const { subscribe, unsubscribe } = useWebSocketContext();
 
   // 데이터베이스에서 알림 조회
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
@@ -59,70 +61,30 @@ export function useNotifications() {
 
   const hasNewNotifications = counts.total > 0;
 
-  // WebSocket 연결 및 실시간 알림 수신
+  // 공유 WS 컨텍스트에서 notification 이벤트 구독
   useEffect(() => {
     if (!user) return;
 
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host; // hostname:port를 포함
-    const wsUrl = `${protocol}//${host}/ws`;
-    
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    const handleNotification = (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
 
-    ws.onopen = () => {
-      console.log('WebSocket 연결됨');
-      // Task #9: WebSocket 인증을 쿠키 기반으로 전환.
-      // 서버는 upgrade 요청의 tg_access 쿠키로 자동 인증한다.
-      ws.send(JSON.stringify({ type: 'auth' }));
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'notification') {
-          console.log('실시간 알림 수신:', data.notification);
-          // 알림 목록 새로고침
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-          
-          // 좋아요/댓글 알림 시 관련 포스트 쿼리도 무효화 (실시간 카운트 업데이트)
-          const notification = data.notification;
-          if (notification && (notification.type === 'reaction' || notification.type === 'comment')) {
-            // 피드 쿼리 무효화 (좋아요/댓글 수 업데이트)
-            queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
-            // 개별 포스트 쿼리 무효화
-            if (notification.relatedPostId) {
-              queryClient.invalidateQueries({ queryKey: ['/api/posts', notification.relatedPostId] });
-            }
-          }
+      const notification = data.notification;
+      if (notification && (notification.type === 'reaction' || notification.type === 'comment')) {
+        queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+        if (notification.relatedPostId) {
+          queryClient.invalidateQueries({ queryKey: ['/api/posts', notification.relatedPostId] });
         }
-      } catch (error) {
-        console.error('WebSocket 메시지 파싱 오류:', error);
       }
     };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket 오류:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket 연결 해제');
-    };
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-    };
-  }, [user, queryClient]);
+    subscribe('notification', handleNotification);
+    return () => { unsubscribe('notification', handleNotification); };
+  }, [user, queryClient, subscribe, unsubscribe]);
 
   // 알림을 읽음으로 표시하는 뮤테이션
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      await api(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-      });
+      await api(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -132,9 +94,7 @@ export function useNotifications() {
   // 모든 알림을 읽음으로 표시하는 뮤테이션
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      await api('/api/notifications/read-all', {
-        method: 'PATCH',
-      });
+      await api('/api/notifications/read-all', { method: 'PATCH' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -144,28 +104,25 @@ export function useNotifications() {
   // 알림 삭제 뮤테이션
   const deleteNotificationMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      await api(`/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-      });
+      await api(`/api/notifications/${notificationId}`, { method: 'DELETE' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },
   });
 
-  const markAsRead = useCallback((notificationId: number) => {
-    markAsReadMutation.mutate(notificationId);
-  }, [markAsReadMutation]);
+  const markAsRead = useCallback(
+    (notificationId: number) => { markAsReadMutation.mutate(notificationId); },
+    [markAsReadMutation]
+  );
 
-  const markAllAsRead = useCallback(() => {
-    markAllAsReadMutation.mutate();
-  }, [markAllAsReadMutation]);
+  const markAllAsRead = useCallback(
+    () => { markAllAsReadMutation.mutate(); },
+    [markAllAsReadMutation]
+  );
 
   const clearNotifications = useCallback(() => {
-    // 모든 알림을 삭제하려면 각각 삭제해야 함
-    notifications.forEach(notification => {
-      deleteNotificationMutation.mutate(notification.id);
-    });
+    notifications.forEach(n => deleteNotificationMutation.mutate(n.id));
   }, [notifications, deleteNotificationMutation]);
 
   return {

@@ -89,22 +89,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [isNearbyPanelCollapsed, setIsNearbyPanelCollapsed] = useState(true);
   const [nearbyFilter, setNearbyFilter] = useState<'all' | 'posts' | 'experiences' | 'open_users'>('all');
 
-  // 상태 변화 디버깅
-  useEffect(() => {
-    console.log('상태 변화 - selectedPost:', selectedPost);
-  }, [selectedPost]);
-
-  useEffect(() => {
-    console.log('상태 변화 - selectedPOI:', selectedPOI);
-  }, [selectedPOI]);
-
-  // 렌더링 시 현재 상태 확인
-  console.log(
-    '렌더링 - selectedPOI 존재:',
-    !!selectedPOI,
-    'selectedPost 존재:',
-    !!selectedPost
-  );
   // 마커 상태는 useMapMarkers/usePOIMarkers 훅에서 useRef로 관리 (무한 루프 방지)
   const [currentZoom, setCurrentZoom] = useState(13);
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 });
@@ -425,34 +409,21 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   // Combine nearby posts and experiences based on filter
   const nearbyItems = useMemo(() => {
-    console.log('🔍 Nearby 계산:', {
-      filter: nearbyFilter,
-      postsCount: nearbyPosts.length,
-      experiencesCount: nearbyExperiences.length,
-      mapCenter,
-    });
-    
     if (nearbyFilter === 'posts') return nearbyPosts;
     if (nearbyFilter === 'experiences') return nearbyExperiences;
     if (nearbyFilter === 'open_users') {
-      // 본인 제외
       return (openUsers || [])
         .filter((user: any) => user.id !== currentUser?.id)
         .map((user: any) => ({
           ...user,
           type: 'open_user' as const,
-          distance: user.lastLatitude && user.lastLongitude 
+          distance: user.lastLatitude && user.lastLongitude
             ? calculateDistance(mapCenter.lat, mapCenter.lng, parseFloat(user.lastLatitude), parseFloat(user.lastLongitude))
             : 999
         })).sort((a: any, b: any) => a.distance - b.distance);
     }
-    
-    // Combine and sort by distance - 모든 아이템 표시 (제한 제거)
-    const combined = [...nearbyPosts, ...nearbyExperiences]
+    return [...nearbyPosts, ...nearbyExperiences]
       .sort((a: any, b: any) => a.distance - b.distance);
-    
-    console.log('✅ Nearby 결과:', combined.length, '개 아이템');
-    return combined;
   }, [nearbyPosts, nearbyExperiences, nearbyFilter, openUsers, mapCenter, currentUser?.id]);
 
   // Determine clustering strategy based on marker count
@@ -460,31 +431,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
     return visiblePosts.length > 200 || debouncedZoom < 11;
   }, [visiblePosts.length, debouncedZoom]);
 
-  // 포스트 데이터 상태 로깅
-  useEffect(() => {
-    const koreaPosts =
-      posts?.filter(
-        (p: any) =>
-          p.latitude >= 33 &&
-          p.latitude <= 38 &&
-          p.longitude >= 125 &&
-          p.longitude <= 130
-      ) || [];
-
-    console.log('포스트 데이터 상태:', {
-      loading: isLoading,
-      error: error,
-      postsCount: posts?.length || 0,
-      koreaPostsCount: koreaPosts.length,
-      koreaPostDetails: koreaPosts.slice(0, 5).map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        theme: p.theme,
-        lat: parseFloat(p.latitude),
-        lng: parseFloat(p.longitude),
-      })),
-    });
-  }, [posts, isLoading, error]);
 
   // 테마별 아이콘과 색상 (표준 코드)
   const getThemeIcon = (theme: string) => {
