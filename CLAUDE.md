@@ -63,3 +63,32 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+## 작업 기록
+
+### Paddle 결제 연동 (2026-06-12)
+
+**환경변수 구조 (sandbox/live 분리)**
+```
+PAYMENT_PROVIDER=paddle          # paddle 또는 portone
+PADDLE_ENVIRONMENT=sandbox       # sandbox 또는 production
+VITE_PADDLE_ENVIRONMENT=sandbox  # 클라이언트(Vite)용 별도 필요
+
+PADDLE_SANDBOX_API_KEY
+PADDLE_SANDBOX_CLIENT_TOKEN
+PADDLE_SANDBOX_WEBHOOK_SECRET
+
+PADDLE_LIVE_API_KEY
+PADDLE_LIVE_CLIENT_TOKEN
+PADDLE_LIVE_WEBHOOK_SECRET
+```
+
+**주의: 이중 라우트 함정**
+- `server/routes/billing.ts` (billingRouter) — 현재 `mountRouters()`가 호출되지 않아 **미사용**
+- `server/routes/billing.legacy.ts` — `registerLegacyBillingRoutes()`로 실제 동작 중
+- 결제 관련 수정은 **반드시 billing.legacy.ts도 함께** 수정해야 함
+
+**테스트 계정**
+- email: test@paddle.com / password: TestPass123!
