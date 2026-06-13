@@ -5,6 +5,7 @@ import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } 
 import { generateMiniPlans, isMiniConciergeEnabled, type MiniPlanContext } from '../ai/miniConcierge';
 import { generateStoryboard, type PhotoWithExif } from '../ai/cinemap';
 import { renderCinemapVideo } from '../services/cinemapVideoService';
+import { resolveAudioOptions } from '../services/cinemapAudioService';
 import * as objectStorageService from '../services/objectStorageService';
 import { randomUUID } from 'crypto';
 import type { Request, Response } from 'express';
@@ -565,6 +566,7 @@ export function registerLegacyAIFeaturesRoutes(
         userId: req.user.id,
         timelineId: parseInt(timelineId),
         status: 'pending',
+        config: config ?? null,
       });
 
       // Respond immediately with pending job
@@ -621,7 +623,8 @@ export function registerLegacyAIFeaturesRoutes(
           // 스토리보드 사진 + 캡션을 ffmpeg 슬라이드쇼 mp4로 렌더링 → Object Storage 업로드 → URL 저장
           let resultVideoUrl: string | null = null;
           try {
-            const videoBuffer = await renderCinemapVideo(storyboard);
+            const audioOptions = await resolveAudioOptions(job.config as any);
+            const videoBuffer = await renderCinemapVideo(storyboard, audioOptions);
             // 파일명은 /api/files/:filename 검증기(^[a-f0-9-]+\.[a-z0-9]+$)에 맞춰 hex+하이픈만 사용
             const filename = `${randomUUID()}.mp4`;
             await objectStorageService.uploadFile(filename, videoBuffer, 'video/mp4');
@@ -660,6 +663,20 @@ export function registerLegacyAIFeaturesRoutes(
     } catch (error) {
       console.error('Error creating CineMap job:', error);
       res.status(500).json({ message: 'Failed to create CineMap job' });
+    }
+  });
+
+  app.get('/api/cinemap/bgm-tracks', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const config = await storage.getSystemConfigByKey('cinemap', 'bgm_tracks');
+      const tracks: { id: string; label: string }[] = config?.valueJson
+        ? (config.valueJson as { id: string; label: string; filename: string }[])
+            .map(({ id, label }) => ({ id, label }))
+        : [];
+      res.json({ tracks });
+    } catch (error) {
+      console.error('Error fetching BGM tracks:', error);
+      res.status(500).json({ message: 'Failed to fetch BGM tracks' });
     }
   });
 

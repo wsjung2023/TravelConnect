@@ -136,11 +136,12 @@ function validateSchema(schema: any) {
 // 허용된 MIME 타입 화이트리스트
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
-  'image/png', 
+  'image/png',
   'image/webp',
   'image/heic',
   'video/mp4',
-  'video/quicktime'
+  'video/quicktime',
+  'audio/mpeg',
 ];
 
 // Multer 설정 - memoryStorage: 파일을 메모리(buffer)에서 바로 Object Storage로 업로드
