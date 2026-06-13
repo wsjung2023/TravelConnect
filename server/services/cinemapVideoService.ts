@@ -65,12 +65,12 @@ function runFfmpeg(args: string[]): Promise<void> {
 }
 
 // ffmpeg 필터에서 파일 경로 이스케이프 (콜론/백슬래시/따옴표)
-function escapeFilterPath(p: string): string {
+export function escapeFilterPath(p: string): string {
   return p.replace(/\\/g, '\\\\').replace(/:/g, '\\:').replace(/'/g, "\\'");
 }
 
 // 긴 캡션을 대략 maxChars 기준으로 줄바꿈 (CJK는 글자 기준)
-function wrapText(text: string, maxChars = 28): string {
+export function wrapText(text: string, maxChars = 28): string {
   const clean = (text || '').replace(/\r?\n/g, ' ').trim();
   if (!clean) return ' ';
   const words = clean.split(' ');
@@ -103,7 +103,7 @@ async function writeTextFile(dir: string, name: string, text: string): Promise<s
 }
 
 // 한 장의 사진 → 줌/페이드/자막이 적용된 세그먼트 mp4 생성
-async function renderPhotoSegment(
+export async function renderPhotoSegment(
   imagePath: string,
   captionFile: string,
   outPath: string,
@@ -143,7 +143,7 @@ async function renderPhotoSegment(
 }
 
 // 타이틀/엔딩 카드 (단색 배경 + 큰 제목 + 보조 문구)
-async function renderCard(
+export async function renderCard(
   dir: string,
   idx: number,
   heading: string,
@@ -199,7 +199,7 @@ async function concatSegments(dir: string, segs: string[], outPath: string): Pro
 }
 
 // 최종 영상에 BGM을 낮은 볼륨으로 오버레이
-async function overlayBgm(videoPath: string, bgmPath: string, outPath: string): Promise<void> {
+export async function overlayBgm(videoPath: string, bgmPath: string, outPath: string): Promise<void> {
   await runFfmpeg([
     '-y', '-hide_banner', '-loglevel', 'error',
     '-i', videoPath,
