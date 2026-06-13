@@ -131,6 +131,29 @@ export default function TimelinePage() {
 
   const cinemapJob = cinemapJobs[0] ?? null;
 
+  // 활성 job이 있을 때 단건 폴링 (3초)
+  const activeJobId = cinemapJob?.status === 'pending' || cinemapJob?.status === 'processing'
+    ? cinemapJob?.id
+    : null;
+
+  const { data: activeJobData } = useQuery<{ job: CinemapJob; queuePosition: number | null }>({
+    queryKey: ['/api/cinemap/jobs', activeJobId],
+    queryFn: async () => {
+      const response = await fetch(`/api/cinemap/jobs/${activeJobId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch job');
+      return response.json();
+    },
+    enabled: !!activeJobId,
+    refetchInterval: 3000,
+  });
+
+  // 폴링 결과로 최신 job 상태 사용
+  const polledJob = activeJobData?.job ?? null;
+  const queuePosition = activeJobData?.queuePosition ?? null;
+  const displayJob = polledJob ?? cinemapJob;
+
   // Create CineMap job mutation
   const createCinemapMutation = useMutation({
     mutationFn: async (timelineId: number) => {
@@ -220,9 +243,12 @@ export default function TimelinePage() {
                 <p className="text-gray-700">{timeline.description}</p>
               )}
               <CineMapHeroCard
-                status={cinemapJob?.status}
-                videoUrl={cinemapJob?.resultVideoUrl}
+                status={displayJob?.status}
+                stage={displayJob?.stage}
+                queuePosition={queuePosition}
+                videoUrl={displayJob?.resultVideoUrl}
                 onCreate={handleCreateCinemap}
+                onRetry={handleCreateCinemap}
                 loading={createCinemapMutation.isPending}
               />
             </div>
