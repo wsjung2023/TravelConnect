@@ -6,6 +6,7 @@ import os from 'os';
 import { randomUUID } from 'crypto';
 import { getSignedReadUrl } from './objectStorageService';
 import type { Storyboard } from '../ai/cinemap';
+import { generateTts, padAudio, type AudioOptions } from './cinemapAudioService';
 
 const FONT_PATH = path.resolve(process.cwd(), 'server/assets/fonts/NotoSansCJKkr-Regular.otf');
 const WIDTH = 1280;
@@ -106,6 +107,7 @@ async function renderPhotoSegment(
   imagePath: string,
   captionFile: string,
   outPath: string,
+  audioOpts?: { ttsPath?: string },
 ): Promise<void> {
   const fontEsc = escapeFilterPath(FONT_PATH);
   const capEsc = escapeFilterPath(captionFile);
@@ -118,13 +120,26 @@ async function renderPhotoSegment(
     `drawtext=fontfile='${fontEsc}':textfile='${capEsc}':fontcolor=white:fontsize=40:box=1:boxcolor=black@0.5:boxborderw=18:x=(w-text_w)/2:y=h-text_h-60:line_spacing=10`,
   ].join(',');
 
-  await runFfmpeg([
-    '-y', '-hide_banner', '-loglevel', 'error',
-    '-loop', '1', '-t', String(SECONDS_PER_PHOTO), '-i', imagePath,
-    '-vf', vf,
-    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
-    outPath,
-  ]);
+  if (audioOpts !== undefined) {
+    const audioInput = audioOpts.ttsPath ?? null;
+    await runFfmpeg([
+      '-y', '-hide_banner', '-loglevel', 'error',
+      '-loop', '1', '-t', String(SECONDS_PER_PHOTO), '-i', imagePath,
+      ...(audioInput ? ['-i', audioInput] : ['-f', 'lavfi', '-i', `anullsrc=r=44100:cl=stereo`]),
+      '-vf', vf,
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+      '-c:a', 'aac', '-shortest',
+      outPath,
+    ]);
+  } else {
+    await runFfmpeg([
+      '-y', '-hide_banner', '-loglevel', 'error',
+      '-loop', '1', '-t', String(SECONDS_PER_PHOTO), '-i', imagePath,
+      '-vf', vf,
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+      outPath,
+    ]);
+  }
 }
 
 // 타이틀/엔딩 카드 (단색 배경 + 큰 제목 + 보조 문구)
@@ -134,6 +149,7 @@ async function renderCard(
   heading: string,
   body: string,
   outPath: string,
+  withAudio = false,
 ): Promise<void> {
   const headFile = await writeTextFile(dir, `card_h_${idx}.txt`, wrapText(heading, 22));
   const bodyFile = await writeTextFile(dir, `card_b_${idx}.txt`, wrapText(body, 34));
@@ -145,13 +161,28 @@ async function renderCard(
     `fade=t=out:st=${(CARD_SECONDS - FADE).toFixed(2)}:d=${FADE}`,
   ].join(',');
 
-  await runFfmpeg([
+  const baseArgs = [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-f', 'lavfi', '-i', `color=c=0x0f172a:s=${WIDTH}x${HEIGHT}:d=${CARD_SECONDS}`,
-    '-vf', vf,
-    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
-    outPath,
-  ]);
+  ];
+
+  if (withAudio) {
+    await runFfmpeg([
+      ...baseArgs,
+      '-f', 'lavfi', '-i', `anullsrc=r=44100:cl=stereo`,
+      '-vf', vf,
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+      '-c:a', 'aac', '-t', String(CARD_SECONDS),
+      outPath,
+    ]);
+  } else {
+    await runFfmpeg([
+      ...baseArgs,
+      '-vf', vf,
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+      outPath,
+    ]);
+  }
 }
 
 // 세그먼트들을 concat demuxer로 이어붙임 (동일 코덱이라 stream copy)
@@ -167,15 +198,30 @@ async function concatSegments(dir: string, segs: string[], outPath: string): Pro
   ]);
 }
 
+// 최종 영상에 BGM을 낮은 볼륨으로 오버레이
+async function overlayBgm(videoPath: string, bgmPath: string, outPath: string): Promise<void> {
+  await runFfmpeg([
+    '-y', '-hide_banner', '-loglevel', 'error',
+    '-i', videoPath,
+    '-stream_loop', '-1', '-i', bgmPath,
+    '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=first:weights=1 0.15[aout]',
+    '-map', '0:v', '-map', '[aout]',
+    '-c:v', 'copy', '-c:a', 'aac',
+    '-movflags', '+faststart',
+    outPath,
+  ]);
+}
+
 // 로컬 이미지 경로 기반 슬라이드쇼 합성 (테스트 가능한 코어)
-export async function renderSlideshow(input: SlideshowInput, outPath: string): Promise<void> {
+export async function renderSlideshow(input: SlideshowInput, outPath: string, audio?: AudioOptions): Promise<void> {
+  const withAudio = !!(audio?.ttsEnabled || audio?.bgmPath);
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cinemap-render-'));
   try {
     const segments: string[] = [];
 
     // 인트로 카드
     const introCard = path.join(workDir, 'seg_intro.mp4');
-    await renderCard(workDir, 0, input.title || 'CineMap', input.intro || '', introCard);
+    await renderCard(workDir, 0, input.title || 'CineMap', input.intro || '', introCard, withAudio);
     segments.push(introCard);
 
     // 사진 세그먼트
@@ -184,18 +230,36 @@ export async function renderSlideshow(input: SlideshowInput, outPath: string): P
       const item = items[i]!;
       const capFile = await writeTextFile(workDir, `cap_${i}.txt`, wrapText(item.caption));
       const segPath = path.join(workDir, `seg_${i}.mp4`);
-      await renderPhotoSegment(item.imagePath, capFile, segPath);
+
+      let ttsPath: string | undefined;
+      if (audio?.ttsEnabled) {
+        const rawTts = path.join(workDir, `tts_raw_${i}.mp3`);
+        const paddedTts = path.join(workDir, `tts_${i}.aac`);
+        const ok = await generateTts(item.caption, audio.ttsVoice, rawTts);
+        if (ok) {
+          await padAudio(rawTts, SECONDS_PER_PHOTO, paddedTts);
+          ttsPath = paddedTts;
+        }
+      }
+
+      const audioOpts = withAudio ? (ttsPath ? { ttsPath } : {}) : undefined;
+      await renderPhotoSegment(item.imagePath, capFile, segPath, audioOpts);
       segments.push(segPath);
     }
 
     // 엔딩 카드
     if (input.outro && input.outro.trim()) {
       const outroCard = path.join(workDir, 'seg_outro.mp4');
-      await renderCard(workDir, 1, 'Fin', input.outro, outroCard);
+      await renderCard(workDir, 1, 'Fin', input.outro, outroCard, withAudio);
       segments.push(outroCard);
     }
 
-    await concatSegments(workDir, segments, outPath);
+    const concatOut = audio?.bgmPath ? path.join(workDir, 'concat.mp4') : outPath;
+    await concatSegments(workDir, segments, concatOut);
+
+    if (audio?.bgmPath) {
+      await overlayBgm(concatOut, audio.bgmPath, outPath);
+    }
   } finally {
     await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
@@ -250,11 +314,11 @@ function withRenderLock<T>(fn: () => Promise<T>): Promise<T> {
 
 // 스토리보드 → 영상 Buffer. 각 stop의 베스트샷(없으면 첫 사진) 1장 + 캡션 사용.
 // 동시 실행은 직렬화되어 한 번에 하나의 렌더만 수행된다.
-export function renderCinemapVideo(storyboard: Storyboard): Promise<Buffer> {
-  return withRenderLock(() => renderCinemapVideoInner(storyboard));
+export function renderCinemapVideo(storyboard: Storyboard, audio?: AudioOptions): Promise<Buffer> {
+  return withRenderLock(() => renderCinemapVideoInner(storyboard, audio));
 }
 
-async function renderCinemapVideoInner(storyboard: Storyboard): Promise<Buffer> {
+async function renderCinemapVideoInner(storyboard: Storyboard, audio?: AudioOptions): Promise<Buffer> {
   const dlDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cinemap-dl-'));
   const outPath = path.join(dlDir, `${randomUUID()}.mp4`);
   try {
@@ -283,6 +347,7 @@ async function renderCinemapVideoInner(storyboard: Storyboard): Promise<Buffer> 
         items,
       },
       outPath,
+      audio,
     );
 
     return await fs.readFile(outPath);
