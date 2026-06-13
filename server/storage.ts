@@ -294,6 +294,7 @@ export interface IStorage {
     id: number,
     updates: Partial<InsertCinemapJob>
   ): Promise<CinemapJob | undefined>;
+  getCinemapQueuePosition(jobId: number): Promise<number>;
 
   // Trip operations
   createTrip(trip: InsertTrip): Promise<Trip>;
