@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Lock, Shield, CheckCircle2, Handshake, MapPin, Calendar, DollarSign, Clock } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { usePayment } from '@/hooks/usePayment';
 
 interface ContractParty { id: string; name: string; avatarUrl?: string | null; initials?: string }
 interface PaymentMilestone { label: string; amount: number; dueDate?: string; status: 'pending' | 'paid' | 'upcoming' }
@@ -48,7 +49,9 @@ export default function ContractPage() {
   const [, params] = useRoute('/contract/:id');
   const { toast } = useToast();
   const [signing, setSigning] = useState(false);
+  const [paying, setPaying] = useState(false);
   const contractId = params?.id;
+  const { openCheckout } = usePayment();
 
   const { data: contract, isLoading, error } = useQuery<Contract>({
     queryKey: ['/api/contracts', contractId],
@@ -66,6 +69,33 @@ export default function ContractPage() {
     onError: () => toast({ title: t('contract.signError'), variant: 'destructive' }),
     onSettled: () => setSigning(false),
   });
+
+  const handlePay = async (stageId: number) => {
+    setPaying(true);
+    try {
+      const init = await api(`/api/contracts/${contractId}/initiate-payment`, {
+        method: 'POST',
+        body: { stageId },
+      });
+      if (!init.success) throw new Error(init.message);
+
+      await openCheckout(
+        init.payment.priceId,
+        { contractId: String(contractId), stageId: String(stageId), paymentId: init.payment.paymentId },
+        async (transactionId: string) => {
+          await api(`/api/contracts/${contractId}/confirm-payment`, {
+            method: 'POST',
+            body: { stageId, transactionId },
+          });
+          toast({ title: t('contract.paySuccess', { defaultValue: '결제 완료' }) });
+        }
+      );
+    } catch (e: any) {
+      toast({ title: t('contract.payError', { defaultValue: '결제 실패' }), description: e.message, variant: 'destructive' });
+    } finally {
+      setPaying(false);
+    }
+  };
 
   const cardStyle = { borderRadius: 'var(--radius-card)', padding: 16, marginBottom: 12 } as const;
   const labelStyle = { color: 'var(--text-secondary)', fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: 6 };
@@ -223,14 +253,29 @@ export default function ContractPage() {
 
       {/* Sticky bottom bar */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(17,19,26,0.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(200,168,78,0.15)', padding: '12px 16px', display: 'flex', gap: 10, zIndex: 50 }}>
-        <button className="tg-btn-ghost" style={{ flex: 1, padding: '12px 0', fontSize: 14, cursor: 'pointer' }}
-          onClick={() => toast({ title: t('contract.reviseNote') })}>
-          {t('contract.reviseCTA')}
-        </button>
-        <button className="tg-btn-primary" style={{ flex: 2, padding: '14px 0', fontSize: 15, fontWeight: 700, border: 'none', cursor: signing ? 'not-allowed' : 'pointer', opacity: signing ? 0.7 : 1 }}
-          onClick={() => { setSigning(true); signMutation.mutate(); }} disabled={signing} data-testid="button-sign">
-          {signing ? t('contract.signing') : t('contract.signCTA')}
-        </button>
+        {c.status === 'pending' && (
+          <>
+            <button className="tg-btn-ghost" style={{ flex: 1, padding: '12px 0', fontSize: 14, cursor: 'pointer' }}
+              onClick={() => toast({ title: t('contract.reviseNote') })}>
+              {t('contract.reviseCTA')}
+            </button>
+            <button className="tg-btn-primary" style={{ flex: 2, padding: '14px 0', fontSize: 15, fontWeight: 700, border: 'none', cursor: signing ? 'not-allowed' : 'pointer', opacity: signing ? 0.7 : 1 }}
+              onClick={() => { setSigning(true); signMutation.mutate(); }} disabled={signing} data-testid="button-sign">
+              {signing ? t('contract.signing') : t('contract.signCTA')}
+            </button>
+          </>
+        )}
+        {(c.status === 'signed' || c.status === 'confirmed' || c.status === 'in_progress') && (
+          c.milestones
+            .filter(m => m.status === 'pending')
+            .slice(0, 1)
+            .map((m, i) => (
+              <button key={i} className="tg-btn-primary" style={{ flex: 1, padding: '14px 0', fontSize: 15, fontWeight: 700, border: 'none', cursor: paying ? 'not-allowed' : 'pointer', opacity: paying ? 0.7 : 1 }}
+                onClick={() => handlePay((m as any).id)} disabled={paying} data-testid="button-pay">
+                {paying ? t('contract.paying', { defaultValue: '결제 중...' }) : `${m.label} ${fmt(m.amount)} 결제`}
+              </button>
+            ))
+        )}
       </div>
 
     </div>

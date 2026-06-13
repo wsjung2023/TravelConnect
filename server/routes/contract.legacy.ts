@@ -147,9 +147,14 @@ export function registerLegacyContractRoutes(
         return res.status(400).json({ message: result.error });
       }
       
-      const { portoneClient } = await import('../services/portoneClient');
-      const publicConfig = portoneClient.getPublicConfig();
-      
+      const isSandbox = process.env.PADDLE_ENVIRONMENT !== 'production';
+      const priceId = isSandbox
+        ? process.env.PADDLE_SANDBOX_CONTRACT_PRICE_ID
+        : process.env.PADDLE_LIVE_CONTRACT_PRICE_ID;
+
+      // price = $0.01 per unit → quantity = amountInCents
+      const amountCents = Math.round((result.amount ?? 0) * 100);
+
       res.json({
         success: true,
         payment: {
@@ -157,8 +162,9 @@ export function registerLegacyContractRoutes(
           orderName: result.orderName,
           amount: result.amount,
           currency: result.currency,
+          priceId,
+          quantity: amountCents,
         },
-        portone: publicConfig,
         customData: {
           contractId: parseInt(req.params.id),
           stageId: stageId,
@@ -178,27 +184,21 @@ export function registerLegacyContractRoutes(
         return res.status(401).json({ message: 'Unauthorized' });
       }
       
-      const { stageId, portonePaymentId } = req.body;
-      if (!stageId || !portonePaymentId) {
-        return res.status(400).json({ message: 'Stage ID and payment ID are required' });
+      const { stageId, transactionId } = req.body;
+      if (!stageId || !transactionId) {
+        return res.status(400).json({ message: 'Stage ID and transaction ID are required' });
       }
-      
-      const { portoneClient } = await import('../services/portoneClient');
-      const paymentStatus = await portoneClient.getPayment(portonePaymentId);
-      
-      if (!paymentStatus.success || paymentStatus.status !== 'PAID') {
-        return res.status(400).json({ 
-          message: 'Payment not confirmed',
-          status: paymentStatus.status 
-        });
-      }
-      
+
+      const { PaddleProvider } = await import('../services/payment/PaddleProvider');
+      const paddle = new PaddleProvider();
+      const paymentResult = await paddle.confirmPayment(transactionId);
+
       const { escrowService } = await import('../services/escrowService');
       const result = await escrowService.handlePaymentComplete(
         parseInt(req.params.id),
         stageId,
-        portonePaymentId,
-        paymentStatus.amount || 0
+        transactionId,
+        paymentResult.amount
       );
       
       if (!result.success) {
