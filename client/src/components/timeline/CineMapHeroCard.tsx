@@ -11,7 +11,11 @@ interface Props {
   loading?: boolean;
 }
 
-function StatusMessage({ status, stage, queuePosition }: Pick<Props, 'status' | 'stage' | 'queuePosition'>) {
+function StatusMessage({ status, stage, queuePosition }: {
+  status: string | null | undefined;
+  stage: string | null | undefined;
+  queuePosition: number | null | undefined;
+}) {
   if (status === 'pending') {
     const pos = queuePosition ?? '?';
     return (
