@@ -621,7 +621,8 @@ export function registerLegacyAIFeaturesRoutes(
           let resultVideoUrl: string | null = null;
           try {
             const videoBuffer = await renderCinemapVideo(storyboard);
-            const filename = `cinemap-${job.id}-${randomUUID()}.mp4`;
+            // 파일명은 /api/files/:filename 검증기(^[a-f0-9-]+\.[a-z0-9]+$)에 맞춰 hex+하이픈만 사용
+            const filename = `${randomUUID()}.mp4`;
             await objectStorageService.uploadFile(filename, videoBuffer, 'video/mp4');
             resultVideoUrl = `/api/files/${filename}`;
             console.log(`[CineMap] Video rendered and uploaded for job ${job.id}: ${filename} (${videoBuffer.length} bytes)`);
