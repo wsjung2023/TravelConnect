@@ -4,6 +4,9 @@ import type { Express } from 'express';
 import { generateConciergeResponse, isConciergeEnabled, type ConciergeContext } from '../ai/concierge';
 import { generateMiniPlans, isMiniConciergeEnabled, type MiniPlanContext } from '../ai/miniConcierge';
 import { generateStoryboard, type PhotoWithExif } from '../ai/cinemap';
+import { renderCinemapVideo } from '../services/cinemapVideoService';
+import * as objectStorageService from '../services/objectStorageService';
+import { randomUUID } from 'crypto';
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../auth';
 
@@ -614,13 +617,29 @@ export function registerLegacyAIFeaturesRoutes(
 
           console.log(`[CineMap] Storyboard generated successfully for job ${job.id}`);
 
-          // FIXME-TODO [CineMap영상렌더링미구현]: GPT 스토리보드 생성까지는 완료되나
-          // 실제 영상 파일 렌더링(FFmpeg/Remotion 등) 미구현. resultVideoUrl은 항상 null.
-          // 구현 경로: storyboard.stops의 사진 + 캡션을 ffmpeg/Remotion으로 편집 → 영상 파일 업로드 → URL 저장.
+          // 스토리보드 사진 + 캡션을 ffmpeg 슬라이드쇼 mp4로 렌더링 → Object Storage 업로드 → URL 저장
+          let resultVideoUrl: string | null = null;
+          try {
+            const videoBuffer = await renderCinemapVideo(storyboard);
+            const filename = `cinemap-${job.id}-${randomUUID()}.mp4`;
+            await objectStorageService.uploadFile(filename, videoBuffer, 'video/mp4');
+            resultVideoUrl = `/api/files/${filename}`;
+            console.log(`[CineMap] Video rendered and uploaded for job ${job.id}: ${filename} (${videoBuffer.length} bytes)`);
+          } catch (renderError: any) {
+            // 렌더링 실패 시 스토리보드는 보존하되 실패 상태로 명시 (조용한 폴백 금지)
+            console.error(`[CineMap] Video rendering failed for job ${job.id}:`, renderError);
+            await storage.updateCinemapJob(job.id, {
+              status: 'failed',
+              storyboard: storyboard as any,
+              errorMessage: `영상 렌더링 실패: ${renderError.message || '알 수 없는 오류'}`,
+            });
+            return;
+          }
+
           await storage.updateCinemapJob(job.id, {
             status: 'completed',
             storyboard: storyboard as any,
-            resultVideoUrl: null,
+            resultVideoUrl,
           });
 
           console.log(`[CineMap] Job ${job.id} completed successfully`);
