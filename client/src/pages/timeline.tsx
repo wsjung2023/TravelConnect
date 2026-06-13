@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import { queryClient } from '@/lib/queryClient';
-import CineMapHeroCard from '@/components/timeline/CineMapHeroCard';
+import CineMapHeroCard, { type CinemapJobConfig } from '@/components/timeline/CineMapHeroCard';
 import TimelineHeroHeader from '@/components/timeline/TimelineHeroHeader';
 
 interface PostMedia {
@@ -158,12 +158,22 @@ export default function TimelinePage() {
   const queuePosition = activeJobData?.queuePosition ?? null;
   const displayJob = polledJob ?? cinemapJob;
 
+  const { data: bgmData } = useQuery<{ tracks: { id: string; label: string }[] }>({
+    queryKey: ['/api/cinemap/bgm-tracks'],
+    queryFn: async () => {
+      const res = await fetch('/api/cinemap/bgm-tracks', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch BGM tracks');
+      return res.json();
+    },
+  });
+  const bgmTracks = bgmData?.tracks ?? [];
+
   // Create CineMap job mutation
   const createCinemapMutation = useMutation({
-    mutationFn: async (timelineId: number) => {
+    mutationFn: async ({ timelineId, config }: { timelineId: number; config?: CinemapJobConfig }) => {
       return apiRequest(`/api/cinemap/jobs`, {
         method: 'POST',
-        body: JSON.stringify({ timelineId }),
+        body: JSON.stringify({ timelineId, config }),
       });
     },
     onSuccess: () => {
@@ -182,11 +192,11 @@ export default function TimelinePage() {
     },
   });
 
-  const handleCreateCinemap = () => {
+  function handleCreateCinemap(config?: CinemapJobConfig) {
     if (selectedTimelineId) {
-      createCinemapMutation.mutate(selectedTimelineId);
+      createCinemapMutation.mutate({ timelineId: selectedTimelineId, config });
     }
-  };
+  }
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline', label: string }> = {
@@ -251,8 +261,9 @@ export default function TimelinePage() {
                 stage={displayJob?.stage}
                 queuePosition={queuePosition}
                 videoUrl={displayJob?.resultVideoUrl}
+                bgmTracks={bgmTracks}
                 onCreate={handleCreateCinemap}
-                onRetry={handleCreateCinemap}
+                onRetry={() => handleCreateCinemap()}
                 loading={createCinemapMutation.isPending}
               />
             </div>
