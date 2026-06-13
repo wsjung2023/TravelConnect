@@ -576,7 +576,7 @@ export function registerLegacyAIFeaturesRoutes(
           console.log(`[CineMap] Starting storyboard generation for job ${job.id}, timeline ${timelineId}`);
           
           // Update status to processing
-          await storage.updateCinemapJob(job.id, { status: 'processing' });
+          await storage.updateCinemapJob(job.id, { status: 'processing', stage: 'storyboard_generating' });
 
           // Fetch timeline with all media
           const timelineWithPosts = await storage.getTimelineWithPosts(parseInt(timelineId));
@@ -616,6 +616,7 @@ export function registerLegacyAIFeaturesRoutes(
           );
 
           console.log(`[CineMap] Storyboard generated successfully for job ${job.id}`);
+          await storage.updateCinemapJob(job.id, { stage: 'video_rendering' });
 
           // 스토리보드 사진 + 캡션을 ffmpeg 슬라이드쇼 mp4로 렌더링 → Object Storage 업로드 → URL 저장
           let resultVideoUrl: string | null = null;
@@ -631,6 +632,7 @@ export function registerLegacyAIFeaturesRoutes(
             console.error(`[CineMap] Video rendering failed for job ${job.id}:`, renderError);
             await storage.updateCinemapJob(job.id, {
               status: 'failed',
+              stage: 'idle',
               storyboard: storyboard as any,
               errorMessage: `영상 렌더링 실패: ${renderError.message || '알 수 없는 오류'}`,
             });
@@ -639,6 +641,7 @@ export function registerLegacyAIFeaturesRoutes(
 
           await storage.updateCinemapJob(job.id, {
             status: 'completed',
+            stage: 'idle',
             storyboard: storyboard as any,
             resultVideoUrl,
           });
@@ -648,6 +651,7 @@ export function registerLegacyAIFeaturesRoutes(
           console.error(`[CineMap] Error generating storyboard for job ${job.id}:`, error);
           await storage.updateCinemapJob(job.id, {
             status: 'failed',
+            stage: 'idle',
             errorMessage: error.message || 'Failed to generate storyboard',
           });
         }
@@ -679,7 +683,12 @@ export function registerLegacyAIFeaturesRoutes(
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      res.json({ job });
+      const queuePosition =
+        job.status === 'pending' || job.status === 'processing'
+          ? await storage.getCinemapQueuePosition(jobId)
+          : null;
+
+      res.json({ job, queuePosition });
     } catch (error) {
       console.error('Error fetching CineMap job:', error);
       res.status(500).json({ message: 'Failed to fetch CineMap job' });
