@@ -85,6 +85,11 @@ PADDLE_LIVE_CLIENT_TOKEN
 PADDLE_LIVE_WEBHOOK_SECRET
 ```
 
+**절대 금지: /nix 또는 / 전체 파일시스템 탐색**
+- `find /nix`, `find /`, `find /home/runner /nix` 등 대형 디렉토리 탐색 금지
+- Nix store는 수십만 파일 — 백그라운드로 돌려도 수 시간 CPU/메모리 잡아먹어 서버 다운시킴
+- 파일 찾을 때는 반드시 `find .` 또는 특정 프로젝트 경로만 탐색할 것
+
 **절대 금지: 서버 프로세스 직접 재시작**
 - `kill`, `pkill` 등으로 서버 프로세스를 죽이지 말 것
 - Replit이 시작한 서버에는 Secrets가 주입되어 있음. 직접 재시작하면 secrets 없이 뜨고 결제/DB 등 모든 연동이 깨짐
