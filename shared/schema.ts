@@ -204,6 +204,7 @@ export const cinemapJobs = pgTable('cinemap_jobs', {
   timelineId: integer('timeline_id')
     .references(() => timelines.id),
   status: varchar('status').default('pending'), // pending, processing, completed, failed
+  stage: varchar('stage', { length: 32 }).default('idle').notNull(), // idle, storyboard_generating, video_rendering
   resultVideoUrl: varchar('result_video_url'),
   storyboard: jsonb('storyboard'),
   errorMessage: text('error_message'),
