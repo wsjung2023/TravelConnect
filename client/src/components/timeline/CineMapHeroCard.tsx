@@ -18,10 +18,11 @@ function StatusMessage({ status, stage, queuePosition }: {
 }) {
   if (status === 'pending') {
     const pos = queuePosition ?? '?';
+    const label = pos === 1 ? '처리 준비 중' : `대기 중 (${pos}번째)`;
     return (
       <div className="flex items-center gap-2 text-sm text-white/80">
         <Loader2 size={14} className="animate-spin" />
-        대기 중 ({pos}번째)
+        {label}
       </div>
     );
   }
@@ -58,7 +59,7 @@ export default function CineMapHeroCard({ status, stage, queuePosition, videoUrl
       <div className="mb-1 text-lg font-semibold">Your trip as a cinematic story</div>
       <div className="mb-3 text-xs text-white/70">Generate, preview, and share your travel movie.</div>
 
-      {isActive && <StatusMessage status={status} stage={stage} queuePosition={queuePosition} />}
+      {(isActive || status === 'failed') && <StatusMessage status={status} stage={stage} queuePosition={queuePosition} />}
 
       <div className="mt-3 flex items-center gap-2">
         {completed ? (

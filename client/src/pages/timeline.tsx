@@ -146,7 +146,11 @@ export default function TimelinePage() {
       return response.json();
     },
     enabled: !!activeJobId,
-    refetchInterval: 3000,
+    refetchInterval: (query) => {
+      const data = query.state.data as { job: CinemapJob } | undefined;
+      const s = data?.job?.status;
+      return s === 'pending' || s === 'processing' ? 3000 : false;
+    },
   });
 
   // 폴링 결과로 최신 job 상태 사용
