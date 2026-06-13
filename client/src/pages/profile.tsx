@@ -201,6 +201,7 @@ export default function Profile() {
         onChat={() => setLocation(`/chat?userId=${viewingUserId || currentUser?.id}`)}
         onFollow={() => {}}
         onMeet={() => {}}
+        onSubscription={() => setLocation('/subscription')}
       />
 
       <ProfileStats

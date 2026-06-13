@@ -1,6 +1,7 @@
 - [Tourgether 라우트 이중성](tourgether-route-duplication.md) — `/api/posts` 등 일부 엔드포인트가 `server/routes.ts`(활성)와 `server/routes/social.ts`(미연결) 양쪽에 존재. 신규 보안 검사는 routes.ts 쪽에 반드시 추가.
 - [Tourgether 가드레일](tourgether-guardrails.md) — `server/routes.ts`는 거의 frozen, 새 엔드포인트는 `server/routes/` 하위 모듈로. 새 파일 1줄 상단 주석 필수. 250줄 분리 검토/400줄 강제 분리.
 - [Tourgether bookings 조회](tourgether-bookings-role.md) — `getBookingsByUser(userId, role)` role 필수 ('guest' | 'host'). 호출 시 누락하면 잘못된 컬럼으로 매칭됨.
+- [서버 기동 실패=자원 고갈](tourgether-startup-resource-exhaustion.md) — DIDNT_OPEN_A_PORT+DB타임아웃+로그0줄이면 코드 의심 전 free -m/load 확인. 떠도는 검색 프로세스가 메모리 빨면 전부 hang.
 - [Tourgether payments.intentId](tourgether-payments-intentid.md) — 스키마에 컬럼은 있으나 일부 결제 흐름에서 insert 시 채워지지 않음. receiptUrl 업데이트는 best-effort로 처리하고 응답에 직접 포함하는 게 안전.
 - [Start application "failed(no output)"](tourgether-workflow-zombie-port.md) — 좀비 dev 서버 손자 node PID가 포트5000 점유 시 재시작 실패+preview 안뜸. 손자 PID까지 kill 후 restart.
 - [Tourgether Vite 버전 상한](tourgether-vite-version.md) — vite는 `^6` 고정. v7/v8로 올리면 Replit 플러그인 hot.send() undefined → 프리뷰 무한 에러 루프(CPU 100%).

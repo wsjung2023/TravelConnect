@@ -1,5 +1,5 @@
 // 프로필 히어로 — mockup 기준의 커버/오픈투밋 배너/아바타/언어칩/역할 배지/CTA
-import { Compass, Camera, Map, Home, Edit3, MapPin, Sparkles, MessageCircle, UserPlus, HeartHandshake } from 'lucide-react';
+import { Compass, Camera, Map, Home, Edit3, MapPin, Sparkles, MessageCircle, UserPlus, HeartHandshake, Crown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface User {
@@ -27,6 +27,7 @@ interface Props {
   onChat?: () => void;
   onFollow?: () => void;
   onMeet?: () => void;
+  onSubscription?: () => void;
 }
 
 const BADGE_DEFS = [
@@ -49,7 +50,7 @@ function normalizeLanguage(lang: string) {
   return lang.trim().slice(0, 3).toUpperCase();
 }
 
-export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFollow, onMeet }: Props) {
+export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFollow, onMeet, onSubscription }: Props) {
   const { t } = useTranslation('ui');
   if (!user) return null;
 
@@ -125,18 +126,33 @@ export default function ProfileHeader({ user, isOwnProfile, onEdit, onChat, onFo
           </div>
 
           {isOwnProfile && (
-            <button
-              onClick={onEdit}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full"
-              style={{
-                background: 'rgba(10,11,16,0.5)',
-                border: '1px solid rgba(255,255,255,0.14)',
-                backdropFilter: 'blur(12px)',
-              }}
-              aria-label={t('profile.actions.edit')}
-            >
-              <Edit3 size={15} style={{ color: 'var(--text-primary)' }} />
-            </button>
+            <div className="absolute right-4 top-4 flex items-center gap-2">
+              <button
+                onClick={onSubscription}
+                className="flex h-9 w-9 items-center justify-center rounded-full"
+                style={{
+                  background: 'rgba(10,11,16,0.5)',
+                  border: '1px solid rgba(255,214,134,0.3)',
+                  backdropFilter: 'blur(12px)',
+                }}
+                aria-label="구독 관리"
+                data-testid="button-subscription"
+              >
+                <Crown size={15} style={{ color: 'var(--accent-gold, #FFD686)' }} />
+              </button>
+              <button
+                onClick={onEdit}
+                className="flex h-9 w-9 items-center justify-center rounded-full"
+                style={{
+                  background: 'rgba(10,11,16,0.5)',
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  backdropFilter: 'blur(12px)',
+                }}
+                aria-label={t('profile.actions.edit')}
+              >
+                <Edit3 size={15} style={{ color: 'var(--text-primary)' }} />
+              </button>
+            </div>
           )}
         </div>
 

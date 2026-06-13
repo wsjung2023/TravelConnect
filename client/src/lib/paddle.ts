@@ -13,28 +13,26 @@ let initPromise: Promise<any> | null = null;
 export function loadPaddle(): Promise<any> {
   if (initPromise) return initPromise;
 
-  initPromise = new Promise((resolve, reject) => {
+  initPromise = new Promise<any>((resolve, reject) => {
+    const onLoaded = () => {
+      initPaddle(window.Paddle).then(() => resolve(window.Paddle)).catch(reject);
+    };
+
     if (window.Paddle) {
-      initPaddle(window.Paddle);
-      return resolve(window.Paddle);
+      onLoaded();
+      return;
     }
 
     const existing = document.querySelector(`script[src="${PADDLE_CDN}"]`);
     if (existing) {
-      existing.addEventListener('load', () => {
-        initPaddle(window.Paddle);
-        resolve(window.Paddle);
-      });
+      existing.addEventListener('load', onLoaded);
       return;
     }
 
     const script = document.createElement('script');
     script.src = PADDLE_CDN;
     script.async = true;
-    script.onload = () => {
-      initPaddle(window.Paddle);
-      resolve(window.Paddle);
-    };
+    script.onload = onLoaded;
     script.onerror = () => reject(new Error('Failed to load Paddle.js'));
     document.head.appendChild(script);
   });
@@ -42,11 +40,11 @@ export function loadPaddle(): Promise<any> {
   return initPromise;
 }
 
-function initPaddle(Paddle: any): void {
-  const env = import.meta.env.VITE_PADDLE_ENVIRONMENT || 'sandbox';
-  const token = env === 'sandbox'
-    ? import.meta.env.VITE_PADDLE_SANDBOX_CLIENT_TOKEN
-    : import.meta.env.VITE_PADDLE_LIVE_CLIENT_TOKEN;
+async function initPaddle(Paddle: any): Promise<void> {
+  const res = await fetch('/api/billing/config', { credentials: 'include' });
+  const config = res.ok ? await res.json() : {};
+  const env: string = config.environment || import.meta.env.VITE_PADDLE_ENVIRONMENT || 'sandbox';
+  const token: string = config.clientToken || '';
 
   if (env === 'sandbox') {
     Paddle.Environment.set('sandbox');
