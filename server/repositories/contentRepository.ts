@@ -7,7 +7,7 @@ import {
   type User, type MiniMeet, type InsertMiniMeet, type MiniMeetAttendee, type CinemapJob, type InsertCinemapJob,
   type Post
 } from '@shared/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, lte, inArray } from 'drizzle-orm';
 import { getUser } from './userRepository';
 
 // Timeline operations
@@ -513,4 +513,18 @@ export async function updateCinemapJob(
     .where(eq(cinemapJobs.id, id))
     .returning();
   return updated;
+}
+
+// 해당 job 앞에 처리 대기/진행 중인 job 수 반환 (1 = 바로 다음 차례)
+export async function getCinemapQueuePosition(jobId: number): Promise<number> {
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(cinemapJobs)
+    .where(
+      and(
+        inArray(cinemapJobs.status, ['pending', 'processing']),
+        lte(cinemapJobs.id, jobId)
+      )
+    );
+  return result[0]?.count ?? 1;
 }
