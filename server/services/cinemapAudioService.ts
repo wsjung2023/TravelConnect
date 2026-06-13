@@ -41,7 +41,7 @@ export async function resolveAudioOptions(config: CinemapJobConfig | null | unde
   }
 
   return {
-    bgmPath,
+    ...(bgmPath !== undefined ? { bgmPath } : {}),
     ttsEnabled: config.ttsEnabled ?? false,
     ttsVoice: config.ttsVoice ?? 'alloy',
   };
